@@ -29,11 +29,7 @@ import com.simsilica.state.CommandConsoleState;
 import infinity.client.ClientEvent;
 import infinity.client.GameSessionState;
 
-/**
- *
- *
- * @author Paul Speed
- */
+/** Main menu UI (single-player / multiplayer / options / exit). */
 public class MainMenuState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(MainMenuState.class);
@@ -55,9 +51,7 @@ public class MainMenuState extends BaseAppState {
         return mainWindow;
     }
 
-    /**
-     * Returns the camera size unscaled by getStandardScale().
-     */
+    /** Camera size divided by {@link #getStandardScale()}. */
     public Vector2f getScreenSize() {
         final int width = getApplication().getCamera().getWidth();
         final int height = getApplication().getCamera().getHeight();
@@ -65,11 +59,7 @@ public class MainMenuState extends BaseAppState {
         return new Vector2f(width / standardScale, height / standardScale);
     }
 
-    /**
-     * Returns a normalized scaling used for the menu GUIs. This will automatically
-     * scale down if the screen is a lower resolution but will not scale up beyond
-     * the 'ideal size'... in this case height = 720.
-     */
+    /** Normalised menu-GUI scale; capped at 1.0 (ideal height = 720px). */
     public float getStandardScale() {
         final int height = getApplication().getCamera().getHeight();
         return Math.min(1, height / 720f);

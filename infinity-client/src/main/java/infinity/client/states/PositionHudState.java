@@ -21,27 +21,7 @@ import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;
 import infinity.es.arena.ArenaId;
 
-/**
- * Top-left HUD overlay showing the player avatar's current world coord and (if the avatar
- * is inside a loaded arena) its arena-local coord. Both are reported in the game's world
- * space — there is no client-local coordinate transform applied.
- *
- * <p>World position is read from the {@link BlackboardState} key {@code "position"} —
- * published by {@code AvatarMovementState} once it has resolved the avatar entity and
- * picked up an interpolated {@link com.simsilica.bpos.BodyPosition} buffer. Lazy lookup in
- * {@link #update}, so this state's relative attach order vs. {@code AvatarMovementState}
- * doesn't matter — we just wait until the value shows up on the blackboard.
- *
- * <p>Per the arena-local convention defined in {@code ArenaSystem.arenaToWorld}: arena-local
- * {@code (0, 0)} is the {@code NW} corner and {@code (TILE_SIZE, TILE_SIZE)} is {@code SE}.
- * The render flips world {@code (max-X, max-Z)} onto the screen NW, so the inverse of the
- * spawn formula gives {@code arena = max - world} on each axis.
- *
- * <p>Read-only by design: the client never mutates arena bounds or avatar positions; both
- * arrive via the same Zay-ES / SimEthereal channels other client states already use.
- *
- * @author Asser Fahrenholz
- */
+/** Top-left HUD: avatar world coord + arena-local coord. Arena-local = max - world (per axis). */
 public class PositionHudState extends BaseAppState {
 
   private EntityData ed;
@@ -73,10 +53,6 @@ public class PositionHudState extends BaseAppState {
 
   @Override
   protected void cleanup(final Application app) {
-    // Release the WatchedEntity acquired (lazily) in update(). Per the
-    // entity-sets.md convention: WatchedEntity is acquired once per state
-    // lifetime, so its release is symmetric with initialize/cleanup, not
-    // with onEnable/onDisable.
     if (avatarWatch != null) {
       avatarWatch.release();
       avatarWatch = null;
@@ -111,17 +87,9 @@ public class PositionHudState extends BaseAppState {
     updateArenaLabel(world);
   }
 
-  /**
-   * Lazy-bind the position reference and return the avatar's current world position,
-   * or {@code null} if the avatar is not yet observable. Updates the world/arena
-   * placeholder labels as a side-effect for the not-ready states.
-   */
+  // Returns null if the avatar is not yet observable; also updates the placeholder labels for the not-ready state.
   private Vec3d resolveAvatarWorld() {
-    // Lazy-bind the position reference: AvatarMovementState publishes the avatar's
-    // smoothed world position to BlackboardState["position"] in its initialize(), but
-    // by the time it arrives depends on AppState ordering and on the avatar entity
-    // being resolved server-side. Retrying every frame until the value appears keeps
-    // this state oblivious to that timing.
+    // Lazy-bind: AvatarMovementState publishes "position" timing depends on attach order + RMI roundtrip.
     if (posRef == null && blackboard != null) {
       @SuppressWarnings("unchecked")
       final VersionedObject<Vec3d> holder =
@@ -145,14 +113,6 @@ public class PositionHudState extends BaseAppState {
     return world;
   }
 
-  /**
-   * Lazy-resolve the avatar entity id (GameSessionState fetches via RMI; may not
-   * have arrived yet at this state's initialize), then lazy-bind the watch.
-   * ed.getComponent on the client-side network proxy is unreliable for "not
-   * currently observed" component values — ed.watchEntity is the canonical pattern
-   * used elsewhere in the client (see AvatarMovementState for BodyPosition,
-   * InfinityCameraState for the same).
-   */
   private void updateArenaLabel(final Vec3d world) {
     final ArenaId arenaId = resolveArenaId();
     if (arenaId == null || arenaRegistry == null) {
@@ -171,11 +131,7 @@ public class PositionHudState extends BaseAppState {
         String.format("arena:  %s  (%.0f, %.0f)", snap.arenaName, localX, localZ));
   }
 
-  /**
-   * Lazy-resolve the avatar entity id and bind a one-component watch on its
-   * {@link ArenaId}. Returns the latest known {@link ArenaId} (possibly null
-   * if the avatar is not yet observable or hasn't been placed in any arena).
-   */
+  // Lazy-resolves avatar id (RMI) and binds a one-component watch on its {@link ArenaId}.
   private ArenaId resolveArenaId() {
     if (avatarEntityId == null) {
       final EntityId id = getState(GameSessionState.class).getAvatarEntityId();

@@ -36,14 +36,7 @@
 
 package infinity.client.states;
 
-/**
- * Marks static models visible at a delay so that they act similar to bodies which have a strict
- * visibility time. This is to make up for the fact that SpawnPosition doesn't have a timestamp
- * and that rigid bodies will typically have both a SpawnPosition and a BodyPosition. These two
- * compete and cause the object to flicker on creation: SpawnPosition makes it visible
- * BodyPosition makes it invisible BodyPosition + delay makes it visible again. A timestamp on
- * SpawnPosition would fix this but might be overkill.
- */
+// Delays static visibility so SpawnPosition+BodyPosition pairs don't flicker on creation (SpawnPosition has no timestamp).
 class MarkVisible {
   final Model model;
   final long visibleTime;

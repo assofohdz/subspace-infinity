@@ -44,65 +44,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/**
- * Top-down radar HUD. Renders an offscreen orthographic view of {@link #radarRoot}
- * (the radar scene graph) into a {@link FrameBuffer}-backed texture, then composites
- * that texture onto the GUI through the shared {@code MatDefs/MiniMap/MiniMap.j3md}
- * material — same circle-mask + overlay treatment the legacy minimap used.
- *
- * <p>{@code radarRoot} is intentionally <b>detached</b> from the main scene graph and
- * carries two children — {@code radarEntityRoot} (entity blips, populated by the
- * body / static entity containers below) and {@code radarBlockRoot} (tile
- * silhouettes, populated by issue #04).
- *
- * <p>Entity blips:
- * <ul>
- *   <li>{@code BodyContainer} tracks {@code BodyPosition + RadarShapeInfo} —
- *       moving entities (ships, mobs). Position is driven per-frame from the
- *       {@link BodyPosition} interpolation buffer, the same SimEthereal source
- *       {@code ModelViewState.BodyContainer} uses for the world view.</li>
- *   <li>{@code StaticContainer} tracks {@code SpawnPosition + RadarShapeInfo} —
- *       fixed-position objects. Position is set once at attach time.</li>
- * </ul>
- * Spatials come from {@link RadarBlipFactory}, keyed by {@code RadarShapeInfo}'s
- * shape name (mirrors {@code SISpatialFactory}'s shape-name registry). Shape
- * names not registered fall through to a default ship triangle, so adding a new
- * ship class doesn't require a registry change.
- *
- * <p>Frequency-based coloring is resolved client-side at attach time and
- * recomputed when either the blip's {@link Frequency} or the local avatar's
- * {@link Frequency} changes:
- * <ul>
- *   <li>self → {@link RadarTheme#selfColor()}</li>
- *   <li>same team as avatar → {@link RadarTheme#friendlyColor()}</li>
- *   <li>different team → {@link RadarTheme#enemyColor()}</li>
- *   <li>no {@link Frequency} component (prizes, neutral statics) → {@link RadarTheme#neutralColor()}</li>
- * </ul>
- * Color is deliberately NOT carried on {@code RadarShapeInfo} — keeping it
- * client-side means re-skinning (color-blind palettes, themes) is purely a
- * client concern with no server change.
- *
- * <p>Camera follows the local avatar:
- * <ul>
- *   <li>Position from the SimEthereal-interpolated {@link BodyPosition} buffer (the
- *       same source {@code AvatarMovementState} drives the world camera from), so the
- *       radar tracks the visible ship rather than chasing a stale RMI snapshot.</li>
- *   <li>Frustum half-extent from the avatar's {@link RadarRange} component — recomputed
- *       on every change, so swapping ships (or live-tuning {@code radarRange} in the
- *       Groovy preset) immediately rescales the view.</li>
- * </ul>
- *
- * <p>Avatar resolution is lazy in {@link #update}: {@code GameSessionState} fetches the
- * id via an RMI roundtrip and the result may not have arrived by {@code initialize()}.
- * Per {@code feedback_client_ecs_reads}, single-entity component reads go through
- * {@code ed.watchEntity}; {@code ed.getComponent} on the client-side proxy is unreliable
- * for components the client isn't otherwise observing.
- *
- * <p>Read-only by design: the radar observes server-authored components and never writes
- * back. Per {@code .claude/rules/client-read-only.md}.
- *
- * @author Asser Fahrenholz
- */
+/** Top-down radar HUD — offscreen ortho view of an out-of-graph scene composited onto the GUI via the minimap material. */
 public class RadarState extends BaseAppState {
 
     private static final float RADAR_CAM_HEIGHT = 1000f;
@@ -110,12 +52,6 @@ public class RadarState extends BaseAppState {
     private static final float RADAR_CAM_FAR = 5000f;
     private static final double DEFAULT_RANGE_WORLD_UNITS = 256.0;
 
-    /**
-     * Palette used by the radar — colours read here flow into the off-screen
-     * viewport background, the silhouette material, and per-blip tinting.
-     * {@link RadarTheme#DEFAULT} is the shipping look; a future HUD-theming
-     * system can swap this out (constructor inject / setter / blackboard).
-     */
     private final RadarTheme theme = RadarTheme.DEFAULT;
 
     private Node radarRoot;
@@ -145,13 +81,6 @@ public class RadarState extends BaseAppState {
     private final Map<EntityId, Blip> blipsById = new HashMap<>();
     private float blipScale = 1f;
 
-    /**
-     * Owns the leaf-cache, the {@link com.simsilica.mworld.LeafChangeListener},
-     * the disc-walk view array, and the per-tick paging math. Constructed in
-     * {@link #initialize(Application)} after world / silhouetteIndex / worker
-     * pools resolve; disposed from {@link #cleanup(Application)}. See
-     * {@link RadarLeafPager} for the moved state and methods.
-     */
     private RadarLeafPager pager;
 
     private final Vector3f camLocation = new Vector3f();
@@ -470,14 +399,7 @@ public class RadarState extends BaseAppState {
         }
     }
 
-    /**
-     * Get-or-create the single Blip for an entity. Both {@link BodyContainer} and
-     * {@link StaticContainer} can match the same entity (e.g. the local ship has
-     * both {@link BodyPosition} and {@link SpawnPosition}); reference counting
-     * keeps the blip alive until both containers drop it. {@code bodyPos != null}
-     * marks the blip as body-driven, in which case {@code SpawnPosition} updates
-     * are ignored — body position always wins.
-     */
+    // Reference-counted: an entity may match both BodyContainer + StaticContainer; bodyPos != null wins over SpawnPosition.
     private Blip acquireBlip(final Entity e) {
         Blip blip = blipsById.get(e.getId());
         if (blip == null) {
@@ -593,25 +515,7 @@ public class RadarState extends BaseAppState {
         }
     }
 
-    /**
-     * Slice U1 — ArenaFootprint entities (today: arenas) get a closed-polygon
-     * footprint on the radar. Two child geometries per footprint: a
-     * triangulated interior fill (arenaTintColor) and a Mesh.Mode.Lines
-     * outline (arenaOutlineColor). Both share the polygon's vertices;
-     * Y-offsets layer fill behind outline behind blips so the existing
-     * entity-blip layer stays on top.
-     *
-     * <p>Footprint geometry is immutable per components.md — vertices don't
-     * change while an ArenaFootprint exists, so updateObject is a no-op. If
-     * a future entity replaces its ArenaFootprint with new vertices,
-     * removeObject + addObject will rebuild.
-     *
-     * <p>Mute styling: each {@link Footprint} retains the polygon vertices
-     * + the two child {@link Material} references so {@link #applyArenaFootprintMute()}
-     * can rebind the {@code Color} parameter per frame against the
-     * {@code arenaTintColor} / {@code arenaOutlineColor} (current arena) or
-     * the muted variants (other arenas) without rebuilding the meshes.
-     */
+    // Holds polygon verts + fill/outline materials so applyArenaFootprintMute() can rebind Color per frame without rebuilding meshes.
     private static final class Footprint {
         final Node node;
         final Vec3d[] vertices;
@@ -678,26 +582,7 @@ public class RadarState extends BaseAppState {
         }
     }
 
-    /**
-     * Per-frame "is the avatar inside this arena?" pass. The first footprint
-     * whose polygon contains the avatar's interpolated world position renders
-     * with full-strength {@code arenaTintColor} / {@code arenaOutlineColor};
-     * every other footprint (and every footprint when the avatar is outside
-     * all of them, or its position hasn't resolved yet) renders with the
-     * muted theme variants.
-     *
-     * <p>Cheap by construction — a handful of point-in-polygon tests per
-     * frame, each O(vertices) (4 for an arena rectangle). No caching across
-     * frames; if profiling later shows hot spots, an "avatar still in same
-     * arena as last frame?" short-circuit is the obvious first
-     * optimisation. Per task #3 spec: per-frame is fine.
-     *
-     * <p>"First match wins" relies on {@link EntityContainer#getArray()}
-     * preserving insertion order within a frame (it does — backed by a
-     * {@code LinkedHashMap}-style map and rebuilt only on add/remove).
-     * Overlapping arena footprints would resolve to whichever the server
-     * reported first.
-     */
+    // First footprint containing the avatar renders full-strength; others muted. First-match wins relies on EntityContainer insertion order.
     @SuppressWarnings("PMD.CompareObjectsWithEquals") // Footprint identity comparison is intentional.
     private void applyArenaFootprintMute() {
         final Footprint[] arr = footprints.getArray();

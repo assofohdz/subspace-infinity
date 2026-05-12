@@ -44,18 +44,10 @@ import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.input.InputState;
 
 
-/**
- *  The shared FunctionIds for camera movement input and
- *  some default input mappings.
- *
- *  @author    Paul Speed
- */
+/** Shared FunctionIds for camera movement input + default mappings. */
 public class CameraMovementFunctions {
 
-    /**
-     *  Camera movement functions will all be in the "Movement" group
-     *  to make it easy to toggle camera input on and off.
-     */
+    /** All movement functions belong to this group so camera input can be toggled as a unit. */
     public static final String GROUP_MOVEMENT = "Movement";
 
     public static final FunctionId F_Y_LOOK = new FunctionId(GROUP_MOVEMENT, "Y Look");
@@ -70,12 +62,7 @@ public class CameraMovementFunctions {
 
     public static final FunctionId F_RUN = new FunctionId(GROUP_MOVEMENT, "Run");
 
-    /**
-     *  We capture some input mappings in case they need
-     *  to be scaled or flipped later.  Mouse and joystick input are
-     *  often configured with sensitivity settings and this is one
-     *  way to do that built into InputMapper.
-     */
+    // Captured so sensitivity / flip can be applied later via InputMapper.
     public static InputMapper.Mapping MOUSE_X_LOOK;
     public static InputMapper.Mapping MOUSE_Y_LOOK;
     public static InputMapper.Mapping JOY_X_LOOK;

@@ -90,14 +90,7 @@ import java.util.NoSuchElementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * The ModelViewState is responsible for managing the visual representation of the model entities.
- * It is responsible for creating and destroying the visual representations of the model entities as
- * they are created and destroyed. It also manages the visual representation of the player's own
- * ship.
- *
- * @author Asser Fahrenholz
- */
+/** Manages visual representations of model entities (ships, statics, lobs) and the player's own ship. */
 public class ModelViewState extends BaseAppState {
 
   // Package-private fields — touched by the promoted Model / Body /
@@ -511,14 +504,7 @@ public class ModelViewState extends BaseAppState {
     return result;
   }
 
-  /**
-   * Returns the spatial for the specified entity. If the entity does not have a spatial and the
-   * throwNotExists flag is true, a NoSuchElementException will be thrown.
-   *
-   * @param entityId The entity to retrieve the spatial for.
-   * @param throwNotExists If true, a NoSuchElementException will be thrown if the entity does not
-   * @return The spatial for the specified entity.
-   */
+  /** Returns the spatial for {@code entityId}; if {@code throwNotExists}, throws when missing. */
   public Spatial getModelSpatial(final EntityId entityId, final boolean throwNotExists) {
     if (throwNotExists && !modelIndex.containsKey(entityId)) {
       throw new NoSuchElementException("Entity " + entityId + " does not have a spatial");

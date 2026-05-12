@@ -18,13 +18,7 @@ import com.simsilica.lemur.style.ElementId;
 import infinity.Main;
 import infinity.client.ConnectionState;
 
-/**
- *  A basic "login" state that provides a simple UI for logging in
- *  once a connection has been established.  This just manages the UI
- *  and calls back to the ConnectionState to do the actual 'work'.
- *
- *  @author    Paul Speed
- */
+/** UI-only login state; delegates the actual login to {@link ConnectionState}. */
 public class LoginState extends BaseAppState {
 
   private Container loginPanel;

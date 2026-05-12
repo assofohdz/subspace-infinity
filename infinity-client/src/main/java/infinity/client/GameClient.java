@@ -59,9 +59,7 @@ import com.simsilica.mworld.net.client.WorldClientService;
 import infinity.InfinityConstants;
 import infinity.client.chat.ChatClientService;
 
-/**
- * @author Paul Speed
- */
+/** Wraps the SpiderMonkey {@link Client} and registers the project's client services + entity data. */
 public class GameClient {
 
   static Logger log = LoggerFactory.getLogger(GameClient.class);

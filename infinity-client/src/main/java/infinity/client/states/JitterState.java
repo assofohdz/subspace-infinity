@@ -17,35 +17,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Camera-shake feedback state. Watches the local avatar's {@link Jitter}
- * component and, while the deadline is in the future, additively perturbs
- * the camera's world location each frame with a decaying-amplitude random
- * offset.
- *
- * <p>Attach order matters: this state must run <em>after</em>
- * {@link InfinityCameraState} so the per-frame offset is applied on top of
- * CameraState's tracked position. CameraState rewrites the location each
- * frame, so the offset is non-accumulating.
- *
- * <p>Avatar id is lazy-resolved in {@link #update(float)} because
- * {@link GameSessionState} fetches it via RMI and the value may be
- * {@code null} / {@code NULL_ID} when this state initializes. Mirrors the
- * lazy-resolve pattern used in {@link PositionHudState} and elsewhere.
- *
- * <p>Slice 9c-JitterTime, Q6=(a + ii): camera-location perturbation +
- * decaying amplitude. {@link #MAX_OFFSET} is hardcoded today; logged in the
- * polish bag for promotion to engine.groovy per CLAUDE.md rule #4.
- */
+/** Camera-shake driven by the local avatar's {@link Jitter} component; must run after {@link InfinityCameraState}. */
 public final class JitterState extends BaseAppState {
 
-  /**
-   * Peak shake amplitude in world units. Subspace-canon JitterTime values
-   * (~0.5-1 second) at this magnitude produce a visible-but-not-jarring
-   * shake at the default camera distance (75 world units, jME tile scale).
-   * Pattern 4 candidate — promote to {@code engine.groovy} when a per-zone
-   * tunable need materializes.
-   */
+  // Pattern 4 candidate — promote to engine.groovy when a per-zone tunable need materializes.
   private static final float MAX_OFFSET = 0.5f;
 
   static final Logger log = LoggerFactory.getLogger(JitterState.class);

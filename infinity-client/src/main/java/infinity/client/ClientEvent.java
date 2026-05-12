@@ -40,33 +40,12 @@ import com.google.common.base.MoreObjects;
 
 import com.simsilica.event.EventType;
 
-/**
- * Events that are published on the event bus for different client related state
- * changes.
- *
- * @author Paul Speed
- */
+/** Event-bus events for client-side state changes (connect/disconnect, session start/end). */
 public class ClientEvent {
 
-    /**
-     * Indicates that the client has fully connected.
-     */
     public static EventType<ClientEvent> clientConnected = EventType.create("ClientConnected", ClientEvent.class);
-
-    /**
-     * The game session has officially started, any visits back to the lobby will be
-     * for death/respawn.
-     */
     public static EventType<ClientEvent> sessionStarted = EventType.create("SessionStarted", ClientEvent.class);
-
-    /**
-     * Indicates that the game session has ended.
-     */
     public static EventType<ClientEvent> sessionEnded = EventType.create("SessionEnded", ClientEvent.class);
-
-    /**
-     * Indicates that the client connection has been disconnected for some reason.
-     */
     public static EventType<ClientEvent> clientDisconnected = EventType.create("ClientDisconnected", ClientEvent.class);
 
     public ClientEvent() {

@@ -48,12 +48,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A simple wrapper around the GeometryFactory that loads the block set configuration and material
- * registry.
- *
- * @author Asser Fahrenholz
- */
+/** GeometryFactory wrapper that loads the block set + material registry and registers per-arena tilesets. */
 public class BlockGeometryIndex {
 
   static Logger log = LoggerFactory.getLogger(BlockGeometryIndex.class);
@@ -78,34 +73,18 @@ public class BlockGeometryIndex {
   public static final int REGULAR_LAYER = 1;
   public static final int FLYUNDER_LAYER = 2;
 
-  /**
-   * Block type index for invisible physics blocks. These blocks have collision but no visible
-   * geometry. Used for collision at Y=1 while visual tiles are rendered at Y=2.
-   */
+  /** Invisible physics block — collision at Y=1 while visuals render at Y=2. */
   public static final int INVISIBLE_BLOCK_TYPE_INDEX = 11;
 
-  /**
-   * Block type index for invisible light-emitter cells. Non-solid, transparent, no geometry.
-   * Placed at wall-run midpoints on a plane above the tile floor; their emission is flood-filled
-   * by {@link com.simsilica.mblock.LightUtils#recalculateLighting} into neighboring cells' lightData,
-   * which the tile shader reads via vertex colors.
-   */
+  /** Light-emitter cell — non-solid, transparent; emission flood-filled by {@link com.simsilica.mblock.LightUtils#recalculateLighting}. */
   public static final int LIGHT_EMITTER_BLOCK_TYPE_INDEX = 12;
 
   protected final GeometryFactory geomFactory;
 
-  /**
-   * The mutable material registry handed to {@link GeometryFactory}. Held as a field so per-arena
-   * tileset registration can add/replace entries at runtime — {@code GeometryFactory} looks up each
-   * block's material on every render by {@link MaterialType#getId()}, so mutations propagate.
-   */
+  // Mutable so per-arena registration can swap materials at runtime; GeometryFactory re-reads each render.
   private Map<String, Material> materials;
 
-  /**
-   * Per-arena-slot tile materials. Index N holds the material rendering tiles for arena slot N.
-   * Populated by {@link #registerArenaTileset(AssetManager, int, String)} and shared for all slots
-   * at bootstrap (so every slot has a renderable fallback before the real tileset arrives).
-   */
+  // Index N = arena slot N's tile material; bootstrap shares one fallback across all slots.
   private final Material[] arenaMaterials = new Material[InfinityConstants.MAX_ARENAS];
 
   public static final float DEFAULT_POOL_GAIN = 7.0f;
@@ -113,11 +92,7 @@ public class BlockGeometryIndex {
   public static final float DEFAULT_EXPOSURE = 1.8f;
   public static final float DEFAULT_TEXTURE_GAMMA = 0.6f;
 
-  /**
-   * Returns slot 0's tile material. Retained for back-compat with callers that tune shader
-   * parameters (e.g. {@code LightingTunerState}) — in multi-arena use those tweaks only affect
-   * slot 0. The first-loaded arena always occupies slot 0 given the allocator's first-free policy.
-   */
+  /** Returns slot 0's tile material — back-compat for shader tuners (e.g. {@code LightingTunerState}). */
   public Material getTileMaterial() {
     return arenaMaterials[0];
   }
@@ -129,13 +104,7 @@ public class BlockGeometryIndex {
     mat.setFloat("TextureGamma", DEFAULT_TEXTURE_GAMMA);
   }
 
-  /**
-   * Creates a new BlockGeometryIndex, extracting the tileset from the embedded BMP in the given
-   * level file. This is the preferred constructor — it ensures the visual tileset matches the map.
-   *
-   * @param assets    the asset manager
-   * @param levelPath asset path to the .lvl file (e.g. {@code "Maps/trench.lvl"})
-   */
+  /** Extracts the tileset from the embedded BMP in {@code levelPath} (e.g. {@code "Maps/trench.lvl"}). */
   public BlockGeometryIndex(final AssetManager assets, final String levelPath) {
     try {
       if (!BlockTypeIndex.isInitialized()) {
@@ -155,11 +124,7 @@ public class BlockGeometryIndex {
     }
   }
 
-  /**
-   * Creates a new BlockGeometryIndex using a fallback tileset PNG.
-   *
-   * @param assets the asset manager to use for loading the block set configuration and material
-   */
+  /** Falls back to a built-in tileset PNG (used when no {@code .lvl} is available). */
   public BlockGeometryIndex(final AssetManager assets) {
 
     try {
@@ -188,13 +153,7 @@ public class BlockGeometryIndex {
     }
   }
 
-  /**
-   * Expands the BlockTypeIndex array to the specified size using reflection.
-   * This is necessary because the .bset file only defines a limited number of types,
-   * but we need additional slots for dynamically registered tile types.
-   *
-   * @param requiredSize the minimum required size for the array
-   */
+  // Reflection: the .bset file defines a fixed type count; we need extra slots for dynamic tile types.
   private void expandBlockTypeIndex(final int requiredSize) {
     try {
       BlockType[] currentTypes = BlockTypeIndex.getTypes();
@@ -221,10 +180,6 @@ public class BlockGeometryIndex {
     }
   }
 
-  /**
-   * Registers an invisible block type for physics-only blocks at Y=1. These blocks have collision
-   * but produce no visible geometry.
-   */
   private void registerInvisibleBlockType() {
     BlockName name = new BlockName("invisible", "physics");
     BlockType blockType = new BlockType(name, InvisibleBlockFactory.getInstance());
@@ -232,12 +187,7 @@ public class BlockGeometryIndex {
     log.info("Registered invisible physics block type at index {}", INVISIBLE_BLOCK_TYPE_INDEX);
   }
 
-  /**
-   * Registers a bright-yellow unlit material under {@link #LANTERN_MATERIAL_NAME} so the
-   * light-emitter cube can render as a visible "lantern". Unshaded so it ignores the voxel
-   * lighting pipeline — the cube stays full-bright-yellow regardless of the dim ambient
-   * (matches the reference torch-cube look).
-   */
+  // Unshaded — the cube stays full-bright-yellow regardless of voxel ambient (matches reference torch-cube look).
   private void registerLanternMaterial(
       final AssetManager assets, final Map<String, Material> materials) {
     Material lanternMat = new Material(assets, "Common/MatDefs/Misc/Unshaded.j3md");
@@ -246,12 +196,6 @@ public class BlockGeometryIndex {
     materials.put(key, lanternMat);
   }
 
-  /**
-   * Registers a light-emitter block type that also renders as a visible lantern cube.
-   * BlockType's 4-bit r/g/b/sun emission value is seeded into lightData by
-   * {@link com.simsilica.mblock.LightUtils#recalculateLighting}; the cube itself is drawn
-   * by {@link DefaultBlockFactory#createCube} with the lantern material.
-   */
   private void registerLightEmitterBlockType() {
     BlockName name = new BlockName("lantern", "light_emitter");
     // sun=0, r=15, g=13, b=8 → warm amber torch-glow at near-max strength.
@@ -295,13 +239,7 @@ public class BlockGeometryIndex {
     applyTileShaderDefaults(mat);
   }
 
-  /**
-   * Install the same bootstrap material under every arena slot's MaterialType keys. This
-   * guarantees that if the server writes tile cells for any slot before the client has received
-   * that arena's {@code ArenaMap} entity, geometry generation still finds a material — it just
-   * paints with the bootstrap tileset until {@link #registerArenaTileset} is called with the real
-   * level.
-   */
+  // Guarantees geometry generation finds a material if server writes cells before {@code ArenaMap} arrives.
   private void bootstrapAllArenaTilesets(final Material bootstrap) {
     for (int arenaIndex = 0; arenaIndex < InfinityConstants.MAX_ARENAS; arenaIndex++) {
       arenaMaterials[arenaIndex] = bootstrap;
@@ -311,17 +249,7 @@ public class BlockGeometryIndex {
         InfinityConstants.MAX_ARENAS);
   }
 
-  /**
-   * Register the tileset embedded in {@code levelPath} as the material for arena slot
-   * {@code arenaIndex}. Block-type registrations for this slot already reference a per-slot
-   * {@link MaterialType} key (set up once by {@link #registerTileBlockTypes}); this method just
-   * swaps the material under those keys, so any geometry already built for this slot picks up
-   * the new tileset on the next render.
-   *
-   * @param assets     client asset manager
-   * @param arenaIndex zero-based arena slot, {@code 0..MAX_ARENAS-1}
-   * @param levelPath  asset path to the {@code .lvl} providing the tileset BMP
-   */
+  /** Swap arena slot {@code arenaIndex}'s tile material to the tileset embedded in {@code levelPath}. */
   public void registerArenaTileset(
       final AssetManager assets, final int arenaIndex, final String levelPath) {
     if (arenaIndex < 0 || arenaIndex >= InfinityConstants.MAX_ARENAS) {
@@ -349,12 +277,7 @@ public class BlockGeometryIndex {
     return TILE_MATERIAL_NAME + "_" + arenaIndex;
   }
 
-  /**
-   * Loads the embedded tileset BMP out of a {@code .lvl} file and wraps it as a padded
-   * {@link Texture2D} ready for use as {@code ColorMap}. Pure-black pixels are mapped to alpha=0
-   * (Subspace transparency convention). See {@link #buildPaddedTilesetTexture} for the gutter +
-   * filter setup that kills minification shimmer on tile interiors.
-   */
+  // Subspace BMP convention: pure-black pixels → alpha=0. See {@link #buildPaddedTilesetTexture} for gutter/filter setup.
   private Texture2D loadTilesetTexture(final AssetManager assets, final String levelPath) {
     assets.registerLoader(LevelLoader.class, "lvl");
     final LevelFile levelFile = (LevelFile) assets.loadAsset(levelPath);
@@ -367,11 +290,7 @@ public class BlockGeometryIndex {
         true);
   }
 
-  /**
-   * Loads the fallback tileset PNG from the asset path as ARGB pixels and routes them through the
-   * same padded-atlas builder used for .lvl tilesets. PNGs already carry alpha, so the
-   * pure-black-to-transparent rule is skipped.
-   */
+  // PNG already carries alpha, so the black→transparent rule is skipped.
   private Texture2D loadFallbackTilesetPng(final AssetManager assets) {
     final String path = "Textures/Subspace/tiles.png";
     final AssetInfo info = assets.locateAsset(new AssetKey<>(path));
@@ -392,25 +311,7 @@ public class BlockGeometryIndex {
     }
   }
 
-  /**
-   * Bakes a 19x10 Subspace tileset into a padded atlas, where each
-   * {@link FlatTileBlockFactory#TILE_PIXELS}x{@link FlatTileBlockFactory#TILE_PIXELS} tile is
-   * surrounded by a {@link FlatTileBlockFactory#GUTTER_PIXELS}-wide replicate border. The gutter
-   * lets trilinear/anisotropic filtering sample the inner tile edge without the GPU's 4-texel
-   * kernel reaching into the neighboring tile in the atlas. UVs in {@link FlatTileBlockFactory}
-   * address only the inner tile region, so the gutter is invisible in the rendered scene — its
-   * sole job is to be the pixel that bilinear blends toward at tile edges.
-   *
-   * <p>The image is flipped vertically as it is written (UV V=0 at the bottom matches JME3's
-   * texture origin convention). Filters are set to {@code Trilinear} / {@code Bilinear} with 8x
-   * anisotropy; mipmaps are auto-generated by JME on first upload because the min filter requests
-   * them.
-   *
-   * @param srcPixels ARGB pixels in row-major top-down order (BMP / BufferedImage convention)
-   * @param srcW source image width in pixels
-   * @param srcH source image height in pixels
-   * @param applyBlackTransparency map pure-black pixels to alpha=0 (Subspace BMP convention only)
-   */
+  /** Bakes a 19x10 tileset into a padded atlas; the gutter keeps trilinear/aniso filtering from bleeding across tiles. */
   private Texture2D buildPaddedTilesetTexture(
       final int[] srcPixels, final int srcW, final int srcH, final boolean applyBlackTransparency) {
     final int cols = FlatTileBlockFactory.TILESET_COLUMNS;
@@ -460,12 +361,7 @@ public class BlockGeometryIndex {
     return v < lo ? lo : (v > hi ? hi : v);
   }
 
-  /**
-   * Verify the source tileset's pixel dimensions divide evenly into the
-   * declared {@code cols × rows} atlas grid. Throws if not — the per-tile
-   * width / height arithmetic in {@link #buildPaddedTilesetTexture} relies
-   * on integer division being exact.
-   */
+  // The per-tile w/h arithmetic in {@link #buildPaddedTilesetTexture} relies on exact integer division.
   private static void validateTilesetDimensions(
       final int srcW, final int srcH, final int cols, final int rows,
       final int tileW, final int tileH) {
@@ -476,12 +372,6 @@ public class BlockGeometryIndex {
     }
   }
 
-  /**
-   * Convert one source ARGB pixel into RGBA byte order and append to {@code buf}.
-   * If {@code applyBlackTransparency} is true and the pixel is pure black
-   * (Subspace BMP convention), alpha is forced to 0 — otherwise the source's
-   * alpha channel is preserved.
-   */
   private static void writePixel(
       final ByteBuffer buf, final int argb, final boolean applyBlackTransparency) {
     final int r = (argb >> 16) & 0xFF;
@@ -496,15 +386,7 @@ public class BlockGeometryIndex {
     buf.put((byte) r).put((byte) g).put((byte) b).put((byte) a);
   }
 
-  /**
-   * Registers {@link BlockType}s for every tile in every arena slot. Each arena's 190 tile types
-   * live in a contiguous block-type range starting at {@code TILE_TYPE_BASE + arenaIndex *
-   * TILE_COUNT}, and each tile's {@link MaterialType} names a per-slot key ({@code "tile_<N>"})
-   * so the material lookup in {@link GeometryFactory} resolves to that arena's tileset. The
-   * FlatTileBlockFactory's UV math is slot-independent (normalized over a 19×10 grid, with the
-   * inner-tile gutter inset baked in via {@link FlatTileBlockFactory#GUTTER_PIXELS}), so the same
-   * tile id renders correctly regardless of which arena it's in.
-   */
+  // Each arena's 190 tile types live in {@code TILE_TYPE_BASE + arenaIndex * TILE_COUNT}; per-slot MaterialType keys keep tilesets independent.
   private void registerTileBlockTypes() {
     for (int arenaIndex = 0; arenaIndex < InfinityConstants.MAX_ARENAS; arenaIndex++) {
       final int base =

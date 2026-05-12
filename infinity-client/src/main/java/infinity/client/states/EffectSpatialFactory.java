@@ -17,24 +17,7 @@ import infinity.sim.util.InfinityRunTimeException;
 import java.util.Map;
 import java.util.function.DoubleFunction;
 
-/**
- * Builds purely-visual effect spatials — the over1/over2/over5 decorative
- * layers, wormhole/warp/repel/burst rings, and the per-bomb-tier explosion
- * quads. Extracted from {@link SISpatialFactory} so that file can focus on
- * gameplay-entity spatials (ship/flag/door/bomb/bullet/bounty/arena).
- *
- * <p>All entries are timer-animated quads with a per-shape {@code .j3m}
- * material. The {@code ShapeNames.EXPLOSION} particle-emitter entry was
- * removed when {@code EffectSpatialFactory} was split out: no server system
- * ever emits {@code ShapeInfo.create(ShapeNames.EXPLOSION, …)} (only the
- * {@code EXPLODE_0}/{@code EXPLODE_1}/{@code EXPLODE_2} tiers are spawned),
- * and the {@code EffectFactory} dependency it required was never wired up
- * by any caller — keeping the entry would have NPE'd on first use. Re-wire
- * the particle path as its own slice if/when a caller actually needs it.
- *
- * <p>Owned by {@link SISpatialFactory}, which delegates here whenever its own
- * gameplay-entity map doesn't recognise the shape name.
- */
+/** Visual-only effect spatials (overlays, wormhole/warp/repel/burst rings, explosion tiers) — delegated from {@link SISpatialFactory}. */
 public class EffectSpatialFactory {
 
   // Use to flip between using the lights and using unshaded textures
@@ -44,11 +27,6 @@ public class EffectSpatialFactory {
   private final AssetManager assets;
   private final Timer timer;
 
-  /**
-   * Lookup table mapping {@link ShapeNames} ids to the {@code createX} helper
-   * that builds the matching effect spatial. None of the effect entries read
-   * the {@code scale} argument (effect sizes come from {@link CoreViewConstants}).
-   */
   private final Map<String, DoubleFunction<Spatial>> effectShapeFactories = Map.ofEntries(
       Map.entry(ShapeNames.BURST, scale -> createBurst()),
       Map.entry(ShapeNames.EXPLODE_0, scale -> createExplosion0()),
@@ -66,17 +44,11 @@ public class EffectSpatialFactory {
     this.timer = timer;
   }
 
-  /** Whether this factory recognises the given shape name. */
   public boolean handles(final String shapeName) {
     return effectShapeFactories.containsKey(shapeName);
   }
 
-  /**
-   * Builds the effect spatial for {@code shapeName}. Throws
-   * {@link InfinityRunTimeException} if no effect factory is registered for
-   * the name — callers ({@link SISpatialFactory}) typically gate on
-   * {@link #handles(String)} or treat this as the terminal lookup.
-   */
+  /** Throws {@link InfinityRunTimeException} when no factory is registered for {@code shapeName}. */
   public Spatial createEffect(final String shapeName, final double scale) {
     final DoubleFunction<Spatial> factory = effectShapeFactories.get(shapeName);
     if (factory == null) {
@@ -168,12 +140,7 @@ public class EffectSpatialFactory {
         "Materials/BurstMaterialLight.j3m");
   }
 
-  /**
-   * Shared shape: build a camera-facing quad of the given size, pick the
-   * unshaded or lit material, stamp the current time into the {@code StartTime}
-   * material parameter (drives shader-side animation), and put it in the
-   * transparent bucket so the effect blends over the world.
-   */
+  // Stamps current time into the {@code StartTime} material param — drives shader-side animation.
   private Spatial createTimedQuad(
       final float size,
       final String name,

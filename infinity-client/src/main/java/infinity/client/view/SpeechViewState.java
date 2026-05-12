@@ -57,11 +57,7 @@ import com.simsilica.es.*;
 import com.simsilica.es.common.*;
 import com.simsilica.ethereal.TimeSource;
 import com.simsilica.lemur.GuiGlobals;
-/**
- *
- *
- *  @author    Paul Speed
- */
+/** Renders chat-bubble {@link BitmapText} above speakers; bubbles decay via {@link Decay}. */
 public class SpeechViewState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(SpeechViewState.class);

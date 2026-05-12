@@ -64,11 +64,7 @@ import infinity.es.ProbeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- *
- *
- *  @author    Paul Speed
- */
+/** Debug overlay for mob AI probes; only attached when physics runs locally. */
 public class MobDebugState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(MobDebugState.class);
@@ -80,11 +76,7 @@ public class MobDebugState extends BaseAppState {
     private VersionedHolder<String> frameTime;
     private VersionedHolder<String> activeMobCount;
 
-    /**
-     *  Keep track of the origin under which the camera operates.
-     *  viewOrigin.add(camera.getLocation()) should be the world position of
-     *  the eyeball.
-     */
+    // viewOrigin.add(camera.getLocation()) should equal the eyeball's world position.
     private Vec3d viewOrigin = new Vec3d();
     private Geometry probeTemplate;
     private Node probeRoot;

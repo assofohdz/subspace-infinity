@@ -52,11 +52,7 @@ import com.simsilica.state.MessageState;
 import infinity.client.chat.ChatClientService;
 import infinity.net.chat.ChatSessionListener;
 
-/**
- * Manages the chat entry and allows always-on toggling, etc..
- *
- * @author Paul Speed
- */
+/** Manages the chat entry and toggle. */
 public class ChatState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(ChatState.class);
@@ -109,9 +105,6 @@ public class ChatState extends BaseAppState {
         return;
     }
 
-    /**
-     * Hooks into the CommandConsoleState to forward messages to the chat service.
-     */
     private class ChatCommandEntry implements CommandEntry {
         @Override
         public boolean runCommand(final String cmd) {
@@ -121,9 +114,6 @@ public class ChatState extends BaseAppState {
         }
     }
 
-    /**
-     * Notified by the server about chat-related events.
-     */
     private class ChatSessionObserver implements ChatSessionListener {
 
         @Override

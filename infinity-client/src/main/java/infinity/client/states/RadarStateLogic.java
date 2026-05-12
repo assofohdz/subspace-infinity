@@ -15,33 +15,14 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import infinity.client.view.RadarTheme;
 
-/**
- * Pure-static helpers extracted from {@link RadarState}'s render path.
- *
- * <p>Each method takes every piece of state it needs as an argument so the
- * helper has no access to {@code RadarState} instance fields or
- * {@code BaseAppState.getApplication()}. The split shaves cyclomatic
- * complexity off the {@code RadarState} class without changing any
- * behaviour — the production methods on {@code RadarState} are now thin
- * delegates that pull the required state off {@code this} and forward.
- */
+/** Pure-static helpers extracted from {@link RadarState}'s render path. */
 final class RadarStateLogic {
 
     private RadarStateLogic() {
         // utility — pure static helpers, do not instantiate.
     }
 
-    /**
-     * Builds a triangulated interior fill mesh for a closed convex polygon
-     * via fan triangulation from {@code verts[0]}. Convex-only — adequate for
-     * arena bounds rectangles and any future convex shape; concave polygons
-     * would need ear-clipping (not in scope today).
-     *
-     * @param verts polygon vertices in ring order (≥3 entries)
-     * @param tintColor fill colour pulled from the active {@link RadarTheme}
-     * @param am asset manager used to load the {@code Unshaded.j3md} material
-     * @param fillY Y-coordinate the fill plane sits at (radar uses −2)
-     */
+    /** Triangulated interior fill for a closed convex polygon via fan from {@code verts[0]}; concave needs ear-clipping (not impl'd). */
     static Geometry buildFootprintFill(
             final Vec3d[] verts,
             final ColorRGBA tintColor,
@@ -76,17 +57,7 @@ final class RadarStateLogic {
         return geom;
     }
 
-    /**
-     * Builds a closed line-loop outline for a polygon using {@code Mesh.Mode.Lines}
-     * with index pairs forming each edge — last edge connects {@code verts[n-1]}
-     * back to {@code verts[0]}. Width is GL-default (1 pixel); upgrading to a
-     * thicker outline would replace this with a quad strip.
-     *
-     * @param verts polygon vertices in ring order (≥3 entries)
-     * @param outlineColor outline colour pulled from the active {@link RadarTheme}
-     * @param am asset manager used to load the {@code Unshaded.j3md} material
-     * @param outlineY Y-coordinate the outline plane sits at (radar uses −1)
-     */
+    /** Closed line-loop outline for a polygon using {@code Mesh.Mode.Lines}; GL-default 1px width. */
     static Geometry buildFootprintOutline(
             final Vec3d[] verts,
             final ColorRGBA outlineColor,
@@ -118,18 +89,7 @@ final class RadarStateLogic {
         return geom;
     }
 
-    /**
-     * Resolve the radar-blip colour for an entity. Self → self colour;
-     * no-frequency → neutral; same team as avatar → friendly; otherwise
-     * enemy. Avatar id and avatar freq are pulled off {@link RadarState}
-     * instance state at the call site.
-     *
-     * @param id the entity being coloured
-     * @param entityFreq the entity's frequency, or {@code null} for "no team"
-     * @param avatarEntityId the local avatar's entity id, or {@code null}
-     * @param currentAvatarFreq the local avatar's freq, or {@code null}
-     * @param theme the active radar theme (palette source)
-     */
+    /** Self → self colour; no-freq → neutral; same team → friendly; otherwise enemy. */
     static ColorRGBA colorFor(
             final EntityId id,
             final Integer entityFreq,
@@ -148,26 +108,7 @@ final class RadarStateLogic {
         return theme.enemyColor();
     }
 
-    /**
-     * Standard ray-casting point-in-polygon test in the X-Z plane (radar is
-     * a top-down view, Y is ignored). Generic for any closed polygon —
-     * convex or concave — so the helper stays valid if non-rectangular
-     * eLVL regions ever stamp {@link infinity.es.arena.ArenaFootprint}.
-     * Today every footprint is an arena bounds rectangle, where the test
-     * collapses to a cheap point-in-rect check.
-     *
-     * <p>Boundary cases (point exactly on an edge / vertex) are not
-     * stabilised — the result depends on floating-point comparison order.
-     * Since the radar runs the test per-frame, a point sitting precisely
-     * on the boundary will flicker at most a few frames before the avatar
-     * moves off the edge; that's acceptable for a presentation hint.
-     *
-     * @param x point's world X
-     * @param z point's world Z
-     * @param verts polygon vertices in ring order; null or fewer than 3
-     *     vertices return {@code false}
-     * @return {@code true} iff (x, z) lies inside the polygon
-     */
+    /** Ray-casting point-in-polygon in the X-Z plane; works for any closed convex/concave polygon. */
     static boolean pointInPolygon(final double x, final double z, final Vec3d[] verts) {
         if (verts == null || verts.length < 3) {
             return false;

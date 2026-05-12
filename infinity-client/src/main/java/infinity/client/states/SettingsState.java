@@ -50,11 +50,7 @@ import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.lemur.style.ElementId;
 
-/**
- *
- *
- * @author Paul Speed
- */
+/** F12 settings panel; presents a tabbed window of in-game tunables. */
 public class SettingsState extends BaseAppState {
 
     public static final FunctionId F_SETTINGS = new FunctionId("Show Settings");

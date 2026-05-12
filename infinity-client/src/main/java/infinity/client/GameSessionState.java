@@ -71,21 +71,11 @@ import infinity.client.states.RadarState;
 import infinity.client.states.SpaceGridState;
 import infinity.client.view.SkyState;
 
-/**
- * The main game session state.  This is the state that is active
- * when the player is in a game session.  It is responsible for
- * managing the various sub-states that are active during a game
- * session.
- *
- * @author Asser Fahrenholz
- */
+/** Active while the player is in a game session; owns the in-game sub-states. */
 public final class GameSessionState extends CompositeAppState {
 
   private EntityId avatarEntityId;
 
-  /**
-   * Creates a new GameSessionState.
-   */
   public GameSessionState() {
     super(
         new GameSystemsState(),

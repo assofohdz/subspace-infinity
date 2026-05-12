@@ -31,11 +31,7 @@ import infinity.client.GameSessionState;
 import infinity.es.Frequency;
 import infinity.sim.CoreViewConstants;
 
-/**
- * Displays a HUD label for any entity with a BodyPosition and a Name.
- *
- * @author Paul Speed
- */
+/** HUD name label for any entity with a {@link BodyPosition} + {@link Name}; coloured per-frequency. */
 public class HudLabelState extends BaseAppState {
 
   private final Vec3i centerWorld = new Vec3i();
@@ -102,12 +98,6 @@ public class HudLabelState extends BaseAppState {
     }
   }
 
-  /**
-   * Holds the on-screen label and the transition buffer, etc necessary for managing the position
-   * and state of the label. If not for the need to poll these once per frame for position updates,
-   * we technically could have done all management in the EntityContainer and just returned Labels
-   * directly.
-   */
   private class LabelHolder {
 
     Entity entity;
@@ -237,10 +227,6 @@ public class HudLabelState extends BaseAppState {
       }
     }
 
-    /**
-     * Need to make this public so we can access it from the outer class
-     * @return the array of LabelHolders
-     */
     @Override
     public LabelHolder[] getArray() {
       return super.getArray();

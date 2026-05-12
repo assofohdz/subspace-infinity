@@ -42,11 +42,7 @@ import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 
-/**
- * Defines a set of global game functions and some default key/control mappings.
- *
- * @author Paul Speed
- */
+/** Global game-function ids + default key/control mappings. */
 public class MainGameFunctions {
 
     public static final String IN_GAME = "In Game";

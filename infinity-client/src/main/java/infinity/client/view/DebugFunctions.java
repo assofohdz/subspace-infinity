@@ -42,11 +42,7 @@ import com.simsilica.lemur.input.InputMapper;
 
 import com.simsilica.ext.mphys.debug.BinStatusState;
 
-/**
- *  Defines some in-game debug toggles.
- *
- *  @author    Paul Speed
- */
+/** In-game debug-toggle function ids + default F3/F4 chord mappings. */
 public class DebugFunctions {
 
     public static final String IN_GAME = "In Game";

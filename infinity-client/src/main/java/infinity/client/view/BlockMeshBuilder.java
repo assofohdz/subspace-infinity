@@ -26,46 +26,14 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-/**
- * Pure-function block-mesh-building helpers extracted from
- * {@link InfinityGeometryFactory} so the factory class stays under PMD's
- * class-level cyclomatic-complexity ceiling. Every method here is
- * {@code static}, has no factory instance dependency, and operates on raw
- * Moss / jME types.
- *
- * <p>Provides three layers of helpers:
- *
- * <ul>
- *   <li>Population — {@link #populateBlockBuffer},
- *       {@link #populateFluidBuffer}: triple-loop over a CellArray and push
- *       per-cell parts into a {@link DefaultPartBuffer}.
- *   <li>Buffer building — {@link #buildMeshBuffers},
- *       {@link #emitPart}, {@link #emitVertices}, {@link #copyAuxBuffers},
- *       {@link #attachIndexBuffer}: stamp PartEntry data into JME buffer types,
- *       gated by the MaterialType's {@link GeomReq} set.
- *   <li>Light sampling — {@link #xOffset}, {@link #yOffset}, {@link #zOffset}:
- *       per-axis cell-offset for outward-facing border vertices, used by the
- *       lighting gradient implementations.
- * </ul>
- *
- * <p>This is the round-22 escape hatch from the class-level CC ceiling on
- * {@link InfinityGeometryFactory}: the factory keeps the instance state
- * ({@code materials}, {@code allowCollisions}) and the methods that need it
- * ({@code generateBlocks}, {@code generateFluid}, {@code renderBuffer},
- * {@code assembleMesh}, {@code attachGeometryToTarget}); pure-function helpers
- * land here.
- */
+/** Pure-function block-mesh-building helpers extracted from {@link InfinityGeometryFactory}. */
 final class BlockMeshBuilder {
 
     private BlockMeshBuilder() {
         // utility class — instantiation prevented
     }
 
-    /**
-     * Per-MaterialType buffer bundle threaded through {@link #buildMeshBuffers},
-     * {@link #emitPart}, and the factory's {@code assembleMesh}. Fields are
-     * nullable when the originating {@link GeomReq} set didn't request them.
-     */
+    // Fields nullable when the originating {@link GeomReq} set didn't request them.
     static final class MeshBuffers {
         final ScaledBuffer pos;
         final ScaledBuffer texes;
@@ -89,11 +57,7 @@ final class BlockMeshBuilder {
         }
     }
 
-    /**
-     * Triple-loops over every cell in {@code cells} and asks each cell's
-     * {@link BlockType} factory to push its visible geometry parts into
-     * {@code buffer}. Cells with type 0 (empty) and unknown types are skipped.
-     */
+    /** Push every cell's visible geometry into {@code buffer}; skip empty/unknown types. */
     static void populateBlockBuffer(final DefaultPartBuffer buffer, final CellArray cells) {
         final int xSize = cells.getSizeX();
         final int ySize = cells.getSizeY();
@@ -118,12 +82,7 @@ final class BlockMeshBuilder {
         }
     }
 
-    /**
-     * Triple-loops over every cell in {@code fluid}, looks up the matching
-     * {@link FluidType}, and pushes its geometry parts into {@code buffer}. The
-     * neighbouring solid {@code cells} array is forwarded to the factory so
-     * fluid faces can be culled against adjacent walls. Empty/unknown types skipped.
-     */
+    /** Fluid counterpart to {@link #populateBlockBuffer}; forwards solid {@code cells} so fluid faces can cull against walls. */
     static void populateFluidBuffer(
             final DefaultPartBuffer buffer, final CellArray fluid, final CellArray cells) {
         final int xSize = fluid.getSizeX();
@@ -151,12 +110,7 @@ final class BlockMeshBuilder {
         }
     }
 
-    /**
-     * Allocate the per-MaterialType vertex / texcoord / index / color / normal /
-     * tangent / direction buffers required by {@code mt}'s {@link GeomReq} set
-     * and pack them into a {@link MeshBuffers} struct. Hi-res vs lo-res scaling
-     * is selected per-buffer by the matching {@code LoRes*} requirement.
-     */
+    // Allocates only the buffers required by {@code mt}'s {@link GeomReq} set; hi-res vs lo-res per LoRes* flag.
     static MeshBuffers buildMeshBuffers(
             final MaterialType mt, final int vertCount, final int triCount) {
         final ScaledBuffer pos = mt.requires(GeomReq.LoResPositions)
@@ -187,15 +141,7 @@ final class BlockMeshBuilder {
         return new MeshBuffers(pos, texes, indexes, colors, nb, tb, dirB);
     }
 
-    /**
-     * Append one {@link DefaultPartBuffer.PartEntry}'s vertex / lighting /
-     * texcoord / index data into {@code buffers}. Returns the next baseIndex
-     * (callers chain a running offset across the part list).
-     *
-     * <p>Throws if {@code dirB} is requested by the material but the entry's
-     * part has no valid direction — the caller (per-MaterialType list) is the
-     * one that promised to supply only directional parts.
-     */
+    /** Returns the next baseIndex; throws if {@code dirB} is requested but the entry has no valid direction. */
     static int emitPart(
             final MeshBuffers buffers,
             final MaterialType mt,
@@ -218,12 +164,6 @@ final class BlockMeshBuilder {
         return baseIndex + size;
     }
 
-    /**
-     * Per-vertex inner loop: emit position (offset by entry origin), the per-vertex
-     * direction byte if the material requires it, and forward the lighting query
-     * to {@code gradient}. {@code gradient} writes into {@link MeshBuffers#colors}
-     * directly — every face contributes lighting (no opt-out).
-     */
     static void emitVertices(
             final MeshBuffers buffers,
             final int i, final int j, final int k,
@@ -245,14 +185,7 @@ final class BlockMeshBuilder {
         }
     }
 
-    /**
-     * Copy this part's normal / tangent / texcoord arrays into the matching
-     * mesh buffers. Each is gated by the buffer being non-null (material
-     * required it) AND the part actually having data (normals / tangents may
-     * be absent on point-sprite parts; texcoords always present).
-     * Out-of-bounds-texcoord check intentionally removed (2020-12-24): wrapping
-     * coordinates (cylinders, etc.) are valid.
-     */
+    // Each aux array copied only if the buffer is non-null AND the part has data.
     static void copyAuxBuffers(final MeshBuffers buffers, final GeomPart part) {
         final float[] norms = part.getNormals();
         if (buffers.nb != null && norms != null) {
@@ -267,12 +200,6 @@ final class BlockMeshBuilder {
         }
     }
 
-    /**
-     * Bind {@code indexes} to {@code mesh} as the {@link VertexBuffer.Type#Index}
-     * buffer, dispatching on the {@link IndexBuffer.Format} discriminator
-     * (Int / Short / Byte). Throws {@link IllegalStateException} for any other
-     * format.
-     */
     static void attachIndexBuffer(final Mesh mesh, final IndexBuffer indexes) {
         switch (indexes.getFormat()) {
             case UnsignedInt:

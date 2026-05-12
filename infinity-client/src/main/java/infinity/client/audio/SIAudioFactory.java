@@ -15,20 +15,9 @@ import infinity.es.AudioTypes;
 import java.util.Map;
 import java.util.function.Function;
 
-/**
- *
- * @author Asser
- */
+/** Subspace-canonical audio dispatch: maps {@link AudioTypes} keys to per-sound {@link AudioNode} factories. */
 public class SIAudioFactory implements AudioFactory {
 
-    /**
-     * Audio-type name → factory dispatch table. Replaces the long switch in
-     * {@link #createAudio} with O(1) lookup. Each factory is an instance method
-     * (it needs {@link #assets}), so entries are {@code Function<SIAudioFactory, AudioNode>}
-     * called against {@code this} at dispatch time. Behaviour preserved: same
-     * factory invoked for each {@link AudioTypes} key, same exception type and
-     * message for unknown keys.
-     */
     private static final Map<String, Function<SIAudioFactory, AudioNode>> FACTORIES =
         Map.ofEntries(
             Map.entry(AudioTypes.FIRE_THOR,       SIAudioFactory::fireThor),

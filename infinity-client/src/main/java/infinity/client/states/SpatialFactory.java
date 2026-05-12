@@ -49,12 +49,7 @@ import com.simsilica.mblock.phys.*;
 import com.simsilica.ext.mphys.*;
 import infinity.client.view.BlockGeometryIndex;
 
-/**
- *  Convenience methods for creating Spatials from
- *  shapes.
- *
- *  @author    Paul Speed
- */
+/** Convenience factory for creating Spatials from {@link MBlockShape} parts. */
 public class SpatialFactory {
 
     private BlockGeometryIndex geomIndex;
@@ -81,9 +76,6 @@ public class SpatialFactory {
         return result;
     }
 
-    /**
-     *  Creates a root-level spatial for the specified root group.
-     */
     protected Spatial createPartSpatial( EntityId id, Group group, Mass mass ) {
         Node node = new Node("Object:" + id);
         if( debugCoG ) {
@@ -107,9 +99,6 @@ public class SpatialFactory {
         return node;
     }
 
-    /**
-     *  Creates a child spatial for the specified child group.
-     */
     protected Spatial createPartSpatial( Node parent, EntityId id, Group group, Mass mass ) {
         for( Part child : group.getChildren() ) {
             if( child instanceof CellArrayPart ) {
@@ -126,9 +115,6 @@ public class SpatialFactory {
         return parent;
     }
 
-    /**
-     *  Creates a root-level spatial for the specified root part.
-     */
     protected Spatial createPartSpatial( EntityId id, CellArrayPart part, boolean isRoot, Mass mass ) {
         if( part.getCells() == null ) {
             return createSphere(id, (float)part.getMass().getRadius(), mass);

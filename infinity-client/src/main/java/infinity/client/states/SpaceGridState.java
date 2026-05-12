@@ -58,12 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * Presents a 3D grid around the current camera position. It will look like this grid moves with the
- * player but it's actually stationary.
- *
- * @author Paul Speed
- */
+/** 3D grid that appears to move with the player but is actually stationary. */
 public class SpaceGridState extends BaseAppState {
 
   private final int cellSize;
@@ -74,13 +69,6 @@ public class SpaceGridState extends BaseAppState {
   private VersionedReference<Vec3d> posRef;
   private final Vec3i center = new Vec3i(0, 100, 0); // set it to something that will never match
 
-  /**
-   * Creates a state to manage a 3D grid of the specified size and radius.
-   *
-   * @param cellSize the size of each cell in the grid
-   * @param gridRadius the radius of the grid in cells
-   * @param gridColor the color of the grid lines
-   */
   public SpaceGridState(int cellSize, int gridRadius, ColorRGBA gridColor) {
     this.cellSize = cellSize;
     this.gridRadius = gridRadius;
@@ -109,11 +97,6 @@ public class SpaceGridState extends BaseAppState {
     grid.setLocalTranslation(0, InfinityConstants.GRID_CELL_SIZE / (float) 2, 0);
   }
 
-  /**
-   * Walk the 3D grid and emit a Segment between each adjacent voxel pair, with a
-   * fade weight from the distance-cubed falloff. Connects each cell to its
-   * −y / −x / −z neighbour so the resulting mesh is a 3D line lattice.
-   */
   private List<Segment> buildFadingGridSegments() {
     // Keep track of the values in two layers then connect them
     int size = gridRadius * 10 + 1;
@@ -165,10 +148,6 @@ public class SpaceGridState extends BaseAppState {
     return value;
   }
 
-  /**
-   * Emit the −y / −x / −z connection segments from the cell at index {@code (j,i,k)}
-   * provided the corresponding neighbour exists and has a non-negative falloff value.
-   */
   private void emitNeighborSegments(
       List<Segment> segs, int j, int i, int k,
       float x, float y, float z, float value,
@@ -237,11 +216,6 @@ public class SpaceGridState extends BaseAppState {
     ((Main) getApplication()).getRootNode().attachChild(grid);
   }
 
-  /**
-   * Update the grid position based on the current position of the camera.
-   *
-   * @param tpf time per frame
-   */
   @Override
   public void update(float tpf) {
     // Need to update the relative position of our grid node

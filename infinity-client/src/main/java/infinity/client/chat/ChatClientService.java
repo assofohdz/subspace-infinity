@@ -50,11 +50,7 @@ import com.jme3.network.service.rmi.RmiClientService;
 import infinity.net.chat.ChatSession;
 import infinity.net.chat.ChatSessionListener;
 
-/**
- * Client-side service providing access to the chat server.
- *
- * @author Paul Speed
- */
+/** Client-side service providing access to the chat server. */
 public class ChatClientService extends AbstractClientService implements ChatSession {
 
     static Logger log = LoggerFactory.getLogger(ChatClientService.class);
@@ -68,18 +64,10 @@ public class ChatClientService extends AbstractClientService implements ChatSess
     private final ChatSessionCallback sessionCallback = new ChatSessionCallback();
     private final List<ChatSessionListener> listeners = new CopyOnWriteArrayList<>();
 
-    /**
-     * Creates a new chat service that will use the default reliable channel for
-     * communication.
-     */
     public ChatClientService() {
         this(MessageConnection.CHANNEL_DEFAULT_RELIABLE);
     }
 
-    /**
-     * Creates a new chat service that will use the specified channel for any
-     * reliable communication.
-     */
     public ChatClientService(final int channel) {
         this.channel = channel;
     }
@@ -94,11 +82,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
         return getDelegate().getPlayerNames();
     }
 
-    /**
-     * Adds a listener that will be notified about account-related events. Note that
-     * these listeners are called on the networking thread and as such are not
-     * suitable for modifying the visualization directly.
-     */
+    // Called on the networking thread; not safe for visualization mutations.
     public void addChatSessionListener(final ChatSessionListener l) {
         listeners.add(l);
     }
@@ -118,11 +102,6 @@ public class ChatClientService extends AbstractClientService implements ChatSess
         rmiService.share((byte) channel, sessionCallback, ChatSessionListener.class);
     }
 
-    /**
-     * Called during connection setup once the server-side services have been
-     * initialized for this connection and any shared objects, etc. should be
-     * available.
-     */
     @Override
     public void start() {
         log.debug("start()");
@@ -130,12 +109,8 @@ public class ChatClientService extends AbstractClientService implements ChatSess
     }
 
     private ChatSession getDelegate() {
-        // We look up the delegate lazily to make the service more
-        // flexible. This way we don't have to know anything about the
-        // connection lifecycle and can simply report an error if the
-        // game is doing something screwy.
+        // Lazy lookup decouples from the connection lifecycle.
         if (delegate == null) {
-            // Look it up
             delegate = rmiService.getRemoteObject(ChatSession.class);
             log.debug("delegate:{}", delegate);
             if (delegate == null) {
@@ -145,10 +120,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
         return delegate;
     }
 
-    /**
-     * Shared with the server over RMI so that it can notify us about account
-     * related stuff.
-     */
+    // Shared with the server over RMI for notifications.
     private class ChatSessionCallback implements ChatSessionListener {
 
         @Override

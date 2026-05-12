@@ -55,11 +55,7 @@ import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.mathd.Grid;
 import com.simsilica.mathd.Vec3i;
 
-/**
- * A standard app state for displaying a local-relative x,z grid at y=0.
- *
- * @author Paul Speed
- */
+/** Local-relative x,z grid overlay at y=0. */
 public class GridState extends BaseAppState {
 
     private final Grid grid;

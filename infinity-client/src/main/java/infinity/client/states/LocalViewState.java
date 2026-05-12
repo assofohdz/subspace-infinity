@@ -89,11 +89,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * The player-centric view of the actual world data.
- *
- * @author Paul Speed
- */
+/** Player-centric view of the world data — pages leaves around the avatar and meshes their cells. */
 public class LocalViewState extends BaseAppState {
 
   static Logger log = LoggerFactory.getLogger(LocalViewState.class);
@@ -151,13 +147,7 @@ public class LocalViewState extends BaseAppState {
     return smoothLighting;
   }
 
-  /**
-   * Sets whether or not smooth lighting should be used. If smooth lighting is enabled, then the
-   * lighting values for each vertex will be interpolated between the neighboring cells. If smooth
-   * lighting is disabled, then the lighting values will be taken from the center cell.
-   *
-   * @param b true to enable smooth lighting, false to disable.
-   */
+  /** Toggle per-vertex (smooth) vs per-cell lighting. Forces a rebuild on change. */
   public void setSmoothLighting(boolean b) {
     if (this.smoothLighting == b) {
       return;
@@ -174,12 +164,7 @@ public class LocalViewState extends BaseAppState {
     return viewRadius.x * 32 + 32;
   }
 
-  /**
-   * Sets the view radius in world units. The view radius is the distance from the center of the
-   * view that will be loaded. The view radius is clamped to the range of 3 to 7 cells.
-   *
-   * @param radius the view radius
-   */
+  /** Sets the view radius in world units; clamped to 3..7 cells. */
   public void setViewRadius(final int radius) {
     int r = radius - 32;
     r = r / 32;
@@ -426,17 +411,7 @@ public class LocalViewState extends BaseAppState {
     }
   }
 
-  /**
-   * For one {@link ViewEntry}, look up (or create) the {@link LeafView}
-   * covering its world position and bind it to the entry. New views are
-   * queued on {@code workers}; existing views may be re-queued if smooth
-   * lighting changed, otherwise their current rendered-state is republished
-   * to {@code viewMask}.
-   *
-   * <p>Mutates: {@link #viewCache}, {@link #viewMask}, {@link #workers},
-   * {@link ViewEntry#leafView}, and removes the resolved leaf id from
-   * {@code toRemove} so the caller's cleanup pass leaves it in place.
-   */
+  // Removes the resolved leafId from {@code toRemove} so the caller's cleanup pass leaves it in place.
   private void bindOrCreateLeafView(final ViewEntry e, final Vec3d world, final Set<LeafId> toRemove) {
     final LeafId leafId = LeafId.fromWorld(world);
     toRemove.remove(leafId);
@@ -459,12 +434,7 @@ public class LocalViewState extends BaseAppState {
     e.leafView = view;
   }
 
-  /**
-   * Remove every {@link LeafId} in {@code toRemove} from {@link #viewCache},
-   * release the view, and cancel any pending worker job. The book-keeping
-   * skip on {@code !queued} avoids an O(workers.size) scan when there's
-   * nothing to cancel.
-   */
+  // Skipping {@code !queued} avoids an O(workers.size) scan when there's nothing to cancel.
   private void releaseStaleLeafViews(final Set<LeafId> toRemove) {
     for (final LeafId remove : toRemove) {
       final LeafView view = viewCache.remove(remove);

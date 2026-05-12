@@ -47,12 +47,7 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.trans.TransitionBuffer;
 import java.util.Objects;
 
-/**
- * Visual companion to a server-side rigid body. Wraps a {@link Model} and drives its spatial's
- * transform from the SimEthereal {@link BodyPosition} transition buffer at a given replay time.
- * Handles parent-id transitions (e.g. attaching to another model when a child relationship
- * changes) and visibility flips.
- */
+/** Visual companion to a server-side rigid body — drives a {@link Model}'s transform from a {@link BodyPosition} buffer. */
 class Body {
   private final ModelViewState owner;
   private final Entity entity;

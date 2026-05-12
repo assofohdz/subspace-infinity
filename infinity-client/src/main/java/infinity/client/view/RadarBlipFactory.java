@@ -14,26 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-/**
- * Resolves a {@code RadarShapeInfo.shapeName} to a fresh, flat 2D blip
- * {@link Geometry} for the off-screen radar viewport. Mirrors the
- * shape-name → spatial pattern in {@code SISpatialFactory}, but specialised
- * for radar: every produced geometry is a top-down silhouette in the XZ
- * plane, uses an unshaded material, and is intentionally cheap (≤ 4 verts).
- *
- * <p>Each call returns a <b>new</b> {@code Geometry} with a <b>new</b>
- * {@link Material}, so callers can mutate per-blip color (e.g. frequency-
- * based team colour) without disturbing other blips.
- *
- * <p>Unknown shape names fall back to the default ship dot, matching the
- * spirit of {@code SISpatialFactory.setDefaultFactory} — adding a new ship
- * class doesn't require a registry entry; only specialised non-ship blips
- * (flag, prize, etc.) need their own factory. Ships use a dot rather than a
- * directional shape because the radar stays north-up; a triangle would
- * mislead the eye as the player rotates.
- *
- * @author Asser Fahrenholz
- */
+/** Top-down 2D blip geometries for the radar viewport; each call returns a fresh {@link Material} so colours can vary per-blip. */
 public final class RadarBlipFactory {
 
     private final AssetManager assetManager;
@@ -42,9 +23,7 @@ public final class RadarBlipFactory {
 
     public RadarBlipFactory(final AssetManager assetManager, final RadarTheme theme) {
         this.assetManager = assetManager;
-        // Capture theme dimensions in the lambdas — meshes are baked at theme sizes
-        // and a swap of the theme requires re-creating the factory anyway (existing
-        // blip Geometries hold pre-baked Meshes).
+        // Meshes are baked at theme sizes; a theme swap requires recreating the factory.
         final float shipDotRadius = theme.shipDotRadius();
         final int dotSegments = theme.dotSegments();
         final float staticHalfSize = theme.staticBlipHalfSize();
@@ -53,12 +32,6 @@ public final class RadarBlipFactory {
         meshFactories.put("prize-blip", am -> diamond(staticHalfSize));
     }
 
-    /**
-     * Build a blip geometry for the given shape name, coloured uniformly with
-     * {@code initialColor}. The returned geometry has its own {@link Material},
-     * so subsequent {@code geom.getMaterial().setColor("Color", ...)} calls
-     * affect only that blip.
-     */
     public Geometry create(final String shapeName, final ColorRGBA initialColor) {
         final Function<AssetManager, Mesh> factory =
                 meshFactories.getOrDefault(shapeName, defaultMeshFactory);
@@ -66,20 +39,14 @@ public final class RadarBlipFactory {
         final Geometry geom = new Geometry("Blip[" + shapeName + "]", mesh);
         final Material mat = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         mat.setColor("Color", initialColor.clone());
-        // Blips are flat XZ-plane silhouettes viewed from straight above. Their
-        // mesh winding produces a -Y normal, which would back-face-cull against
-        // the down-looking radar camera. Drawing both sides is cheaper than
-        // re-winding the meshes and keeps the registry symmetric.
+        // Mesh winding produces -Y normals; the down-looking radar cam would back-face-cull, so disable culling.
         mat.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
         geom.setMaterial(mat);
         return geom;
     }
 
+    // Disc rather than triangle because the radar stays north-up — a directional shape would mislead as the ship turns.
     private static Mesh dot(final float radius, final int segments) {
-        // Filled disc in the XZ plane (Y=0), built as a triangle fan around a
-        // centre vertex. Used for ship blips because the radar doesn't rotate
-        // with the player heading — a directional shape (like a triangle) would
-        // mislead the eye whenever the ship turns.
         final int vertCount = segments + 1; // + 1 for the centre vertex
         final float[] positions = new float[vertCount * 3];
         // Centre at (0, 0, 0)

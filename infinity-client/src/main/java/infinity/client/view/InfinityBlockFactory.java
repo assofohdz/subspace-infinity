@@ -13,10 +13,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.BlockType;
 import com.simsilica.mblock.Direction;
 
-/**
- *
- * @author AFahrenholz
- */
+/** Infinity-flavoured {@link DefaultBlockFactory} — skips face emission at world Y=1 (collision plane). */
 public class InfinityBlockFactory extends DefaultBlockFactory {
     static final long serialVersionUID = 42L;
 
@@ -28,12 +25,7 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
     private final PartFactory internalParts;
     // private Collider collider;
 
-    /**
-     * Creates a fully specified DefaultBlockFactory with the supplied parameters.
-     * If the solid[] array is null then all directions are considered solid. If the
-     * transparency array is null then all directions are considered transparency =
-     * 0, ie: fully opaque.
-     */
+    /** {@code solid == null} → all faces solid; {@code transparency == null} → fully opaque. */
     public InfinityBlockFactory(final PartFactory[] dirParts, final PartFactory internalParts, final boolean[] solid,
             final double[] transparency, final double volume, final Vec3d min, final Vec3d max) {
         super(dirParts, internalParts, solid, transparency, volume, min, max);
@@ -42,11 +34,7 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
         this.internalParts = internalParts;
     }
 
-    /**
-     * Constructs a block factory that creates a regular cube with the overall
-     * specified transparency. It is assumed that all of the part factories are full
-     * size and that the min is 0,0,0 and the max is 1,1,1, etc.
-     */
+    /** Builds a cube; part factories must be full-size with bounds [0,0,0]..[1,1,1]. */
     public static InfinityBlockFactory createCube(final double transparency, final PartFactory... dirParts) {
         if (dirParts.length != Direction.values().length) {
             throw new IllegalArgumentException("Incorrect number of part factories:" + dirParts.length + ", requires:"
@@ -59,11 +47,7 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
         return new InfinityBlockFactory(dirParts, null, null, trans, 1, new Vec3d(0, 0, 0), new Vec3d(1, 1, 1));
     }
 
-    /**
-     * Constructs a block factory that creates a regular cube with the overall
-     * specified transparency and PartFactories created by calling
-     * DefaultPartFactory.createFace() all using the specified material type.
-     */
+    /** Cube using {@code materialType} for every face. */
     public static InfinityBlockFactory createCube(final double transparency, final MaterialType materialType) {
         return createCube(transparency, DefaultPartFactory.createCubeFace(materialType, Direction.North),
                 DefaultPartFactory.createCubeFace(materialType, Direction.South),
@@ -73,11 +57,7 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
                 DefaultPartFactory.createCubeFace(materialType, Direction.Down));
     }
 
-    /**
-     * Constructs a block factory that creates a regular cube with the overall
-     * specified transparency and PartFactories created by calling
-     * DefaultPartFactory.createFace() with each of the specified material types.
-     */
+    /** Cube using a different material type per face (indexed by {@link Direction#ordinal()}). */
     public static InfinityBlockFactory createCube(final double transparency,
             @SuppressWarnings("unused") final int tileId, @SuppressWarnings("unused") final int mapId,
             final MaterialType... materialTypes) {
@@ -90,19 +70,11 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
                 DefaultPartFactory.createCubeFace(materialTypes[Direction.Down.ordinal()], Direction.Down));
     }
 
-    /**
-     * Constructs a new block factory, calculating the min/max, volume,
-     * transparency, and solid values based on the supplied part factories.
-     */
     public static InfinityBlockFactory create(final PartFactory[] dirParts, final PartFactory internalParts,
             final int tileId, final int mapId) {
         return create(dirParts, internalParts, null, tileId, mapId);
     }
 
-    /**
-     * Constructs a new block factory, calculating the min/max, volume, and solid
-     * values based on the supplied part factories.
-     */
     public static InfinityBlockFactory create(final PartFactory[] dirParts, final PartFactory internalParts,
             final double[] transparency, @SuppressWarnings("unused") final int tileId,
             @SuppressWarnings("unused") final int mapId) {
@@ -138,13 +110,6 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
                 volume, min, max);
     }
 
-    /**
-     * Per-direction contribution to the block's bounds, solid-faces flag, and
-     * per-axis transparency. Extracted from {@link #create} so the outer
-     * builder method stays under the cyclomatic-complexity threshold; behaviour
-     * preserved exactly (null-face fast-out, area-based solid flag, axis-min
-     * accumulation into {@code newTrans} when present).
-     */
     private static void accumulateFaceContribution(
             final PartFactory face,
             final Direction dir,

@@ -17,55 +17,27 @@ import com.simsilica.mblock.geom.PartFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A BlockFactory that creates flat tile quads facing up at Y=1. Used for rendering 2D Subspace-style
- * tiles within the Moss block system.
- *
- * <p>The tile is rendered as a single quad on the top face (Direction.Up) positioned at Y=1, making
- * it a flat sprite that can be viewed from above.
- *
- * @author Asser Fahrenholz
- */
+/** {@link BlockFactory} that emits a single flat upward-facing quad — Subspace tile sprite for the Moss block system. */
 public class FlatTileBlockFactory implements BlockFactory {
 
   static final long serialVersionUID = 42L;
   static Logger log = LoggerFactory.getLogger(FlatTileBlockFactory.class);
 
-  /** Number of columns in the Subspace tileset atlas (19 tiles per row). */
   public static final int TILESET_COLUMNS = 19;
-
-  /** Number of rows in the Subspace tileset atlas (10 rows). */
   public static final int TILESET_ROWS = 10;
-
-  /** Inner tile size in pixels (Subspace standard 16x16). */
   public static final int TILE_PIXELS = 16;
 
-  /**
-   * Replicate-padding around each tile in the loaded atlas. The texture loaded into video memory
-   * is a padded version of the source where each {@code TILE_PIXELS}x{@code TILE_PIXELS} tile is
-   * surrounded by a {@code GUTTER_PIXELS}-wide border of edge-replicated pixels. This lets
-   * trilinear / anisotropic filtering sample inside a tile without the GPU's 4-texel kernel
-   * reaching into the neighboring tile in the atlas. UVs below address only the inner region.
-   */
+  /** Edge-replicated padding around each tile — keeps trilinear/anisotropic filtering from bleeding across tiles. */
   public static final int GUTTER_PIXELS = 2;
 
-  /** Padded cell size: inner tile + gutter on both sides. */
   private static final int CELL_PIXELS = TILE_PIXELS + 2 * GUTTER_PIXELS;
-
-  /** Gutter width as a fraction of one cell (the unit on which {@code col}/{@code row} step). */
   private static final float GUTTER_RATIO = (float) GUTTER_PIXELS / CELL_PIXELS;
 
   private final PartFactory upFace;
   private final Vec3d min;
   private final Vec3d max;
 
-  /**
-   * Creates a FlatTileBlockFactory for a specific tile with pre-computed UV coordinates.
-   *
-   * @param materialType the material type for the tileset atlas
-   * @param tileId the tile index (1-190 for Subspace tiles)
-   * @return a new FlatTileBlockFactory with correct atlas UVs
-   */
+  /** {@code tileId} is 1-190 (Subspace convention); UVs computed from the atlas layout. */
   public static FlatTileBlockFactory createForTile(final MaterialType materialType, final int tileId) {
     // Calculate UV coordinates for this tile in the atlas
     // Subspace tiles are 1-indexed, so subtract 1 for 0-based indexing
@@ -91,15 +63,6 @@ public class FlatTileBlockFactory implements BlockFactory {
     return new FlatTileBlockFactory(materialType, u0, v0, u1, v1);
   }
 
-  /**
-   * Creates a FlatTileBlockFactory with specific UV coordinates.
-   *
-   * @param materialType the material type
-   * @param u0 left UV coordinate
-   * @param v0 top UV coordinate
-   * @param u1 right UV coordinate
-   * @param v1 bottom UV coordinate
-   */
   public FlatTileBlockFactory(
       final MaterialType materialType,
       final float u0,
@@ -114,10 +77,7 @@ public class FlatTileBlockFactory implements BlockFactory {
     this.max = new Vec3d(1, 0, 1);
   }
 
-  /**
-   * Creates a GeomPart for a flat UP-facing quad with custom UV coordinates.
-   * The quad is positioned at Y=0 (bottom of block unit) so it sits at the cell's world Y position.
-   */
+  // Quad sits at Y=0 (bottom of block unit) so it lands at the cell's world Y.
   private static GeomPart createFlatQuadWithUVs(
       final MaterialType materialType,
       final float u0,

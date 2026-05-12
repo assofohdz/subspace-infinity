@@ -33,12 +33,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This state manages the movement of the local avatar. It is responsible for updating the avatar's
- * position and rotation based on the input state.
- *
- * @author AFahrenholz
- */
+/** Translates input state into {@link MovementInput} + weapon RMI calls for the local avatar. */
 public class AvatarMovementState extends BaseAppState
     implements StateFunctionListener, AnalogFunctionListener {
 

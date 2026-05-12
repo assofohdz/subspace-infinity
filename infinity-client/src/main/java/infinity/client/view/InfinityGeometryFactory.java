@@ -55,18 +55,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- *  Creates JME geometry for a block array using the configured
- *  material registry and global block type index.
- *
- *  <p>Pure-function helpers (population, buffer building, light-axis
- *  sampling) live in {@link BlockMeshBuilder}. The factory keeps the
- *  instance state ({@code materials}, {@code allowCollisions}) and the
- *  methods that need it ({@code generateBlocks}, {@code generateFluid},
- *  {@code renderBuffer}, {@code assembleMesh}, {@code attachGeometryToTarget}).
- *
- *  @author    Paul Speed
- */
+/** Creates JME geometry for a block array; pure-function helpers live in {@link BlockMeshBuilder}. */
 public class InfinityGeometryFactory {
 
     static Logger log = LoggerFactory.getLogger(InfinityGeometryFactory.class);
@@ -83,13 +72,7 @@ public class InfinityGeometryFactory {
         this.materials = materials;
     }
 
-    /**
-     *  Generates Geometry objects for the specified cells CellArray and lightData
-     *  cellArray.  The Geometry objects are added to the 'target' Node.  The
-     *  target node's existing children are cleared during this process.
-     *  Each material represented in the cells data is a separate Geometry child
-     *  in the final Node child list.
-     */
+    /** Clears {@code target}'s children, then attaches one Geometry per material in {@code cells}. */
     public Node generateBlocks( Node target, CellArray cells, CellData lightData, boolean smoothLighting ) {
         log.info("Generating blocks");
         long start = System.nanoTime();
@@ -110,13 +93,7 @@ public class InfinityGeometryFactory {
         return result;
     }
 
-    /**
-     *  Generates Geometry objects for the specified fluid, cells, and lightData cell arrays.
-     *  The Geometry objects are added to the 'target' Node.  The
-     *  target node's existing children are cleared during this process.
-     *  Each material represented in the cells data is a separate Geometry child
-     *  in the final Node child list.
-     */
+    /** Same shape as {@link #generateBlocks} but for fluid cells. */
     public Node generateFluid( Node target, CellArray fluid, CellArray cells, CellData lightData, boolean smoothLighting ) {
         if( fluid == null ) {
             return target;
@@ -159,13 +136,6 @@ public class InfinityGeometryFactory {
         }
     }
 
-    /**
-     * Stamp every populated buffer in {@code buffers} into a fresh
-     * {@link ColliderlessMesh} and return it. Index format is dispatched
-     * via {@link BlockMeshBuilder#attachIndexBuffer}; the direction / normal /
-     * tangent buffers are skipped if absent (null) or never written
-     * (position == 0).
-     */
     private Mesh assembleMesh(final BlockMeshBuilder.MeshBuffers buffers) {
         final Mesh mesh = new ColliderlessMesh("block", allowCollisions);
         buffers.pos.applyToMesh(mesh, VertexBuffer.Type.Position, 3);
@@ -188,12 +158,7 @@ public class InfinityGeometryFactory {
         return mesh;
     }
 
-    /**
-     * Wrap {@code mesh} in a {@link Geometry}, look up the matching
-     * {@link Material} (falling back to a "bad" placeholder if missing),
-     * route alpha-blending materials to {@link Bucket#Transparent}, and
-     * attach to {@code target}. Throws if no fallback material exists either.
-     */
+    // Falls back to a "bad" material if {@code mt} isn't registered; alpha materials route to the transparent bucket.
     private void attachGeometryToTarget(
             final Node target, final MaterialType mt, final DefaultPartBuffer.PartList list, final Mesh mesh) {
         final Geometry geom = new Geometry("mesh:" + mt + ":" + list.primitiveType, mesh);
@@ -225,10 +190,6 @@ public class InfinityGeometryFactory {
     // out of this class into separate gradient classes.
     //----------------------------------------------------------------------
 
-    /**
-     *  Calculates the average r,g,b,sun value over all of the specified
-     *  light bits values.
-     */
     private static int average( int... lights ) {
         int s = 0;
         int r = 0;
@@ -251,9 +212,6 @@ public class InfinityGeometryFactory {
         return LightUtils.toLight(s/count, r/count, g/count, b/count);
     }
 
-    /**
-     *  Builds a SmoothLightGradient from the specified light data.
-     */
     private LightGradient calculateLightGradient( CellArray cells, CellData lightData ) {
         int xSize = cells.getSizeX();
         int ySize = cells.getSizeY();
@@ -281,10 +239,6 @@ public class InfinityGeometryFactory {
         return new SmoothLightGradient(corners);
     }
 
-    /**
-     * Lighting strategy interface — package-private so {@link BlockMeshBuilder}
-     * can reference it from the extracted helpers.
-     */
     interface LightGradient {
         void appendLight( CellData lights, int i, int j, int k, float x, float y, float z, Direction dir, FloatBuffer colors );
     }

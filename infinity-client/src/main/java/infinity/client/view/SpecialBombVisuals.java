@@ -3,17 +3,7 @@
 
 package infinity.client.view;
 
-/**
- * Client-side sprite-sheet offsets for the special-bomb variants (EMP, Super,
- * Thor). Relocated from the former api {@code BombRegistry} enum, which was
- * client-only data leaking into the api layer. Only {@link #THOR} is currently
- * referenced by {@code SISpatialFactory}; the EMP and Super variants are kept
- * as scaffolding for the planned weapon-variant feature (parallel to the
- * unwired one-shot sprite-shader stub).
- *
- * <p>The previous {@code lightColor} / {@code lightRadius} fields were dropped
- * — only the constructor assignments referenced them, no consumer ever read.
- */
+/** Sprite-sheet offsets for special-bomb variants (EMP, Super, Thor); only {@link #THOR} is currently wired. */
 public enum SpecialBombVisuals {
   EMP_1(1, 8),
   EMP_2(2, 7),

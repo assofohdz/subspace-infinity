@@ -40,11 +40,7 @@ import com.simsilica.lemur.input.Button;
 import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 
-/**
- * Defines some in-game tool controls.
- *
- * @author Paul Speed
- */
+/** In-game tool function ids + default mouse mappings. */
 public class ToolFunctions {
 
     public static final String IN_GAME = "In Game";

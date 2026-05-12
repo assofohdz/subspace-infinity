@@ -45,11 +45,7 @@ import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.net.GameSession;
 
-/**
- * State
- *
- * @author Asser
- */
+/** Loads .lvl tilesets, slices 16×16 tile bitmaps, and serves the per-tile {@link Image}s consumed by tile spatials. */
 public class MapState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(MapState.class);
@@ -216,10 +212,7 @@ public class MapState extends BaseAppState {
     private static final int TILE_SIZE = 16;
     private static final int TILES_PER_ROW = 19;
 
-    /**
-     * Slices the 16×16 tile at {@code tileIndex} (1-based on disk) out of the
-     * given tileset bitmap.
-     */
+    // tileIndex is 1-based on disk.
     private BitmapData sliceTile(final BitmapData tileset, final short tileIndex) {
         final int t = tileIndex - 1; // disk uses 1-based indexing
         return tileset.subRegion(
@@ -229,13 +222,7 @@ public class MapState extends BaseAppState {
                 TILE_SIZE);
     }
 
-    /**
-     * Converts a {@link BitmapData} into a {@link BufferedImage} feedable to
-     * {@code AWTLoader}. Applies the legacy horizontal flip so JME texture
-     * orientation matches the historical Subspace bitmap convention. Assumes
-     * the input is square (w == h) — true for the 16×16 tile crops this is
-     * called on.
-     */
+    // Applies a legacy horizontal flip so JME texture orientation matches the Subspace bitmap convention.
     private BufferedImage toBufferedImage(final BitmapData data) {
         final int w = data.width();
         final int h = data.height();
@@ -453,12 +440,6 @@ public class MapState extends BaseAppState {
         });
     }
 
-    /**
-     * Resolves the active {@link GameSession} from the client services, or
-     * throws if no session is hosted. Extracted so the per-mouse-button branches
-     * in the {@code addArenaMouseListeners} listener don't each need their own
-     * lookup-and-null-check pair.
-     */
     private GameSession requireGameSession() {
         final GameSession session = getState(ConnectionState.class)
                 .getService(GameSessionClientService.class);
@@ -468,13 +449,7 @@ public class MapState extends BaseAppState {
         return session;
     }
 
-    /**
-     * Casts a screen-space click ray onto {@code target}'s collision geometry
-     * and returns the first collision point. Logs (but does not throw) when the
-     * ray hits the arena more than once. Extracted from the {@code mouseMoved}
-     * branches in {@code addArenaMouseListeners} so each branch only carries
-     * its own button-specific {@code session.map(...)} dispatch.
-     */
+    // Returns the first collision point; logs (but doesn't throw) if the ray hits the arena more than once.
     private Vector3f rayCastClickToArena(final MouseMotionEvent event, final Spatial target) {
         final Vector2f click2d = new Vector2f(event.getX(), event.getY());
         final Vector3f click3d = camera.getWorldCoordinates(click2d.clone(), 0f).clone();

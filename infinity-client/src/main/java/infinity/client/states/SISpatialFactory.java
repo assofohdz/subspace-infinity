@@ -41,16 +41,7 @@ import java.util.function.DoubleFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Builds gameplay-entity spatials — ships, flags, doors, bombs, bullets,
- * bounty prizes, and the arena ghost-cube wireframe — plus shared part-based
- * spatials ({@link #createSphere}, {@link #createPartSpatial}). Effect
- * spatials (explosions, over-layers, warp/repel/burst, wormhole) are owned by
- * {@link EffectSpatialFactory}; this class delegates to it whenever
- * {@link #createModel} sees a shape name it doesn't recognise locally.
- *
- * @author Asser
- */
+/** Builds gameplay-entity spatials (ships, flags, doors, bombs, bullets, prizes, arena ghost-cube); delegates effects to {@link EffectSpatialFactory}. */
 public class SISpatialFactory {
 
   // Use to flip between using the lights and using unshaded textures
@@ -75,16 +66,7 @@ public class SISpatialFactory {
     this.effects = effects;
   }
 
-  /**
-   * Create a spatial for the given shape name.
-   *
-   * @param shapeName The name of the shape to create
-   * @param scale {@code ShapeInfo.scale} from the server (CubeFactory convention:
-   *     edge-length = {@code scale / 2}). Most shapes ignore this and use their own
-   *     view constants; the arena ghost-cube reads it so the wireframe tracks the
-   *     server cube without a hardcoded edge.
-   * @return The spatial
-   */
+  /** Most shapes ignore {@code scale}; the arena ghost-cube reads it via {@link #createArena(double)}. */
   public Spatial createModel(EntityId id, String shapeName, Mass mass, double scale) {
     final DoubleFunction<Spatial> factory = shapeFactories.get(shapeName);
     if (factory != null) {
@@ -96,17 +78,6 @@ public class SISpatialFactory {
     return effects.createEffect(shapeName, scale);
   }
 
-  /**
-   * Lookup table mapping {@link ShapeNames} ids to the {@code createX} helper
-   * that builds the matching gameplay-entity spatial. Replaces a 33-case
-   * switch in {@link #createModel}; entries that share a factory (mine / bomb
-   * levels, ship variants) point at the same per-variant lambda. Most
-   * factories ignore the {@code scale} argument; only {@link #createArena(double)}
-   * reads it (server-cube ghost wireframe). Bound to {@code this} because every
-   * factory uses instance state ({@code assets}, {@code geomIndex}). Effect
-   * shapes (explosions, over-layers, warp/repel/burst, wormhole) live in
-   * {@link EffectSpatialFactory}.
-   */
   private final Map<String, DoubleFunction<Spatial>> shapeFactories = Map.ofEntries(
       Map.entry(ShapeNames.BULLETL4, scale -> createBullet(BulletVisuals.LEVEL_4.viewOffset)),
       Map.entry(ShapeNames.BULLETL3, scale -> createBullet(BulletVisuals.LEVEL_3.viewOffset)),
@@ -178,14 +149,6 @@ public class SISpatialFactory {
     return parent;
   }
 
-  /**
-   * Creates a sphere for the given entity with the given radius and mass.
-   *
-   * @param id The entity id
-   * @param radius The radius of the sphere
-   * @param mass The mass of the sphere
-   * @return The sphere spatial
-   */
   public Spatial createSphere(EntityId id, float radius, Mass mass) {
     Sphere mesh = new Sphere(24, 24, radius);
     mesh.setTextureMode(Sphere.TextureMode.Projected);
@@ -235,11 +198,6 @@ public class SISpatialFactory {
     return node;
   }
 
-  /**
-   * Creates a cube spatial for the door entity.
-   *
-   * @return The spatial
-   */
   private Spatial createDoor() {
     Box box =
         new Box(
@@ -267,12 +225,7 @@ public class SISpatialFactory {
     return geom;
   }
 
-  /**
-   * Creates a flag.
-   *
-   * @param flag 0 for enemy flag, 1 for team flag
-   * @return the spatial that is created to visualize the flag
-   */
+  /** {@code flag}: 0 = enemy flag, 1 = team flag. */
   private Spatial createFlag(final int flag) {
     final Quad quad = new Quad(CoreViewConstants.FLAGSIZE, CoreViewConstants.FLAGSIZE);
     final float halfSize = CoreViewConstants.FLAGSIZE * 0.5f;
@@ -292,12 +245,6 @@ public class SISpatialFactory {
     return geom;
   }
 
-  /**
-   * Sets the material variables for the flag.
-   *
-   * @param s the spatial
-   * @param flag the flag, 0 for enemy flag, 1 for team flag
-   */
   public void setFlagMaterialVariables(final Spatial s, final int flag) {
     Geometry geom;
     if (s instanceof Geometry) {
@@ -333,12 +280,6 @@ public class SISpatialFactory {
     return geom;
   }
 
-  /**
-   * Set the material variables for the ship.
-   *
-   * @param s the spatial to set the material variables on
-   * @param ship the ship number
-   */
   public void setShipMaterialVariables(final Spatial s, final int ship) {
     Geometry geom;
     if (s instanceof Geometry) {
@@ -410,12 +351,8 @@ public class SISpatialFactory {
   }
 
   private Spatial createArena(final double scale) {
-    // Wireframe cube whose edge matches the server's ghost-cube. CubeFactory
-    // produces a cube of edge-length = scale / 2 (see CubeFactory.createShape
-    // doc), so divide the ShapeInfo.scale by 2 to recover the edge here.
-    // Wireframe so ships inside the arena are visible. Anchored at min-corner
-    // via mesh translation, mirroring the server's SpawnPosition = min-corner
-    // anchor convention.
+    // CubeFactory produces edge-length = scale/2. Wireframe so ships inside stay visible.
+    // Anchored at min-corner to mirror the server's SpawnPosition convention.
     final float edge = (float) (scale * 0.5);
     final float halfEdge = edge * 0.5f;
     final Box box = new Box(halfEdge, halfEdge, halfEdge);

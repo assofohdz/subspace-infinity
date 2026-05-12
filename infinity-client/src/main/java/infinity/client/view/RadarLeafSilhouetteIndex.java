@@ -14,47 +14,19 @@ import com.simsilica.mblock.CellArray;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-/**
- * Builds the flat top-down silhouette mesh for one leaf's worth of cell data —
- * the radar-side analogue of {@link BlockGeometryIndex}, but without the tile
- * texture, neighbor lighting, or per-face mesh.
- *
- * <p>For each (x, z) column inside the leaf, if any cell along Y is solid (raw
- * cell value != 0), one 1×1 quad is emitted in the XZ plane at that column.
- * Subspace maps are effectively 2D so OR-ing along Y is the right projection;
- * the mesh stays sparse because most maps are mostly empty space. Cells are
- * placed at their leaf-local coordinates — the calling state positions the
- * containing node at the leaf's world origin.
- *
- * <p>The resulting geometry uses an unshaded material coloured from
- * {@link RadarTheme#blockColor()}, with face culling disabled (the radar
- * camera looks straight down so a -Y normal would back-face-cull, same
- * caveat as {@code RadarBlipFactory}).
- *
- * @author Asser Fahrenholz
- */
+/** Radar-side analogue of {@link BlockGeometryIndex}: emits one XZ quad per solid column (OR-along-Y projection). */
 public final class RadarLeafSilhouetteIndex {
 
     private final Material material;
 
     public RadarLeafSilhouetteIndex(final AssetManager assetManager, final RadarTheme theme) {
-        // Single shared material — no per-leaf tinting, one colour by design.
-        // Created on the construction thread so we don't ask the asset manager
-        // from a worker thread later.
+        // Shared material built on the construction thread so workers don't touch the asset manager.
         this.material = new Material(assetManager, "Common/MatDefs/Misc/Unshaded.j3md");
         this.material.setColor("Color", theme.blockColor());
         this.material.getAdditionalRenderState().setFaceCullMode(FaceCullMode.Off);
     }
 
-    /**
-     * Build the silhouette mesh for {@code cells} and attach it under {@code target}.
-     * Returns {@code target} for chaining. Returns {@code target} unchanged if the
-     * leaf has no solid cells (no geometry attached, callers can drop it).
-     *
-     * <p>Safe to call from a worker thread: only allocates buffers and a
-     * {@link Geometry} that holds a reference to the (already-loaded) shared
-     * material — does not touch the asset manager.
-     */
+    /** Safe to call from a worker thread; returns {@code target} unchanged if the leaf has no solid cells. */
     public Node generate(final Node target, final CellArray cells) {
         final int sizeX = cells.getSizeX();
         final int sizeY = cells.getSizeY();

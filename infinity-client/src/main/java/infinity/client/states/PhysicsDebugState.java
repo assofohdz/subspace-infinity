@@ -58,12 +58,7 @@ import infinity.client.view.DebugFunctions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * When the physics is running locally, this state manages the various debug views that are
- * available.
- *
- * @author Paul Speed
- */
+/** Aggregates the local-physics debug views (bins, bodies, contacts). */
 public class PhysicsDebugState extends CompositeAppState {
 
   private static final String TOGGLE_ENABLED = "toggleEnabled";
@@ -120,12 +115,6 @@ public class PhysicsDebugState extends CompositeAppState {
     }
   }
 
-  /**
-   * Called by the state manager to update this state. This is where the actual physics simulation
-   * is performed.
-   *
-   * @param tpf Time since the last call to update(), in seconds.
-   */
   @Override
   public void update(float tpf) {
     // We should be the last child of the GameSessionState... so everything

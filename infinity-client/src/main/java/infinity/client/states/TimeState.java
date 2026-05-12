@@ -12,18 +12,7 @@ import com.simsilica.ethereal.TimeSource;
 
 import infinity.sim.TimeManager;
 
-/**
- * Provides a consistent frame time to the classes that want it. Time inevitably
- * marches forward except in the case of this state. When update() is called,
- * the frame time is locked such that getTime() will return the same value until
- * after the next update(). This makes sure that small inter-frame time
- * differences don't creep into interpolated visuals.
- *
- * For a simple game example like this, it isn't really necessary but it's a
- * good pattern to follow.
- *
- * @author Paul Speed
- */
+/** Locks {@code getTime()} to a snapshot taken at {@link #update} so interpolated visuals don't drift mid-frame. */
 public class TimeState extends BaseAppState implements TimeManager {
 
     static Logger log = LoggerFactory.getLogger(TimeState.class);

@@ -22,17 +22,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Manages dynamic jME point lights attached to moving entities (ships, decaying effects).
- *
- * <p>Static world lighting (walls, sun) is baked as vertex colors via MOSS's voxel lighting
- * system — see {@code LanternBlockFactory}, {@code TileLit.frag}, and the
- * {@code LightUtils.recalculateLighting} call in {@code LocalViewState}. The tile shader
- * reads those vertex colors directly and ignores jME lights, so any point light added by
- * this state only affects non-tile scene geometry (if any exists in the future).
- *
- * @author Asser Fahrenholz
- */
+/** Dynamic jME point lights for moving entities; static world lighting is baked via MOSS voxel lighting (tiles read vertex colors). */
 public class LightState extends BaseAppState {
 
   static Logger log = LoggerFactory.getLogger(LightState.class);

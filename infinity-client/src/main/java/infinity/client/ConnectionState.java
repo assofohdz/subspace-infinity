@@ -31,11 +31,7 @@ import java.util.concurrent.Callable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- *  Manages the connection and game client when connected to a server.
- *
- *  @author    Paul Speed
- */
+/** Manages the connection and game client when connected to a server. */
 public class ConnectionState extends CompositeAppState {
 
     static Logger log = LoggerFactory.getLogger(ConnectionState.class);

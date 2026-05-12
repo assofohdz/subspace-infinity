@@ -44,11 +44,7 @@ import com.jme3.system.AppSettings;
 
 import com.simsilica.fx.shadow.DropShadowFilter;
 
-/**
- *
- *
- * @author Paul Speed
- */
+/** Installs a {@link FilterPostProcessor} with a {@link DropShadowFilter}. */
 public class PostProcessingState extends BaseAppState {
 
     private FilterPostProcessor fpp;

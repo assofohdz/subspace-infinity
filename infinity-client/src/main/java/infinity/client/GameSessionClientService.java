@@ -54,11 +54,7 @@ import infinity.events.MapAction;
 import infinity.net.GameSession;
 import infinity.net.GameSessionListener;
 
-/**
- *
- *
- * @author Paul Speed
- */
+/** Client-side RMI proxy for the server's {@link GameSession}. */
 public class GameSessionClientService extends AbstractClientService implements GameSession {
 
     static Logger log = LoggerFactory.getLogger(GameSessionClientService.class);
@@ -91,14 +87,8 @@ public class GameSessionClientService extends AbstractClientService implements G
     }
 
     private GameSession getDelegate() {
-        // We look up the delegate lazily to make the service more
-        // flexible. Otherwise we'd have to listen to the account service
-        // to know when we'd fully logged on and that creates an unnecessary
-        // dependency for a relatively small thing. Easier just to lazily
-        // load it upon request and hope the client is already handling the
-        // state properly.
+        // Lazy lookup avoids a dependency on the account service login sequence.
         if (delegate == null) {
-            // Look it up
             delegate = rmiService.getRemoteObject(GameSession.class);
             log.debug("delegate:{}", delegate);
             if (delegate == null) {
@@ -108,11 +98,7 @@ public class GameSessionClientService extends AbstractClientService implements G
         return delegate;
     }
 
-    /**
-     * Adds a listener that will be notified about account-related events. Note that
-     * these listeners are called on the networking thread and as such are not
-     * suitable for modifying the visualization directly.
-     */
+    // Called on the networking thread; not safe for visualization mutations.
     public void addGameSessionListener(final GameSessionListener l) {
         listeners.add(l);
     }
@@ -128,21 +114,11 @@ public class GameSessionClientService extends AbstractClientService implements G
         if (rmiService == null) {
             throw new IllegalStateException("GameSessionClientService requires RMI service");
         }
-
-        // Register the session right away even though the 'state' of the connection
-        // is that we are not actually in the game yet. Because the server is managing
-        // that state, it does no harm for us to register the callback early and this
-        // way we avoid any case where the server might try to call it before we are
-        // fully ready. (ie: it's friendlier to async messaging)
+        // Register early so server-initiated callbacks never beat us to the punch.
         log.info("Sharing session callback.");
         rmiService.share(sessionCallback, GameSessionListener.class);
     }
 
-    /**
-     * Called during connection setup once the server-side services have been
-     * initialized for this connection and any shared objects, etc. should be
-     * available.
-     */
     @Override
     public void start() {
         log.debug("start()");
@@ -190,10 +166,7 @@ public class GameSessionClientService extends AbstractClientService implements G
         getDelegate().map(mapInput, coords);
     }
 
-    /**
-     * Shared with the server over RMI so that it can notify us about account
-     * related stuff.
-     */
+    // Shared with the server over RMI for notifications.
     private class GameSessionCallback implements GameSessionListener {
 
         @Override

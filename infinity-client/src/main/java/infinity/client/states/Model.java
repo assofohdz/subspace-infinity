@@ -44,14 +44,7 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import java.util.Objects;
 
-/**
- * Models may be detected as static and dynamic objects at the same time because of SpawnPosition
- * and BodyPosition. Furthermore, we can't guarantee that a BodyPosition will always have a
- * corresponding SpawnPosition because it may have moved into a different zone that we see (and
- * we may not see the original spawn zone). So we need to cache them and keep track of the number
- * of 'views' using it. Also, if we already have one being managed by a Body view then we should
- * not update its static position from SpawnPosition.
- */
+// Reference-counted: a single entity can match both BodyContainer + StaticContainer; dynamic wins over static-pos updates.
 class Model {
   private final ModelViewState owner;
   final EntityId entityId;

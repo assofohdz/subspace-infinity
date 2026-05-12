@@ -68,31 +68,14 @@ import infinity.client.MainGameFunctions;
 import infinity.client.view.DebugFunctions;
 import infinity.client.view.ToolFunctions;
 
-/**
- * Presents a help popup to the user when they press F1.
- *
- * <p>The key-binding list is auto-derived from {@link InputMapper#getFunctionIds()}
- * at {@link #initialize} time, grouped by {@link FunctionId#getGroup()}, then
- * followed by a hand-written "System (jME defaults)" section for keys that
- * don't go through the input mapper (PrtScrn / F5 / F6). Function IDs without
- * any active mapping render as {@code (unbound)} so this popup doubles as a
- * self-debugging tool for unmapped declarations
- * (see {@code .scratch/debug-state-bindings/PRD.md} TD-1).
- *
- * @author Paul Speed
- */
+/** F1 help popup; key bindings auto-derived from {@link InputMapper#getFunctionIds()} and grouped. */
 public class HelpState extends BaseAppState {
 
     public static final FunctionId F_HELP = new FunctionId("Help");
 
     private Container helpWindow;
 
-    /**
-     * Friendly description overrides keyed by {@link FunctionId}. When a function
-     * has no entry here, the help popup falls back to {@link FunctionId#getName()}
-     * (which itself defaults to {@code getId()}). Seeded with the human-friendly
-     * descriptions that lived in the prior hardcoded {@code keyHelp[]} array.
-     */
+    // Falls back to {@link FunctionId#getName()} when a function has no entry here.
     private final Map<FunctionId, String> descriptionOverrides = buildDescriptionOverrides();
 
     public HelpState() {
@@ -145,13 +128,6 @@ public class HelpState extends BaseAppState {
         dumpInputMappings(inputMapper);
     }
 
-    /**
-     * Build the per-FunctionId description override map. Keys are the canonical
-     * static {@link FunctionId} singletons declared elsewhere in the client; values
-     * are short human-readable descriptions copied verbatim from the prior
-     * hardcoded {@code keyHelp[]} array (where they were more informative than
-     * the raw {@code FunctionId.getName()} would be).
-     */
     private static Map<FunctionId, String> buildDescriptionOverrides() {
         final Map<FunctionId, String> map = new HashMap<>();
         map.put(F_HELP, "Opens/closes this help window.");
@@ -167,12 +143,7 @@ public class HelpState extends BaseAppState {
         return map;
     }
 
-    /**
-     * Walk every {@link FunctionId} known to the {@link InputMapper} and group
-     * them by {@link FunctionId#getGroup()}. Returns a {@link TreeMap} so groups
-     * render in alphabetical order; entries within each group are sorted by
-     * function name for stable output across runs.
-     */
+    // {@link TreeMap} so groups render alphabetically; entries sorted by function name for stable output.
     private Map<String, List<KeyHelp>> collectFunctionIdsByGroup(final InputMapper inputMapper) {
         final Map<String, List<KeyHelp>> byGroup = new TreeMap<>();
         for (final FunctionId function : inputMapper.getFunctionIds()) {
@@ -187,11 +158,6 @@ public class HelpState extends BaseAppState {
         return byGroup;
     }
 
-    /**
-     * Render a section header label spanning the keys / description columns.
-     * Uses a dedicated {@code "help.section.label"} {@link ElementId} so styles
-     * can target section headers separately from per-row labels.
-     */
     private static void renderGroupHeader(final Container keys, final String groupName) {
         keys.addChild(new Label(groupName, new ElementId("help.section.label")));
         // Empty cell in column 1 so the header doesn't visually merge with the next
@@ -199,11 +165,6 @@ public class HelpState extends BaseAppState {
         keys.addChild(new Label("", new ElementId("help.section.label")), Integer.valueOf(1));
     }
 
-    /**
-     * Render one row per {@link KeyHelp} into the two-column keys panel:
-     * resolved key chord on the left, description on the right. Rows whose
-     * function has no active mapping show {@code (unbound)} on the left.
-     */
     private static void renderHelpRows(
             final Container keys, final InputMapper inputMapper, final List<KeyHelp> rows) {
         final Joiner commas = Joiner.on(", ");

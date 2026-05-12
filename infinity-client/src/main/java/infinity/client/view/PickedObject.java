@@ -39,11 +39,7 @@ package infinity.client.view;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 
-/**
- * An entity that was picked, including where it was picked, etc.
- *
- * @author Paul Speed
- */
+/** Entity-id + pick location returned from a scene-graph pick. */
 public class PickedObject {
     public EntityId entityId;
     public Vec3d location;

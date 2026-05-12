@@ -26,9 +26,7 @@ import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author Asser
- */
+/** Tracks audio entities and plays per-event {@link AudioNode}s built by {@link SIAudioFactory}. */
 public class AudioState extends BaseAppState {
 
   static Logger log = LoggerFactory.getLogger(AudioState.class);
@@ -38,13 +36,6 @@ public class AudioState extends BaseAppState {
   private Map<EntityId, AudioNode> soundIndex = new HashMap<>();
   private Node soundRoot;
 
-  /**
-   * Lookup table mapping {@link AudioTypes} string ids to the factory method
-   * that builds the matching {@link AudioNode}. Replaces a 19-case switch in
-   * {@link #createAudio} (the four per-level FIRE_BOMBS / FIRE_GUNS /
-   * FIRE_MINE entries point at the same factory each). Bound to {@code this}
-   * because every factory uses the {@link #factory} instance field.
-   */
   private final Map<String, Function<Entity, AudioNode>> factories = Map.ofEntries(
       Map.entry(AudioTypes.FIRE_THOR, this::createFireThor),
       Map.entry(AudioTypes.PICKUP_PRIZE, this::createPickUpPrize),

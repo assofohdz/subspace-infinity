@@ -19,14 +19,7 @@ import com.jme3.network.service.ClientServiceManager;
 import com.jme3.network.service.rmi.RmiClientService;
 
 
-/**
- *  Provides super-basic account services like logging in.  This could
- *  be expanded to be more complicated based on a real game's needs.
- *  The basics have been included here as a minimal example that includes
- *  the basic types of communication necessary.
- *
- *  @author    Paul Speed
- */
+/** Client-side RMI proxy for the server's {@link AccountSession} (login, server info). */
 public class AccountClientService extends AbstractClientService
     implements AccountSession {
 
@@ -51,11 +44,7 @@ public class AccountClientService extends AbstractClientService
     delegate.login(playerName);
   }
 
-  /**
-   *  Adds a listener that will be notified about account-related events.
-   *  Note that these listeners are called on the networking thread and
-   *  as such are not suitable for modifying the visualization directly.
-   */
+  // Called on the networking thread; not safe for visualization mutations.
   public void addAccountSessionListener( AccountSessionListener l ) {
     listeners.add(l);
   }
@@ -75,10 +64,6 @@ public class AccountClientService extends AbstractClientService
     rmiService.share(sessionCallback, AccountSessionListener.class);
   }
 
-  /**
-   *  Called during connection setup once the server-side services have been initialized
-   *  for this connection and any shared objects, etc. should be available.
-   */
   @Override
   public void start() {
     log.debug("start()");
@@ -90,10 +75,7 @@ public class AccountClientService extends AbstractClientService
     }
   }
 
-  /**
-   *  Shared with the server over RMI so that it can notify us about account
-   *  related stuff.
-   */
+  // Shared with the server over RMI for notifications.
   private class AccountSessionCallback implements AccountSessionListener {
 
     @Override

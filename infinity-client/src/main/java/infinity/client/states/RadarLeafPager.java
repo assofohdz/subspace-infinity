@@ -21,27 +21,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/**
- * Owns the radar's leaf-paging subsystem — extracted from {@link RadarState}
- * to keep the host state's class-level cyclomatic-complexity sum below PMD's
- * class threshold without fragmenting the leaf-paging flow.
- *
- * <p>Responsibilities:
- * <ul>
- *   <li>Maintain the {@code LeafId → RadarLeafView} cache that backs the
- *       radar's wall silhouettes.</li>
- *   <li>Schedule async {@link RadarLeafView} jobs against the shared
- *       {@link JobState} pools as the avatar's leaf-cell changes.</li>
- *   <li>Listen on {@link World#addLeafChangeListener} (registered via
- *       {@link #attachLeafObserver()}) so server-side wall edits requeue the
- *       affected leaf at top priority via {@link #drainLeafUpdates()}.</li>
- *   <li>Tear down the listener + cancel queued jobs on {@link #dispose()}.</li>
- * </ul>
- *
- * <p>Behaviour preserved exactly from the original inline {@code RadarState}
- * code: same disc walk, same {@code x²+z²} priority assignment (closer leaves
- * served first), same eviction-on-radius-change reset of the center sentinel.
- */
+/** Radar's leaf-paging subsystem — schedules {@link RadarLeafView} jobs around the avatar and drains leaf-change events. */
 final class RadarLeafPager {
 
     private final World world;
@@ -71,24 +51,14 @@ final class RadarLeafPager {
         this.radarBlockRoot = radarBlockRoot;
     }
 
-    /**
-     * Wire the {@link LeafChangeListener} into {@code world}. Caller invokes
-     * this after construction so leaf-change events flow into
-     * {@link #drainLeafUpdates()}. Mirrors the original inline registration in
-     * {@code RadarState.initialize}.
-     */
+    /** Register the {@link LeafChangeListener}; invoked once by the host state after construction. */
     void attachLeafObserver() {
         if (world != null) {
             world.addLeafChangeListener(radarLeafObserver);
         }
     }
 
-    /**
-     * Apply any leaf-change events the observer queued since last frame. If
-     * we are currently paging the changed leaf, requeue its job at top
-     * priority so the silhouette refreshes promptly (e.g. a wall got built
-     * or destroyed server-side).
-     */
+    /** Drain queued leaf-change events; requeue affected leaves at top priority. */
     @SuppressWarnings("PMD.AssignmentInOperand") // canonical `while ((leafId = poll()) != null)` drain
     void drainLeafUpdates() {
         LeafId leafId;
@@ -100,22 +70,7 @@ final class RadarLeafPager {
         }
     }
 
-    /**
-     * Page leaf silhouettes in / out around {@code avatarPos}. Mirrors
-     * {@code LocalViewState.updateView}, simplified for radar:
-     *
-     * <ul>
-     *   <li>Paging radius (in leaves) is derived from {@code currentRange}
-     *       via {@link WorldGrids#LEAF_GRID} spacing — no hand-rolled
-     *       {@code * 1024} arithmetic, per
-     *       {@code .claude/rules/world-coordinates.md}.</li>
-     *   <li>Subspace is effectively 2D (one Y layer), so the view spans only
-     *       one leaf in Y — the one containing the avatar.</li>
-     *   <li>Blocks are not entities — leaves come from {@link World#getLeaf}
-     *       and are paged on world-grid boundaries, independent of the entity
-     *       blip containers.</li>
-     * </ul>
-     */
+    /** Page leaf silhouettes in/out around {@code avatarPos}; radius derived from {@code currentRange}. */
     void updateLeafPaging(final Vec3d avatarPos, final double currentRange) {
         if (world == null || workers == null) {
             return;
@@ -145,11 +100,7 @@ final class RadarLeafPager {
         evictStaleLeaves(toRemove);
     }
 
-    /**
-     * Walk the {@link #radarViewArray} disc relative to {@code centerWorld}
-     * and ensure each visible leaf has a queued {@link RadarLeafView}. Leaves
-     * still present after this call are removed from {@code toRemove}.
-     */
+    // Ensures each visible leaf has a queued view; removes still-present leaves from {@code toRemove}.
     private void scheduleVisibleLeaves(
             final Vec3i centerWorld,
             final Vec3i leafSpacing,
@@ -199,10 +150,7 @@ final class RadarLeafPager {
         }
     }
 
-    /**
-     * Tear down the leaf observer + cancel queued jobs + release attached
-     * silhouette nodes. Called from the host state's {@code cleanup()}.
-     */
+    /** Tear down listener + cancel jobs + release nodes; called from host state {@code cleanup()}. */
     void dispose() {
         if (world != null) {
             world.removeLeafChangeListener(radarLeafObserver);
@@ -229,17 +177,7 @@ final class RadarLeafPager {
         }
     }
 
-    /**
-     * Async {@link Job} that loads one leaf's silhouette: fetches cell data
-     * from {@link World#getLeaf} on a worker thread, builds the silhouette
-     * mesh, and (back on the JME update thread) attaches the resulting node
-     * under {@code radarBlockRoot}. Mirrors {@code LocalViewState.LeafView}.
-     *
-     * <p>The leaf node is positioned at the leaf's absolute world origin in
-     * {@code initialize}-time setup, so cells render at absolute world coords —
-     * the radar camera (which sits at the avatar's absolute world position)
-     * will frame them correctly without any conveyor offset.
-     */
+    // Cells render at absolute world coords; the radar camera (at the avatar's absolute pos) frames them without a conveyor offset.
     private final class RadarLeafView implements Job {
 
         private final LeafId leafId;
