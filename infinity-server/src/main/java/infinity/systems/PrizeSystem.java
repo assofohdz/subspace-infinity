@@ -26,8 +26,11 @@ import infinity.es.Spawner;
 import infinity.es.SphereShape;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.Player;
+import infinity.server.chat.InfinityChatHostedService;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineConfigSystem;
+import infinity.sim.AccessLevel;
+import infinity.sim.CommandTriFunction;
 import infinity.sim.CollisionFilters;
 import infinity.sim.MapFactory;
 import infinity.sim.GameSounds;
@@ -72,6 +75,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -128,6 +133,9 @@ public class PrizeSystem extends BaseInfinitySystem implements ContactListener<E
   private EntitySet prizes;
   private SimTime ourTime;
   private EntitySet ships;
+
+  /** Admin/test command: {@code ~prize <name>} — grants one prize to the issuing avatar. */
+  private final Pattern grantPrizeCommand = Pattern.compile("\\~prize\\s+(\\w+)");
 
   public PrizeSystem(PhysicsSpace<EntityId, MBlockShape> phys) {
     this.phys = phys;
@@ -201,6 +209,30 @@ public class PrizeSystem extends BaseInfinitySystem implements ContactListener<E
     appliers.put(PrizeTypes.XRADAR, new XRadarPrizeApplier());
 
     requireSystem(ContactSystem.class).addListener(this);
+
+    getSystem(InfinityChatHostedService.class)
+        .registerPatternTriConsumer(
+            grantPrizeCommand,
+            "Grant a prize to your avatar (case-insensitive name match): ~prize <name>",
+            new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::commandGrantPrize));
+  }
+
+  /**
+   * Looks up the prize applier by case-insensitive name match against {@link PrizeTypes}
+   * keys and applies it to the issuing player's avatar. Returns a result string for the
+   * chat reply.
+   */
+  public String commandGrantPrize(final EntityId entityId, final EntityId avatarId, final Matcher matcher) {
+    final String requested = matcher.group(1);
+    final String matched = appliers.keySet().stream()
+        .filter(k -> k.equalsIgnoreCase(requested))
+        .findFirst()
+        .orElse(null);
+    if (matched == null) {
+      return "Unknown prize: " + requested + ". Known: " + appliers.keySet();
+    }
+    appliers.get(matched).apply(avatarId, applierContext);
+    return "Granted prize: " + matched + " to avatar " + avatarId;
   }
 
   /**
