@@ -302,7 +302,7 @@ Per-aspect rows that flip ✅ when the canonical writer + all emit sites + tests
 
 ## Migration tracker
 
-**Milestone — 2026-05-12:** Aspect body complete. All 18 ship-state aspects, 4 fresh-find aspects, and 5 non-ship entity classes audited. Zero multi-writer violations remain. Only TBD-3 (architectural CI test) is outstanding.
+**Milestone — 2026-05-12:** ADR 0001 implementation **complete**. All 18 ship-state aspects, 4 fresh-find aspects, 5 non-ship entity classes audited, and the architectural enforcement test (TBD-3, `CanonicalWriterTest` at c9b9d154) all landed. Zero multi-writer violations; every aspect routes through the Change-entity recipe.
 
 Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snapshot update).
 
@@ -355,4 +355,4 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 - ✅ Delete `Intent`, `CapBump`, `CapField` (api/src/main/java/infinity/es/ship/actions/) — landed in movement slice
 - ✅ Delete `RocketBuffIntent` (api/src/main/java/infinity/es/ship/actions/RocketBuffIntent.java) — landed in movement slice; `RocketActive` + `RocketSnapshot` survive as game-logic markers
 - ✅ Final pass over `.claude/rules/replacement-as-mutation.md` snapshot — zero direct-`setComponent` violations remain; "Future-migration candidates" subsection removed (all pre-ADR shapes deleted)
-- ⬜ Architectural test (TBD-3) lands and is green on main
+- ✅ Architectural test (TBD-3) lands and is green on main — `CanonicalWriterTest` at c9b9d154; 21-row registry; sample violation message validated by faking a write + reverting
