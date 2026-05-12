@@ -5,17 +5,13 @@ package infinity.systems.ship;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.config.BombStats;
-import infinity.config.BulletStats;
-import infinity.config.BurstStats;
 import infinity.config.CountStats;
 import infinity.config.CountWithDelayStats;
-import infinity.config.MineStats;
 import infinity.config.RocketStats;
 import infinity.es.ship.actions.Brick;
 import infinity.es.ship.actions.BrickMax;
 import infinity.es.ship.actions.Burst;
-import infinity.es.ship.actions.BurstMax;
+import infinity.es.ship.actions.BurstStats;
 import infinity.es.ship.actions.Decoy;
 import infinity.es.ship.actions.DecoyMax;
 import infinity.es.ship.actions.Portal;
@@ -28,51 +24,35 @@ import infinity.es.ship.actions.RocketTime;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
 import infinity.es.ship.actions.ThorMaxCount;
-import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
-import infinity.es.ship.weapons.BombMaxLevel;
-import infinity.es.ship.weapons.BombSpeed;
-import infinity.es.ship.weapons.BombThrust;
-import infinity.es.ship.weapons.BulletCost;
+import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletCurrentLevel;
 import infinity.es.ship.weapons.BulletFireDelay;
-import infinity.es.ship.weapons.BulletMaxLevel;
-import infinity.es.ship.weapons.BulletSpeed;
-import infinity.es.ship.weapons.BurstSpeed;
-import infinity.es.ship.weapons.MineCost;
+import infinity.es.ship.weapons.BulletStats;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
-import infinity.es.ship.weapons.MineMaxLevel;
-import infinity.es.ship.weapons.MineSpeed;
+import infinity.es.ship.weapons.MineStats;
 import javax.annotation.Nullable;
 
 /**
  * Pattern-4 spawn-projection helpers for the weapon / inventory families.
- * Extracted from {@link ShipSpawnSystem} as pure static methods so the
- * sum-of-method cyclomatic complexity on the spawn system stays under PMD's
- * class-level threshold while preserving the single Pattern-4 boundary
- * (template→component projection happens here, called only by
- * {@code ShipSpawnSystem.project}).
+ * Called only by {@code ShipSpawnSystem.project}; projects each
+ * {@code *Config}-tier template (e.g. {@link infinity.config.BombStats}) into
+ * the component-tier {@code *Stats} record (e.g. {@link BombStats}) plus the
+ * matching live-pool component (e.g. {@link BombCurrentLevel}). Live pools
+ * are reset only on {@code resetLivePool == true} so mid-fight Groovy
+ * reloads preserve earned upgrades and current ammo.
  *
- * <p>Each method follows the same Pattern-4 split: the live "current
- * count / level" component resets only on {@code resetLivePool == true} so
- * mid-fight Groovy reloads don't refill ammo or revoke earned upgrades, while
- * capability components ({@code *Max}, {@code *Cost}, {@code *FireDelay},
- * speed/thrust knobs) always re-project so a tuning edit takes effect
- * immediately.
+ * <p>Per-instance cooldown components ({@code *FireDelay}) are re-stamped on
+ * every projection (the constructor zeroes the start nanos) so a respawned
+ * ship can fire immediately; runtime re-stamping after each fire lives in
+ * {@link WeaponsEligibility}.
  *
- * <p>Each method also guards against a null stats record so a {@code
- * ShipConfig} can express "this ship doesn't carry bombs / bullets / mines /
- * bursts / thors / repels / decoys / bricks / rockets / portals" by setting
- * the field to {@code null}. The corresponding {@code *Max} component is
- * then absent on the ship, which prize appliers interpret as "not allowed"
- * (component-absence as the disallow signal).
- *
- * <p>Package-private; not part of any public API. The methods take
- * {@link EntityData} as their first argument because that's the only piece
- * of {@code ShipSpawnSystem} state they read — making them static keeps the
- * spawn system's per-method CC from accumulating into the class-level total.
+ * <p>See ADR 0001 §"Continuous + Stats split"; the older scattered
+ * {@code *MaxLevel} / {@code *Cost} / {@code *Speed} / {@code *Thrust}
+ * components were bundled into the per-aspect {@code *Stats} record in
+ * Wave 4a.
  */
 final class ShipWeaponsProjector {
 
@@ -83,7 +63,7 @@ final class ShipWeaponsProjector {
   static void projectBombs(
       final EntityData ed,
       final EntityId shipId,
-      @Nullable final BombStats bombs,
+      @Nullable final infinity.config.BombStats bombs,
       final boolean resetLivePool) {
     if (bombs == null) {
       return;
@@ -91,17 +71,17 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new BombCurrentLevel(bombs.start()));
     }
-    ed.setComponent(shipId, new BombMaxLevel(bombs.max()));
-    ed.setComponent(shipId, new BombCost(bombs.cost()));
-    ed.setComponent(shipId, new BombFireDelay(bombs.fireDelayCs()));
-    ed.setComponent(shipId, new BombSpeed(bombs.speed()));
-    ed.setComponent(shipId, new BombThrust(bombs.thrust()));
+    final long fireDelayMillis = bombs.fireDelayCs() * 10L;
+    ed.setComponent(
+        shipId,
+        new BombStats(bombs.max(), bombs.cost(), fireDelayMillis, bombs.speed(), bombs.thrust()));
+    ed.setComponent(shipId, new BombFireDelay(fireDelayMillis));
   }
 
   static void projectBullets(
       final EntityData ed,
       final EntityId shipId,
-      @Nullable final BulletStats bullets,
+      @Nullable final infinity.config.BulletStats bullets,
       final boolean resetLivePool) {
     if (bullets == null) {
       return;
@@ -109,16 +89,17 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new BulletCurrentLevel(bullets.start()));
     }
-    ed.setComponent(shipId, new BulletMaxLevel(bullets.max()));
-    ed.setComponent(shipId, new BulletCost(bullets.cost()));
-    ed.setComponent(shipId, new BulletFireDelay(bullets.fireDelayCs()));
-    ed.setComponent(shipId, new BulletSpeed(bullets.speed()));
+    final long fireDelayMillis = bullets.fireDelayCs() * 10L;
+    ed.setComponent(
+        shipId,
+        new BulletStats(bullets.max(), bullets.cost(), fireDelayMillis, bullets.speed()));
+    ed.setComponent(shipId, new BulletFireDelay(fireDelayMillis));
   }
 
   static void projectMines(
       final EntityData ed,
       final EntityId shipId,
-      @Nullable final MineStats mines,
+      @Nullable final infinity.config.MineStats mines,
       final boolean resetLivePool) {
     if (mines == null) {
       return;
@@ -126,16 +107,17 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new MineCurrentLevel(mines.start()));
     }
-    ed.setComponent(shipId, new MineMaxLevel(mines.max()));
-    ed.setComponent(shipId, new MineCost(mines.cost()));
-    ed.setComponent(shipId, new MineFireDelay(mines.fireDelayCs()));
-    ed.setComponent(shipId, new MineSpeed(mines.speed()));
+    final long fireDelayMillis = mines.fireDelayCs() * 10L;
+    ed.setComponent(
+        shipId,
+        new MineStats(mines.max(), mines.cost(), fireDelayMillis, mines.speed()));
+    ed.setComponent(shipId, new MineFireDelay(fireDelayMillis));
   }
 
   static void projectBursts(
       final EntityData ed,
       final EntityId shipId,
-      @Nullable final BurstStats bursts,
+      @Nullable final infinity.config.BurstStats bursts,
       final boolean resetLivePool) {
     if (bursts == null) {
       return;
@@ -143,8 +125,7 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new Burst(bursts.start()));
     }
-    ed.setComponent(shipId, new BurstMax(bursts.max()));
-    ed.setComponent(shipId, new BurstSpeed(bursts.speed()));
+    ed.setComponent(shipId, new BurstStats(bursts.max(), bursts.speed()));
   }
 
   static void projectThors(
@@ -217,8 +198,6 @@ final class ShipWeaponsProjector {
     }
     ed.setComponent(shipId, new RocketMax(rockets.max()));
     // Per-ship buff lifetime (Subspace [Ship] RocketTime, centiseconds → ms).
-    // Read at fire-time by ConsumableSystem to compute the buff entity's
-    // Decay deadline.
     ed.setComponent(shipId, new RocketTime(rockets.activeTimeCs() * 10L));
   }
 

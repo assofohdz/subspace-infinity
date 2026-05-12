@@ -127,8 +127,12 @@ import infinity.systems.RegionSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
 import infinity.systems.ship.AntiwarpSystem;
+import infinity.systems.ship.BombSystem;
+import infinity.systems.ship.BulletSystem;
+import infinity.systems.ship.BurstSystem;
 import infinity.systems.ship.CloakSystem;
 import infinity.systems.ship.EnergySystem;
+import infinity.systems.ship.MineSystem;
 import infinity.systems.ship.EnergyStatsSystem;
 import infinity.systems.ship.RotationSystem;
 import infinity.systems.ship.SpeedSystem;
@@ -290,6 +294,14 @@ public class GameServer {
     systems.register(StealthSystem.class, new StealthSystem());
     systems.register(XRadarSystem.class, new XRadarSystem());
     systems.register(AntiwarpSystem.class, new AntiwarpSystem());
+    // Weapon-levels slice (ADR 0001 wave 4a) — Bomb/Bullet/Mine/Burst Continuous-half
+    // writers. Stats records are spawn-only (ShipWeaponsProjector via ShipSpawnSystem)
+    // so no *StatsSystem needed (2-level aspect — PRD §"2-level vs 3-level aspects").
+    // Register BEFORE DecaySystem for the same reason as Status family.
+    systems.register(BombSystem.class, new BombSystem());
+    systems.register(BulletSystem.class, new BulletSystem());
+    systems.register(MineSystem.class, new MineSystem());
+    systems.register(BurstSystem.class, new BurstSystem());
 
     // Add some standard systems
     systems.addSystem(new DecaySystem());

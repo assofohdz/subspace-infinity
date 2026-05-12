@@ -5,28 +5,21 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.weapons.BombChange;
 import infinity.es.ship.weapons.BombCurrentLevel;
-import infinity.es.ship.weapons.BombMaxLevel;
+import infinity.es.ship.weapons.BombStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>LEVEL family.</b> Bumps {@link BombCurrentLevel} one step toward
- * {@link BombMaxLevel} via {@code level.next()}. No-op when the ship is
- * already at the cap or has no {@code BombMaxLevel} component (= ship not
- * allowed to carry bombs).
+ * <b>LEVEL family.</b> Emits a one-shot {@link BombChange}({@code +1})
+ * Change holder; {@code BombSystem} drains and clamps at
+ * {@link BombStats#max}. No-op when ship not equipped for bombs
+ * or already at cap. Subspace canon: per-ship {@code [Ship] InitialBombs} /
+ * {@code MaxBombs}; REFERENCE.md {@code ## PrizeWeight} ({@code Bomb}).
  *
- * <p>Subspace canon: per-ship {@code [Ship] InitialBombs} / {@code MaxBombs}
- * bound the cap; see REFERENCE.md {@code ## PrizeWeight} line 239
- * ({@code Bomb (= "Bomb Upgrade")}).
- *
- * <p>Pure component read — no {@link infinity.config.ShipConfig} access on
- * the hot path. The earlier handler had a "first-time acquisition" branch
- * that reached into the template when {@code BombMaxLevel} was projected
- * but {@code BombCurrentLevel} wasn't; that combination is unreachable in
- * the current spawn flow (both project together on respawn) so the branch
- * is gone. If it ever surfaces, log a warning and skip rather than
- * silently re-leak the template lookup.
+ * @see infinity.systems.ship.BombSystem
  */
 public final class BombPrizeApplier implements PrizeApplier {
 
@@ -35,23 +28,24 @@ public final class BombPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final BombMaxLevel max = ed.getComponent(ship, BombMaxLevel.class);
-    if (max == null) {
+    final BombStats stats = ed.getComponent(ship, BombStats.class);
+    if (stats == null || stats.max() == null) {
       return; // ship not allowed bombs
     }
     final BombCurrentLevel curr = ed.getComponent(ship, BombCurrentLevel.class);
-    if (curr == null) {
+    if (curr == null || curr.getLevel() == null) {
       log.warn(
-          "Ship {} has BombMaxLevel but no BombCurrentLevel — spawn projection invariant broken; skipping bomb prize",
+          "Ship {} has BombStats but no BombCurrentLevel — spawn projection invariant broken; skipping bomb prize",
           ship);
       return;
     }
-    if (curr.getLevel().level < max.getLevel().level) {
-      if (log.isInfoEnabled()) {
-        log.info(
-            "Ship {} picked up bomb prize and now has {} bombs", ship, curr.getLevel().next());
-      }
-      ed.setComponent(ship, new BombCurrentLevel(curr.getLevel().next()));
+    if (curr.getLevel().ordinal() >= stats.max().ordinal()) {
+      return; // already at cap
     }
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up bomb prize", ship);
+    }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new BombChange(1));
   }
 }

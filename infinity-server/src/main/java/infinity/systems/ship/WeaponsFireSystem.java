@@ -25,22 +25,19 @@ import infinity.es.ShapeNames;
 import infinity.es.SplashDamage;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.actions.Burst;
-import infinity.es.ship.weapons.BombCost;
+import infinity.es.ship.actions.BurstStats;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
-import infinity.es.ship.weapons.BombSpeed;
-import infinity.es.ship.weapons.BulletCost;
+import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletCurrentLevel;
 import infinity.es.ship.weapons.BulletFireDelay;
-import infinity.es.ship.weapons.BulletSpeed;
-import infinity.es.ship.weapons.BurstSpeed;
+import infinity.es.ship.weapons.BulletStats;
 import infinity.es.ship.weapons.GravityBomb;
 import infinity.es.ship.weapons.GravityBombCost;
 import infinity.es.ship.weapons.GravityBombFireDelay;
-import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
-import infinity.es.ship.weapons.MineSpeed;
+import infinity.es.ship.weapons.MineStats;
 import infinity.es.ship.weapons.WeaponType;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
@@ -157,12 +154,12 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     configRegistry = requireSystem(ConfigRegistrySystem.class);
     engineConfigSystem = requireSystem(EngineConfigSystem.class);
 
-    bullets = ed.getEntities(BulletCurrentLevel.class, BulletFireDelay.class, BulletCost.class);
-    bombs = ed.getEntities(BombCurrentLevel.class, BombFireDelay.class, BombCost.class);
+    bullets = ed.getEntities(BulletCurrentLevel.class, BulletFireDelay.class, BulletStats.class);
+    bombs = ed.getEntities(BombCurrentLevel.class, BombFireDelay.class, BombStats.class);
     bursts = ed.getEntities(Burst.class);
     gravityBombs =
         ed.getEntities(GravityBomb.class, GravityBombFireDelay.class, GravityBombCost.class);
-    mines = ed.getEntities(MineCurrentLevel.class, MineFireDelay.class, MineCost.class);
+    mines = ed.getEntities(MineCurrentLevel.class, MineFireDelay.class, MineStats.class);
 
     energyEntities = ed.getEntities(infinity.es.ship.Energy.class);
   }
@@ -419,7 +416,7 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     final EntityId requester = requesterEntity.getId();
     final MineCurrentLevel mineCurrentLevel =
         mines.getEntity(requester).get(MineCurrentLevel.class);
-    final MineCost mc = mines.getEntity(requester).get(MineCost.class);
+    final MineStats mineStats = mines.getEntity(requester).get(MineStats.class);
 
     final String mineShape = MINE_LEVEL_PREFIX + mineCurrentLevel.getLevel().level;
 
@@ -435,11 +432,13 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
                 cfg.mine().decayMs(),
                 mineShape,
                 engineConfigSystem.get().mineRadius()));
+    // Direct-hit damage uses the per-ship MineStats.dropCostEnergy as the
+    // payload (matches pre-Wave-4a behaviour using MineCost).
     ed.setComponent(
         mineProjectile,
         new Damage(
             CoreViewConstants.EXPLOSION1DECAY,
-            mc.getCost(),
+            mineStats.dropCostEnergy(),
             ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
   }
 
@@ -541,11 +540,12 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
   }
 
   /**
-   * Step 1 of the attack-info pipeline: add the per-weapon speed component
-   * (BulletSpeed, BombSpeed, BurstSpeed, MineSpeed) scaled through the engine's
-   * subspace→jME bridge into the projectile velocity's z. GRAVBOMB starts from
-   * rest. MINE reads {@link MineSpeed}; if absent (older spawn paths) it stays
-   * at zero, preserving the pre-S7 inert-drop behaviour.
+   * Step 1 of the attack-info pipeline: read the per-weapon speed from the
+   * per-aspect {@code *Stats} record ({@link BombStats}, {@link BulletStats},
+   * {@link MineStats}, {@link BurstStats}) and scale through the engine's
+   * subspace→jME bridge into the projectile velocity's z. GRAVBOMB starts
+   * from rest. Mine reads {@link MineStats}; if absent (ship not equipped
+   * for mines) it stays at zero — preserving the pre-S7 inert-drop fallback.
    */
   private void applyWeaponSpeedScale(
       final Vec3d projectileVelocity,
@@ -558,26 +558,26 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
         projectileVelocity.addLocal(
             0, 0,
             WeaponsLogic.effectiveProjectileSpeed(
-                ed.getComponent(attacker, BulletSpeed.class).getSpeed(), scale, maxJme));
+                ed.getComponent(attacker, BulletStats.class).speed(), scale, maxJme));
         break;
       case WeaponType.BOMB:
         projectileVelocity.addLocal(
             0, 0,
             WeaponsLogic.effectiveProjectileSpeed(
-                ed.getComponent(attacker, BombSpeed.class).getSpeed(), scale, maxJme));
+                ed.getComponent(attacker, BombStats.class).speed(), scale, maxJme));
         break;
       case WeaponType.BURST:
         projectileVelocity.addLocal(
             0, 0,
             WeaponsLogic.effectiveProjectileSpeed(
-                ed.getComponent(attacker, BurstSpeed.class).getSpeed(), scale, maxJme));
+                ed.getComponent(attacker, BurstStats.class).speed(), scale, maxJme));
         break;
       case WeaponType.MINE:
-        final MineSpeed mineSpeed = ed.getComponent(attacker, MineSpeed.class);
-        if (mineSpeed != null) {
+        final MineStats mineStats = ed.getComponent(attacker, MineStats.class);
+        if (mineStats != null) {
           projectileVelocity.addLocal(
               0, 0,
-              WeaponsLogic.effectiveProjectileSpeed(mineSpeed.getSpeed(), scale, maxJme));
+              WeaponsLogic.effectiveProjectileSpeed(mineStats.speed(), scale, maxJme));
         }
         break;
       case WeaponType.GRAVBOMB:

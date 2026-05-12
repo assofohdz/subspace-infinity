@@ -23,7 +23,7 @@ import infinity.es.Jitter;
 import infinity.es.Parent;
 import infinity.es.SplashDamage;
 import infinity.es.arena.ArenaId;
-import infinity.es.ship.weapons.BombThrust;
+import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.WeaponType;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
@@ -228,27 +228,21 @@ final class WeaponsDamageLogic {
     }
 
     /**
-     * Slice S2 — apply per-ship {@code BombThrust} recoil as an
+     * Slice S2 — apply per-ship recoil ({@link BombStats#thrust()}) as an
      * {@link Impulse} on the firing ship. Direction = opposite the ship's
      * forward in world space (Subspace canon: "back-thrust on fire" applies
-     * directly behind the ship regardless of the bomb's outgoing velocity,
-     * which would include ship-velocity inheritance).
+     * directly behind the ship regardless of the bomb's outgoing velocity).
      *
-     * <p>Magnitude reuses {@link WeaponsLogic#recoilImpulse} so the engine-tier
-     * {@code bombThrustScale} and {@code maxProjectileSpeedJme} cap apply
-     * uniformly. Sign-preserving (negative thrust = forward push).
-     *
-     * <p>Auto-no-op when the ship has no {@code BombThrust} component, the
-     * value is 0, or the body isn't yet bound to the entity (sio2-mphys
-     * {@code Impulse} retries until body binds).
+     * <p>Auto-no-op when the ship has no {@link BombStats} (not equipped),
+     * thrust is 0, or the body isn't yet bound to the entity.
      */
     static void applyBombRecoil(
             final EntityData ed,
             final PhysicsSpace<EntityId, MBlockShape> physicsSpace,
             final EngineConfigSystem engineConfigSystem,
             final EntityId shipId) {
-        final BombThrust thrust = ed.getComponent(shipId, BombThrust.class);
-        if (thrust == null || thrust.getThrust() == 0) {
+        final BombStats stats = ed.getComponent(shipId, BombStats.class);
+        if (stats == null || stats.thrust() == 0) {
             return;
         }
         final RigidBody<?, ?> shipBody =
@@ -257,16 +251,9 @@ final class WeaponsDamageLogic {
             return;
         }
         final EngineConfig engineCfg = engineConfigSystem.get();
-        // Slice S2-cal — recoil uses its own engine-tier `bombThrustScale`,
-        // distinct from `subspaceVelocityScale` used by projectile-speed
-        // paths. The projectile fit (400 × 0.01 = 4.0) felt too pushy in
-        // S2 playtest. Default `bombThrustScale 0.0005` lands SVS canon
-        // BombThrust 400 at 0.2 jME/sec backward impulse — a subtle nudge
-        // (~1% of ship max-speed). Cap reuses `maxProjectileSpeedJme` for
-        // physics-safety.
         final Vec3d impulse =
                 WeaponsLogic.recoilImpulse(
-                        thrust.getThrust(),
+                        stats.thrust(),
                         engineCfg.bombThrustScale(),
                         engineCfg.maxProjectileSpeedJme(),
                         new Quatd(shipBody.orientation));

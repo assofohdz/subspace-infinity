@@ -30,7 +30,7 @@ import infinity.es.ship.TurnResponsiveness;
 import infinity.es.ship.actions.Brick;
 import infinity.es.ship.actions.BrickMax;
 import infinity.es.ship.actions.Burst;
-import infinity.es.ship.actions.BurstMax;
+import infinity.es.ship.actions.BurstStats;
 import infinity.es.ship.actions.Decoy;
 import infinity.es.ship.actions.DecoyMax;
 import infinity.es.ship.actions.Portal;
@@ -41,15 +41,12 @@ import infinity.es.ship.actions.Rocket;
 import infinity.es.ship.actions.RocketMax;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorMaxCount;
-import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
-import infinity.es.ship.weapons.BombMaxLevel;
-import infinity.es.ship.weapons.BulletCost;
+import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletCurrentLevel;
-import infinity.es.ship.weapons.BulletMaxLevel;
-import infinity.es.ship.weapons.MineCost;
+import infinity.es.ship.weapons.BulletStats;
 import infinity.es.ship.weapons.MineCurrentLevel;
-import infinity.es.ship.weapons.MineMaxLevel;
+import infinity.es.ship.weapons.MineStats;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.ChatHostedPoster;
@@ -171,10 +168,10 @@ public class ChecksShipsSystem extends AbstractGameSystem {
           Rotation.class, RotationStats.class,
           Thrust.class, ThrustStats.class,
           Speed.class, SpeedStats.class,
-          BombCurrentLevel.class, BombMaxLevel.class,
-          BulletCurrentLevel.class, BulletMaxLevel.class,
-          MineCurrentLevel.class, MineMaxLevel.class,
-          BurstMax.class, ThorMaxCount.class);
+          BombCurrentLevel.class, BombStats.class,
+          BulletCurrentLevel.class, BulletStats.class,
+          MineCurrentLevel.class, MineStats.class,
+          BurstStats.class, ThorMaxCount.class);
       missingTotal += missing;
       sb.append("  ").append(missing == 0 ? "engine OK — all 16 components present" : "engine MISSING " + missing).append('\n');
 
@@ -183,7 +180,7 @@ public class ChecksShipsSystem extends AbstractGameSystem {
       // contributing to the failure tally.
       sb.append("  inventory:");
       appendInventory(sb, id, "repel", Repel.class, RepelMax.class);
-      appendInventory(sb, id, "burst", Burst.class, BurstMax.class);
+      appendInventory(sb, id, "burst", Burst.class, BurstStats.class);
       appendInventory(sb, id, "thor", ThorCurrentCount.class, ThorMaxCount.class);
       appendInventory(sb, id, "brick", Brick.class, BrickMax.class);
       appendInventory(sb, id, "decoy", Decoy.class, DecoyMax.class);
@@ -244,14 +241,14 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     sb.append('\n');
 
     sb.append("  weapons:");
-    appendWeapon(sb, target, "bomb", BombCurrentLevel.class, BombMaxLevel.class, BombCost.class);
-    appendWeapon(sb, target, "bullet", BulletCurrentLevel.class, BulletMaxLevel.class, BulletCost.class);
-    appendWeapon(sb, target, "mine", MineCurrentLevel.class, MineMaxLevel.class, MineCost.class);
+    appendWeapon(sb, target, "bomb");
+    appendWeaponBullet(sb, target);
+    appendWeaponMine(sb, target);
     sb.append('\n');
 
     sb.append("  inventory:");
     appendInventoryWithCounts(sb, target, "repel", Repel.class, RepelMax.class);
-    appendInventoryWithCounts(sb, target, "burst", Burst.class, BurstMax.class);
+    appendBurstInventory(sb, target);
     appendInventoryWithCounts(sb, target, "thor", ThorCurrentCount.class, ThorMaxCount.class);
     appendInventoryWithCounts(sb, target, "brick", Brick.class, BrickMax.class);
     appendInventoryWithCounts(sb, target, "decoy", Decoy.class, DecoyMax.class);
@@ -374,28 +371,65 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     }
   }
 
-  private void appendWeapon(
-      final StringBuilder sb,
-      final EntityId id,
-      final String label,
-      final Class<? extends EntityComponent> curr,
-      final Class<? extends EntityComponent> max,
-      final Class<? extends EntityComponent> cost) {
-    final EntityComponent c = ed.getComponent(id, curr);
-    final EntityComponent m = ed.getComponent(id, max);
-    final EntityComponent co = ed.getComponent(id, cost);
+  /** Bomb weapon line: {@code bomb=curr/max(cost=N)} using the bundled {@link BombStats}. */
+  private void appendWeapon(final StringBuilder sb, final EntityId id, final String label) {
+    final BombCurrentLevel curr = ed.getComponent(id, BombCurrentLevel.class);
+    final BombStats stats = ed.getComponent(id, BombStats.class);
     sb.append(' ').append(label).append('=');
-    if (c == null && m == null && co == null) {
+    if (curr == null && stats == null) {
       sb.append('-');
       return;
     }
-    sb.append(weaponLevel(c)).append('/').append(weaponLevel(m));
-    if (co instanceof BombCost bc) {
-      sb.append("(cost=").append(bc.getCost()).append(')');
-    } else if (co instanceof BulletCost gc) {
-      sb.append("(cost=").append(gc.getCost()).append(')');
-    } else if (co instanceof MineCost mc) {
-      sb.append("(cost=").append(mc.getCost()).append(')');
+    sb.append(curr == null ? "?" : curr.getLevel().name())
+        .append('/')
+        .append(stats == null || stats.max() == null ? "?" : stats.max().name());
+    if (stats != null) {
+      sb.append("(cost=").append(stats.fireCostEnergy()).append(')');
+    }
+  }
+
+  private void appendWeaponBullet(final StringBuilder sb, final EntityId id) {
+    final BulletCurrentLevel curr = ed.getComponent(id, BulletCurrentLevel.class);
+    final BulletStats stats = ed.getComponent(id, BulletStats.class);
+    sb.append(" bullet=");
+    if (curr == null && stats == null) {
+      sb.append('-');
+      return;
+    }
+    sb.append(curr == null ? "?" : curr.getLevel().name())
+        .append('/')
+        .append(stats == null || stats.max() == null ? "?" : stats.max().name());
+    if (stats != null) {
+      sb.append("(cost=").append(stats.fireCostEnergy()).append(')');
+    }
+  }
+
+  private void appendWeaponMine(final StringBuilder sb, final EntityId id) {
+    final MineCurrentLevel curr = ed.getComponent(id, MineCurrentLevel.class);
+    final MineStats stats = ed.getComponent(id, MineStats.class);
+    sb.append(" mine=");
+    if (curr == null && stats == null) {
+      sb.append('-');
+      return;
+    }
+    sb.append(curr == null ? "?" : curr.getLevel().name())
+        .append('/')
+        .append(stats == null || stats.max() == null ? "?" : stats.max().name());
+    if (stats != null) {
+      sb.append("(cost=").append(stats.dropCostEnergy()).append(')');
+    }
+  }
+
+  private void appendBurstInventory(final StringBuilder sb, final EntityId id) {
+    final Burst burst = ed.getComponent(id, Burst.class);
+    final BurstStats stats = ed.getComponent(id, BurstStats.class);
+    sb.append(" burst=");
+    if (burst == null && stats == null) {
+      sb.append('-');
+    } else {
+      sb.append(burst == null ? "?" : burst.getCount())
+          .append('/')
+          .append(stats == null ? "?" : stats.max());
     }
   }
 
@@ -434,11 +468,11 @@ public class ChecksShipsSystem extends AbstractGameSystem {
 
   private static Map<Class<? extends EntityComponent>, ToIntFunction<EntityComponent>> buildIntGetters() {
     final Map<Class<? extends EntityComponent>, ToIntFunction<EntityComponent>> m = new HashMap<>();
-    // Active-use inventory: Repel / Burst / Thor (current + max each).
+    // Active-use inventory: Repel / Thor (current + max each). Burst now uses the
+    // bundled BurstStats record (handled by appendBurstInventory directly).
     m.put(Repel.class, c -> ((Repel) c).getCount());
     m.put(RepelMax.class, c -> ((RepelMax) c).getCount());
     m.put(Burst.class, c -> ((Burst) c).getCount());
-    m.put(BurstMax.class, c -> ((BurstMax) c).getCount());
     m.put(ThorCurrentCount.class, c -> ((ThorCurrentCount) c).getCount());
     m.put(ThorMaxCount.class, c -> ((ThorMaxCount) c).getCount());
     // Buildable inventory: Brick / Decoy (current + max each).
@@ -459,17 +493,6 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     if (c == null) return "?";
     final ToIntFunction<EntityComponent> fn = INT_GETTERS.get(c.getClass());
     return fn == null ? "?" : Integer.toString(fn.applyAsInt(c));
-  }
-
-  private static String weaponLevel(final EntityComponent c) {
-    if (c == null) return "?";
-    if (c instanceof BombCurrentLevel b) return b.getLevel().name();
-    if (c instanceof BombMaxLevel b) return b.getLevel().name();
-    if (c instanceof BulletCurrentLevel g) return g.getLevel().name();
-    if (c instanceof BulletMaxLevel g) return g.getLevel().name();
-    if (c instanceof MineCurrentLevel m) return m.getLevel().name();
-    if (c instanceof MineMaxLevel m) return m.getLevel().name();
-    return "?";
   }
 
   private static String formatDouble(final double d) {

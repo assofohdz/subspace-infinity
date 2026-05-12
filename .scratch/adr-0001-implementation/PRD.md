@@ -314,13 +314,13 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 
 - ✅ **Energy (pilot)** — rename `Health` → `Energy`, bundle into `EnergyStats`, migrate `Buff + HealthChange` → `EnergyChange + ChangeTarget`, migrate `EnergyPrizeApplier`, `RechargePrizeApplier`, `QuickChargePrizeApplier`, all damage emit sites, audit `Buff.startTime` callers
 - ✅ **Antiwarp** — `AntiwarpActive` + `AntiwarpStats` + `AntiwarpActiveChange`; `AntiwarpSystem` drains; migrated `AntiWarpPrizeApplier` to emit Change holder; `ShipStatusProjector` writes Continuous + Stats directly (factory tier).
-- ⬜ Bomb — `BombCurrentLevel` + `BombStats`, migrate `BombPrizeApplier`, resolve `ShipWeaponsProjector` + `WeaponsEligibility` co-write
+- ✅ **Bomb** — `BombCurrentLevel` + `BombStats(max, fireCostEnergy, fireDelayMillis, speed, thrust)` + `BombChange`; `BombSystem` drains; migrated `BombPrizeApplier` to emit Change holder; `ShipWeaponsProjector` writes Continuous + Stats directly (factory tier); `BombFireDelay` retained as per-instance cooldown timer (duration now read from `BombStats.fireDelayMillis()` at re-stamp — see writer Javadoc).
 - ⬜ Brick — `BrickCurrentCount` + `BrickStats`, migrate `BrickPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
-- ⬜ Bullet — `BulletCurrentLevel` + `BulletStats`, migrate `GunPrizeApplier`, resolve `ShipWeaponsProjector` + `WeaponsEligibility` co-write
-- ⬜ Burst — `BurstCurrentCount` + `BurstStats`, migrate `BurstPrizeApplier`, resolve `ShipWeaponsProjector` co-write
+- ✅ **Bullet** — `BulletCurrentLevel` + `BulletStats(max, fireCostEnergy, fireDelayMillis, speed)` + `BulletChange`; `BulletSystem` drains; migrated `GunPrizeApplier`; same FireDelay handling as Bomb.
+- ✅ **Burst** — `Burst` (kept, not renamed — only 2-level aspect to keep the legacy name) + `BurstStats(max, speed)` + `BurstChange`; `BurstSystem` drains; migrated `BurstPrizeApplier`; `BurstMax` + `BurstSpeed` deleted (bundled into `BurstStats`).
 - ✅ **Cloak** — `CloakActive` + `CloakStats` + `CloakActiveChange`; `CloakSystem` drains; migrated `CloakPrizeApplier` to emit Change holder; `ShipStatusProjector` writes Continuous + Stats directly (factory tier).
 - ⬜ Decoy — `DecoyCurrentCount` + `DecoyStats`, migrate `DecoyPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
-- ⬜ Mine — `MineCurrentLevel` + `MineStats`, migrate `MinePrizeApplier`, resolve `ShipWeaponsProjector` + `WeaponsEligibility` co-write
+- ✅ **Mine** — `MineCurrentLevel` + `MineStats(max, dropCostEnergy, fireDelayMillis, speed)` + `MineChange`; `MineSystem` drains; migrated `MinePrizeApplier`; same FireDelay handling as Bomb.
 - ⬜ Portal — `PortalCurrentCount` + `PortalStats`, migrate `PortalPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
 - ⬜ Repel — `RepelCurrentCount` + `RepelStats`, migrate `RepelPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
 - ⬜ Rocket — `RocketCurrentCount` + `RocketStats`, migrate `RocketPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write

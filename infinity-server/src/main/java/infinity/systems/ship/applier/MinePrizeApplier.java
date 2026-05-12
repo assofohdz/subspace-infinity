@@ -5,27 +5,20 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.weapons.MineChange;
 import infinity.es.ship.weapons.MineCurrentLevel;
-import infinity.es.ship.weapons.MineMaxLevel;
+import infinity.es.ship.weapons.MineStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>LEVEL family.</b> Bumps {@link MineCurrentLevel} toward
- * {@link MineMaxLevel}. Note: there's no standalone {@code Mine} prize type
- * in Subspace; this applier is wired only as a leaf of the {@code BOMB} and
- * {@code ALLWEAPONS} composites (a bomb prize bumps both bomb level <em>and</em>
- * mine level — Subspace tradition).
+ * <b>LEVEL family.</b> Emits a one-shot {@link MineChange}({@code +1})
+ * Change holder; {@code MineSystem} drains and clamps at
+ * {@link MineStats#max}. Wired only as a leaf of {@code BOMB} / {@code ALLWEAPONS}
+ * composites (Subspace tradition: bomb upgrades bump mine level too).
  *
- * <p>Subspace canon: per-ship {@code [Ship] InitialMines} / {@code MaxMines}
- * bound the cap; the {@code ## Mine} section owns the arena-global mine
- * tunables (e.g. {@code MineAliveTime}, {@code TeamMaxMines}). REFERENCE.md
- * {@code ## PrizeWeight} does not list {@code Mine} as a standalone weight
- * — confirms the "leaf-of-Bomb" composite wiring rather than a dedicated
- * prize type.
- *
- * <p>Pure component read; see {@link BombPrizeApplier} for the rationale on
- * dropping the legacy first-time-acquisition branch.
+ * @see infinity.systems.ship.MineSystem
  */
 public final class MinePrizeApplier implements PrizeApplier {
 
@@ -34,23 +27,24 @@ public final class MinePrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final MineMaxLevel max = ed.getComponent(ship, MineMaxLevel.class);
-    if (max == null) {
+    final MineStats stats = ed.getComponent(ship, MineStats.class);
+    if (stats == null || stats.max() == null) {
       return; // ship not allowed mines
     }
     final MineCurrentLevel curr = ed.getComponent(ship, MineCurrentLevel.class);
-    if (curr == null) {
+    if (curr == null || curr.getLevel() == null) {
       log.warn(
-          "Ship {} has MineMaxLevel but no MineCurrentLevel — spawn projection invariant broken; skipping mine prize",
+          "Ship {} has MineStats but no MineCurrentLevel — spawn projection invariant broken; skipping mine prize",
           ship);
       return;
     }
-    if (curr.getLevel().level < max.getLevel().level) {
-      if (log.isInfoEnabled()) {
-        log.info(
-            "Ship {} picked up mine prize and now has {} mines", ship, curr.getLevel().next());
-      }
-      ed.setComponent(ship, new MineCurrentLevel(curr.getLevel().next()));
+    if (curr.getLevel().ordinal() >= stats.max().ordinal()) {
+      return;
     }
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up mine prize", ship);
+    }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new MineChange(1));
   }
 }

@@ -226,14 +226,14 @@ system writer; the totals below ground the diff.
 
 **Totals at snapshot date** — ~95 substantive component types
 audited; ~75 single-writer (canonical) or spawn-only (factory tier);
-**~11 multi-writer violations** flagged below (down from ~19 at C4
+**~7 multi-writer violations** flagged below (down from ~19 at C4
 audit: C1 RocketBuff race + C2a cap-bump body-stats + C2-Movement
 Rotation/Speed/Thrust prize collisions + the four status-family
 toggles + the four C4 fresh-find aspects (`WarpTo`, `Frequency`,
-`ShipType`, `Impulse`) all resolved). The 11 remaining all align
-with BACKLOG C2 (weapon-level + inventory prize-applier collisions).
-`Decay` is the one documented multi-writer exception (see its own
-subsection).
+`ShipType`, `Impulse`) + the four Wave 4a weapon-level rows
+(Bomb/Bullet/Mine/Burst) all resolved). The remaining 7 all align
+with BACKLOG C2 (inventory prize-applier collisions). `Decay` is
+the one documented multi-writer exception (see its own subsection).
 
 #### Additional single-writer mechanics (canonical)
 
@@ -252,21 +252,27 @@ subsection).
   same bypass-clamp flag as `SpeedSystem` for rocket-buff overrides).
 - **`ThrustStatsSystem`** — `ThrustStats` (Stats half; drains
   `ThrustStatsChange`).
-- **`ShipWeaponsProjector`** — `BombCost`, `BombFireDelay` (spawn —
-  `WeaponsEligibility` re-stamps a fresh delay for the cooldown
-  reset; shared writer noted there), `BombMaxLevel`, `BombSpeed`,
-  `BombThrust`, `BrickMax`, `BulletCost`, `BulletFireDelay` (spawn;
-  `WeaponsEligibility` re-stamps), `BulletMaxLevel`, `BulletSpeed`,
-  `BurstMax`, `BurstSpeed`, `DecoyMax`, `MineCost`, `MineFireDelay`
-  (spawn; `WeaponsEligibility` re-stamps), `MineMaxLevel`,
-  `MineSpeed`, `PortalMax`, `RepelMax`, `RocketMax`, `RocketTime`,
-  `ThorMaxCount`. Per-arena weapon-stat spawn projection — the
-  weapon-side counterpart of `ShipSpawnSystem`'s ship-stat
-  projection. (Also writes `BombCurrentLevel`, `BulletCurrentLevel`,
-  `MineCurrentLevel`, `Burst`, `Brick`, `Decoy`, `Portal`, `Repel`,
-  `Rocket`, `ThorCurrentCount`, `ThorFireDelay` at spawn — flagged
-  as multi-writer below because prize appliers and `ConsumableSystem`
-  also write those.)
+- **`ShipWeaponsProjector`** — `BombStats`, `BombFireDelay` (spawn;
+  `WeaponsEligibility` re-stamps a fresh delay on each fire reading
+  duration from `BombStats.fireDelayMillis()` — Wave 4a shared-writer
+  pattern), `BulletStats`, `BulletFireDelay` (same shape as Bomb),
+  `MineStats`, `MineFireDelay` (same shape), `BurstStats`,
+  `BrickMax`, `DecoyMax`, `PortalMax`, `RepelMax`, `RocketMax`,
+  `RocketTime`, `ThorMaxCount`. Per-arena weapon-stat spawn
+  projection — the weapon-side counterpart of `ShipSpawnSystem`'s
+  ship-stat projection. (Also writes `BombCurrentLevel`,
+  `BulletCurrentLevel`, `MineCurrentLevel`, `Burst`, `Brick`, `Decoy`,
+  `Portal`, `Repel`, `Rocket`, `ThorCurrentCount`, `ThorFireDelay` at
+  spawn — weapon-level rows resolved Wave 4a by canonical-writer
+  systems below; inventory rows flagged below.)
+- **`BombSystem`** — `BombCurrentLevel` (Continuous-half; drains
+  `BombChange` + `ChangeTarget`; clamp at `BombStats.max`).
+- **`BulletSystem`** — `BulletCurrentLevel` (same shape; clamp at
+  `BulletStats.max`).
+- **`MineSystem`** — `MineCurrentLevel` (same shape; clamp at
+  `MineStats.max`).
+- **`BurstSystem`** — `Burst` count (same shape; clamp at
+  `BurstStats.max`; ship not allowed bursts when `BurstStats.max == 0`).
 - **`ShipStatusProjector`** — `CloakStats`, `StealthStats`,
   `XRadarStats`, `AntiwarpStats`. Spawn projection of the status-family
   per-ship knobs (tri-state tier + energy-per-second drain rate). Also
@@ -349,13 +355,6 @@ not migrate any of these to a single-writer-plus-intents shape
 inside an unrelated change** — that work is BACKLOG Round 2 (C1 +
 C2). The rows exist so reviewers can distinguish a *new* violation
 from a *known* one.
-
-**Weapon-level upgrades — prize-applier collisions (BACKLOG C2):**
-
-- **`BombCurrentLevel`** — `ShipWeaponsProjector`, `BombPrizeApplier`. ⚠️
-- **`BulletCurrentLevel`** — `ShipWeaponsProjector`, `GunPrizeApplier`. ⚠️
-- **`MineCurrentLevel`** — `ShipWeaponsProjector`, `MinePrizeApplier`. ⚠️
-- **`Burst`** — `ShipWeaponsProjector`, `BurstPrizeApplier`. ⚠️
 
 **Inventory caps — prize-applier + decrement collisions (BACKLOG C2):**
 

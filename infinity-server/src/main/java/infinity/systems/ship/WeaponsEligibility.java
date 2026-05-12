@@ -17,15 +17,15 @@ import com.simsilica.mphys.SphereVolume;
 import infinity.config.BombConfig;
 import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
-import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
-import infinity.es.ship.weapons.BulletCost;
+import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletFireDelay;
+import infinity.es.ship.weapons.BulletStats;
 import infinity.es.ship.weapons.GravityBombCost;
 import infinity.es.ship.weapons.GravityBombFireDelay;
-import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineFireDelay;
+import infinity.es.ship.weapons.MineStats;
 import infinity.es.ship.weapons.WeaponType;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
@@ -118,8 +118,8 @@ final class WeaponsEligibility {
         if (gfd.getPercent() < 1) {
             return false;
         }
-        final BulletCost gc = ed.getComponent(requesterId, BulletCost.class);
-        return gc.getCost() <= energy.getHealth(requesterId);
+        final BulletStats stats = ed.getComponent(requesterId, BulletStats.class);
+        return stats != null && stats.fireCostEnergy() <= energy.getHealth(requesterId);
     }
 
     /** Bomb eligibility — inventory + cooldown + energy + slice-9c safety scan. */
@@ -139,8 +139,8 @@ final class WeaponsEligibility {
         if (bfd.getPercent() < 1) {
             return false;
         }
-        final BombCost bc = ed.getComponent(requesterId, BombCost.class);
-        if (bc.getCost() > energy.getHealth(requesterId)) {
+        final BombStats stats = ed.getComponent(requesterId, BombStats.class);
+        if (stats == null || stats.fireCostEnergy() > energy.getHealth(requesterId)) {
             return false;
         }
         return bombSafetyClear(ed, cr, physicsSpace, bombs, energyEntities, requesterId);
@@ -178,8 +178,8 @@ final class WeaponsEligibility {
         if (bfd.getPercent() < 1) {
             return false;
         }
-        final MineCost bc = ed.getComponent(requesterId, MineCost.class);
-        return bc.getCost() <= energy.getHealth(requesterId);
+        final MineStats stats = ed.getComponent(requesterId, MineStats.class);
+        return stats != null && stats.dropCostEnergy() <= energy.getHealth(requesterId);
     }
 
     /** Burst eligibility — inventory presence is the only gate (no cooldown / cost yet). */
@@ -333,27 +333,36 @@ final class WeaponsEligibility {
         return false;
     }
 
-    /** Stamp a fresh {@code BulletFireDelay} on {@code requester}. */
+    /**
+     * Stamp a fresh {@link BulletFireDelay} on {@code requester} reading the duration
+     * from {@link BulletStats#fireDelayMillis()} (the cold source of truth post-Wave 4a).
+     */
     static boolean setCoolDownBullet(
             final EntityData ed, final EntitySet bullets, final Entity requester) {
         final EntityId requesterId = requester.getId();
         if (!bullets.contains(requester)) {
             return false;
         }
-        final BulletFireDelay gfd = ed.getComponent(requesterId, BulletFireDelay.class);
-        ed.setComponent(requesterId, gfd.copy());
+        final BulletStats stats = ed.getComponent(requesterId, BulletStats.class);
+        if (stats == null) {
+            return false;
+        }
+        ed.setComponent(requesterId, new BulletFireDelay(stats.fireDelayMillis()));
         return true;
     }
 
-    /** Stamp a fresh {@code BombFireDelay} on {@code requester}. */
+    /** Stamp a fresh {@link BombFireDelay} on {@code requester} reading duration from {@link BombStats}. */
     static boolean setCoolDownBomb(
             final EntityData ed, final EntitySet bombs, final Entity requester) {
         final EntityId requesterId = requester.getId();
         if (!bombs.contains(requester)) {
             return false;
         }
-        final BombFireDelay bfd = ed.getComponent(requesterId, BombFireDelay.class);
-        ed.setComponent(requesterId, bfd.copy());
+        final BombStats stats = ed.getComponent(requesterId, BombStats.class);
+        if (stats == null) {
+            return false;
+        }
+        ed.setComponent(requesterId, new BombFireDelay(stats.fireDelayMillis()));
         return true;
     }
 
@@ -369,15 +378,18 @@ final class WeaponsEligibility {
         return true;
     }
 
-    /** Stamp a fresh {@code MineFireDelay} on {@code requester}. */
+    /** Stamp a fresh {@link MineFireDelay} on {@code requester} reading duration from {@link MineStats}. */
     static boolean setCoolDownMine(
             final EntityData ed, final EntitySet mines, final Entity requester) {
         final EntityId requesterId = requester.getId();
         if (!mines.contains(requester)) {
             return false;
         }
-        final MineFireDelay bfd = ed.getComponent(requesterId, MineFireDelay.class);
-        ed.setComponent(requesterId, bfd.copy());
+        final MineStats stats = ed.getComponent(requesterId, MineStats.class);
+        if (stats == null) {
+            return false;
+        }
+        ed.setComponent(requesterId, new MineFireDelay(stats.fireDelayMillis()));
         return true;
     }
 
@@ -425,9 +437,8 @@ final class WeaponsEligibility {
     }
 
     /**
-     * Debit {@code BulletCost} from {@code requester}'s Health. Cost emits an
-     * attributed {@code DamageSource(requesterId, BULLET)} on the intent so
-     * reactors can distinguish self-cost from hostile damage.
+     * Debit {@link BulletStats#fireCostEnergy()} from {@code requester}'s Energy.
+     * Emits attributed {@code DamageSource(requesterId, BULLET)} on the intent.
      */
     static boolean deductCostOfAttackBullet(
             final EntityData ed, final EnergySystem energy,
@@ -436,17 +447,17 @@ final class WeaponsEligibility {
         if (!bullets.contains(requester)) {
             return false;
         }
-        final BulletCost gc = ed.getComponent(requesterId, BulletCost.class);
-        if (gc.getCost() > energy.getHealth(requesterId)) {
+        final BulletStats stats = ed.getComponent(requesterId, BulletStats.class);
+        if (stats == null || stats.fireCostEnergy() > energy.getHealth(requesterId)) {
             return false;
         }
-        energy.damage(requesterId, gc.getCost(), requesterId, WeaponType.BULLET);
+        energy.damage(requesterId, stats.fireCostEnergy(), requesterId, WeaponType.BULLET);
         return true;
     }
 
     /**
-     * Debit {@code BombCost} from {@code requester}'s Health. Cost emits an
-     * attributed {@code DamageSource(requesterId, BOMB)} on the intent.
+     * Debit {@link BombStats#fireCostEnergy()} from {@code requester}'s Energy.
+     * Emits attributed {@code DamageSource(requesterId, BOMB)} on the intent.
      */
     static boolean deductCostOfAttackBomb(
             final EntityData ed, final EnergySystem energy,
@@ -455,11 +466,11 @@ final class WeaponsEligibility {
         if (!bombs.contains(requester)) {
             return false;
         }
-        final BombCost bc = ed.getComponent(requesterId, BombCost.class);
-        if (bc.getCost() > energy.getHealth(requesterId)) {
+        final BombStats stats = ed.getComponent(requesterId, BombStats.class);
+        if (stats == null || stats.fireCostEnergy() > energy.getHealth(requesterId)) {
             return false;
         }
-        energy.damage(requesterId, bc.getCost(), requesterId, WeaponType.BOMB);
+        energy.damage(requesterId, stats.fireCostEnergy(), requesterId, WeaponType.BOMB);
         return true;
     }
 
@@ -483,8 +494,8 @@ final class WeaponsEligibility {
     }
 
     /**
-     * Debit {@code MineCost} from {@code requester}'s Health. Cost emits an
-     * attributed {@code DamageSource(requesterId, MINE)} on the intent.
+     * Debit {@link MineStats#dropCostEnergy()} from {@code requester}'s Energy.
+     * Emits attributed {@code DamageSource(requesterId, MINE)} on the intent.
      */
     static boolean deductCostOfAttackMine(
             final EntityData ed, final EnergySystem energy,
@@ -493,11 +504,11 @@ final class WeaponsEligibility {
         if (!mines.contains(requester)) {
             return false;
         }
-        final MineCost bc = ed.getComponent(requesterId, MineCost.class);
-        if (bc.getCost() > energy.getHealth(requesterId)) {
+        final MineStats stats = ed.getComponent(requesterId, MineStats.class);
+        if (stats == null || stats.dropCostEnergy() > energy.getHealth(requesterId)) {
             return false;
         }
-        energy.damage(requesterId, bc.getCost(), requesterId, WeaponType.MINE);
+        energy.damage(requesterId, stats.dropCostEnergy(), requesterId, WeaponType.MINE);
         return true;
     }
 }

@@ -5,22 +5,20 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.es.ChangeTarget;
 import infinity.es.ship.actions.Burst;
-import infinity.es.ship.actions.BurstMax;
+import infinity.es.ship.actions.BurstChange;
+import infinity.es.ship.actions.BurstStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>COUNT family.</b> Increments {@link Burst} by 1 if under {@link BurstMax}.
- * Allowed iff {@code BurstMax > 0 && Burst < BurstMax}. First-time acquisition
- * (no {@code Burst} component) seeds {@code Burst(1)}.
+ * <b>COUNT family.</b> Emits a one-shot {@link BurstChange}({@code +1})
+ * Change holder; {@code BurstSystem} drains and clamps at
+ * {@link BurstStats#max}. Subspace canon: per-ship {@code [Ship] InitialBurst} /
+ * {@code BurstMax}; REFERENCE.md {@code ## PrizeWeight} ({@code Burst}).
  *
- * <p>Subspace canon: per-ship {@code [Ship] InitialBurst} / {@code BurstMax}
- * bound the count; the {@code ## Burst} section in REFERENCE.md owns the
- * per-projectile knobs ({@code BurstSpeed}, {@code BurstDamageLevel},
- * {@code BurstShrapnel}, {@code BurstAliveTime}, {@code BurstHits}) — those
- * are consumed at fire time, not on prize pickup. Prize-weight entry:
- * {@code ## PrizeWeight} ({@code Burst}).
+ * @see infinity.systems.ship.BurstSystem
  */
 public final class BurstPrizeApplier implements PrizeApplier {
 
@@ -29,19 +27,19 @@ public final class BurstPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final Burst burst = ed.getComponent(ship, Burst.class);
-    final BurstMax burstMax = ed.getComponent(ship, BurstMax.class);
-    if (burstMax == null || burstMax.getCount() <= 0) {
+    final BurstStats stats = ed.getComponent(ship, BurstStats.class);
+    if (stats == null || stats.max() <= 0) {
       return; // ship not allowed bursts
     }
-    if (burst != null && burst.getCount() < burstMax.getCount()) {
-      if (log.isInfoEnabled()) {
-        log.info("Ship {} picked up burst prize and now has {} bursts", ship, burst.getCount() + 1);
-      }
-      ed.setComponent(ship, new Burst(burst.getCount() + 1));
-    } else if (burst == null) {
-      log.info("Ship {} picked up burst prize", ship);
-      ed.setComponent(ship, new Burst(1));
+    final Burst burst = ed.getComponent(ship, Burst.class);
+    final int current = burst == null ? 0 : burst.getCount();
+    if (current >= stats.max()) {
+      return;
     }
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up burst prize", ship);
+    }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new BurstChange(1));
   }
 }

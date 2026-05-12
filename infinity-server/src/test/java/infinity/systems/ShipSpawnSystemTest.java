@@ -37,20 +37,13 @@ import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustStats;
 import infinity.es.ship.TurnResponsiveness;
 import infinity.es.ship.actions.Burst;
-import infinity.es.ship.actions.BurstMax;
 import infinity.es.ship.actions.Repel;
 import infinity.es.ship.actions.RepelMax;
 import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorMaxCount;
-import infinity.es.ship.weapons.BombCost;
 import infinity.es.ship.weapons.BombCurrentLevel;
-import infinity.es.ship.weapons.BombMaxLevel;
-import infinity.es.ship.weapons.BulletCost;
 import infinity.es.ship.weapons.BulletCurrentLevel;
-import infinity.es.ship.weapons.BulletMaxLevel;
-import infinity.es.ship.weapons.MineCost;
 import infinity.es.ship.weapons.MineCurrentLevel;
-import infinity.es.ship.weapons.MineMaxLevel;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 import org.junit.Test;
@@ -179,50 +172,50 @@ public class ShipSpawnSystemTest {
           1.0, ed.getComponent(shipId, BounceRestitution.class).getRestitution(), EPSILON);
       assertEquals(250.0, ed.getComponent(shipId, RadarRange.class).getRange(), EPSILON);
 
-      // BombLevel: current level resets to start; max + cost project verbatim.
+      // BombLevel: current level resets to start; cap + cost live on the bundled BombStats record.
       assertEquals(BombLevel.BOMB_1, ed.getComponent(shipId, BombCurrentLevel.class).getLevel());
-      assertEquals(BombLevel.BOMB_4, ed.getComponent(shipId, BombMaxLevel.class).getLevel());
-      assertEquals(10, ed.getComponent(shipId, BombCost.class).getCost());
+      final infinity.es.ship.weapons.BombStats bombStats =
+          ed.getComponent(shipId, infinity.es.ship.weapons.BombStats.class);
+      assertNotNull("BombStats must be projected on respawn", bombStats);
+      assertEquals(BombLevel.BOMB_4, bombStats.max());
+      assertEquals(10, bombStats.fireCostEnergy());
 
       // BulletLevel.
       assertEquals(BulletLevel.LEVEL_1, ed.getComponent(shipId, BulletCurrentLevel.class).getLevel());
-      assertEquals(BulletLevel.LEVEL_4, ed.getComponent(shipId, BulletMaxLevel.class).getLevel());
-      assertEquals(10, ed.getComponent(shipId, BulletCost.class).getCost());
+      final infinity.es.ship.weapons.BulletStats bulletStats =
+          ed.getComponent(shipId, infinity.es.ship.weapons.BulletStats.class);
+      assertNotNull("BulletStats must be projected on respawn", bulletStats);
+      assertEquals(BulletLevel.LEVEL_4, bulletStats.max());
+      assertEquals(10, bulletStats.fireCostEnergy());
 
       // Mines (reuse BombLevel enum).
       assertEquals(BombLevel.BOMB_1, ed.getComponent(shipId, MineCurrentLevel.class).getLevel());
-      assertEquals(BombLevel.BOMB_4, ed.getComponent(shipId, MineMaxLevel.class).getLevel());
-      assertEquals(50, ed.getComponent(shipId, MineCost.class).getCost());
+      final infinity.es.ship.weapons.MineStats mineStats =
+          ed.getComponent(shipId, infinity.es.ship.weapons.MineStats.class);
+      assertNotNull("MineStats must be projected on respawn", mineStats);
+      assertEquals(BombLevel.BOMB_4, mineStats.max());
+      assertEquals(50, mineStats.dropCostEnergy());
 
-      // Inventory counters: current resets to start, max projects verbatim.
+      // Inventory counters: current resets to start. BurstStats bundles max + speed.
       assertEquals(5, ed.getComponent(shipId, Burst.class).getCount());
-      assertEquals(5, ed.getComponent(shipId, BurstMax.class).getCount());
+      final infinity.es.ship.actions.BurstStats burstStats =
+          ed.getComponent(shipId, infinity.es.ship.actions.BurstStats.class);
+      assertNotNull("BurstStats must be projected on respawn", burstStats);
+      assertEquals(5, burstStats.max());
       assertEquals(2, ed.getComponent(shipId, ThorCurrentCount.class).getCount());
       assertEquals(2, ed.getComponent(shipId, ThorMaxCount.class).getCount());
       assertEquals(10, ed.getComponent(shipId, Repel.class).getCount());
       assertEquals(20, ed.getComponent(shipId, RepelMax.class).getCount());
 
-      // Slice 10 — projectile speeds project from BombStats.speed /
-      // BulletStats.speed / BurstStats.speed onto BombSpeed / BulletSpeed /
-      // BurstSpeed components. Stored raw (Subspace velocity units);
-      // WeaponsSystem applies engine-tier scale + cap at fire time.
-      assertEquals(
-          2000,
-          ed.getComponent(shipId, infinity.es.ship.weapons.BombSpeed.class).getSpeed());
-      assertEquals(
-          2000,
-          ed.getComponent(shipId, infinity.es.ship.weapons.BulletSpeed.class).getSpeed());
-      assertEquals(
-          3000,
-          ed.getComponent(shipId, infinity.es.ship.weapons.BurstSpeed.class).getSpeed());
+      // Slice 10 — projectile speeds bundled into the per-aspect *Stats record.
+      // Stored raw (Subspace velocity units); WeaponsFireSystem applies
+      // engine-tier scale + cap at fire time.
+      assertEquals(2000, bombStats.speed());
+      assertEquals(2000, bulletStats.speed());
+      assertEquals(3000, burstStats.speed());
 
-      // Slice S2 — BombStats.thrust projects to BombThrust component.
-      // Stored raw (Subspace velocity units); WeaponsSystem.applyBombRecoil
-      // applies engine-tier scale + cap at fire time, then sio2-mphys
-      // Impulse pushes the ship backward.
-      assertEquals(
-          400,
-          ed.getComponent(shipId, infinity.es.ship.weapons.BombThrust.class).getThrust());
+      // Slice S2 — BombStats.thrust drives recoil at fire time.
+      assertEquals(400, bombStats.thrust());
 
       // Weapon fire-delay components carry runtime state (start/delta nanos),
       // so existence is the right assertion here. Slice 2 covers the
