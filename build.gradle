@@ -38,7 +38,7 @@ sonar {
 
 subprojects {
 
-    version='1.0.17'
+    version='1.0.18'
 
     //Pinned to the versions Gradle currently resolves; bump deliberately
     //rather than tracking '+'. Simsilica/Moss SNAPSHOTs are vendored under
