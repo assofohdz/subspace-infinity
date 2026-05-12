@@ -3,10 +3,7 @@
 
 package infinity.systems.ship;
 
-/**
- *
- * @author AFahrenholz
- */
+/** Status-toggle wire-byte constants. */
 public class StatusSystem {
 
     public static final byte ANTIWARP_ENABLE = 0x0;

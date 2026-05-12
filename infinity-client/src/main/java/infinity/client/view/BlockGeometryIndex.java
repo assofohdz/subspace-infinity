@@ -31,7 +31,6 @@ import com.simsilica.mblock.ConstantCellData;
 import com.simsilica.mblock.FluidTypeIndex;
 import com.simsilica.mblock.LightUtils;
 import com.simsilica.mblock.config.MaterialRegistry;
-import com.simsilica.mblock.geom.DefaultBlockFactory;
 import com.simsilica.mblock.geom.GeomReq;
 import com.simsilica.mblock.geom.GeometryFactory;
 import com.simsilica.mblock.geom.MaterialType;

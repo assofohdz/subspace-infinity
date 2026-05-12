@@ -16,35 +16,12 @@ import infinity.es.ship.toggles.XRadarActive;
 import infinity.es.ship.toggles.XRadarStats;
 import javax.annotation.Nullable;
 
-/**
- * Pattern 4 spawn-projection helpers for the Status-family aspects (Cloak / Stealth / XRadar /
- * AntiWarp) per ADR 0001. Called only from {@code ShipSpawnSystem.project}. See
- * {@link ShipSpawnSystem} class Javadoc for the projector-split map (which projector owns which
- * aspect family).
- *
- * <p>For each aspect this projects two ECS components from the {@link StatusStats} template:
- *
- * <ul>
- *   <li>{@code *Stats(statusTier, energyDrainPerSecond)} — always re-project (mirrors
- *       {@code ThrustStats} / {@code EnergyStats}), even when {@code statusTier == 0}, so the
- *       prize applier can read the tier without a null check.
- *   <li>{@code *Active(boolean)} — Continuous half. Only seeded on {@code resetLivePool == true}
- *       (respawn / fresh spawn), {@code true} iff {@code statusTier == 2} (Subspace canon
- *       "start active"). Mid-arena tuning reproject ({@code resetLivePool == false}) preserves
- *       the live toggle so a Groovy edit doesn't clobber the player's state.
- * </ul>
- *
- * <p>The Subspace {@code *Energy} value is in {@code 1000ths-per-centisecond}; converted to
- * energy-per-second at this boundary ({@code raw / 10.0}) so the runtime consumer reads
- * SI-ish units. See REFERENCE.md "Ship abilities".
- */
+/** Spawn projection for Status-family aspects (Cloak/Stealth/XRadar/Antiwarp); called from {@link ShipSpawnSystem}. */
 final class ShipStatusProjector {
 
-  private ShipStatusProjector() {
-    // utility class — instantiation prevented
-  }
+  private ShipStatusProjector() {}
 
-  /** Subspace 1000ths-per-centisecond → energy-per-second. */
+  // Subspace canon: *Energy is 1000ths-per-centisecond → /10 = energy-per-second.
   private static double drainPerSecond(final int energyDrainPer1000Cs) {
     return energyDrainPer1000Cs / 10.0;
   }
@@ -58,8 +35,8 @@ final class ShipStatusProjector {
       return;
     }
     ed.setComponent(shipId, new CloakStats(cloak.status(), drainPerSecond(cloak.energyDrainPer1000Cs())));
+    // Subspace tier: 0=forbidden (no Continuous toggle), 1=off, 2=start active.
     if (resetLivePool && cloak.status() >= 1) {
-      // statusTier == 0 (forbidden) → no Continuous toggle; tier == 1 → off; tier == 2 → start active.
       ed.setComponent(shipId, new CloakActive(cloak.status() == 2));
     }
   }

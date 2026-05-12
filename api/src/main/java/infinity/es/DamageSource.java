@@ -7,7 +7,13 @@ import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityId;
 import infinity.es.ship.weapons.WeaponType;
 
-/** Optional metadata sibling on an {@code EnergyChange} holder — carries originator + weapon-family flag. See ADR 0001. */
+/**
+ * Optional metadata sibling on an {@code EnergyChange} holder — carries originator + weapon-family flag. See ADR 0001.
+ *
+ * <p>{@code source} = attacker for enemy hits, firer for self-cost-deduction, {@link EntityId#NULL_ID} for unattributed
+ * (regen / env). Absence of the component on the holder means "unattributed" — drain still folds, reactors that fork
+ * on weapon family no-op.
+ */
 public class DamageSource implements EntityComponent {
 
   private final EntityId source;

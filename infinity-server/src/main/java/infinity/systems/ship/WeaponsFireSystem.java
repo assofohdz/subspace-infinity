@@ -53,61 +53,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Replacement-as-Mutation pilot — fire-side carve from the legacy
- * {@code WeaponsSystem} god-class. Owns the inbound attack queue, eligibility
- * gating ({@link WeaponsEligibility}), per-projectile spawn-time projection
- * (Damage / SplashDamage / ProximityFuse / Repellable), per-weapon sound
- * spawn, and bomb-fire recoil (via {@link WeaponsDamageLogic#applyBombRecoil}).
- *
- * <p>RaM canonical-writer ledger for this system:
- * <ul>
- *   <li><b>Spawn-time projection</b> (RaM-OK per
- *       {@code .claude/rules/replacement-as-mutation.md}'s "spawn-time
- *       projection from a template" exemption): {@link Damage},
- *       {@link SplashDamage}, {@link ProximityFuse}, {@link infinity.es.Repellable},
- *       {@link com.simsilica.es.common.Decay} on the freshly spawned projectile
- *       (decay-deadline projection per
- *       {@code .claude/rules/decay-ttl.md}).
- *   <li><b>Per-instance ephemeral cooldowns</b>: {@code BulletFireDelay},
- *       {@code BombFireDelay}, {@code GravityBombFireDelay},
- *       {@code MineFireDelay} — refreshed via {@code .copy()} on each
- *       successful fire. Single-writer trivially satisfied (no other
- *       system writes them).
- *   <li><b>Attributed cost-deduction intent</b> (via
- *       {@link WeaponsEligibility#deductCostOfAttack}): emits
- *       {@code ChangeTarget + EnergyChange + DamageSource(self, weaponFlag)}
- *       Change holder entities; drained by the canonical
- *       {@link EnergySystem}.
- *   <li><b>Bomb recoil intent</b> (via
- *       {@link WeaponsDamageLogic#applyBombRecoil}): emits
- *       {@link com.simsilica.ext.mphys.Impulse} on the firing ship; drained
- *       by the sio2-mphys integrator (already RaM-correct in the legacy
- *       implementation; preserved bit-for-bit).
- * </ul>
- *
- * <p>The contact-side concerns (collision dispatch, splash scan, projectile
- * end-of-life) live in {@link WeaponsImpactSystem} + {@link WeaponsReaperSystem}.
- *
- * <p><b>Behaviour-preservation contract</b>: every per-weapon helper produces
- * identical components on the freshly spawned projectile to the legacy
- * {@code WeaponsSystem.createProjectileX} methods. The split is mechanical —
- * same call order, same branch semantics, same component access pattern.
- *
- * @author AFahrenholz
- */
+/** Fire-side of the weapons pipeline — eligibility, cost, projectile spawn, sound. Contact lives in {@link WeaponsImpactSystem}/{@link WeaponsReaperSystem}. */
 public class WeaponsFireSystem extends BaseInfinitySystem {
 
-  /**
-   * Weapon flags whose projectiles do NOT inherit the firing ship's velocity at
-   * fire time — they "lay down" rather than "tag along". Subspace canon: mines
-   * drop in place.
-   */
+  // Weapons that lay down in place rather than tag along (Subspace canon: mines).
   private static final Set<Byte> INERT_DROPS = Set.of(WeaponType.MINE);
 
-  // Bomb / bullet / mine spatial-name prefixes — combined with the
-  // current-level int produces the ShapeNames the client maps to spatials.
-  // Framework convention; not a Pattern 4 candidate.
   private static final String BOMB_LEVEL_PREFIX = "bomb_l";
   private static final String BULLET_LEVEL_PREFIX = "bullet_l";
   private static final String MINE_LEVEL_PREFIX = "mine_l";
@@ -129,13 +80,6 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
   private EntitySet bursts;
   private EntitySet energyEntities;
 
-  /**
-   * Per-arena config lookup. The attacker's {@link ArenaId} keys into
-   * {@link ConfigRegistrySystem}; arenas with no config get
-   * {@link ConfigRegistry#EMPTY} (each weapon-projectile slot defaults to its
-   * sub-record's {@code DEFAULTS}). Falls back to {@code EMPTY} when the
-   * attacker has no {@code ArenaId} (no-arena void).
-   */
   private ConfigRegistry weaponsFor(final EntityId attacker) {
     final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
     if (arenaId == null) {
@@ -199,10 +143,6 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     }
   }
 
-  /**
-   * Pre-fire eligibility — see {@link WeaponsEligibility#canAttack} and its
-   * per-weapon helpers.
-   */
   private boolean canAttack(final Entity requester, final byte weaponType) {
     return WeaponsEligibility.canAttack(
         ed, configRegistry, physicsSpace, energySystem,
@@ -210,34 +150,21 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
         requester, weaponType);
   }
 
-  /** Stamps the matching FireDelay component — see {@link WeaponsEligibility#setCoolDown}. */
   private boolean setCoolDown(final Entity requester, final byte flag) {
     return WeaponsEligibility.setCoolDown(
         ed, bullets, bombs, gravityBombs, mines, bursts, requester, flag);
   }
 
-  /**
-   * Debits the matching Cost from Energy via the attributed
-   * {@link EnergySystem#damage(EntityId, int, EntityId, byte)} overload — see
-   * {@link WeaponsEligibility#deductCostOfAttack}.
-   */
   private boolean deductCostOfAttack(final Entity requester, final byte flag) {
     return WeaponsEligibility.deductCostOfAttack(
         ed, energySystem, bullets, bombs, gravityBombs, mines, bursts, requester, flag);
   }
 
-  /**
-   * Public queue entry for the game session. Mirrors the legacy
-   * {@code WeaponsSystem.sessionAttack} ABI for {@code GameSessionImpl}.
-   *
-   * @param attacker the attacking entity
-   * @param flag the weapon of choice (one of {@link WeaponType})
-   */
+  /** Queue entry for the game session — one of {@link WeaponType}. */
   public void sessionAttack(final EntityId attacker, final byte flag) {
     sessionAttackCreations.add(new Attack(attacker, flag));
   }
 
-  /** Run the attack pipeline for one queued request. */
   private void attack(final Entity requester, final byte flag, final long now) {
     if (!canAttack(requester, flag)) {
       return;
@@ -252,12 +179,6 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     createProjectile(requester, flag, now, info);
     createSound(requester, flag, now, info);
   }
-
-  // -------------------------------------------------------------------
-  // Per-weapon spawn projection — RaM-OK (spawn-time projection from
-  // template; the ship's per-weapon Cost / Speed / Level components are
-  // the template, projected onto the freshly created projectile).
-  // -------------------------------------------------------------------
 
   private void createProjectileBullet(
       final Entity requesterEntity, final long now, final AttackPosition info) {
@@ -316,15 +237,13 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
             cfg.bomb().damage(),
             ShapeInfo.create(ShapeNames.EXPLODE_1, CoreViewConstants.EXPLOSION1SIZE, ed)));
 
-    // Slice 9a — splash radius per-level multiplicative scaling.
     final double splashRadius =
         WeaponsLogic.splashRadiusForLevel(cfg.bomb().explodeRadius(), bombLevel);
     if (splashRadius > 0.0) {
       ed.setComponent(bombProjectile, new SplashDamage(splashRadius));
     }
 
-    // Slice 9b — proximity fuse (additive per-level). Both knobs must be > 0
-    // to engage; falls back to direct-contact otherwise.
+    // Proximity fuse engages only when both base distance and delay are > 0; else direct-contact.
     final int proxBase = cfg.bomb().proximityDistance();
     final long fuseMs = cfg.bomb().explodeDelayMs();
     if (proxBase > 0 && fuseMs > 0L) {
@@ -332,7 +251,6 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
       ed.setComponent(bombProjectile, new ProximityFuse(proxRadius, fuseMs));
     }
 
-    // Slice S5 — opt this bomb into the repel-impulse scan.
     if (cfg.bomb().repellable()) {
       ed.setComponent(bombProjectile, new infinity.es.Repellable());
     }
@@ -432,8 +350,7 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
                 cfg.mine().decayMs(),
                 mineShape,
                 engineConfigSystem.get().mineRadius()));
-    // Direct-hit damage uses the per-ship MineStats.dropCostEnergy as the
-    // payload (matches pre-Wave-4a behaviour using MineCost).
+    // Mine direct-hit damage = per-ship MineStats.dropCostEnergy (Subspace canon).
     ed.setComponent(
         mineProjectile,
         new Damage(
@@ -493,19 +410,12 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
             ed, requester, physicsSpace, now, info.location, mineCurrentLevel.getLevel());
         break;
       case WeaponType.BURST:
-        // No sound for burst yet.
         break;
       default:
         throw new IllegalArgumentException("Unknown flag: " + flag);
     }
   }
 
-  /**
-   * Find the velocity and the position of the projectile.
-   *
-   * @param attackerEntity requesting entity
-   * @param weaponFlag the weapon type
-   */
   private AttackPosition getAttackInfo(final Entity attackerEntity, final byte weaponFlag) {
     final EntityId attacker = attackerEntity.getId();
     Vec3d projectileVelocity = new Vec3d(0, 0, 1);
@@ -539,14 +449,7 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     return new AttackPosition(projectilePosition, projectileVelocity);
   }
 
-  /**
-   * Step 1 of the attack-info pipeline: read the per-weapon speed from the
-   * per-aspect {@code *Stats} record ({@link BombStats}, {@link BulletStats},
-   * {@link MineStats}, {@link BurstStats}) and scale through the engine's
-   * subspace→jME bridge into the projectile velocity's z. GRAVBOMB starts
-   * from rest. Mine reads {@link MineStats}; if absent (ship not equipped
-   * for mines) it stays at zero — preserving the pre-S7 inert-drop fallback.
-   */
+  /** Reads per-weapon speed from *Stats records, scales subspace→jME, projects into z. GRAVBOMB starts at rest. */
   private void applyWeaponSpeedScale(
       final Vec3d projectileVelocity,
       final EntityId attacker,
@@ -588,17 +491,10 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     }
   }
 
-  /** Delegates to {@link WeaponsDamageLogic#applyBombRecoil} — see helper for behaviour. */
   private void applyBombRecoil(final EntityId shipId) {
     WeaponsDamageLogic.applyBombRecoil(ed, physicsSpace, engineConfigSystem, shipId);
   }
 
-  // -------------------------------------------------------------------
-  // Internal queue carriers (mirror the legacy WeaponsSystem inner types
-  // bit-for-bit so existing tests / wire shapes don't shift).
-  // -------------------------------------------------------------------
-
-  /** A class that holds the position information needed to create an attack. */
   private static class AttackPosition {
 
     private final Vec3d location;
@@ -627,11 +523,7 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
     }
   }
 
-  /**
-   * Holds the information needed to create an attack. Called from the game
-   * session. Public for parity with the legacy {@code WeaponsSystem.Attack}
-   * inner class — kept in case any test or module reflects on it.
-   */
+  /** Attack request queue entry. */
   public static final class Attack {
 
     private final EntityId owner;

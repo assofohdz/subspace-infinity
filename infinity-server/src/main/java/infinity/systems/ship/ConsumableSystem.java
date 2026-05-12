@@ -69,19 +69,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-/**
- * This system handles all the actions that can be performed by the player.
- *
- * @author AFahrenholz
- */
+/** Player consumable actions (thor, repel, rocket-buff, brick/decoy/portal place). */
 public class ConsumableSystem extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
-
-  // Consumable wire bytes (PLACEBRICK/FIREBURST/PLACEDECOY/PLACEPORTAL/
-  // REPEL/FIREROCKET/FIRETHOR/WARP) live in api/ as
-  // `infinity.net.ConsumableTypeId`. Internal dispatch below uses the enum
-  // directly; the public byte entry-point `sessionAct(byte)` converts via
-  // `ConsumableTypeId.fromWireId(byte)`.
 
   private final Set<Action> sessionActionCreations = ConcurrentHashMap.newKeySet();
   private EntitySet thorOwners;
@@ -97,10 +87,6 @@ public class ConsumableSystem extends BaseInfinitySystem
   private ConfigRegistrySystem configRegistry;
   private EngineConfigSystem engineConfigSystem;
 
-  // Per-family config lookups + gate checks live in ConsumableLogic to keep
-  // this class's cyclomatic-complexity sum under PMD's class threshold without
-  // fragmenting Pattern-4 spawn projection.
-
   @Override
   protected void initialize() {
     ed = requireSystem(EntityData.class);
@@ -108,23 +94,12 @@ public class ConsumableSystem extends BaseInfinitySystem
     physicsSpace = physics.getPhysicsSpace();
     configRegistry = requireSystem(ConfigRegistrySystem.class);
     engineConfigSystem = requireSystem(EngineConfigSystem.class);
-    // Here we find the ships that have a thor weapon
     thorOwners = ed.getEntities(ThorCurrentCount.class);
     thorProjectiles = ed.getEntities(Thor.class);
-    // Ships allowed to fire repels (Repel inventory component projected
-    // from per-ship `InitialRepel` at spawn).
     repelOwners = ed.getEntities(Repel.class);
-    // Ships allowed to fire rockets (Rocket inventory + per-ship RocketStats
-    // with buff lifetime projected from `RocketStats` at spawn).
     rocketOwners = ed.getEntities(Rocket.class, RocketStats.class);
-    // Ships allowed to place bricks (Brick inventory + BrickStats projected from
-    // `CountStats` at spawn). Brick lifetime is arena-global, not per-ship.
     brickOwners = ed.getEntities(Brick.class, BrickStats.class);
-    // Ships allowed to place decoys (Decoy inventory + DecoyStats projected from
-    // `CountStats` at spawn). Decoy lifetime is arena-global, not per-ship.
     decoyOwners = ed.getEntities(Decoy.class, DecoyStats.class);
-    // Ships allowed to place portals (Portal inventory + PortalStats projected
-    // from `CountStats` at spawn). Portal lifetime is arena-global, not per-ship.
     portalOwners = ed.getEntities(Portal.class, PortalStats.class);
 
     getSystem(ContactSystem.class).addListener(this);
@@ -168,14 +143,6 @@ public class ConsumableSystem extends BaseInfinitySystem
     brickOwners.applyChanges();
     decoyOwners.applyChanges();
     portalOwners.applyChanges();
-    /*
-     * Default pattern to let multiple sessions call methods and then process them
-     * one by one
-     *
-     * Not sure if this is needed or there is a queue system already in place by the session
-     * framework. 25-02-2023: Maybe the right way is to create "attack entities" that are
-     * then handled through an entityset.
-     */
     final Iterator<Action> iterator = sessionActionCreations.iterator();
     while (iterator.hasNext()) {
       final Action a = iterator.next();
@@ -188,13 +155,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     }
   }
 
-  /**
-   * This method is called from the gamesession and acts as a queue entry.
-   *
-   * @param attacker the attacking entity
-   * @param flag the wire byte for the consumable action (see
-   *     {@link ConsumableTypeId})
-   */
+  /** Queue entry from the game session; wire byte per {@link ConsumableTypeId}. */
   public void sessionAct(final EntityId attacker, final byte flag) {
     sessionActionCreations.add(new Action(attacker, ConsumableTypeId.fromWireId(flag)));
   }
@@ -269,16 +230,7 @@ public class ConsumableSystem extends BaseInfinitySystem
             ShapeInfo.create(ShapeNames.EXPLODE_1, 1, ed)));
   }
 
-  /**
-   * Pattern 4 spawn projection: read per-arena {@link RepelConfig}, project
-   * {@code timeMs} into {@link com.simsilica.es.common.Decay} via
-   * {@link WeaponFactory#createRepel}, and stamp {@code speed} /
-   * {@code distanceTiles} as {@link RepelSpeed} / {@link RepelDistance}
-   * components on the spawned effect entity. The repel-impulse system
-   * reads those components — never the {@link RepelConfig} template —
-   * per the hot-path-consumer rule in
-   * {@code .claude/rules/config-pattern.md}.
-   */
+  /** Stamps {@link RepelSpeed}/{@link RepelDistance} on the spawned effect — repel-impulse reads components, not config. */
   private void createRepel(Entity requesterEntity, final long time, ActionPosition info) {
     EntityId requester = requesterEntity.getId();
     final RepelConfig cfg = ConsumableLogic.repelConfigFor(ed, configRegistry, requester);
@@ -298,43 +250,21 @@ public class ConsumableSystem extends BaseInfinitySystem
     ed.setComponent(repelEffect, new RepelDistance(cfg.distanceTiles()));
   }
 
-  /**
-   * Plumbing-only brick placement: decrement {@link Brick} inventory and
-   * compose a marker entity that owns the brick lifetime via
-   * {@link com.simsilica.es.common.Decay}. The (deferred) brick-geometry
-   * slice will consume the marker's
-   * {@link infinity.es.ship.actions.BrickSpan} to spawn the per-tile
-   * solid wall, register a brick collision filter, and add the client
-   * visual.
-   */
+  /** Plumbing-only: marker entity carries brick lifetime via {@link Decay}; geometry deferred. */
   private void createBrick(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
     final BrickConfig cfg = ConsumableLogic.brickConfigFor(ed, configRegistry, ship);
     MapFactory.createBrick(ed, ship, time, cfg.spanTiles(), cfg.timeMs());
   }
 
-  /**
-   * Plumbing-only decoy placement: decrement {@link Decoy} inventory and
-   * compose a marker entity that owns the decoy lifetime via
-   * {@link com.simsilica.es.common.Decay}. The (deferred) decoy-as-radar-fake
-   * slice will read from this marker to drive the canonical Subspace
-   * mechanic (a phantom ship on enemy radar that mimics the placer's
-   * heading).
-   */
+  /** Plumbing-only: marker entity carries decoy lifetime via {@link Decay}; radar-fake deferred. */
   private void createDecoy(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
     final DecoyConfig cfg = ConsumableLogic.decoyConfigFor(ed, configRegistry, ship);
     MapFactory.createDecoy(ed, ship, time, cfg.aliveTimeMs());
   }
 
-  /**
-   * Plumbing-only portal placement: decrement {@link Portal} inventory and
-   * compose a marker entity that owns the portal lifetime via
-   * {@link com.simsilica.es.common.Decay}. The (deferred) "warp to placed
-   * portal" slice will read from this marker + the per-arena
-   * {@link PortalConfig#useRadiusLimit} to drive the canonical Subspace
-   * warp-to-portal mechanic.
-   */
+  /** Plumbing-only: marker entity carries portal lifetime via {@link Decay}; warp-to-portal deferred. */
   private void createPortal(final Entity requesterEntity, final long time) {
     final EntityId ship = requesterEntity.getId();
     final PortalConfig cfg = ConsumableLogic.portalConfigFor(ed, configRegistry, ship);
@@ -347,7 +277,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     final RocketConfig cfg = ConsumableLogic.rocketConfigFor(ed, configRegistry, ship);
     final RocketStats rocketStats = ed.getComponent(ship, RocketStats.class);
     if (rocketStats == null) {
-      // canAct already gates on rocketOwners (requires RocketStats); belt-and-suspenders for ship-swap races.
+      // Belt-and-suspenders for ship-swap races; canAct already gates on RocketStats.
       return;
     }
 
@@ -396,21 +326,11 @@ public class ConsumableSystem extends BaseInfinitySystem
       case FIRETHOR:
         GameSounds.createThorSound(ed, time, requester, info.location, physicsSpace);
         return true;
-      case REPEL:
-        // Repel audio is composed onto the effect entity by WeaponFactory.createRepel
-        // via AudioTypes.repel(ed) — no separate sound entity needed here.
-      case FIREROCKET:
-        // No rocket-fire SFX wired today — Subspace ships had a per-arena
-        // sound but the audio asset isn't in the project yet. Polish-bag item.
+      case REPEL: // Repel audio composed onto the effect entity by WeaponFactory.createRepel.
+      case FIREROCKET: // No SFX wired yet — polish-bag.
       case PLACEBRICK:
-        // No brick-place SFX wired today — Subspace had a brick sound but
-        // the audio asset isn't in the project yet. Polish-bag item.
       case PLACEDECOY:
-        // No decoy-place SFX wired today — Subspace had a decoy sound but
-        // the audio asset isn't in the project yet. Polish-bag item.
       case PLACEPORTAL:
-        // No portal-place SFX wired today — Subspace had a portal sound but
-        // the audio asset isn't in the project yet. Polish-bag item.
         return true;
       default:
         throw new IllegalArgumentException("Unknown action: " + flag);
@@ -469,13 +389,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     return true;
   }
 
-  /**
-   * Emit a one-shot Change-entity holder for an inventory decrement. The
-   * canonical writer ({@code BrickSystem}/{@code DecoySystem}/{@code
-   * PortalSystem}/{@code RepelCountSystem}/{@code RocketSystem}/{@code
-   * ThorSystem}) drains it next tick and clamps at {@code 0} below +
-   * {@code *Stats.max} above. Per ADR 0001 + RaM.
-   */
+  /** Emit one-shot inventory-decrement Change-entity; drained by the per-type canonical writer. */
   private void emitInventoryDecrement(
       final EntityId ship, final com.simsilica.es.EntityComponent change) {
     final EntityId holder = ed.createEntity();
@@ -512,20 +426,11 @@ public class ConsumableSystem extends BaseInfinitySystem
     switch (flag) {
       case FIRETHOR:
         return setCoolDownThor(requester);
-      case REPEL:
-        // No per-ship fire-delay component for repel today.
+      case REPEL: // Other actions use the entity's Decay as the only timing primitive.
       case FIREROCKET:
-        // No per-ship fire-delay component for rocket today; the buff
-        // entity's Decay is the only timing primitive.
       case PLACEBRICK:
-        // No per-ship fire-delay component for brick today; the brick
-        // entity's Decay is the only timing primitive.
       case PLACEDECOY:
-        // No per-ship fire-delay component for decoy today; the decoy
-        // entity's Decay is the only timing primitive.
       case PLACEPORTAL:
-        // No per-ship fire-delay component for portal today; the portal
-        // entity's Decay is the only timing primitive.
         return true;
       default:
         return false;
@@ -536,29 +441,13 @@ public class ConsumableSystem extends BaseInfinitySystem
     final EntityId requesterId = requester.getId();
     final ThorStats stats = ed.getComponent(requesterId, ThorStats.class);
     if (stats == null) {
-      // Defensive — canAct already gates on ThorStats via thorOwners.
       return true;
     }
-    // Wave 4b: re-stamp from per-ship ThorStats.fireDelayMillis (authoritative).
-    // Pre-Wave-4b used gfd.copy() which carried whatever was last stamped on
-    // the live ThorFireDelay (and ThorPrizeApplier overrode it with 1000).
     ed.setComponent(requesterId, new ThorFireDelay(stats.fireDelayMillis()));
     return true;
   }
 
-  /**
-   * Find the velocity and the position of the projectile.
-   *
-   * @param attackerEntity requesting entity
-   * @param weaponFlag the weapon type
-   */
-  /**
-   * Weapon flags whose ActionPosition is just the ship's own position with
-   * zero velocity — used by mechanics that don't fire a projectile (REPEL is
-   * a radial pulse; FIREROCKET is a self-buff; PLACEBRICK/PLACEDECOY/
-   * PLACEPORTAL are plumbing-only markers whose position info is dropped by
-   * the corresponding {@code create*} method).
-   */
+  // Actions whose ActionPosition is just ship-center with zero velocity (radial/self-buff/marker-only).
   private static final Set<ConsumableTypeId> CENTERED_NO_PROJECTILE =
       EnumSet.of(
           ConsumableTypeId.REPEL,
@@ -570,46 +459,34 @@ public class ConsumableSystem extends BaseInfinitySystem
   private ActionPosition getActionPosition(
       final Entity attackerEntity, final ConsumableTypeId weaponFlag) {
     final EntityId attacker = attackerEntity.getId();
-    // Default vector for projectiles (z=forward):
     Vec3d projectileVelocity = new Vec3d(0, 0, 1);
 
     final RigidBody<?, ?> shipBody = physics.getPhysicsSpace().getBinIndex().getRigidBody(attacker);
 
-    // Mechanics that don't fire a projectile short-circuit to ship-center
-    // with zero velocity — see CENTERED_NO_PROJECTILE Javadoc for which.
     if (CENTERED_NO_PROJECTILE.contains(weaponFlag)) {
       return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
     }
 
-    // Step 1: Scale the velocity based on weapon type, weapon level and ship type
-    // TODO: Look these settings up in SettingsSystem
+    // TODO: Look these settings up in SettingsSystem.
     if (weaponFlag == ConsumableTypeId.FIRETHOR) {
       projectileVelocity.addLocal(0, 0, 50);
     } else {
       throw new AssertionError("Action :" + weaponFlag + " not recognized");
     }
 
-    // Step 2: Rotate the scaled velocity
     final Quatd shipRotation = new Quatd(shipBody.orientation);
     final Vec3d shipVelocity = shipBody.getLinearVelocity();
     projectileVelocity = shipRotation.mult(projectileVelocity);
-
-    // Step 3: Add ship velocity:
     projectileVelocity.addLocal(shipVelocity);
 
-    // Step 4: Find the translation
     final Vec3d shipPosition = new Vec3d(shipBody.position);
-
     Vec3d projectilePosition = new Vec3d(0, 0, 0);
-    // Offset with the radius of the projectile
     if (weaponFlag == ConsumableTypeId.FIRETHOR) {
       projectilePosition.addLocal(0, 0, engineConfigSystem.get().thorRadius());
     } else {
       throw new AssertionError();
     }
-    // Rotate the projectile position just as the ship is rotated
     projectilePosition = shipRotation.mult(projectilePosition);
-    // Translate by ship position
     projectilePosition = projectilePosition.add(shipPosition);
 
     return new ActionPosition(projectilePosition, projectileVelocity);
@@ -620,8 +497,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
-    // We want to allow a Thor to pass through the world. Remember to put the "rarest" condition
-    // first here
+    // Thor passes through world geometry — rarest condition first.
     if (thorProjectiles.containsId(body1.id) && body2 == null) {
       contact.disable();
     }
@@ -631,7 +507,6 @@ public class ConsumableSystem extends BaseInfinitySystem
     return thorProjectiles.containsId(idOne);
   }
 
-  /** A class that holds the position information needed to create an attack. */
   private static class ActionPosition {
 
     private final Vec3d location;
@@ -655,14 +530,12 @@ public class ConsumableSystem extends BaseInfinitySystem
       return attackVelocity;
     }
 
-    // This is used when creating a burst attack, because we need to calculate, set and use new
-    // angles
     public void setAttackVelocity(final Vec3d attackVelocity) {
       this.attackVelocity = attackVelocity;
     }
   }
 
-  /** A class that holds the information needed to perform an action. */
+  /** Consumable action request queue entry. */
   public static final class Action {
 
     private final EntityId owner;

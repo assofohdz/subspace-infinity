@@ -3,6 +3,84 @@
 Latest release only. Earlier history lives in git tags + commit log
 (`git log v<previous>..v<this>`).
 
+## v1.0.17 — 2026-05-12
+
+ECS architecture release. ADR 0001 (Continuous + Stats with
+Change-entity mutation) landed end-to-end across 19 ship-state
+aspects, 4 fresh-find multi-writers, a 5-class non-ship audit, and
+an architectural enforcement test — every ship-state component now
+has exactly one canonical writer in `infinity-server/`, enforced at
+build time. Followed by a repo-wide Javadoc sweep that trimmed
+~5800 lines of recipe restatement + migration history while
+preserving every Subspace canon translation, race-condition
+mitigation, ordering constraint, and REFERENCE.md cite. 30+ commits
+since v1.0.16.
+
+### For players
+
+No observable gameplay changes. Damage, recharge, ship swap,
+team change, status toggles, weapon firing, prize pickup, rocket
+buff, warp commands, and Groovy hot-reload all behave the same.
+The migration was structural; the visible game is unchanged.
+
+### For authors (zones, arenas, ship presets)
+
+**No `.groovy` file edits required.** Same fragment shape; same
+`SettingsSystem` accessors; same hot-reload behaviour. The internal
+template→component projection switched plumbing but the inputs and
+outputs are unchanged.
+
+**One new admin chat command: `~prize <name>`.** Grants any prize
+(Bomb / Gun / Energy / Cloak / Antiwarp / etc.) to your avatar via
+the same applier path the collision-driven pickup uses. Useful for
+testing without flying over a spawner. PLAYER_LEVEL access — same
+as the other test commands like `~tparena` and `~warpCenter`.
+
+### For developers / contributors
+
+**The Change-entity recipe** is the canonical post-creation
+mutation shape. Every aspect follows the same template:
+
+- `*` (Continuous): live, frame-touched scalar
+- `*Stats` (record): cold rules — max, drain rate, cooldown, …
+- `*Change(delta)`: mutation payload on a transient holder
+- `*System`: canonical writer that drains `*Change + ChangeTarget`
+
+Emitters create holders with `ChangeTarget(target, source) +
+*Change(delta)` (optionally `+ Decay` for temporary effects); the
+canonical writer applies, clamps, sums same-tick deltas, and
+reverses Decay-bound deltas on reaper removal. See
+[`docs/adr/0001-ecs-component-model.md`](docs/adr/0001-ecs-component-model.md)
++ [`.claude/rules/replacement-as-mutation.md`](.claude/rules/replacement-as-mutation.md).
+
+**`CanonicalWriterTest` enforces one-writer-per-target** for 21
+registered (component → writer) pairs. Multi-writer violations
+fail CI rather than slip past review. Adding a new aspect = add a
+row to the registry + a canonical writer class. Spawn-tier
+projectors (`ShipSpawnSystem`, `ShipStatusProjector`,
+`ShipWeaponsProjector`) are allowlisted per ADR §"Spawn-time
+projection is the single-writer at creation time".
+
+**Deleted types** (no replacements needed; the wire is unchanged):
+`Buff`, `HealthChange`, `Intent`, `CapBump`, `CapField`,
+`RocketBuffIntent`, `WarpTo` (intent shape — `WarpToChange` is the
+post-ADR replacement). Plus ~25 scattered `*Max` / `*Upgrade` /
+`*Cost` / `*FireDelay` constituent components folded into bundled
+`*Stats` records.
+
+**One real bug fixed mid-migration:** `ThorPrizeApplier` no longer
+hardcodes `new ThorFireDelay(1000)` on first-time pickup —
+previously this clobbered the per-ship `[Ship] ThorFireDelay`
+config value. The applier now reads `ThorStats.fireDelayMillis()`.
+
+**Javadoc discipline rule** (`.claude/rules/javadoc-discipline.md`)
+is now path-scoped and explicit about the three-category test:
+DELETE pattern restatement + WHAT-describing-the-code; KEEP domain
+facts (Subspace canon, ordering constraints, race-condition
+mitigations, REFERENCE.md cites, architectural maps). New
+contributors get the rule auto-loaded when they touch any `.java`
+file.
+
 ## v1.0.16 — 2026-05-10
 
 Major restructure release. The single `:infinity:` module has been

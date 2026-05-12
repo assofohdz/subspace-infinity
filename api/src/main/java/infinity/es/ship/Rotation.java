@@ -4,7 +4,7 @@ package infinity.es.ship;
 
 import com.simsilica.es.EntityComponent;
 
-/** Current effective rotation-rate capability (rad/sec); clamped at {@link RotationStats#max()}. */
+/** Current effective rotation-rate (rad/sec); clamped at {@link RotationStats#max()}. Subspace canon {@code MaximumRotation=400} = one rotation/sec (÷400 at projection). */
 public class Rotation implements EntityComponent {
 
     private final double radSec;

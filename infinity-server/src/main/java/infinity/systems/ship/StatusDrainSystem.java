@@ -18,20 +18,7 @@ import infinity.es.ship.toggles.XRadarActive;
 import infinity.es.ship.toggles.XRadarStats;
 import infinity.systems.BaseInfinitySystem;
 
-/**
- * Drains {@link Energy} from ships with active Status-family toggles. Emits per-tick negative
- * {@code EnergyChange} via {@link EnergySystem#damage} when an aspect's {@code *Active} is on.
- * Drain rate (energy/sec) lives on each {@code *Stats} record; see REFERENCE.md "Ship abilities"
- * and {@link ShipStatusProjector} for the 1000ths-per-cs → energy/sec conversion.
- *
- * <p><b>Behaviour notes (Subspace canon):</b>
- * <ul>
- *   <li>Drain runs unconditionally while a toggle is active — deliberately including at zero
- *       energy. {@link EnergySystem} handles the death transition.
- *   <li>The toggle is turned on by the corresponding prize applier (or spawn projection when
- *       {@code statusTier == 2}). Player-initiated toggle-off is deferred to a later input slice.
- * </ul>
- */
+/** Per-tick Energy drain for ships with active Status-family toggles (Cloak/Stealth/XRadar/Antiwarp). */
 public class StatusDrainSystem extends BaseInfinitySystem {
 
   private EnergySystem energySystem;
@@ -120,13 +107,7 @@ public class StatusDrainSystem extends BaseInfinitySystem {
     }
   }
 
-  /**
-   * Per-tick integer Energy drain from {@code energy/sec × tpf}, rounded half-up. Visible for tests.
-   *
-   * @param energyDrainPerSecond drain rate in energy units per second (non-negative)
-   * @param tpfSeconds tick length in seconds
-   * @return Energy units to drain this tick (rounded; never negative)
-   */
+  /** Per-tick integer Energy drain from energy/sec × tpf, rounded half-up. */
   static int perTickDrain(final double energyDrainPerSecond, final double tpfSeconds) {
     if (energyDrainPerSecond <= 0.0 || tpfSeconds <= 0.0) {
       return 0;

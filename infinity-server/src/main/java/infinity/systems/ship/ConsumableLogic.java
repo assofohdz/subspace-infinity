@@ -23,30 +23,11 @@ import infinity.es.ship.actions.ThorCurrentCount;
 import infinity.es.ship.actions.ThorFireDelay;
 import infinity.settings.ConfigRegistrySystem;
 
-/**
- * Stateless helpers for {@link ConsumableSystem} — per-family config lookups and
- * gate checks. Extracted from {@code ConsumableSystem} to keep the host class's
- * cyclomatic-complexity sum under PMD's class threshold without fragmenting
- * Pattern-4 spawn projection (the host system retains all
- * {@code create*}/{@code deductCostOf*} state-mutating methods so component
- * projection stays in one place).
- *
- * <p>All methods are {@code public static}; callers pass the {@link EntityData}
- * and the relevant {@link EntitySet}/{@link ConfigRegistrySystem} explicitly so
- * this class holds no state.
- */
+/** Per-family config lookups + can-fire/can-place gates for {@link ConsumableSystem}. */
 public final class ConsumableLogic {
 
-  private ConsumableLogic() {
-    // utility class
-  }
+  private ConsumableLogic() {}
 
-  // -- Config lookups -----------------------------------------------------
-  // Each lookup falls back to the type's `DEFAULTS` snapshot when the
-  // attacker has no ArenaId (legacy spawn paths) or the arena has no
-  // ConfigRegistry entry yet.
-
-  /** Per-arena Thor tuning; {@link ThorConfig#DEFAULTS} fallback. */
   public static ThorConfig thorConfigFor(
       final EntityData ed, final ConfigRegistrySystem configRegistry, final EntityId attacker) {
     final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
@@ -56,7 +37,6 @@ public final class ConsumableLogic {
     return configRegistry.forArena(arenaId).thor();
   }
 
-  /** Per-arena Repel tuning; {@link RepelConfig#DEFAULTS} fallback. */
   public static RepelConfig repelConfigFor(
       final EntityData ed, final ConfigRegistrySystem configRegistry, final EntityId attacker) {
     final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
@@ -66,7 +46,6 @@ public final class ConsumableLogic {
     return configRegistry.forArena(arenaId).repel();
   }
 
-  /** Per-arena Rocket tuning; {@link RocketConfig#DEFAULTS} fallback. */
   public static RocketConfig rocketConfigFor(
       final EntityData ed, final ConfigRegistrySystem configRegistry, final EntityId attacker) {
     final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
@@ -76,7 +55,6 @@ public final class ConsumableLogic {
     return configRegistry.forArena(arenaId).rocket();
   }
 
-  /** Per-arena Brick tuning; {@link BrickConfig#DEFAULTS} fallback. */
   public static BrickConfig brickConfigFor(
       final EntityData ed, final ConfigRegistrySystem configRegistry, final EntityId attacker) {
     final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
@@ -86,7 +64,6 @@ public final class ConsumableLogic {
     return configRegistry.forArena(arenaId).brick();
   }
 
-  /** Per-arena Decoy tuning; {@link DecoyConfig#DEFAULTS} fallback. */
   public static DecoyConfig decoyConfigFor(
       final EntityData ed, final ConfigRegistrySystem configRegistry, final EntityId attacker) {
     final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
@@ -96,7 +73,6 @@ public final class ConsumableLogic {
     return configRegistry.forArena(arenaId).decoy();
   }
 
-  /** Per-arena Portal tuning; {@link PortalConfig#DEFAULTS} fallback. */
   public static PortalConfig portalConfigFor(
       final EntityData ed, final ConfigRegistrySystem configRegistry, final EntityId attacker) {
     final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
@@ -106,13 +82,7 @@ public final class ConsumableLogic {
     return configRegistry.forArena(arenaId).portal();
   }
 
-  // -- Gate checks --------------------------------------------------------
-  // Each gate confirms the requester is in the per-family owner EntitySet
-  // (i.e. has the inventory + per-ship cap components projected at spawn)
-  // and that at least one charge is available. Subspace canon — no
-  // fire-delay component except for Thor.
-
-  /** Thor firing gate: owner in {@code thorOwners}, count &gt; 0, fire-delay elapsed. */
+  /** Thor adds a fire-delay gate; the others are count-only (Subspace canon). */
   public static boolean canFireThor(
       final EntityData ed, final EntitySet thorOwners, final Entity requester) {
     final EntityId requesterId = requester.getId();
@@ -124,7 +94,6 @@ public final class ConsumableLogic {
     return false;
   }
 
-  /** Repel firing gate: owner in {@code repelOwners} with at least one charge. */
   public static boolean canFireRepel(
       final EntityData ed, final EntitySet repelOwners, final Entity requester) {
     final EntityId requesterId = requester.getId();
@@ -135,7 +104,6 @@ public final class ConsumableLogic {
     return curr != null && curr.getCount() > 0;
   }
 
-  /** Rocket firing gate: owner in {@code rocketOwners} with at least one charge. */
   public static boolean canFireRocket(
       final EntityData ed, final EntitySet rocketOwners, final Entity requester) {
     final EntityId requesterId = requester.getId();
@@ -146,7 +114,6 @@ public final class ConsumableLogic {
     return curr != null && curr.getCount() > 0;
   }
 
-  /** Brick placement gate: owner in {@code brickOwners} with at least one charge. */
   public static boolean canPlaceBrick(
       final EntityData ed, final EntitySet brickOwners, final Entity requester) {
     final EntityId requesterId = requester.getId();
@@ -157,7 +124,6 @@ public final class ConsumableLogic {
     return curr != null && curr.getCount() > 0;
   }
 
-  /** Decoy placement gate: owner in {@code decoyOwners} with at least one charge. */
   public static boolean canPlaceDecoy(
       final EntityData ed, final EntitySet decoyOwners, final Entity requester) {
     final EntityId requesterId = requester.getId();
@@ -168,7 +134,6 @@ public final class ConsumableLogic {
     return curr != null && curr.getCount() > 0;
   }
 
-  /** Portal placement gate: owner in {@code portalOwners} with at least one charge. */
   public static boolean canPlacePortal(
       final EntityData ed, final EntitySet portalOwners, final Entity requester) {
     final EntityId requesterId = requester.getId();

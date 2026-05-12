@@ -4,7 +4,7 @@ package infinity.es.ship.actions;
 
 import com.simsilica.es.EntityComponent;
 
-/** Repulsion speed on a Repel effect entity ({@code [Repel] RepelSpeed}); stamped at fire-time from {@link infinity.config.RepelConfig}. */
+/** Repulsion speed on a Repel effect entity ({@code [Repel] RepelSpeed}); raw integer in Subspace velocity units, stamped at fire-time from {@link infinity.config.RepelConfig}. */
 public class RepelSpeed implements EntityComponent {
 
   private final int speed;

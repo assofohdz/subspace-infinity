@@ -3,7 +3,17 @@
 
 package infinity.config;
 
-/** Per-arena prize-spawn defaults; populated from {@code prize.groovy} via {@code PrizeAdapter}. {@code prizeNegativeFactor} substitutes DUD on the roll. See REFERENCE.md {@code ## Prize}. */
+/**
+ * Per-arena prize-spawn defaults; populated from {@code prize.groovy} via {@code PrizeAdapter}. See REFERENCE.md {@code ## Prize}.
+ *
+ * <p>Centisecond timing fields convert ×10 at the loader: {@code PrizeMaxExist} → {@link #defaultDecayMs},
+ * {@code PrizeMinExist} → {@link #defaultMinDecayMs}, {@code DeathPrizeTime} → {@link #deathPrizeTimeMs}.
+ * {@code PrizeSystem} samples uniform random in {@code [defaultMinDecayMs, defaultDecayMs]} (= no randomness
+ * when min equals max).
+ *
+ * <p>{@code prizeNegativeFactor} is canon's 1-in-N roll; Infinity simplifies by substituting DUD instead of
+ * running inverse-stat appliers — knob preserves canonical probability for a future swap. {@code 0} disables.
+ */
 public record PrizeConfig(
     long defaultDecayMs,
     long defaultMinDecayMs,

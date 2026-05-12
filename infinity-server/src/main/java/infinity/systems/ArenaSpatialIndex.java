@@ -12,7 +12,6 @@ import infinity.InfinityConstants;
 import infinity.config.SpawnConfig;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
-import infinity.settings.ConfigRegistrySystem;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

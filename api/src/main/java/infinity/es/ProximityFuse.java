@@ -5,7 +5,12 @@ package infinity.es;
 
 import com.simsilica.es.EntityComponent;
 
-/** Proximity-fuse marker on projectiles ({@code ProximityDistance} / {@code BombExplodeDelay} from REFERENCE.md {@code ## Bomb}); scanned by {@code ProximityFuseSystem}. */
+/**
+ * Proximity-fuse marker on projectiles ({@code ProximityDistance} / {@code BombExplodeDelay} from REFERENCE.md {@code ## Bomb}).
+ * {@code radiusWorldUnits} already has firing-ship bomb-level additive scaling applied (L1=base, L2=base+1, …).
+ *
+ * <p><b>Divergence:</b> canon detonates immediately if the ship leaves the trigger area; Infinity runs the fuse to completion regardless.
+ */
 public final class ProximityFuse implements EntityComponent {
 
   private final double radiusWorldUnits;

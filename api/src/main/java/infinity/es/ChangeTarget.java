@@ -6,7 +6,12 @@ package infinity.es;
 import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityId;
 
-/** Routing component on transient Change holder entities — names mutation target + source. See ADR 0001. */
+/**
+ * Routing component on transient Change holder entities — names mutation target + source. See ADR 0001.
+ *
+ * <p>{@code source == target} is valid (self-changes). {@code source} drives attribution: kill-credit
+ * follows the lethal {@code EnergyChange}'s source; damage-number HUD points back at the attacker.
+ */
 public record ChangeTarget(EntityId target, EntityId source) implements EntityComponent {
 
   public ChangeTarget() {

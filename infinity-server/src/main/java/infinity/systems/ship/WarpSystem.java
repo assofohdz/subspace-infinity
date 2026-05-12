@@ -110,14 +110,10 @@ public class WarpSystem extends BaseInfinitySystem
   }
 
   @Override
-  public void start() {
-    // Auto generated method stub
-  }
+  public void start() {}
 
   @Override
-  public void stop() {
-    // Auto generated method stub
-  }
+  public void stop() {}
 
   @Override
   public void update(SimTime tpf) {
@@ -129,15 +125,8 @@ public class WarpSystem extends BaseInfinitySystem
     drainWarpToChanges(tpf);
   }
 
-  /**
-   * Drain {@link WarpToChange} holder entities — value-replacement
-   * payload, one-shot only (warps don't reverse on Decay expiry, so no
-   * TrackedApply cache needed). Per-target last-write-wins folding via
-   * insertion-order map; multiple holders against the same target in
-   * the same tick are collapsed (the last-folded target location wins).
-   */
+  /** Per-target fold = last-write-wins; one-shot only (no Decay reversal). */
   private void drainWarpToChanges(final SimTime tpf) {
-    // Per-target fold: last write wins. Insertion order preserved.
     final Map<EntityId, Vec3d> targetLocByShip = new LinkedHashMap<>();
     final List<EntityId> oneShotHolders = new ArrayList<>();
     for (final Entity added : warpToChanges.getAddedEntities()) {
@@ -163,12 +152,10 @@ public class WarpSystem extends BaseInfinitySystem
   private void applyWarp(final EntityId shipId, final Vec3d targetLocation, final SimTime tpf) {
     final BodyPosition bodyPos = ed.getComponent(shipId, BodyPosition.class);
     if (bodyPos == null) {
-      // Ship has no body yet (just-spawned race?) — silently drop the warp.
       return;
     }
     final Vec3d originalLocation = bodyPos.getLastLocation();
 
-    // This is the new method to teleport units
     physicsSpace.teleport(shipId, targetLocation, bodyPos.getLastOrientation());
 
     MapFactory.createWarpEffect(
@@ -180,7 +167,7 @@ public class WarpSystem extends BaseInfinitySystem
         new infinity.sim.specs.WarpEffectSpec(
             shipId, physicsSpace, tpf.getTime(), targetLocation, 1000));
 
-    // Ensure that the unit is not moving after the warp
+    // Zero motion so the body sleeps immediately — prevents redundant "left arena" log after spawn-warp.
     final RigidBody<EntityId, MBlockShape> body = bodyFactory.getBody(shipId);
     body.setLinearVelocity(Vec3d.ZERO);
     body.setRotationalVelocity(Vec3d.ZERO);
@@ -188,14 +175,7 @@ public class WarpSystem extends BaseInfinitySystem
     body.setRotationalAcceleration(0, 0, 0);
     body.clearAccumulators();
 
-    // Reconcile arena membership through ArenaMembershipSystem (the sole writer
-    // of ship-side ArenaId). The warp zeroed velocity above, so the body will
-    // sleep and stop generating contacts immediately — without this the per-tick
-    // exit-grace sweep fires a redundant "left arena" log a second after every
-    // spawn-warp. Null destination → ship landed in
-    // no-arena void; flush any current memberships so downstream consumers (esp.
-    // ShipSpawnSystem's (ShipType, ArenaId) watcher) don't project a now-wrong
-    // ShipConfig.
+    // Reconcile ArenaId via ArenaMembershipSystem (sole writer) so ShipSpawnSystem doesn't reproject stale config.
     final EntityId resolvedArenaEntityId =
         getSystem(ArenaSystem.class).findArenaEntityAt(targetLocation);
     final ArenaMembershipSystem membership = getSystem(ArenaMembershipSystem.class);
@@ -206,13 +186,7 @@ public class WarpSystem extends BaseInfinitySystem
     }
   }
 
-  /**
-   * This method is called when a warp is requested by the player. It will warp the player to the
-   * center of the arena.
-   *
-   * @param avatarId The entity id of the player avatar
-   * @return A string that can be sent to the player's chat console
-   */
+  /** Warp the avatar to the arena center; returns chat-console feedback. */
   public String warpToCenter(EntityId avatarId) {
     Entity child = ed.getEntity(avatarId, BodyPosition.class);
     BodyPosition childBodyPos = child.get(BodyPosition.class);
@@ -223,33 +197,16 @@ public class WarpSystem extends BaseInfinitySystem
     return "Warped to center of arena:" + centerOfArena;
   }
 
-  /**
-   * Create a one-shot Change holder requesting that {@code shipId} warps to {@code target}.
-   * {@code source} attributes the warp (typically the player avatar issuing the command, or the
-   * wormhole entity for warp-touch).
-   */
   private void emitWarpTo(final EntityId shipId, final EntityId source, final Vec3d target) {
     final EntityId h = ed.createEntity();
     ed.setComponents(h, new ChangeTarget(shipId, source), new WarpToChange(target));
   }
 
-  /**
-   * Lets entities request a warp to the center of the arena.
-   *
-   * @param avatarId requesting entity
-   */
   public String commandRequestWarpToCenter(EntityId entityId, EntityId avatarId, Matcher matcher) {
-
     return warpToCenter(avatarId);
   }
 
-  /**
-   * Teleports the avatar to explicit world coordinates. Useful for verifying multi-map grids
-   * where the target sits outside the current arena. Refuses destinations whose 3x3 cell
-   * neighborhood (target + 8 X/Z neighbors on the gameplay plane) contains any non-empty cell —
-   * a ship's collider is larger than one cell, and physics resolution of a near-wall teleport has
-   * been observed to drift the ship off the gameplay plane.
-   */
+  /** Teleport to world coords; refuses if the 3x3 target neighborhood contains any non-empty cell. */
   public String commandTeleportWorld(EntityId entityId, EntityId avatarId, Matcher matcher) {
     final double x = Double.parseDouble(matcher.group(1));
     final double z = Double.parseDouble(matcher.group(2));
@@ -264,13 +221,7 @@ public class WarpSystem extends BaseInfinitySystem
     return "Teleporting to world " + target;
   }
 
-  /**
-   * Teleports the avatar to arena-local coordinates within its <i>current</i> arena. Refuses
-   * if the avatar has no {@code ArenaId} (no-arena void), if the named arena isn't loaded, or
-   * if the resolved world coord fails the same neighbor-block check used by {@link
-   * #commandTeleportWorld}. Arena-local convention: {@code (0, 0) = NW corner}, {@code
-   * (1024, 1024) = SE corner} (see {@code ArenaSystem.arenaToWorld}).
-   */
+  /** Teleport to arena-local coords (0,0)=NW; same neighbor-block guard as {@link #commandTeleportWorld}. */
   public String commandTeleportArena(EntityId entityId, EntityId avatarId, Matcher matcher) {
     final ArenaId arena = ed.getComponent(avatarId, ArenaId.class);
     if (arena == null) {
@@ -283,8 +234,6 @@ public class WarpSystem extends BaseInfinitySystem
     final double localX = Double.parseDouble(matcher.group(1));
     final double localZ = Double.parseDouble(matcher.group(2));
 
-    // Resolve via the same translation used by spawn / ship-change paths so all
-    // three flows agree on what arena-local coords mean.
     final ArenaMap map = arenaSystem.getArenaMap(arena.getArena());
     if (map == null) {
       return "Cannot teleport: arena '" + arena.getArena() + "' has no ArenaMap (not loaded?)";
@@ -301,11 +250,7 @@ public class WarpSystem extends BaseInfinitySystem
         + ") = world " + target;
   }
 
-  /**
-   * Scan the 3x3 X/Z neighborhood around {@code target} on the gameplay plane and return the
-   * first cell with a non-zero block type, or {@code null} if the whole 3x3 is clear. The target
-   * itself is checked first so the most common "inside a wall" case reports the obvious cell.
-   */
+  /** Returns first occupied cell in target's 3x3 X/Z neighborhood (target first), or null if clear. */
   private Vec3d firstOccupiedNeighbor(final Vec3d target) {
     final WorldSystem worldSystem = getSystem(WorldSystem.class);
     if (worldSystem == null) {
@@ -315,13 +260,11 @@ public class WarpSystem extends BaseInfinitySystem
     if (world == null) {
       return null;
     }
-    // Check center first, then neighbors, so the error message points at the target cell when
-    // the target itself is a wall (the common case).
     final int[][] offsets =
         new int[][] {{0, 0}, {-1, -1}, {0, -1}, {1, -1}, {-1, 0}, {1, 0}, {-1, 1}, {0, 1}, {1, 1}};
     for (final int[] off : offsets) {
       final Vec3d probe = new Vec3d(target.x + off[0], target.y, target.z + off[1]);
-      // Type bits live in the low 20 bits of the cell int (MaskUtils.TYPE_MASK).
+      // MaskUtils.TYPE_MASK = low 20 bits.
       if ((world.getWorldCell(probe) & 0x000fffff) != 0) {
         return probe;
       }
@@ -334,7 +277,6 @@ public class WarpSystem extends BaseInfinitySystem
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
-    // If body2 is null, then the contact is with the world and we should not handle this
     if (body2 == null) {
       return;
     }
@@ -342,9 +284,7 @@ public class WarpSystem extends BaseInfinitySystem
     EntityId body1Id = body1.id;
     EntityId body2Id = body2.id;
 
-    // Warp body1 if body2 is a warp touch entity. Source is the wormhole/warp-touch entity
-    // (body2Id) — distinguishes wormhole-driven warps from chat-command warps in any future
-    // attribution / audio / VFX reactor.
+    // body2Id as source distinguishes wormhole-driven warps from chat-command warps in attribution reactors.
     if (warpTouchEntities.containsId(body2Id)) {
       final WarpTouch warpTouch = warpTouchEntities.getEntity(body2Id).get(WarpTouch.class);
       emitWarpTo(body1Id, body2Id, warpTouch.getTargetLocation());

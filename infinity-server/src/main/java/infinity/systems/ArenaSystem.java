@@ -13,7 +13,6 @@ import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.config.ArenaConfig;
 import infinity.config.SpawnerSpec;
-import infinity.config.SpawnConfig;
 import infinity.config.ZoneConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.ship.ShipSpawnSystem;

@@ -6,7 +6,16 @@ package infinity.config;
 import infinity.Ship;
 import javax.annotation.Nullable;
 
-/** Per-ship tuning template; projected at spawn into ECS components by {@code ShipSpawnSystem}. Nullable weapon/inventory fields = ship can't carry that gear. See {@code config-pattern.md}. */
+/**
+ * Per-ship tuning template; projected at spawn into ECS components by {@code ShipSpawnSystem}. See {@code config-pattern.md}.
+ *
+ * <p>Nullable weapon/inventory fields = ship cannot carry that gear; the spawn system skips the projection
+ * block and the absent component reads as "not allowed" by prize appliers (component-absence as disallow signal).
+ *
+ * <p>{@code linearDamping} is an Infinity divergence — Subspace canon has no drag. mphys applies
+ * {@code velocity *= pow(damping, t)} per tick; {@code 1.0} = no damping, {@code 0.99} ≈ 1%/sec loss.
+ * {@code repellable} defaults to {@code true} per Subspace canon (repels push every ship).
+ */
 public record ShipConfig(
     Ship type,
     ShipStat rotation,

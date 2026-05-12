@@ -5,7 +5,14 @@ package infinity.es;
 
 import com.simsilica.es.EntityComponent;
 
-/** Configuration for an entity that periodically spawns other entities; read by spawn-loop systems (today {@code PrizeSystem}). */
+/**
+ * Configuration for an entity that periodically spawns other entities; read by spawn-loop systems (today {@code PrizeSystem}).
+ *
+ * <p>Player-count scaling is additive: effective count = {@code maxCount + countPerPlayer × players},
+ * effective radius = base + {@code radiusPerPlayer × players}. {@code 0} on either knob disables scaling.
+ * {@code regenBatch} = entities spawned per interval tick once below the effective cap; canon
+ * {@code PrizeHideCount}. See {@code player-scaling.md}.
+ */
 public class Spawner implements EntityComponent {
 
   private final boolean weighted;

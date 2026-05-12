@@ -33,33 +33,10 @@ import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineStats;
 import javax.annotation.Nullable;
 
-/**
- * Pattern-4 spawn-projection helpers for the weapon / inventory families.
- * Called only by {@code ShipSpawnSystem.project}; see {@link ShipSpawnSystem}
- * class Javadoc for the projector-split map (which projector owns which aspect
- * family). Projects each
- * {@code *Config}-tier template (e.g. {@link infinity.config.BombStats}) into
- * the component-tier {@code *Stats} record (e.g. {@link BombStats}) plus the
- * matching live-pool component (e.g. {@link BombCurrentLevel}). Live pools
- * are reset only on {@code resetLivePool == true} so mid-fight Groovy
- * reloads preserve earned upgrades and current ammo.
- *
- * <p>Per-instance cooldown components ({@code *FireDelay}) are re-stamped on
- * every projection (the constructor zeroes the start nanos) so a respawned
- * ship can fire immediately; runtime re-stamping after each fire lives in
- * {@link WeaponsEligibility}.
- *
- * <p>See ADR 0001 §"Continuous + Stats split"; the older scattered
- * {@code *MaxLevel} / {@code *Cost} / {@code *Speed} / {@code *Thrust}
- * components were bundled into the per-aspect {@code *Stats} record in
- * Wave 4a, with the inventory aspects (Brick/Decoy/Portal/Repel/Rocket/Thor)
- * following the same pattern in Wave 4b.
- */
+/** Spawn projection for weapon / inventory families; called from {@link ShipSpawnSystem}. */
 final class ShipWeaponsProjector {
 
-  private ShipWeaponsProjector() {
-    // utility class — instantiation prevented
-  }
+  private ShipWeaponsProjector() {}
 
   static void projectBombs(
       final EntityData ed,
@@ -198,7 +175,7 @@ final class ShipWeaponsProjector {
     if (resetLivePool) {
       ed.setComponent(shipId, new Rocket(rockets.start()));
     }
-    // Per-ship buff lifetime (Subspace [Ship] RocketTime, centiseconds → ms).
+    // Subspace [Ship] RocketTime is centiseconds → ms.
     final long buffDurationMillis = rockets.activeTimeCs() * 10L;
     ed.setComponent(shipId, new RocketStats(rockets.max(), buffDurationMillis));
   }

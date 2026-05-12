@@ -30,57 +30,11 @@ import infinity.es.ship.weapons.WeaponType;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 
-/**
- * Pre-fire eligibility helpers extracted from {@link WeaponsSystem} so the
- * giant weapons class stays under PMD's class-level cyclomatic-complexity
- * ceiling. Every method here is {@code static} package-private — pure
- * decision logic that reads entity state + arena config and returns
- * {@code boolean}, with no side-effect mutation.
- *
- * <p><b>Canonical writer (post-spawn) for {@code BombFireDelay} /
- * {@code BulletFireDelay} / {@code MineFireDelay}.</b> The {@code setCoolDown*}
- * methods re-stamp these per-instance cooldown timers on each fire from
- * {@code *Stats.fireDelayMillis()}. FireDelay is a hybrid Continuous timer
- * (value-replacement, not additive delta) — outside the standard Change-entity
- * recipe but still single-writer post-spawn. Enforced by
- * {@code CanonicalWriterTest}; spawn-tier seed lives in
- * {@code ShipWeaponsProjector} (spawn-tier exempt).
- *
- * <p>The {@code canAttackX} family answers "is this ship currently
- * permitted to fire weapon X?" — which combines four independent gates:
- *
- * <ol>
- *   <li>Inventory presence: ship's entity is in the matching weapon-type
- *       {@link EntitySet} (e.g. {@code bullets}).
- *   <li>Cooldown: matching {@code FireDelay} component's {@code getPercent()}
- *       is at 1.0 (decay-driven cooldown elapsed).
- *   <li>Energy: ship has enough {@code Health} to pay the matching
- *       {@code Cost} component.
- *   <li>Bomb-only: slice 9c-BombSafety scan rejects fire when an enemy
- *       sits inside the firing ship's effective proximity-arm radius.
- * </ol>
- *
- * <p>Bottoms out on {@link WeaponsLogic#victimBlocksBombFire} +
- * {@link WeaponsLogic#proximityRadiusForLevel} for the slice-9c bomb-safety
- * geometry math; this class wraps those with the EntitySet / EntityData
- * fetch boilerplate.
- *
- * <p>Behaviour-preservation contract: every helper produces identical
- * outputs to the original {@code WeaponsSystem.canAttackX} methods. The
- * split is mechanical — same call order, same branch semantics, same
- * component access pattern.
- */
+/** Pre-fire eligibility + cooldown stamp + cost deduction; canonical writer (post-spawn) for {@code *FireDelay}. */
 final class WeaponsEligibility {
 
-    private WeaponsEligibility() {
-        // utility class — instantiation prevented
-    }
+    private WeaponsEligibility() {}
 
-    /**
-     * Top-level dispatch — answer "can {@code requester} fire weapon
-     * {@code weaponType} right now?" by routing to the per-weapon helper.
-     * Null requester (entity not yet bound / mid-spawn) is rejected.
-     */
     static boolean canAttack(
             final EntityData ed,
             final ConfigRegistrySystem cr,
@@ -113,7 +67,6 @@ final class WeaponsEligibility {
         }
     }
 
-    /** Bullet eligibility — inventory + cooldown + energy gates. */
     static boolean canAttackBullet(
             final EntityData ed,
             final EntitySet bullets,
@@ -131,7 +84,7 @@ final class WeaponsEligibility {
         return stats != null && stats.fireCostEnergy() <= energy.getHealth(requesterId);
     }
 
-    /** Bomb eligibility — inventory + cooldown + energy + slice-9c safety scan. */
+    /** Bomb eligibility — adds bomb-safety scan (rejects fire when an enemy is inside proximity-arm radius). */
     static boolean canAttackBomb(
             final EntityData ed,
             final ConfigRegistrySystem cr,
@@ -155,7 +108,6 @@ final class WeaponsEligibility {
         return bombSafetyClear(ed, cr, physicsSpace, bombs, energyEntities, requesterId);
     }
 
-    /** Gravity-bomb eligibility — inventory + cooldown + energy. */
     static boolean canAttackGravityBomb(
             final EntityData ed,
             final EntitySet gravityBombs,
@@ -173,7 +125,6 @@ final class WeaponsEligibility {
         return bc.getCost() <= energy.getHealth(requesterId);
     }
 
-    /** Mine eligibility — inventory + cooldown + energy. */
     static boolean canAttackMine(
             final EntityData ed,
             final EntitySet mines,
@@ -191,38 +142,12 @@ final class WeaponsEligibility {
         return stats != null && stats.dropCostEnergy() <= energy.getHealth(requesterId);
     }
 
-    /** Burst eligibility — inventory presence is the only gate (no cooldown / cost yet). */
+    /** Inventory presence only — no cooldown/cost yet. */
     static boolean canAttackBurst(final EntitySet bursts, final Entity requester) {
         return bursts.contains(requester);
     }
 
-    /**
-     * Slice 9c-BombSafety — fire-time gate that rejects bomb fire when an
-     * enemy {@link infinity.es.ship.Energy}-bearer sits inside the firing
-     * ship's effective proximity-arm radius. Auto-no-ops when:
-     *
-     * <ul>
-     *   <li>The arena's {@code BombConfig.bombSafety} is {@code false}
-     *       (operator opt-in).
-     *   <li>The arena's {@code BombConfig.proximityDistance} is {@code 0} —
-     *       proximity disabled means the ship's bomb wouldn't proximity-arm
-     *       on anything anyway.
-     *   <li>The firing ship has no rigid body in the physics space (mid-spawn
-     *       / dead).
-     * </ul>
-     *
-     * <p>FF gate reused from {@link WeaponsLogic#victimBlocksBombFire} —
-     * same-team ships never arm proximity bombs, so they don't count for
-     * the safety scan either.
-     *
-     * <p>Spatial pre-filter via {@code mphys.PhysicsSpace#queryBounds}
-     * (arch-review TD-3 — replaces the per-tick O(N) walk over every
-     * Health-bearer with a bin-local active+inactive rigid-body scan).
-     * The {@code energyEntities} set is preserved as the Health-bearer gate
-     * post-query; the strict point-distance check inside
-     * {@link WeaponsLogic#victimBlocksBombFire} preserves bit-exact radius
-     * semantics (queryBounds inflates by {@code body.boundsRadius}).
-     */
+    /** Rejects bomb fire when an enemy sits inside proximity-arm radius; no-op when arena's BombSafety is off. */
     static boolean bombSafetyClear(
             final EntityData ed,
             final ConfigRegistrySystem cr,
@@ -251,7 +176,7 @@ final class WeaponsEligibility {
         for (final AbstractBody<EntityId, MBlockShape> body : physicsSpace.queryBounds(sphere, filter)) {
             final EntityId victimId = body.id;
             if (!energyEntities.containsId(victimId)) {
-                continue; // not a Health-bearer (projectile, prize, door, …)
+                continue;
             }
             final Frequency victimFreq = ed.getComponent(victimId, Frequency.class);
             final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
@@ -263,12 +188,7 @@ final class WeaponsEligibility {
         return true;
     }
 
-    /**
-     * Returns the bomb-safety scan radius for {@code requesterId} after
-     * applying the arena's BombConfig safety toggle and the per-bomb-level
-     * proximity scaling. Returns {@code 0.0} when safety is off (clear-fire
-     * short-circuit) so callers can early-out.
-     */
+    /** Bomb-safety scan radius after BombConfig toggle + per-level scaling; 0.0 = safety off (caller early-outs). */
     static double effectiveBombSafetyRadius(
             final EntityData ed,
             final ConfigRegistrySystem cr,
@@ -285,12 +205,6 @@ final class WeaponsEligibility {
                 bombCfg.proximityDistance(), bombLevel.getLevel().level);
     }
 
-    /**
-     * Per-arena config lookup mirroring {@code WeaponsSystem.weaponsFor}: the
-     * attacker's {@link ArenaId} keys into {@link ConfigRegistrySystem};
-     * arenas with no config get {@link ConfigRegistry#EMPTY}. Falls back to
-     * {@code EMPTY} when the attacker has no {@code ArenaId} (no-arena void).
-     */
     private static ConfigRegistry weaponsFor(
             final EntityData ed, final ConfigRegistrySystem cr, final EntityId attacker) {
         final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
@@ -300,17 +214,7 @@ final class WeaponsEligibility {
         return cr.forArena(arenaId);
     }
 
-    // -----------------------------------------------------------------
-    // Cooldown setters — stamp a fresh FireDelay component on the ship
-    // -----------------------------------------------------------------
-
-    /**
-     * Top-level cooldown dispatch — answer "stamp the matching cooldown
-     * component on {@code requester} for weapon {@code flag}". Returns
-     * whether the cooldown was applied (false if the ship doesn't carry
-     * the matching weapon-inventory component). Burst has no cooldown
-     * yet — falls through to inventory presence only.
-     */
+    /** Stamps a fresh {@code *FireDelay} on the ship; burst has no cooldown yet. */
     static boolean setCoolDown(
             final EntityData ed,
             final EntitySet bullets,
@@ -336,16 +240,11 @@ final class WeaponsEligibility {
             return setCoolDownMine(ed, mines, requester);
         }
         if (flag == WeaponType.BURST) {
-            // No delay on this for now
             return bursts.contains(requester);
         }
         return false;
     }
 
-    /**
-     * Stamp a fresh {@link BulletFireDelay} on {@code requester} reading the duration
-     * from {@link BulletStats#fireDelayMillis()} (the cold source of truth post-Wave 4a).
-     */
     static boolean setCoolDownBullet(
             final EntityData ed, final EntitySet bullets, final Entity requester) {
         final EntityId requesterId = requester.getId();
@@ -360,7 +259,6 @@ final class WeaponsEligibility {
         return true;
     }
 
-    /** Stamp a fresh {@link BombFireDelay} on {@code requester} reading duration from {@link BombStats}. */
     static boolean setCoolDownBomb(
             final EntityData ed, final EntitySet bombs, final Entity requester) {
         final EntityId requesterId = requester.getId();
@@ -375,7 +273,6 @@ final class WeaponsEligibility {
         return true;
     }
 
-    /** Stamp a fresh {@code GravityBombFireDelay} on {@code requester}. */
     static boolean setCoolDownGravityBomb(
             final EntityData ed, final EntitySet gravityBombs, final Entity requester) {
         final EntityId requesterId = requester.getId();
@@ -387,7 +284,6 @@ final class WeaponsEligibility {
         return true;
     }
 
-    /** Stamp a fresh {@link MineFireDelay} on {@code requester} reading duration from {@link MineStats}. */
     static boolean setCoolDownMine(
             final EntityData ed, final EntitySet mines, final Entity requester) {
         final EntityId requesterId = requester.getId();
@@ -402,17 +298,7 @@ final class WeaponsEligibility {
         return true;
     }
 
-    // -----------------------------------------------------------------
-    // Cost deductors — subtract the cost component from ship Health
-    // -----------------------------------------------------------------
-
-    /**
-     * Top-level cost dispatch — debit the matching {@code Cost} component's
-     * value from {@code requester}'s Health via {@code EnergySystem.damage}.
-     * Returns whether the cost was deducted (false if cost > current health,
-     * or the ship doesn't carry the matching weapon-inventory component).
-     * Burst has no cost yet — falls through to inventory presence only.
-     */
+    /** Debits per-weapon cost via attributed {@link EnergySystem#damage(EntityId,int,EntityId,byte)}; burst has no cost yet. */
     static boolean deductCostOfAttack(
             final EntityData ed,
             final EnergySystem energy,
@@ -439,16 +325,12 @@ final class WeaponsEligibility {
             return deductCostOfAttackMine(ed, energy, mines, requester);
         }
         if (flag == WeaponType.BURST) {
-            // No cost on this for now — TODO: Add cost to burst
+            // TODO: Add cost to burst.
             return bursts.contains(requester);
         }
         return false;
     }
 
-    /**
-     * Debit {@link BulletStats#fireCostEnergy()} from {@code requester}'s Energy.
-     * Emits attributed {@code DamageSource(requesterId, BULLET)} on the intent.
-     */
     static boolean deductCostOfAttackBullet(
             final EntityData ed, final EnergySystem energy,
             final EntitySet bullets, final Entity requester) {
@@ -464,10 +346,6 @@ final class WeaponsEligibility {
         return true;
     }
 
-    /**
-     * Debit {@link BombStats#fireCostEnergy()} from {@code requester}'s Energy.
-     * Emits attributed {@code DamageSource(requesterId, BOMB)} on the intent.
-     */
     static boolean deductCostOfAttackBomb(
             final EntityData ed, final EnergySystem energy,
             final EntitySet bombs, final Entity requester) {
@@ -483,10 +361,6 @@ final class WeaponsEligibility {
         return true;
     }
 
-    /**
-     * Debit {@code GravityBombCost} from {@code requester}'s Health. Cost emits
-     * an attributed {@code DamageSource(requesterId, GRAVBOMB)} on the intent.
-     */
     static boolean deductCostOfAttackGravityBomb(
             final EntityData ed, final EnergySystem energy,
             final EntitySet gravityBombs, final Entity requester) {
@@ -502,10 +376,6 @@ final class WeaponsEligibility {
         return true;
     }
 
-    /**
-     * Debit {@link MineStats#dropCostEnergy()} from {@code requester}'s Energy.
-     * Emits attributed {@code DamageSource(requesterId, MINE)} on the intent.
-     */
     static boolean deductCostOfAttackMine(
             final EntityData ed, final EnergySystem energy,
             final EntitySet mines, final Entity requester) {

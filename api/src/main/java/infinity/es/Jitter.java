@@ -5,7 +5,13 @@ package infinity.es;
 
 import com.simsilica.es.EntityComponent;
 
-/** Screen-jitter window on a ship after a bomb hit; {@code (startTime,endTime)} in nanos, mirrors {@code Decay} shape. See REFERENCE.md {@code JitterTime}. */
+/**
+ * Screen-jitter window on a ship after a bomb hit; {@code (startTime,endTime)} in nanos, mirrors {@code Decay} shape. See REFERENCE.md {@code JitterTime}.
+ *
+ * <p>Subspace canon authors {@code JitterTime} in centiseconds; {@code BombAdapter} converts ×10 to ms,
+ * then to nanos at stamp time. Overlapping hits take {@code max(existing.endTime, newEnd)} — a weaker hit
+ * never shortens an in-flight shake.
+ */
 public final class Jitter implements EntityComponent {
 
   private final long startTime;

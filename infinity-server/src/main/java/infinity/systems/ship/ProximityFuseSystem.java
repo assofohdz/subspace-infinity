@@ -24,45 +24,7 @@ import infinity.es.ProximityFuse;
 import infinity.es.ship.Energy;
 import infinity.systems.BaseInfinitySystem;
 
-/**
- * Slice 9b — proximity arming + fuse for projectiles carrying
- * {@link ProximityFuse} (today: bombs whose firing arena authored
- * {@code [Bomb] ProximityDistance} + {@code BombExplodeDelay}).
- *
- * <p>Per-tick scan. Two phases share one EntitySet of in-flight
- * proximity-fuse projectiles:
- * <ol>
- *   <li><b>Arming</b> — for projectiles without {@link ProximityArmed},
- *       distance-scan all {@link Energy}-bearing entities. If any enemy
- *       sits inside {@code ProximityFuse.radiusWorldUnits}, stamp
- *       {@link ProximityArmed} with the current sim-time nanos. The
- *       projectile's own owner ({@link Parent}) is excluded so a bomb
- *       doesn't arm on its firer.
- *   <li><b>Detonation</b> — for projectiles with {@link ProximityArmed},
- *       once {@code now − armedAt ≥ fuseMs}, delegate detonation to
- *       {@link WeaponsReaperSystem#detonate} (shared with the
- *       contact-path detonation in slice 9a; canonical writer for the
- *       projectile end-of-life {@link com.simsilica.es.common.Decay} stamp).
- *       The projectile's body position at the time of fuse-end becomes the
- *       explosion centre.
- * </ol>
- *
- * <p><b>FF gate (canonical Subspace VIE):</b> only enemies trigger
- * arming. Same-team ships glide past the projectile regardless of arena
- * {@code friendlyFire} mode — that mode is a <em>damage</em> gate, not
- * an <em>arming</em> gate. Enabling friendlies-arm-at-FF2 is a
- * polish-bag follow-up.
- *
- * <p><b>Wall hits bypass this system.</b> The contact-path detonation in
- * {@code WeaponsImpactSystem.newContact} catches {@code body2 == null} (world
- * collision) and detonates immediately regardless of arm state, matching
- * Subspace canon (bombs explode on wall touch even when un-armed).
- *
- * <p><b>Deviation from canon:</b> REFERENCE.md says the bomb explodes
- * "immediate if ship leaves trigger area" once armed. Infinity runs the
- * fuse to completion regardless. Operator-noticeable on near-miss
- * fly-throughs only — polish-bag.
- */
+/** Proximity arm + fuse for {@link ProximityFuse} projectiles; enemy-only arming (canonical). Diverges from REFERENCE.md: fuse runs to completion even if victim leaves. */
 public class ProximityFuseSystem extends BaseInfinitySystem {
 
   private EntityData ed;
@@ -116,23 +78,7 @@ public class ProximityFuseSystem extends BaseInfinitySystem {
     }
   }
 
-  /**
-   * Distance-scan for an enemy {@link Health}-bearer inside the projectile's
-   * proximity radius. If found, stamp {@link ProximityArmed} so the next
-   * tick's detonation phase fires after {@code fuseMs} elapses. The
-   * projectile's owner ({@link Parent}) is excluded so it never arms on
-   * its own firer.
-   *
-   * <p>Spatial pre-filter via {@code mphys.PhysicsSpace#queryBounds}
-   * (arch-review TD-3 — replaces the per-tick O(N) walk over every
-   * Health-bearer with a bin-local active+inactive rigid-body scan).
-   * The {@link #potentialVictims} EntitySet is preserved as the
-   * Health-bearer gate (queryBounds returns ALL bodies — projectiles,
-   * prizes, doors — which we filter to ships via {@code containsId}).
-   * The strict point-distance check post-query preserves bit-exact
-   * radius semantics (queryBounds inflates by {@code body.boundsRadius}
-   * so it's a coarse pre-filter, not the final accept).
-   */
+  /** Stamp {@link ProximityArmed} if an enemy Health-bearer sits inside radius; owner excluded. */
   private void tryArm(final Entity projectile, final long nowSimNanos) {
     final EntityId projectileId = projectile.getId();
     final ProximityFuse fuse = projectile.get(ProximityFuse.class);
@@ -165,13 +111,6 @@ public class ProximityFuseSystem extends BaseInfinitySystem {
     }
   }
 
-  /**
-   * Per-victim arming check: same-team / self / out-of-radius / non-Health
-   * are all skip cases. Returns {@code true} only when {@code victimId} is a
-   * Health-bearing enemy inside {@code radiusSq} of {@code projectilePos}.
-   * The body-position lookup happens at the call site (post-queryBounds);
-   * this helper does the freq + strict distance gate only.
-   */
   private boolean victimWouldArm(
       final EntityId victimId,
       final EntityId ownerId,
@@ -179,14 +118,9 @@ public class ProximityFuseSystem extends BaseInfinitySystem {
       final Vec3d projectilePos,
       final Vec3d victimPos,
       final double radiusSq) {
-    if (victimId.equals(ownerId)) {
-      return false; // never arm on the firing ship (defense-in-depth; queryBounds filter also excludes)
-    }
-    if (!potentialVictims.containsId(victimId)) {
-      return false; // not a Health-bearer (projectile, prize, door, …)
-    }
-    if (!shouldArmOn(ownerFreqValue, freqValueOf(victimId))) {
-      return false; // canonical: same-team ships don't arm proximity bombs
+    if (victimId.equals(ownerId) || !potentialVictims.containsId(victimId)
+        || !shouldArmOn(ownerFreqValue, freqValueOf(victimId))) {
+      return false;
     }
     final double dx = victimPos.x - projectilePos.x;
     final double dy = victimPos.y - projectilePos.y;
@@ -194,7 +128,6 @@ public class ProximityFuseSystem extends BaseInfinitySystem {
     return dx * dx + dy * dy + dz * dz <= radiusSq;
   }
 
-  /** Read the {@link Frequency} value for {@code id}, treating null/missing as {@code null}. */
   private Integer freqValueOf(final EntityId id) {
     if (id == null) {
       return null;
@@ -203,37 +136,18 @@ public class ProximityFuseSystem extends BaseInfinitySystem {
     return f == null ? null : f.getFrequency();
   }
 
-  /**
-   * Fuse expired — read the projectile's current body position and delegate
-   * the splash + explosion + cleanup to {@link WeaponsReaperSystem#detonate}
-   * (shared with the contact-path detonation seam from slice 9a).
-   */
   private void detonate(final Entity projectile, final long nowSimNanos) {
     final EntityId projectileId = projectile.getId();
     final RigidBody<EntityId, MBlockShape> body =
         physicsSpace.getBinIndex().getRigidBody(projectileId);
     if (body == null) {
-      // Projectile already gone (e.g. aliveTime Decay reaped it this tick).
-      // Canonical Decay reaper handled cleanup; nothing to do.
       return;
     }
     weaponsReaperSystem.detonate(
         projectileId, projectile.get(Damage.class), body.position, null, nowSimNanos);
   }
 
-  /**
-   * Pure-function arming gate: true when {@code victimFreq} is a valid
-   * arming target for a projectile fired by {@code ownerFreq}. Same-team
-   * match returns false (canonical Subspace — friendly ships don't arm
-   * proximity bombs regardless of arena {@code friendlyFire} mode). A
-   * {@code null} freq on either side means "no team" (NPC / debris) and
-   * the projectile arms.
-   *
-   * <p>Exposed package-private so unit tests can pin the arming-gate
-   * tri-state without bringing up an ECS fixture (mirrors
-   * {@link WeaponsLogic#shouldDamageVictim} which does the same for the
-   * damage gate).
-   */
+  /** Arming gate; same-team returns false (canonical), null freq = no team and arms. */
   static boolean shouldArmOn(final Integer ownerFreq, final Integer victimFreq) {
     if (ownerFreq == null || victimFreq == null) {
       return true;
@@ -241,12 +155,6 @@ public class ProximityFuseSystem extends BaseInfinitySystem {
     return !ownerFreq.equals(victimFreq);
   }
 
-  /**
-   * Pure-function fuse-elapsed check: true once {@code now − armedAt} has
-   * reached {@code fuseMs} milliseconds (in nanos). Exposed package-private
-   * so unit tests can pin the deadline arithmetic without bringing up the
-   * full system loop.
-   */
   static boolean fuseElapsed(
       final long armedAtSimNanos, final long nowSimNanos, final long fuseMs) {
     return nowSimNanos - armedAtSimNanos >= fuseMs * 1_000_000L;

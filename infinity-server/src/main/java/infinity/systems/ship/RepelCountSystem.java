@@ -19,22 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Canonical writer for live {@link Repel} (inventory count); drains
- * {@link RepelChange}, clamping at {@link RepelStats#max} above and
- * {@code 0} below.
- *
- * <p>Sibling of {@link RepelSystem} — that system owns the radial-impulse
- * mechanic (per-tick scan of repel-effect entities). The count-drain lives
- * here rather than folded into {@code RepelSystem} (task option a) because
- * {@code RepelSystem.initialize()} depends on {@code MPhysSystem} +
- * {@code ArenaSystem} + {@code EngineConfigSystem}, which are registered
- * AFTER {@code DecaySystem}; per ADR 0001, canonical Change-entity writers
- * must register BEFORE {@code DecaySystem} so Decay-bound holders apply +
- * cache on add before the reaper destroys them. Keeping the count writer
- * dependency-light (just {@code EntityData}) lets it register early without
- * reordering the physics stack. See ADR 0001 + {@link BurstSystem}.
- */
+/** Canonical writer for live {@link Repel} count; drains {@link RepelChange} clamped at {@link RepelStats#max} above, 0 below. Split from {@link RepelSystem} so it can register before DecaySystem. */
 public class RepelCountSystem extends BaseInfinitySystem {
 
   private EntityData ed;
