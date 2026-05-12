@@ -109,7 +109,8 @@ public class ChatClientService extends AbstractClientService implements ChatSess
     }
 
     private ChatSession getDelegate() {
-        // Lazy lookup decouples from the connection lifecycle.
+        // Lazy lookup decouples from the connection lifecycle — caller doesn't
+        // need to coordinate with onInitialize()/start() to use this service.
         if (delegate == null) {
             delegate = rmiService.getRemoteObject(ChatSession.class);
             log.debug("delegate:{}", delegate);

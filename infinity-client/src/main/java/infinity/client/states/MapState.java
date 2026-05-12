@@ -45,7 +45,21 @@ import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
 import infinity.net.GameSession;
 
-/** Loads .lvl tilesets, slices 16×16 tile bitmaps, and serves the per-tile {@link Image}s consumed by tile spatials. */
+/**
+ * Loads {@code .lvl} maps via {@link LevelLoader} and slices per-tile
+ * {@link Image}s out of the embedded BMP tileset (304×160 BMP holds a 19×10
+ * grid of 16×16 tiles; disk uses 1-based tile indexing).
+ *
+ * <p>Also owns the legacy wang-blob index map ({@link #generateWangBlobInfoMap})
+ * — the 14-tile Subspace tileset is addressed by a 256-entry bitmask lookup
+ * with per-orientation rotations; consumer code calls
+ * {@link #getWangBlobTileNumber} / {@link #getWangBlobRotations}.
+ *
+ * <p>Right-click drag dispatches {@code MapAction.DELETE}; left-click drag
+ * dispatches {@code MapAction.CREATE}. Mutations travel via {@link GameSession}
+ * RMI — the client never edits server-authoritative tile components directly,
+ * per {@code client-read-only.md}.
+ */
 public class MapState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(MapState.class);

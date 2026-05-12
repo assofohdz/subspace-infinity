@@ -48,7 +48,27 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** GeometryFactory wrapper that loads the block set + material registry and registers per-arena tilesets. */
+/**
+ * {@link GeometryFactory} wrapper that loads the Moss block set + material registry
+ * and owns the three Infinity-specific block extensions on top of {@code blocks.bset}:
+ *
+ * <ul>
+ *   <li>Tiles — per-arena registration (one {@link FlatTileBlockFactory} per
+ *       arena × tile-id pair); {@link MaterialType} keys are per-slot so the
+ *       same tile-id renders different textures in different arenas.</li>
+ *   <li>Invisible physics block (index 11) — collision at Y=1 while visual
+ *       tiles render at Y=2.</li>
+ *   <li>Light-emitter cell (index 12) — non-solid + transparent;
+ *       {@link com.simsilica.mblock.LightUtils#recalculateLighting} flood-fills
+ *       its emission into neighbour cells' lightData, which the tile shader
+ *       reads via vertex colors. See {@code LanternBlockFactory} for the
+ *       cube geometry that visualises each emitter cell.</li>
+ * </ul>
+ *
+ * <p>Tile-type layout shared with the server: see
+ * {@link InfinityConstants#TILE_TYPE_BASE}, {@link InfinityConstants#TILE_COUNT},
+ * {@link InfinityConstants#BLOCK_TYPE_INDEX_SIZE}.
+ */
 public class BlockGeometryIndex {
 
   static Logger log = LoggerFactory.getLogger(BlockGeometryIndex.class);

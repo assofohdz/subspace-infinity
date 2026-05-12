@@ -33,7 +33,17 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Translates input state into {@link MovementInput} + weapon RMI calls for the local avatar. */
+/**
+ * Translates input state into {@link MovementInput} + weapon RMI calls for the local avatar,
+ * and publishes the avatar's interpolated world position to {@code BlackboardState["position"]}
+ * for other states ({@link infinity.client.states.PositionHudState},
+ * {@link infinity.client.states.LocalViewState}) to read.
+ *
+ * <p>Position comes from the SimEthereal-interpolated {@link BodyPosition} buffer, not
+ * {@code ed.getComponent} — the avatar id is lazy-resolved (RMI roundtrip) and watched
+ * via {@link com.simsilica.es.EntityData#watchEntity}, per {@code client-read-only.md}.
+ * Falls back to {@code session.getPlayerLocation()} until the buffer fills.
+ */
 public class AvatarMovementState extends BaseAppState
     implements StateFunctionListener, AnalogFunctionListener {
 

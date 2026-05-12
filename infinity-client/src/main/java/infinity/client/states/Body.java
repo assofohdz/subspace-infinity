@@ -47,7 +47,19 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.trans.TransitionBuffer;
 import java.util.Objects;
 
-/** Visual companion to a server-side rigid body — drives a {@link Model}'s transform from a {@link BodyPosition} buffer. */
+/**
+ * Visual companion to a server-side rigid body — drives a {@link Model}'s
+ * transform from the SimEthereal {@link BodyPosition} {@code TransitionBuffer}
+ * at the network-corrected replay time.
+ *
+ * <p>When attached under {@code viewRoot} (the conveyor), the world position
+ * is offset by {@code centerWorld} so coordinates stay small for float
+ * precision. When attached under another model (parent-id transition), the
+ * transform is applied as-is and the parent handles the offset.
+ *
+ * <p>Visibility flips come from {@code trans.getVisibility(time)} — the same
+ * SimEthereal channel that signals "this body is in range" vs. "moved out".
+ */
 class Body {
   private final ModelViewState owner;
   private final Entity entity;

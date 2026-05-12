@@ -21,7 +21,17 @@ import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;
 import infinity.es.arena.ArenaId;
 
-/** Top-left HUD: avatar world coord + arena-local coord. Arena-local = max - world (per axis). */
+/**
+ * Top-left HUD: avatar world coord + arena-local coord.
+ *
+ * <p>World position is read from {@code BlackboardState["position"]} (published by
+ * {@link infinity.client.AvatarMovementState} once its {@link com.simsilica.bpos.BodyPosition}
+ * buffer resolves — never poll {@code ed.getComponent}; that's unreliable for the proxy).
+ *
+ * <p>Arena-local follows the convention from {@code ArenaSystem.arenaToWorld}:
+ * arena-local {@code (0, 0)} is the NW corner, so {@code arena = max - world}
+ * (per axis) inverts the render flip.
+ */
 public class PositionHudState extends BaseAppState {
 
   private EntityData ed;

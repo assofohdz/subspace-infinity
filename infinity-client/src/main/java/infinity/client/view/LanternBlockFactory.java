@@ -13,7 +13,21 @@ import com.simsilica.mblock.geom.GeomPart;
 import com.simsilica.mblock.geom.GeomPartBuffer;
 import com.simsilica.mblock.geom.MaterialType;
 
-/** Half-size cube hanging below cell origin (Y: -1.0..-0.5) so at cell Y=2 above a wall at Y=1 its base touches the wall. */
+/**
+ * Half-size cube centered in the cell's X/Z and hanging <em>below</em> the
+ * cell's origin on Y, so when placed at cell Y=2 above a wall at Y=1 the
+ * cube's bottom face touches the wall's top surface.
+ *
+ * <p>Coord layout (cell-local):
+ * <pre>
+ *   X: 0.25 .. 0.75   (centred, half width)
+ *   Y: -1.0  .. -0.5  (half height, hanging below cell origin)
+ *   Z: 0.25 .. 0.75
+ * </pre>
+ *
+ * <p>Always emits 6 faces (no side-mask culling) because neighbours are
+ * typically empty for light-emitter cells.
+ */
 public class LanternBlockFactory implements BlockFactory {
 
   static final long serialVersionUID = 42L;

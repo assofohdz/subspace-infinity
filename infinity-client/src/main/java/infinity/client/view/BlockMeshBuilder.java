@@ -26,7 +26,24 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 
-/** Pure-function block-mesh-building helpers extracted from {@link InfinityGeometryFactory}. */
+/**
+ * Pure-function block-mesh-building helpers extracted from
+ * {@link InfinityGeometryFactory}. Three layers:
+ *
+ * <ul>
+ *   <li>Population — {@link #populateBlockBuffer}, {@link #populateFluidBuffer}:
+ *       triple-loop over a {@link CellArray} and push per-cell parts into a
+ *       {@link DefaultPartBuffer}.</li>
+ *   <li>Buffer building — {@link #buildMeshBuffers}, {@link #emitPart},
+ *       {@link #emitVertices}, {@link #copyAuxBuffers}, {@link #attachIndexBuffer}:
+ *       stamp PartEntry data into JME buffers, gated by the {@link MaterialType}'s
+ *       {@link GeomReq} set (so optional buffers like Normals/Tangents are
+ *       allocated only when requested).</li>
+ *   <li>Light sampling — {@link #xOffset}, {@link #yOffset}, {@link #zOffset}:
+ *       per-axis cell offsets for outward-facing border vertices, used by the
+ *       lighting-gradient implementations in {@link InfinityGeometryFactory}.</li>
+ * </ul>
+ */
 final class BlockMeshBuilder {
 
     private BlockMeshBuilder() {

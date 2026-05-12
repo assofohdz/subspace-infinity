@@ -55,7 +55,15 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Creates JME geometry for a block array; pure-function helpers live in {@link BlockMeshBuilder}. */
+/**
+ * Creates JME geometry for a block array using the configured material registry
+ * and the global {@link com.simsilica.mblock.BlockTypeIndex}. Pure-function
+ * helpers (mesh-buffer building, light-axis sampling) live in
+ * {@link BlockMeshBuilder}; this class keeps instance state
+ * ({@code materials}, {@code allowCollisions}) and the JME-side wiring.
+ *
+ * @author Paul Speed
+ */
 public class InfinityGeometryFactory {
 
     static Logger log = LoggerFactory.getLogger(InfinityGeometryFactory.class);

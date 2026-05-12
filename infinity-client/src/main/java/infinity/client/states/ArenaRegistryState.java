@@ -20,7 +20,19 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Client-side read-only view of the server's active-arena dictionary (entities with {@link ArenaId} + {@link ArenaMap}). */
+/**
+ * Client-side read-only view of the server's active-arena dictionary —
+ * subscribes to entities carrying both {@link ArenaId} and {@link ArenaMap},
+ * synced from {@code ArenaSystem} via Zay-ES.
+ *
+ * <p>Consumers ({@link LocalViewState} for tileset registration,
+ * {@link PositionHudState} for arena-local coords) call {@link #getArenas} to
+ * answer "which arenas are live and where do they live in world space?"
+ * without re-reading server-only configuration.
+ *
+ * <p>Stops at dictionary maintenance — does not pick an "active" arena and
+ * does not react to settings changes.
+ */
 public class ArenaRegistryState extends BaseAppState {
 
   static final Logger log = LoggerFactory.getLogger(ArenaRegistryState.class);

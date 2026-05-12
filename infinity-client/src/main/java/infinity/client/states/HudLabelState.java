@@ -31,7 +31,18 @@ import infinity.client.GameSessionState;
 import infinity.es.Frequency;
 import infinity.sim.CoreViewConstants;
 
-/** HUD name label for any entity with a {@link BodyPosition} + {@link Name}; coloured per-frequency. */
+/**
+ * HUD name label above any entity with a {@link Name} + {@link BodyPosition}.
+ *
+ * <p>Position uses the SimEthereal-interpolated {@code BodyPosition} buffer
+ * (same source {@code BodyContainer} uses for the world view) — never poll
+ * {@code ed.getComponent} for the position, per {@code client-read-only.md}.
+ *
+ * <p>Coloured per-frequency: own ship is hidden (the model is the avatar's own
+ * ship); friendlies render in green; enemies in blue. Re-painted whenever the
+ * local avatar's {@link Frequency} changes (so swapping team recolours every
+ * other label) and whenever any tracked entity's {@code Frequency} changes.
+ */
 public class HudLabelState extends BaseAppState {
 
   private final Vec3i centerWorld = new Vec3i();

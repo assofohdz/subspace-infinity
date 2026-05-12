@@ -36,7 +36,14 @@
 
 package infinity.client.states;
 
-// Delays static visibility so SpawnPosition+BodyPosition pairs don't flicker on creation (SpawnPosition has no timestamp).
+/**
+ * Delays static visibility so {@code SpawnPosition} + {@code BodyPosition}
+ * pairs don't flicker on creation. {@code SpawnPosition} has no timestamp, but
+ * rigid bodies typically have both — without this delay the sequence races:
+ * SpawnPosition makes it visible → BodyPosition immediately hides it
+ * (interp buffer not yet populated) → BodyPosition makes it visible again.
+ * A timestamp on {@code SpawnPosition} would fix this but might be overkill.
+ */
 class MarkVisible {
   final Model model;
   final long visibleTime;

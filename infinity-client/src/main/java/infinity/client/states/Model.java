@@ -44,7 +44,18 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
 import java.util.Objects;
 
-// Reference-counted: a single entity can match both BodyContainer + StaticContainer; dynamic wins over static-pos updates.
+/**
+ * Visual model bound to one entity. A single entity can be matched by both
+ * {@link BodyContainer} (has {@code BodyPosition}) and {@link ModelContainer}
+ * (has {@code SpawnPosition}) — for example, every rigid body has both. The
+ * ref-count keeps the spatial alive until both containers drop it, and
+ * {@code dynamic = true} suppresses {@code SpawnPosition} writes (the body
+ * track always wins).
+ *
+ * <p>A {@code BodyPosition} can also arrive without a {@code SpawnPosition}
+ * (entity moved into a paged zone we observe before crossing the spawn cell),
+ * so the ref-count handles either container appearing first.
+ */
 class Model {
   private final ModelViewState owner;
   final EntityId entityId;

@@ -44,7 +44,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-/** Top-down radar HUD — offscreen ortho view of an out-of-graph scene composited onto the GUI via the minimap material. */
+/**
+ * Top-down radar HUD — offscreen ortho view of an out-of-graph {@code radarRoot}
+ * composited onto the GUI through {@code MatDefs/MiniMap/MiniMap.j3md}.
+ *
+ * <p>Entity blips: {@code BodyContainer} drives moving entities from
+ * {@link BodyPosition} (the same SimEthereal source {@code ModelViewState} uses
+ * — never poll {@code ed.getComponent} for position, per
+ * {@code .claude/rules/client-read-only.md}); {@code StaticContainer} drives
+ * statics from {@link SpawnPosition}. Avatar id is lazy-resolved in
+ * {@link #update} because {@code GameSessionState} fetches it via RMI; per-blip
+ * {@link Frequency} comes from a watched {@link EntitySet}, never
+ * {@code ed.getComponent} (unreliable on the client proxy for components the
+ * client isn't otherwise observing).
+ *
+ * <p>Frequency colour: self / friendly / enemy / neutral resolved client-side
+ * so re-skinning is a client concern with no server change.
+ */
 public class RadarState extends BaseAppState {
 
     private static final float RADAR_CAM_HEIGHT = 1000f;

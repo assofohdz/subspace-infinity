@@ -90,7 +90,24 @@ import java.util.NoSuchElementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Manages visual representations of model entities (ships, statics, lobs) and the player's own ship. */
+/**
+ * Manages visual representations of model entities (ships, statics, lobs).
+ *
+ * <p>Three containers track distinct entity kinds:
+ * <ul>
+ *   <li>{@link BodyContainer} — entities with {@link com.simsilica.bpos.BodyPosition}
+ *       + {@link com.simsilica.ext.mphys.ShapeInfo}; position driven each frame from
+ *       the SimEthereal {@code BodyPosition} buffer (never poll {@code ed.getComponent}).</li>
+ *   <li>{@link ModelContainer} — statics with {@link com.simsilica.ext.mphys.SpawnPosition};
+ *       filter rebuilt against the {@code LEAF_GRID} cell around the avatar.</li>
+ *   <li>{@link LargeModelContainer} — large statics keyed on {@link com.simsilica.bpos.LargeGridCell}
+ *       (1024-unit {@code TILE_GRID}, distinct from {@code centerWorld}'s leaf grid).</li>
+ * </ul>
+ *
+ * <p>The {@link Model} ref-count handles the same entity appearing in both
+ * static and body containers (e.g. local ship has both {@code SpawnPosition}
+ * and {@code BodyPosition}); body wins over static-pos updates.
+ */
 public class ModelViewState extends BaseAppState {
 
   // Package-private fields — touched by the promoted Model / Body /

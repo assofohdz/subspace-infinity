@@ -14,7 +14,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-/** Top-down 2D blip geometries for the radar viewport; each call returns a fresh {@link Material} so colours can vary per-blip. */
+/**
+ * Resolves a {@code RadarShapeInfo.shapeName} to a fresh top-down 2D blip
+ * {@link Geometry} for the offscreen radar viewport. Mirrors the shape-name →
+ * spatial pattern in {@link infinity.client.states.SISpatialFactory} but
+ * specialised for radar: every geometry is an XZ-plane silhouette with an
+ * unshaded material and ≤ 4 verts.
+ *
+ * <p>Each call returns a <b>new</b> {@code Geometry} with a <b>new</b>
+ * {@code Material}, so per-blip colour mutations (frequency-based team colour)
+ * don't disturb other blips.
+ *
+ * <p>Unknown shape names fall back to the default ship dot — adding a new ship
+ * class doesn't require a registry entry. Ships use a dot rather than a
+ * triangle because the radar stays north-up; a directional shape would
+ * mislead the eye whenever the ship turns.
+ */
 public final class RadarBlipFactory {
 
     private final AssetManager assetManager;

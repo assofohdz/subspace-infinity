@@ -68,7 +68,16 @@ import infinity.client.MainGameFunctions;
 import infinity.client.view.DebugFunctions;
 import infinity.client.view.ToolFunctions;
 
-/** F1 help popup; key bindings auto-derived from {@link InputMapper#getFunctionIds()} and grouped. */
+/**
+ * F1 help popup; key bindings auto-derived from
+ * {@link InputMapper#getFunctionIds()}, grouped by {@link FunctionId#getGroup()},
+ * then followed by a hand-written "System (jME defaults)" section for keys that
+ * don't go through {@code InputMapper} (PrtScrn / F5 / F6).
+ *
+ * <p>Function IDs without any active mapping render as {@code (unbound)} so
+ * this popup doubles as a self-debugging tool for declared-but-unbound
+ * function ids (see {@code .scratch/debug-state-bindings/PRD.md} TD-1).
+ */
 public class HelpState extends BaseAppState {
 
     public static final FunctionId F_HELP = new FunctionId("Help");

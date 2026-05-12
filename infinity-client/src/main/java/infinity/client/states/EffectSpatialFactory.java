@@ -17,7 +17,19 @@ import infinity.sim.util.InfinityRunTimeException;
 import java.util.Map;
 import java.util.function.DoubleFunction;
 
-/** Visual-only effect spatials (overlays, wormhole/warp/repel/burst rings, explosion tiers) — delegated from {@link SISpatialFactory}. */
+/**
+ * Visual-only effect spatials — overlays (over1/2/5), wormhole/warp/repel/burst
+ * rings, and the three per-tier explosion quads ({@code EXPLODE_0/1/2}). All
+ * entries are timer-animated quads driven by the {@code StartTime} material
+ * parameter.
+ *
+ * <p>No {@code ShapeNames.EXPLOSION} entry: no server system emits that name
+ * (only the per-tier {@code EXPLODE_*} are spawned). Re-wire as its own slice
+ * if a caller ever needs the legacy particle path.
+ *
+ * <p>Owned by {@link SISpatialFactory}, which delegates here when its own
+ * gameplay-entity map doesn't recognise the shape name.
+ */
 public class EffectSpatialFactory {
 
   // Use to flip between using the lights and using unshaded textures

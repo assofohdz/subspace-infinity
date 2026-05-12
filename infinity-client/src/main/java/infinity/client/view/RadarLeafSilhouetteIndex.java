@@ -14,7 +14,16 @@ import com.simsilica.mblock.CellArray;
 import java.nio.FloatBuffer;
 import java.nio.ShortBuffer;
 
-/** Radar-side analogue of {@link BlockGeometryIndex}: emits one XZ quad per solid column (OR-along-Y projection). */
+/**
+ * Radar-side analogue of {@link BlockGeometryIndex}: for each (x, z) column
+ * with any solid cell, emits one 1×1 quad in the XZ plane. The OR-along-Y
+ * projection is correct because Subspace maps are effectively 2D — emitter
+ * and wall cells all sit on one Y layer.
+ *
+ * <p>Cells are placed at leaf-local coords; the calling state positions the
+ * node at the leaf's world origin. Unshaded material, face culling off — the
+ * radar camera looks straight down so a -Y normal would back-face-cull.
+ */
 public final class RadarLeafSilhouetteIndex {
 
     private final Material material;

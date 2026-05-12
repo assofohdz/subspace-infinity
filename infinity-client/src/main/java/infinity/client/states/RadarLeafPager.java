@@ -21,7 +21,18 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-/** Radar's leaf-paging subsystem — schedules {@link RadarLeafView} jobs around the avatar and drains leaf-change events. */
+/**
+ * Radar's leaf-paging subsystem. Schedules {@link RadarLeafView} jobs against
+ * the shared {@link JobState} pools as the avatar's leaf-cell changes; closer
+ * leaves served first via {@code x² + z²} priority. Drains
+ * {@link World#addLeafChangeListener} events so server-side wall edits requeue
+ * the affected leaf at top priority via {@link #drainLeafUpdates}.
+ *
+ * <p>Subspace is single-leaf in Y so the visible set is a 2D disc (X/Z only);
+ * the radius (in leaves) is derived from {@code currentRange} via
+ * {@link WorldGrids#LEAF_GRID} spacing — no hand-rolled {@code * 1024}
+ * arithmetic, per {@code .claude/rules/world-coordinates.md}.
+ */
 final class RadarLeafPager {
 
     private final World world;

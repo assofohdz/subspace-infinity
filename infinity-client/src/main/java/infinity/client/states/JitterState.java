@@ -17,7 +17,18 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Camera-shake driven by the local avatar's {@link Jitter} component; must run after {@link InfinityCameraState}. */
+/**
+ * Camera-shake driven by the local avatar's {@link Jitter} component.
+ *
+ * <p>Attach order matters: must run <em>after</em> {@link InfinityCameraState} so the
+ * per-frame offset stacks on top of CameraState's tracked location. CameraState
+ * rewrites the location each frame, so the perturbation is non-accumulating.
+ *
+ * <p>Avatar id is lazy-resolved in {@link #update} ({@code GameSessionState} fetches
+ * it via RMI; value may be {@code null} / {@code NULL_ID} at initialize). Per
+ * {@code client-read-only.md}, single-entity component reads go through
+ * {@link com.simsilica.es.EntityData#watchEntity}, not {@code ed.getComponent}.
+ */
 public final class JitterState extends BaseAppState {
 
   // Pattern 4 candidate — promote to engine.groovy when a per-zone tunable need materializes.

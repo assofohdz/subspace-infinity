@@ -11,9 +11,22 @@ import com.simsilica.mworld.LeafInfo;
 import com.simsilica.mworld.World;
 
 /**
- * Read-only 3×3-leaf neighborhood {@link CellData}; coords are extended: x,z in [-SIZE..2*SIZE), center leaf at [0..SIZE).
+ * Read-only {@link CellData} view spanning the center leaf plus its 8 horizontal
+ * neighbours. Coords use the extended neighborhood frame:
  *
- * <p>Lets {@code LightUtils.recalculateLighting} flood-fill across leaf boundaries; horizontal-only since Subspace is 2D.
+ * <pre>
+ *   x in [-SIZE .. 2*SIZE)   (center leaf occupies [0 .. SIZE))
+ *   y in [0 .. SIZE)
+ *   z in [-SIZE .. 2*SIZE)
+ * </pre>
+ *
+ * Out-of-range / unloaded / empty leaves return 0 (or the caller's default).
+ *
+ * <p>Fed into {@link com.simsilica.mblock.LightUtils#recalculateLighting} so
+ * emitter flood-fill can seed from and propagate into the 8 adjacent leaves,
+ * eliminating the hard light drop at leaf boundaries. Vertical neighbours
+ * aren't needed because Subspace is effectively 2D — all emitter and wall
+ * cells sit on the same Y layer.
  */
 public class NeighborhoodCellData implements CellData {
 

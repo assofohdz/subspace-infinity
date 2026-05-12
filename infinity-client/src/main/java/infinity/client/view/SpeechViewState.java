@@ -57,7 +57,17 @@ import com.simsilica.es.*;
 import com.simsilica.es.common.*;
 import com.simsilica.ethereal.TimeSource;
 import com.simsilica.lemur.GuiGlobals;
-/** Renders chat-bubble {@link BitmapText} above speakers; bubbles decay via {@link Decay}. */
+/**
+ * Renders chat-bubble {@link BitmapText} above each entity with a
+ * {@code Speech} component. Bubble lifetime is driven by the entity's
+ * {@link com.simsilica.es.common.Decay}; alpha + Y-rise are interpolated
+ * against {@code Decay.getPercentRemaining(time)} below 50% remaining.
+ *
+ * <p>Position tracks the speaker's spatial each frame (resolved via
+ * {@link infinity.client.states.ModelViewState#getModel}, not
+ * {@code ed.getComponent}). Multiple bubbles for the same speaker stack
+ * upward via {@code lineOffset}.
+ */
 public class SpeechViewState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(SpeechViewState.class);

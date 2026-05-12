@@ -17,7 +17,18 @@ import com.simsilica.mblock.geom.PartFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** {@link BlockFactory} that emits a single flat upward-facing quad — Subspace tile sprite for the Moss block system. */
+/**
+ * {@link BlockFactory} that emits a single flat upward-facing quad — Subspace
+ * 2D tile sprite for the Moss block system. The quad sits at the cell's
+ * bottom (Y=0 local) so at world Y=2 it renders above the world-Y=1 collision
+ * plane.
+ *
+ * <p>UV math addresses only the inner {@link #TILE_PIXELS}×{@link #TILE_PIXELS}
+ * region of each {@link #GUTTER_PIXELS}-padded cell in the loaded atlas. The
+ * gutter is a replicate-pad border so trilinear/anisotropic filtering can
+ * sample inside a tile without the GPU's 4-texel kernel reaching into the
+ * neighbouring tile.
+ */
 public class FlatTileBlockFactory implements BlockFactory {
 
   static final long serialVersionUID = 42L;

@@ -15,7 +15,25 @@ import infinity.es.AudioTypes;
 import java.util.Map;
 import java.util.function.Function;
 
-/** Subspace-canonical audio dispatch: maps {@link AudioTypes} keys to per-sound {@link AudioNode} factories. */
+/**
+ * Subspace audio dispatch: {@link AudioTypes} key → {@code Sounds/Subspace/*.wa2}.
+ *
+ * <p>Canonical mappings (load-bearing — these filenames are the Subspace asset names
+ * and must match the .wa2 files shipped under {@code assets/Sounds/Subspace/}):
+ *
+ * <ul>
+ *   <li>{@code FIRE_BOMBS_L1..L4} → {@code bomb1.wa2..bomb4.wa2}</li>
+ *   <li>{@code FIRE_GUNS_L1..L4} → {@code gun1.wa2..gun4.wa2}</li>
+ *   <li>{@code FIRE_MINE_L1..L4} → {@code mine1.wa2..mine4.wa2}</li>
+ *   <li>{@code FIRE_THOR} → {@code thor.wa2}</li>
+ *   <li>{@code FIRE_GRAVBOMB} → {@code bomb.wa2} (unleveled grav)</li>
+ *   <li>{@code EXPLOSION2} → {@code explode2.wa2}</li>
+ *   <li>{@code BURST} → {@code burst.wa2}</li>
+ *   <li>{@code REPEL} → {@code repel.wa2}</li>
+ *   <li>{@code FLAG} → {@code flag.wa2}</li>
+ *   <li>{@code PICKUP_PRIZE} → {@code prize.wa2}</li>
+ * </ul>
+ */
 public class SIAudioFactory implements AudioFactory {
 
     private static final Map<String, Function<SIAudioFactory, AudioNode>> FACTORIES =

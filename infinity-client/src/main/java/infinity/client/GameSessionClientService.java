@@ -87,7 +87,9 @@ public class GameSessionClientService extends AbstractClientService implements G
     }
 
     private GameSession getDelegate() {
-        // Lazy lookup avoids a dependency on the account service login sequence.
+        // Lazy lookup decouples from the account-service login sequence — otherwise
+        // this service would need to listen on AccountSession just to know when
+        // the remote object becomes available.
         if (delegate == null) {
             delegate = rmiService.getRemoteObject(GameSession.class);
             log.debug("delegate:{}", delegate);

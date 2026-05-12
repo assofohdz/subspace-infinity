@@ -89,7 +89,21 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Player-centric view of the world data — pages leaves around the avatar and meshes their cells. */
+/**
+ * Player-centric view of the world data — pages MOSS leaves around the avatar
+ * (driven by the position published to {@code BlackboardState["position"]} by
+ * {@link AvatarMovementState}) and meshes their cells via {@link BlockGeometryIndex}.
+ *
+ * <p>{@code viewRoot} is positioned each frame at the conveyor offset
+ * {@code -(pos - centerWorld)} so the visible leaves render relative to the
+ * avatar's leaf-grid centre — keeps coordinates small for float precision while
+ * the avatar's world position grows arbitrarily.
+ *
+ * <p>Per-arena tileset registration: {@link ArenaRegistryState} publishes each
+ * arena's map file; {@link #update} swaps the matching {@link BlockGeometryIndex}
+ * arena slot on first sight so geometry already built renders with the new
+ * texture on the next render.
+ */
 public class LocalViewState extends BaseAppState {
 
   static Logger log = LoggerFactory.getLogger(LocalViewState.class);

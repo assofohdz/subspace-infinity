@@ -42,7 +42,11 @@ import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.ext.mphys.ShapeInfo;
 
-/** Tracks dynamic-body entities ({@link BodyPosition} + {@link ShapeInfo}) and binds each to a {@link Body} view. */
+/**
+ * Tracks dynamic-body entities — {@link BodyPosition} + {@link ShapeInfo}
+ * (a body has a smoothed interpolation buffer, distinct from
+ * {@link ModelContainer} which keys on {@code SpawnPosition}).
+ */
 class BodyContainer extends EntityContainer<Body> {
   private final ModelViewState owner;
 

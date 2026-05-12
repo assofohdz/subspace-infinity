@@ -41,7 +41,20 @@ import java.util.function.DoubleFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Builds gameplay-entity spatials (ships, flags, doors, bombs, bullets, prizes, arena ghost-cube); delegates effects to {@link EffectSpatialFactory}. */
+/**
+ * Builds gameplay-entity spatials (ships, flags, doors, bombs, bullets, prizes,
+ * arena ghost-cube) plus shared part-based spatials. The {@link #shapeFactories}
+ * registry maps {@link infinity.es.ShapeNames} ids to per-variant lambdas; mine
+ * + bomb levels and ship variants share factories.
+ *
+ * <p>Unknown shape names fall through to {@link EffectSpatialFactory} (the
+ * visual-effects sibling) — single source of the "unknown shape name" failure
+ * mode so adding a new ship class doesn't require a registry change here.
+ *
+ * <p>Most factories ignore the {@code scale} argument and use {@code CoreViewConstants};
+ * only {@link #createArena(double)} reads {@code ShapeInfo.scale} (CubeFactory
+ * convention: edge-length = {@code scale / 2}).
+ */
 public class SISpatialFactory {
 
   // Use to flip between using the lights and using unshaded textures
