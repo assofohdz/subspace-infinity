@@ -13,10 +13,7 @@ import com.simsilica.sim.SimTime;
 
 import infinity.es.Delay;
 
-/**
- *
- * @author Asser
- */
+/** Applies queued {@link Delay} component sets/removes when the delay's percent reaches 1.0. */
 public class DelaySystem extends AbstractGameSystem {
 
     private EntityData ed;
@@ -54,7 +51,7 @@ public class DelaySystem extends AbstractGameSystem {
     protected void initialize() {
         ed = getSystem(EntityData.class);
 
-        entities = ed.getEntities(Delay.class); // This filters all entities that have delayed components
+        entities = ed.getEntities(Delay.class);
     }
 
     @Override

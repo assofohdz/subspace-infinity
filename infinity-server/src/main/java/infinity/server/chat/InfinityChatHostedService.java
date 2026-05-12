@@ -66,13 +66,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * HostedService providing a chat server for connected players. Some time during player connection
- * setup, the game must start hosting and provide the player name in order for the client to
- * participate.
- *
- * @author Paul Speed
- */
+/** Per-client {@link ChatSession} RMI host + command-pattern dispatch table. */
 public final class InfinityChatHostedService extends AbstractHostedConnectionService
     implements ChatHostedPoster {
 

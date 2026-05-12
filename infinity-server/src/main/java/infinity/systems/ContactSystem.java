@@ -27,19 +27,13 @@ import infinity.sim.CategoryFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * A conctact system to handle the contacts we want to disable as the last delegate in the line.
- *
- * @author AFahrenholz
- */
+/** Last-in-line contact dispatcher; fans out to per-system {@link ContactListener}s and disables contacts marked for skip. */
 public class ContactSystem<K, S extends AbstractShape> extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
 
   static Logger log = LoggerFactory.getLogger(ContactSystem.class);
 
-  // DynArray is Simsilica MPhys's typed dynamic-array — the registration API
-  // (TypeToken-keyed add/remove + zero-alloc iteration) doesn't have a JDK
-  // collection equivalent; suppress LooseCoupling.
+  // MPhys-specific dynamic array; no JDK equivalent for TypeToken-keyed registration.
   @SuppressWarnings("PMD.LooseCoupling")
   private final DynArray<ContactListener<K, S>> listeners =
       new DynArray<>(new TypeToken<ContactListener<K, S>>() {});

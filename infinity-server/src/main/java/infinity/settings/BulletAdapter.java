@@ -5,31 +5,10 @@ package infinity.settings;
 
 import infinity.config.BulletConfig;
 
-/**
- * Typed Groovy adapter for {@code bullet.groovy} fragments. Parses a
- * {@code bullet { … }} block into a {@link BulletConfig} record. Replaces the
- * legacy {@code GroovyWeaponsLoader.loadBullet} that read {@code [Bullet]}
- * keys from the merged INI store.
- *
- * <p>Script DSL:
- *
- * <pre>{@code
- * bullet {
- *     damageLevel    200    // [Bullet] BulletDamageLevel
- *     damageUpgrade  100    // [Bullet] BulletDamageUpgrade
- *     aliveTime      550    // [Bullet] BulletAliveTime (centiseconds → ms ×10 at the boundary)
- * }
- * }</pre>
- *
- * <p>Any property the script omits keeps its {@link BulletConfig#DEFAULTS}
- * value (Subspace-canonical baseline). Failure to parse / evaluate falls back
- * to {@code DEFAULTS} via {@link #empty} — the host logs the exception with
- * source-path context.
- */
+/** Typed adapter for {@code bullet {…}} → {@link BulletConfig}. REFERENCE.md §Bullet. */
 public final class BulletAdapter
     extends SingleClosureAdapter<BulletConfig, BulletAdapter.BulletBuilder> {
 
-  /** Stateless; safe to share across calls. */
   public static final BulletAdapter INSTANCE = new BulletAdapter();
 
   private BulletAdapter() {
@@ -65,10 +44,7 @@ public final class BulletAdapter
       this.damageUpgrade = value;
     }
 
-    /**
-     * {@code [Bullet] BulletAliveTime} in <em>centiseconds</em>; the adapter
-     * multiplies by 10 to store milliseconds (Subspace VIE convention).
-     */
+    /** {@code [Bullet] BulletAliveTime} — centiseconds (×10 → ms). */
     public void aliveTime(final int centiseconds) {
       this.decayMs = Validators.centisecondsToMs("bullet.aliveTime", centiseconds);
     }

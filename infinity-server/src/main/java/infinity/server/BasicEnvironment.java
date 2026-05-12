@@ -47,11 +47,7 @@ import infinity.systems.InfinityTimeSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Provides some standard entity factories as well as setting up an initial test environment.
- *
- * @author Paul Speed
- */
+/** Standard entity factories + initial test environment setup. */
 public class BasicEnvironment extends AbstractGameSystem {
 
   static Logger log = LoggerFactory.getLogger(BasicEnvironment.class);

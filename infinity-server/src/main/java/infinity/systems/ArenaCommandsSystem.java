@@ -22,38 +22,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Imperative chat-command face over {@link ArenaSystem}'s declarative core.
- *
- * <p>Split out from {@link ArenaSystem} to keep the lifecycle / hot-reload /
- * lookup core under PMD's class-level cyclomatic-complexity threshold —
- * mirrors the {@code ChecksShipsSystem} / {@code ChecksWorldSystem} pattern
- * from earlier rounds. Command handlers stay short delegates that read state
- * via {@link ArenaSystem}'s public accessors and forward mutating ops back
- * to its public API ({@link ArenaSystem#loadArena}, {@link
- * ArenaSystem#setDesired}, {@link ArenaSystem#reconcile}, {@link
- * ArenaSystem#swapArenaMap}).
- *
- * <p>Hosted commands:
- *
- * <ul>
- *   <li>{@code ~loadMap <mapFile>} — load the arena whose name is the map's
- *       base filename (current naming convention).
- *   <li>{@code ~unloadMap <mapFile>} — resolve the map back to its arena
- *       and flip {@code desired=false}.
- *   <li>{@code ~swapMap <arenaName> <newMap>} — replace the map of a loaded
- *       arena in place; entity + name + settings preserved.
- *   <li>{@code ~loadArena <arenaName>} — load by arena folder name.
- *   <li>{@code ~arenas} — list every loaded arena with bounds + centre,
- *       marking the arena containing the caller's avatar with {@code [you]}.
- * </ul>
- *
- * <p>Initialization order: {@link ArenaSystem} must be registered ahead of
- * this system (lookup happens in {@link #initialize}). This is wired in
- * {@code GameServer.start} where the two systems are registered adjacent.
- *
- * @author Asser Fahrenholz
- */
+/** Chat-command face over {@link ArenaSystem}: {@code ~loadMap}, {@code ~unloadMap}, {@code ~swapMap}, {@code ~loadArena}, {@code ~arenas}. Register after {@link ArenaSystem}. */
 public class ArenaCommandsSystem extends BaseInfinitySystem {
 
   static final Logger log = LoggerFactory.getLogger(ArenaCommandsSystem.class);
@@ -73,8 +42,6 @@ public class ArenaCommandsSystem extends BaseInfinitySystem {
   protected void initialize() {
     ed = requireSystem(EntityData.class);
     arenaSystem = requireSystem(ArenaSystem.class);
-    // Per-system EntitySet — avoids reaching into ArenaSystem's private
-    // arenaEntities and lets this system update independently.
     arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);
 
     final ChatHostedPoster chat = getSystem(InfinityChatHostedService.class);
@@ -119,17 +86,11 @@ public class ArenaCommandsSystem extends BaseInfinitySystem {
 
   @Override
   public void start() {
-    // No-op.
   }
 
   @Override
   public void stop() {
-    // No-op.
   }
-
-  /* ---------------------------------------------------------------- */
-  /* Command handlers — imperative face over declarative core         */
-  /* ---------------------------------------------------------------- */
 
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String loadArenaByNameCommand(
@@ -137,12 +98,7 @@ public class ArenaCommandsSystem extends BaseInfinitySystem {
     return arenaSystem.loadArena(matcher.group(1));
   }
 
-  /**
-   * {@code ~arenas} — list every loaded arena with its world bounds + centre,
-   * marking the arena that contains the player's avatar with {@code [you]}.
-   * Helps operators navigate a multi-arena zone (e.g. {@code testarena} +
-   * {@code trench} + {@code deva} all autoLoaded).
-   */
+  /** {@code ~arenas} — lists loaded arenas, marks the avatar's arena with {@code [you]}. */
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String listArenasCommand(
       final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
@@ -189,10 +145,7 @@ public class ArenaCommandsSystem extends BaseInfinitySystem {
     return out.toString().trim();
   }
 
-  /**
-   * {@code ~loadMap <mapFile>} — the map's base name is used as the arena name, per current
-   * convention.
-   */
+  /** {@code ~loadMap <mapFile>} — map's basename is the arena name. */
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String loadArenaByMapCommand(
       final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
@@ -215,22 +168,13 @@ public class ArenaCommandsSystem extends BaseInfinitySystem {
     return describe(arenaName);
   }
 
-  /**
-   * {@code ~swapMap <arenaName> <newMap>} — replace the map of a loaded arena in place. The arena
-   * entity, name, and settings are preserved; only the underlying map cells change. Delegates to
-   * {@link ArenaSystem#swapArenaMap} which owns the registry-mutating logic.
-   */
+  /** {@code ~swapMap <arena> <newMap>} — preserves arena identity + settings; delegates to {@link ArenaSystem#swapArenaMap}. */
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String swapArenaCommand(
       final EntityId id, final EntityId avatarEntityId, final Matcher matcher) {
     return arenaSystem.swapArenaMap(matcher.group(1), matcher.group(2));
   }
 
-  /**
-   * Render a one-line state description for {@code arenaName}. Reads
-   * {@link ArenaSystem.ArenaState} via {@link ArenaSystem#getArenaState} and
-   * formats the case-by-case message.
-   */
   private String describe(final String arenaName) {
     final ArenaSystem.ArenaState state = arenaSystem.getArenaState(arenaName);
     if (state == null) {
@@ -252,7 +196,6 @@ public class ArenaCommandsSystem extends BaseInfinitySystem {
     }
   }
 
-  /** Scan loaded arenas for one whose current map file equals {@code mapFile}. */
   private String findArenaByMap(final String mapFile) {
     for (final String name : arenaSystem.getActiveArenas()) {
       final ArenaConfig cfg = arenaSystem.getArenaConfig(name);

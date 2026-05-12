@@ -63,12 +63,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Provided for interrum backwards partial compatibility for older apps/demos that haven't been
- * converted to ColumnDb yet. Some functions do not work.
- *
- * @author Paul Speed
- */
+/** Backwards-compat {@link World} backed by {@link LeafDb}; some functions don't work — use ColumnDb-backed paths. */
 public class InfinityDefaultLeafWorld implements World {
 
   static Logger log = LoggerFactory.getLogger(InfinityDefaultLeafWorld.class);

@@ -5,22 +5,10 @@ package infinity.settings;
 
 import infinity.config.PortalConfig;
 
-/**
- * Typed Groovy adapter for {@code portal.groovy} fragments. Parses a
- * {@code portal { … }} block into a {@link PortalConfig} record.
- *
- * <p>Script DSL:
- *
- * <pre>{@code
- * portal {
- *     activeTime  6000   // [Misc] WarpPointDelay  (centiseconds → ms ×10)
- * }
- * }</pre>
- */
+/** Typed adapter for {@code portal {…}} → {@link PortalConfig}. REFERENCE.md §Misc {@code WarpPointDelay}. */
 public final class PortalAdapter
     extends SingleClosureAdapter<PortalConfig, PortalAdapter.PortalBuilder> {
 
-  /** Stateless; safe to share across calls. */
   public static final PortalAdapter INSTANCE = new PortalAdapter();
 
   private PortalAdapter() {
@@ -44,10 +32,7 @@ public final class PortalAdapter
 
     PortalBuilder() {}
 
-    /**
-     * {@code [Misc] WarpPointDelay} in <em>centiseconds</em>; the adapter
-     * multiplies by 10 to store milliseconds (Subspace VIE convention).
-     */
+    /** {@code [Misc] WarpPointDelay} — centiseconds (×10 → ms). */
     public void activeTime(final int centiseconds) {
       this.activeTimeMs = Validators.centisecondsToMs("portal.activeTime", centiseconds);
     }

@@ -7,39 +7,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Pure-function RLE codec helpers extracted from {@link Region} so the
- * encode/decode primitives stay under a sane class-level cyclomatic-complexity
- * ceiling. Every method here is {@code static}, has no Region / ECS dependency,
- * and operates on raw {@code boolean[][]} grids + {@code byte} streams.
- *
- * <p>The split follows the encode-vs-decode dichotomy implicit in the eLVL
- * region format (REGN superchunk, rTIL sub-chunk):
- *
- * <ul>
- *   <li>Encoding: {@link #encodeEmptyRows}, {@link #encodeRun},
- *       {@link #encodeRepeatLastRow}, {@link #encodeRowRleRuns},
- *       {@link #rowsEqual}, {@link #isRowEmpty},
- *       {@link #processEmptyRow}, {@link #processNonEmptyRow}, plus the
- *       {@link RleEncoderState} state holder.
- *   <li>Decoding: {@link #applyRleInstruction} and its 4 family helpers
- *       ({@link #applyEmptyRun}, {@link #applyPresentRun},
- *       {@link #applyEmptyRows}, {@link #applyRepeat}), plus
- *       {@link TileDecodeCursor}, plus the bit-arithmetic helpers
- *       {@link #getEncodedType}, {@link #getEncodedLength(byte[], int, int)},
- *       {@link #getBitFragment}.
- *   <li>Grid utilities: {@link #carveRectangleAt}, {@link #isRowFullyMatching},
- *       {@link #clearRectangleInGrid}.
- *   <li>Misc: {@link #appendFlagHeader}, {@link #alignmentPad},
- *       {@link #getRandomColor}.
- * </ul>
- *
- * <p>This is the round-22 escape hatch from the class-level CC ceiling on
- * {@link Region}: when the per-method CCs are all small but their sum is
- * huge, pull the truly-context-free helpers here. Region keeps the instance
- * state (name / color / flags / rects / unknownBytes) and the dispatcher
- * methods that mutate that state.
- */
+/** Pure-function eLVL REGN/rTIL RLE codec helpers split out from {@link Region}. */
 final class RegionRleCodec {
 
     // -----------------------------------------------------------------
@@ -83,11 +51,7 @@ final class RegionRleCodec {
     // Encoder helpers
     // -----------------------------------------------------------------
 
-    /**
-     * Append a 4-char flag chunk header (e.g. "rBSE") followed by a 4-byte zero
-     * length field. Used by the no-payload region flags (isBase, isNoFlags,
-     * isNoWeps, isNoAnti) which all share the same on-wire shape.
-     */
+    /** Append a 4-char flag-chunk header + a 4-byte zero length field (no-payload flags). */
     static void appendFlagHeader(
             final List<Byte> encoding, final char a, final char b, final char c, final char d) {
         encoding.add(Byte.valueOf((byte) a));
@@ -100,12 +64,6 @@ final class RegionRleCodec {
         encoding.add(Byte.valueOf((byte) 0));
     }
 
-    /**
-     * Empty-row branch of the RLE row loop. Bumps the empty-row run counter,
-     * flushes any pending repeat-last-row marker (since an empty row breaks
-     * the same-row sequence), and on the final row flushes the empty-row run
-     * itself.
-     */
     static void processEmptyRow(
             final RleEncoderState state, final List<Byte> bytes, final int curRow) {
         state.emptyRowCount++;
@@ -119,11 +77,6 @@ final class RegionRleCodec {
         }
     }
 
-    /**
-     * Non-empty-row branch: flush any pending empty-row run, encode this row's
-     * RLE bytes, and either count it as a repeat of the previous row or emit
-     * it fresh (flushing the prior repeat counter first).
-     */
     static void processNonEmptyRow(
             final RleEncoderState state,
             final List<Byte> bytes,
@@ -159,10 +112,6 @@ final class RegionRleCodec {
         return true;
     }
 
-    /**
-     * RLE-encode one row of {@code rgn} into a fresh byte list — each maximal
-     * run of like-tiles becomes one {@link #encodeRun} payload.
-     */
     static List<Byte> encodeRowRleRuns(final boolean[][] rgn, final int curRow) {
         final List<Byte> encodedRow = new ArrayList<>();
         int curY = 0;
@@ -179,12 +128,6 @@ final class RegionRleCodec {
         return encodedRow;
     }
 
-    /**
-     * Return true if both row encodings have the same byte sequence.
-     * {@code null} {@code lastRow} (no previous row tracked) compares as not-equal
-     * so the caller emits the row fresh rather than emitting a repeat-last-row
-     * marker.
-     */
     static boolean rowsEqual(final List<Byte> lastRow, final List<Byte> encodedRow) {
         if (lastRow == null || lastRow.size() != encodedRow.size()) {
             return false;
@@ -283,12 +226,7 @@ final class RegionRleCodec {
     // Decoder helpers
     // -----------------------------------------------------------------
 
-    /**
-     * Apply one decoded RLE instruction (type+length) to the grid + cursor.
-     * Each branch handles one of the four instruction families
-     * (empty-run, present-run, empty-rows, repeat). Returns an error string
-     * if the instruction would advance past the grid bounds, otherwise null.
-     */
+    /** Returns an error string if the instruction would advance past the grid bounds, else null. */
     static String applyRleInstruction(
             final boolean[][] rgn, final TileDecodeCursor cursor, final int type, final int len) {
         if (type == SMALL_EMPTY_RUN || type == LONG_EMPTY_RUN) {
@@ -365,12 +303,7 @@ final class RegionRleCodec {
     // Grid utilities (rectangle extraction phase of rTIL decode)
     // -----------------------------------------------------------------
 
-    /**
-     * Carve the largest axis-aligned rectangle anchored at {@code (curX, curY)}
-     * inside {@code rgn} (greedy width-first, then height extending down only
-     * while every cell in the row matches), clear it from the grid, and return
-     * it.
-     */
+    /** Greedy width-then-height carve from {@code (curX, curY)}; clears the rectangle in {@code rgn} and returns it. */
     static Rectangle carveRectangleAt(final boolean[][] rgn, final int curX, final int curY) {
         final Rectangle r = new Rectangle();
         r.x = curX;
@@ -421,10 +354,7 @@ final class RegionRleCodec {
     // Bit-arithmetic helpers (rTIL encoding/decoding)
     // -----------------------------------------------------------------
 
-    /**
-     * Read the encoded length for an rTIL entry, dispatching SHORT (1 byte) vs
-     * LONG (2 byte) based on the type's even/odd parity.
-     */
+    /** Dispatches SHORT (1 byte) vs LONG (2 byte) on the type's even/odd parity. */
     static int getEncodedLength(final byte[] data, final int offset, final int type) {
         if (type % 2 == 0) {
             return getEncodedLength(data[offset]);
@@ -443,18 +373,12 @@ final class RegionRleCodec {
         return (highByte | (0xFF & two)) + 1;
     }
 
-    /**
-     * Get the type of encoding this is for eLVL rTIL encoding... will be a constant
-     * such as {@link #SMALL_EMPTY_RUN} or {@link #LONG_REPEAT}.
-     */
+    /** eLVL rTIL type constant (one of {@link #SMALL_EMPTY_RUN} … {@link #LONG_REPEAT}). */
     static int getEncodedType(final byte typeByte) {
         return getBitFragment(typeByte, 1, 3);
     }
 
-    /**
-     * Get the bit fragment from {@code startIndex} to {@code endIndex} (inclusive,
-     * 1-based MSB-first labelling: 1234 5678).
-     */
+    /** Bit fragment from {@code startIndex} to {@code endIndex} inclusive, 1-based MSB-first (1234 5678). */
     static int getBitFragment(final byte extractFrom, final int startIndex, final int endIndex) {
         final int shift = 8 - endIndex;
         final int numBits = endIndex - startIndex + 1;

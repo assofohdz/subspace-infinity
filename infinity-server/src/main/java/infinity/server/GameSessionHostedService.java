@@ -78,13 +78,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Manages the game session for a single client. This is a hosted service that is created for each
- * client that connects to the server. It is responsible for creating the game systems and managing
- * the game state for a single client.
- *
- * @author Asser Fahrenholz
- */
+/** Per-client game-session hosted service; exposes {@link GameSession} via RMI. */
 public final class GameSessionHostedService extends AbstractHostedConnectionService {
 
   private static final String ATTRIBUTE_SESSION = "game.session";

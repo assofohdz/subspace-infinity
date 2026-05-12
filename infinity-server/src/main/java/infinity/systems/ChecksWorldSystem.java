@@ -30,25 +30,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * World-state diagnostic chat commands. Sibling of {@link ChecksShipsSystem}
- * — split off from the original {@code ChecksSystem} to keep the class-level
- * cyclomatic complexity manageable.
- *
- * <ul>
- *   <li>{@code ~checkprizes} — prize-spawner DSL wiring (Spawner config,
- *       PrizeWeightsOverride sparse merge) and Decay projection from
- *       {@link Spawner#getSpawnedDecayMillis()} onto each spawned prize.
- *   <li>{@code ~checkarenas} — loaded arena lifecycle. Lists each ArenaId
- *       entity, its ArenaMap, and how many spawners / ships sit inside.
- *   <li>{@code ~checkdecay} — sweeps every Decay-tagged entity, groups by
- *       component fingerprint, flags deadlines in the past (reaper lag) or
- *       absurdly far future (likely bug). Surfaces violations of
- *       {@code .claude/rules/decay-ttl.md}.
- * </ul>
- *
- * Read-only — no entity mutation, no side effects on the running session.
- */
+/** World-state diagnostic chat commands ({@code ~checkprizes}, {@code ~checkarenas}, {@code ~checkdecay}). Read-only. */
 public class ChecksWorldSystem extends BaseInfinitySystem {
 
   static final Logger log = LoggerFactory.getLogger(ChecksWorldSystem.class);
@@ -58,9 +40,7 @@ public class ChecksWorldSystem extends BaseInfinitySystem {
   private final Pattern checkDecayCommand = Pattern.compile("\\~checkdecay");
 
   private EntityData ed;
-  // ships — needed by ~checkarenas to count ships per arena. Read-only here;
-  // ChecksShipsSystem owns the same EntitySet for its own command family.
-  // Two readers of the same set is fine — Zay-ES tracks them independently.
+  // Read-only copy; ChecksShipsSystem owns its own EntitySet for the ships command family.
   private EntitySet ships;
   private EntitySet prizeSpawners;
   private EntitySet prizes;
@@ -122,17 +102,11 @@ public class ChecksWorldSystem extends BaseInfinitySystem {
 
   @Override
   public void start() {
-    // Nothing to do
   }
 
   @Override
   public void stop() {
-    // Nothing to do
   }
-
-  /* ---------------------------------------------------------------- */
-  /* Command handlers                                                 */
-  /* ---------------------------------------------------------------- */
 
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
   private String checkPrizes(
@@ -148,7 +122,6 @@ public class ChecksWorldSystem extends BaseInfinitySystem {
     return sb.toString();
   }
 
-  /** Append one bullet per prize spawner: arena, caps, TTL, override status. */
   private void appendSpawnerAudit(final StringBuilder sb) {
     for (final Entity spawner : prizeSpawners) {
       final EntityId sid = spawner.getId();
@@ -167,7 +140,6 @@ public class ChecksWorldSystem extends BaseInfinitySystem {
     }
   }
 
-  /** Walk live prizes, summarise their Decay stats, and append PASS/FAIL verdict. */
   private void appendPrizeDecayStats(final StringBuilder sb) {
     final long now = timeSystem.getTime();
     int prizesWithoutDecay = 0;
@@ -288,11 +260,6 @@ public class ChecksWorldSystem extends BaseInfinitySystem {
     return sb.toString();
   }
 
-  /**
-   * Best-effort kind label for a decaying entity. We probe for a small fixed
-   * set of marker components rather than a full class scan; that keeps
-   * checkdecay cheap and lets unknown kinds fall into the "other" bucket.
-   */
   private String classify(final EntityId id) {
     if (ed.getComponent(id, PrizeType.class) != null) {
       return "Prize";

@@ -28,22 +28,7 @@ import java.util.concurrent.ConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Holds one {@link ConfigRegistry} snapshot per arena. Owned by the game
- * server; populated by the config layer (Groovy loader, admin reload) and
- * queried by spawn systems.
- *
- * <p>Snapshots are installed by atomic reference swap via {@link #replace} —
- * readers never see a half-updated state. Each swap replaces the entire
- * snapshot for the arena; there are no partial updates.
- *
- * <p><b>Load orchestration</b> ({@link #load}) is the single entry point for
- * building an arena's snapshot from its {@link ArenaConfig}: ships via the
- * typed {@link GroovyShipLoader}, then per-section typed adapters driven by
- * {@link #FRAGMENT_BINDINGS}. Fragments whose basename has no typed binding
- * fall back to the legacy INI path in {@link SettingsSystem#loadFragments}
- * (Phase 1). Same method serves initial load and hot-reload.
- */
+/** Holds one {@link ConfigRegistry} snapshot per arena; atomic-replace via {@link #replace}; {@link #load} is the single load + hot-reload entry point. */
 public class ConfigRegistrySystem extends AbstractGameSystem {
 
   private static final Logger log = LoggerFactory.getLogger(ConfigRegistrySystem.class);
@@ -53,17 +38,7 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
   private SettingsSystem settings;
   private GroovyShipLoader shipLoader;
 
-  /**
-   * Centralized binding from fragment basename → typed adapter +
-   * {@link ConfigRegistry} slot. One entry per typed per-fragment loader;
-   * adding a new {@code *Adapter} costs one line here (plus the slot in
-   * {@link ConfigRegistry#SLOTS}).
-   *
-   * <p>Each B1-X vertical slice ({@code .scratch/settings-pipeline-slices.md})
-   * adds one entry here when a section gains its typed adapter. Fragments
-   * without a binding fall back to the legacy INI path in {@link #load}'s
-   * Phase 1.
-   */
+  // Fragment basename → adapter + slot. Adding a new *Adapter is one line here + one slot in ConfigRegistry.SLOTS.
   private static final List<FragmentBinding<?>> FRAGMENT_BINDINGS =
       List.of(
           FragmentBinding.of("bullet.groovy", BulletConfig.class, BulletAdapter.INSTANCE),
@@ -82,7 +57,6 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
               PrizeWeightsAdapter.INSTANCE),
           FragmentBinding.of("spawn.groovy", SpawnConfig.class, SpawnAdapter.INSTANCE));
 
-  /** Indexed view of {@link #FRAGMENT_BINDINGS} for O(1) basename lookup. */
   private static final Map<String, FragmentBinding<?>> BY_BASENAME = indexByBasename();
 
   private static Map<String, FragmentBinding<?>> indexByBasename() {
@@ -93,12 +67,7 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
     return Map.copyOf(map);
   }
 
-  /**
-   * Per-fragment binding — pairs a fragment basename (e.g. {@code "bullet.groovy"})
-   * with the {@code *Config} slot type and the typed adapter that produces
-   * it. Generic {@link #install} threads through the typed value without
-   * unchecked casts in the call site.
-   */
+  /** Basename → {@code *Config} slot + adapter; {@link #install} avoids unchecked casts at call sites. */
   private static final class FragmentBinding<T> {
     private final String basename;
     private final Class<T> configType;
@@ -124,11 +93,6 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
       return basename;
     }
 
-    /**
-     * Load the fragment at {@code classpathPath} via the bound adapter and
-     * install the parsed value (or the adapter's {@code empty()} sentinel
-     * if the host returned {@code null}) into {@code current}'s slot.
-     */
     ConfigRegistry install(final ConfigRegistry current, final String classpathPath) {
       final T parsed = GroovySettingsHost.INSTANCE.load(adapter, classpathPath);
       final T value = parsed != null ? parsed : adapter.empty();
@@ -138,8 +102,7 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
-    // Collaborators are registered after this system in GameServer; pull them
-    // here once the server has wired everything up.
+    // Collaborators are registered after this system in GameServer.
     settings = getSystem(SettingsSystem.class);
     shipLoader = getSystem(GroovyShipLoader.class);
   }
@@ -149,22 +112,13 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
     byArena.clear();
   }
 
-  /**
-   * Return the current config snapshot for {@code arenaId}. Returns
-   * {@link ConfigRegistry#EMPTY} if nothing has populated this arena yet —
-   * callers should treat missing entries within the snapshot as
-   * "use built-in defaults" rather than "arena is misconfigured".
-   */
+  /** {@link ConfigRegistry#EMPTY} for unknown arenas — never null. */
   public ConfigRegistry forArena(final ArenaId arenaId) {
     Objects.requireNonNull(arenaId, "arenaId");
     return byArena.getOrDefault(arenaId.getArena(), ConfigRegistry.EMPTY);
   }
 
-  /**
-   * Atomically replace the snapshot for {@code arenaId}. Concurrent readers
-   * see either the old snapshot or the new one, never a mix. Idempotent if
-   * the same snapshot reference is installed twice.
-   */
+  /** Atomic swap; readers see either the old or new snapshot. */
   public void replace(final ArenaId arenaId, final ConfigRegistry snapshot) {
     Objects.requireNonNull(arenaId, "arenaId");
     Objects.requireNonNull(snapshot, "snapshot");
@@ -178,44 +132,18 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
     }
   }
 
-  /** Drop the snapshot for {@code arenaId} (e.g. on arena unload). */
   public void remove(final ArenaId arenaId) {
     Objects.requireNonNull(arenaId, "arenaId");
     byArena.remove(arenaId.getArena());
   }
 
-  /**
-   * Load and install the per-arena {@link ConfigRegistry} snapshot from its
-   * {@link ArenaConfig}. Single entry point for both initial arena load and
-   * hot-reload (the file watcher in {@code ArenaSystem} calls this on every
-   * watched-file change). Atomic full-replace per call — readers see the
-   * old or the new snapshot, never a torn state.
-   *
-   * <p>Three-phase orchestration:
-   *
-   * <ol>
-   *   <li><b>Fragment Ini load</b> — {@link SettingsSystem#loadFragments}
-   *       reads each {@link ArenaConfig#fragmentIncludes()} path and merges
-   *       the {@code Ini} store under {@code arenaName}. Legacy compat path;
-   *       slice B4 deletes once every fragment section has its own typed
-   *       adapter.
-   *   <li><b>Ships</b> — {@link GroovyShipLoader#apply} parses the typed
-   *       {@code ships.groovy} (referenced via {@link ArenaConfig#shipsScript()})
-   *       and installs a ship-only snapshot via {@link #replace}.
-   *   <li><b>Typed fragments</b> — {@link #FRAGMENT_BINDINGS} drives
-   *       per-section parsing. Each entry knows its slot key + adapter, so
-   *       the orchestration loop is one line.
-   * </ol>
-   */
+  /** Three-phase: legacy INI fragments → typed ships → typed per-fragment adapters. Atomic per call. */
   public void load(final ArenaId arenaId, final ArenaConfig arenaConfig) {
     Objects.requireNonNull(arenaId, "arenaId");
     Objects.requireNonNull(arenaConfig, "arenaConfig");
     final String arenaName = arenaId.getArena();
 
-    // Phase 1: fragment Ini load (legacy compat; B4 deletes). Skips fragments
-    // that have a typed adapter — those are handled in Phase 3 and would
-    // fail INI-mirror parse since their content uses typed-DSL blocks
-    // (e.g. `bullet { damageLevel 200 }`) instead of `section('Bullet')`.
+    // Phase 1: legacy INI fragments — skip any with a typed adapter (Phase 3 handles those).
     final java.util.List<String> iniFragments = new java.util.ArrayList<>();
     for (final String path : arenaConfig.fragmentIncludes()) {
       if (path != null && !BY_BASENAME.containsKey(basenameOf(path))) {

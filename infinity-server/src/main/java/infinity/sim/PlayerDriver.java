@@ -22,20 +22,7 @@ import infinity.settings.EngineConfigSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Per-ship control driver invoked by MOSS each physics tick. Reads the ship's
- * current {@link Thrust}, {@link Speed}, and {@link Rotation} ECS components
- * (seeded from the arena's {@code ShipConfig} at spawn time) and projects
- * them onto the MOSS {@link RigidBody}: thrust becomes the acceleration
- * rate, speed is the velocity cap, rotation is the rad/sec scalar for the
- * client's rotation intent.
- *
- * <p>If any of those components are missing on the entity, the ship is left
- * idle — that's the "not yet configured" case (spawn system hasn't projected
- * stats, e.g. because no arena config loaded and no fallback installed).
- *
- * @author Paul Speed (original)
- */
+/** Per-ship MOSS control driver — projects live {@link Thrust}/{@link Speed}/{@link Rotation} onto the {@link RigidBody}. */
 public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerDriver.class);

@@ -22,7 +22,6 @@ public class WorldSystem extends BaseInfinitySystem {
   private World world;
 
   public WorldSystem() {
-    //Nothing to do here
   }
 
   public ColumnDb getColumnDb() {
@@ -31,17 +30,14 @@ public class WorldSystem extends BaseInfinitySystem {
 
   @Override
   public void start() {
-    // Auto-generated method stub
   }
 
   @Override
   public void update(SimTime time) {
-    // Auto-generated method stub
   }
 
   @Override
   public void stop() {
-    // Auto-generated method stub
   }
 
   @Override
@@ -84,6 +80,5 @@ public class WorldSystem extends BaseInfinitySystem {
 
   @Override
   protected void terminate() {
-    // Auto-generated method stub
-    }
+  }
 }

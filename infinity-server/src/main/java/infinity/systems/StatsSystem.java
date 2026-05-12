@@ -14,16 +14,10 @@ import com.simsilica.sim.SimTime;
 
 import infinity.server.GameServer;
 
-/**
- *
- * @author asser
- */
+/** Periodically logs {@link GameServer#logStats} via a fixed-rate timer. */
 public class StatsSystem extends AbstractGameSystem {
 
     static Logger log = LoggerFactory.getLogger(StatsSystem.class);
-    /**
-     * the interval between logging stats to console
-     */
     public static final int LOGINTERVALMS = 10000;
     private final GameServer server;
     private Timer timer;
@@ -71,7 +65,6 @@ public class StatsSystem extends AbstractGameSystem {
 
         int count = 1;
 
-        // run is a abstract method that defines task performed at scheduled time.
         @Override
         public void run() {
             localServer.logStats();

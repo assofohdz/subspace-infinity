@@ -5,28 +5,9 @@ package infinity.settings;
 
 import infinity.config.MineConfig;
 
-/**
- * Typed Groovy adapter for {@code mine.groovy} fragments. Parses a
- * {@code mine { … }} block into a {@link MineConfig} record. Replaces the
- * legacy {@code GroovyWeaponsLoader.loadMine}.
- *
- * <p>Script DSL:
- *
- * <pre>{@code
- * mine {
- *     aliveTime  12000    // [Mine] MineAliveTime (centiseconds → ms ×10)
- * }
- * }</pre>
- *
- * <p>Damage today comes from the per-ship {@code MineCost} component
- * (Subspace's "mine cost = damage" convention), so the typed mine block
- * carries only decay. {@code TeamMaxMines} is a separate ⚠️ unwired key in
- * the pipeline tracker — when it gets a consumer it'll join {@link MineConfig}
- * and this DSL.
- */
+/** Typed adapter for {@code mine {…}} → {@link MineConfig}. REFERENCE.md §Mine. Damage today uses per-ship {@code MineCost}. */
 public final class MineAdapter extends SingleClosureAdapter<MineConfig, MineAdapter.MineBuilder> {
 
-  /** Stateless; safe to share across calls. */
   public static final MineAdapter INSTANCE = new MineAdapter();
 
   private MineAdapter() {
@@ -50,10 +31,7 @@ public final class MineAdapter extends SingleClosureAdapter<MineConfig, MineAdap
 
     MineBuilder() {}
 
-    /**
-     * {@code [Mine] MineAliveTime} in <em>centiseconds</em>; the adapter
-     * multiplies by 10 to store milliseconds (Subspace VIE convention).
-     */
+    /** {@code [Mine] MineAliveTime} — centiseconds (×10 → ms). */
     public void aliveTime(final int centiseconds) {
       this.decayMs = Validators.centisecondsToMs("mine.aliveTime", centiseconds);
     }

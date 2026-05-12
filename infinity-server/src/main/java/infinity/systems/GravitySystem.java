@@ -17,11 +17,7 @@ import com.simsilica.mphys.StaticBody;
 import com.simsilica.sim.SimTime;
 import infinity.es.GravityWell;
 
-/**
- * A system to handle gravity wells.
- *
- * @author AFahrenholz
- */
+/** Handles {@link GravityWell} contacts (wormhole pull). */
 public class GravitySystem extends BaseInfinitySystem implements ContactListener {
 
   private SimTime time;

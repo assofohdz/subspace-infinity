@@ -5,48 +5,10 @@ package infinity.settings;
 
 import infinity.config.PrizeConfig;
 
-/**
- * Typed Groovy adapter for {@code prize.groovy} fragments. Parses a
- * {@code prize { … }} block into a {@link PrizeConfig} record. Replaces the
- * legacy {@code GroovyWeaponsLoader.loadPrize}.
- *
- * <p>Script DSL:
- *
- * <pre>{@code
- * prize {
- *     minExist        4000    // [Prize] PrizeMinExist       (cs → ms ×10); optional
- *     maxExist        8000    // [Prize] PrizeMaxExist       (cs → ms ×10)
- *     deathPrizeTime  1500    // [Prize] DeathPrizeTime      (cs → ms ×10); optional, 0=disabled
- *     negativeFactor  1000    // [Prize] PrizeNegativeFactor (1-in-N);     optional, 0=disabled
- * }
- * }</pre>
- *
- * <p>{@code minExist} + {@code maxExist} define a uniform random lifetime
- * range that {@code PrizeSystem} samples per-prize at spawn time. Omitting
- * {@code minExist} pins it equal to {@code maxExist} (= no randomness;
- * preserves 1:1 behaviour for un-migrated arenas). {@code minExist >
- * maxExist} throws at parse time — explicit author error rather than a
- * silent clamp/swap.
- *
- * <p>{@code deathPrizeTime} controls the lifetime of prizes dropped at a
- * ship's death point. Omitting it leaves {@code deathPrizeTimeMs == 0}
- * (= death-drops disabled), preserving 1:1 behaviour for un-migrated
- * arenas.
- *
- * <p>{@code negativeFactor} is Subspace's 1-in-N odds for a spawning
- * prize to be replaced by {@code Dud}. Omitting it leaves
- * {@code prizeNegativeFactor == 0} (= no negative-prize roll).
- *
- * <p>Other Subspace {@code [Prize]} keys (PrizeFactor, PrizeDelay,
- * MultiPrizeCount, PrizeHideCount, EngineShutdownTime, etc.) aren't in
- * {@link PrizeConfig} today — they're sub-slice 8d (deferred) / polish-
- * bag work per the slice queue. The adapter only exposes fields that
- * have a typed config + active consumer.
- */
+/** Typed adapter for {@code prize {…}} → {@link PrizeConfig}. REFERENCE.md §Prize. */
 public final class PrizeAdapter
     extends SingleClosureAdapter<PrizeConfig, PrizeAdapter.PrizeBuilder> {
 
-  /** Stateless; safe to share across calls. */
   public static final PrizeAdapter INSTANCE = new PrizeAdapter();
 
   private PrizeAdapter() {
@@ -73,37 +35,22 @@ public final class PrizeAdapter
 
     PrizeBuilder() {}
 
-    /**
-     * {@code [Prize] PrizeMaxExist} in <em>centiseconds</em>; the adapter
-     * multiplies by 10 to store milliseconds (Subspace VIE convention).
-     */
+    /** {@code [Prize] PrizeMaxExist} — centiseconds (×10 → ms). */
     public void maxExist(final int centiseconds) {
       this.defaultDecayMs = Validators.centisecondsToMs("prize.maxExist", centiseconds);
     }
 
-    /**
-     * {@code [Prize] PrizeMinExist} in <em>centiseconds</em>; the adapter
-     * multiplies by 10 to store milliseconds. Optional — omit to pin
-     * equal to {@code maxExist} (no random-lifetime variation).
-     */
+    /** {@code [Prize] PrizeMinExist} — centiseconds (×10 → ms); omit pins to maxExist. */
     public void minExist(final int centiseconds) {
       this.defaultMinDecayMs = Validators.centisecondsToMs("prize.minExist", centiseconds);
     }
 
-    /**
-     * {@code [Prize] DeathPrizeTime} in <em>centiseconds</em>; the adapter
-     * multiplies by 10 to store milliseconds. Optional — omit to leave at
-     * {@code 0} (death-drops disabled).
-     */
+    /** {@code [Prize] DeathPrizeTime} — centiseconds (×10 → ms); 0 disables death-drops. */
     public void deathPrizeTime(final int centiseconds) {
       this.deathPrizeTimeMs = Validators.centisecondsToMs("prize.deathPrizeTime", centiseconds);
     }
 
-    /**
-     * {@code [Prize] PrizeNegativeFactor} — 1-in-N odds for a spawning
-     * prize to be replaced by {@code Dud}. Optional — omit to leave at
-     * {@code 0} (no negative-prize roll).
-     */
+    /** {@code [Prize] PrizeNegativeFactor} — 1-in-N replace with {@code Dud}; 0 disables. */
     public void negativeFactor(final int oneInN) {
       this.prizeNegativeFactor = oneInN;
     }

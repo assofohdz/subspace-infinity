@@ -7,22 +7,7 @@ import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * This class represents a region defined by several things: name - rNam isBase
- * - rBSE isNoFlags - rNFL isNoWeps - rNWP isNoAnti - rNAW isAutoWarp - rAWP
- *
- * autoWarp x, y, and arena (in case of autowarp) arena is max 15 letters
- *
- * vector of rectangles - rTIL
- *
- * <p>Pure-function helpers (RLE encode/decode primitives, grid math, bit
- * arithmetic) have been moved to {@link RegionRleCodec} to keep this class's
- * sum-of-method-CCs under PMD's class-level threshold. The instance state
- * (name / color / flags / rects / unknownBytes) and dispatcher methods that
- * mutate it stay here.
- *
- * @author baks
- */
+/** eLVL region: rNam name, rBSE/rNFL/rNWP/rNAW flags, rAWP autoWarp (x, y, arena ≤15 chars), rTIL rectangles. Codec primitives in {@link RegionRleCodec}. */
 public class Region {
 
     public Color color;

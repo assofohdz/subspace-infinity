@@ -10,15 +10,7 @@ import com.simsilica.sim.SimTime;
 
 import infinity.es.Dead;
 
-/**
- * A state to keep track of dead entities. Will remove them from the game, but
- * can otherwise be used keep track of deaths with points, buffs etc.
- *
- * Update: Should be upgdated. As it is, it doesn't work with how the
- * DecaySystem works
- *
- * @author Asser
- */
+/** Stamps {@link Decay} on {@link Dead}-flagged entities to drive despawn. */
 public class DeathSystem extends BaseInfinitySystem {
 
     private EntityData ed;

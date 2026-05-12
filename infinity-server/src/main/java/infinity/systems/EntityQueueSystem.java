@@ -5,12 +5,7 @@ package infinity.systems;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 
-/**
- * State to queue the creation of entities. This is a state that will pace the
- * generation of entities (in case we want to create thousands in an instant)
- *
- * @author Asser
- */
+/** Queues entity creation so bulk spawns can be paced over multiple ticks. */
 public class EntityQueueSystem extends AbstractGameSystem {
 
     @Override

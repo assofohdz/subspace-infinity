@@ -15,65 +15,20 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Evaluates a per-arena Groovy config and returns a typed {@link ArenaConfig}.
- * Thin facade over {@link GroovySettingsHost} — the host owns I/O, hardening
- * and error handling; this class supplies the {@code arena { … }} DSL.
- *
- * <p>Returns {@code null} when the arena.groovy file is missing — callers
- * (e.g. {@code ArenaSystem.loadArenaConfig}) fail-fast on that since the
- * legacy {@code arena.conf} INI fallback was retired in
- * zone-arena-to-groovy #3. Returns {@link ArenaConfig#EMPTY} on parse / eval
- * failure (logged) so a broken Groovy file uses defaults rather than failing
- * the whole arena.
- *
- * <p>Script DSL:
- *
- * <pre>{@code
- * arena {
- *     map '04-2026-trench/pub2025.lvl'
- *     shipsScript '/conf/trench-04-2026/ships.groovy'
- *     spawn 1000, 20
- *     wallFriction 0.0   // tangential friction on ship-vs-wall hits (0 = slidey)
- *     friendlyFire 0     // 0=off, 1=bomb splash only, 2=all weapons
- *     includeFragment '/conf/trench-04-2026/trench.conf'
- *     // includeFragment '/conf/another.conf' — repeat as needed
- *     spawners {
- *         spawn x: 512, z: 512, radius: 100, maxCount: 5, intervalMs: 2000, ttlMs: 10000
- *         spawn x:  50, z:  50, radius: 100, maxCount: 5, intervalMs: 2000, ttlMs: 10000
- *     }
- * }
- * }</pre>
- *
- * <p>All directives are optional; an entirely empty script yields
- * {@link ArenaConfig#EMPTY}. Multiple {@code includeFragment} calls accumulate
- * in declaration order.
- */
+/** Evaluates {@code /arenas/<name>/arena.groovy} into an {@link ArenaConfig}; {@code null} on miss, {@link ArenaConfig#EMPTY} on broken. */
 public final class GroovyArenaLoader {
 
-  /**
-   * Classpath path under {@code zone/} where each arena's Groovy config lives.
-   * The arena name is interpolated into the {@code <name>} slot.
-   */
   public static final String ARENA_GROOVY_TEMPLATE = "/arenas/%s/arena.groovy";
 
   private static final Logger log = LoggerFactory.getLogger(GroovyArenaLoader.class);
   private static final ArenaAdapter ADAPTER = new ArenaAdapter();
 
-  /**
-   * Try to load and parse {@code /arenas/<arenaName>/arena.groovy}.
-   *
-   * @return the parsed {@link ArenaConfig}, or {@code null} if no Groovy file
-   *     exists for this arena (caller fails fast — INI fallback is retired).
-   *     Returns {@link ArenaConfig#EMPTY} on parse / eval failure (logged) so
-   *     callers don't silently fail-fast on a broken Groovy file.
-   */
+  /** {@code null} on missing file, {@link ArenaConfig#EMPTY} on broken script. */
   @Nullable
   public ArenaConfig load(final String arenaName) {
     return load(arenaName, String.format(ARENA_GROOVY_TEMPLATE, arenaName));
   }
 
-  /** Same as {@link #load(String)} but with an explicit classpath path. */
   @Nullable
   public ArenaConfig load(final String arenaName, final String classpathPath) {
     final ArenaConfig cfg = GroovySettingsHost.INSTANCE.load(ADAPTER, classpathPath);
@@ -98,23 +53,17 @@ public final class GroovyArenaLoader {
     return cfg;
   }
 
-  /**
-   * Test-only entry point: parse {@code source} as if it had come from a file
-   * at {@code virtualPath}. Returns {@link ArenaConfig#EMPTY} on parse / eval
-   * failure, mirroring {@link #load}'s broken-script branch — lets tests
-   * exercise that branch without writing to disk.
-   */
+  /** Test seam — evaluate a literal source string with no on-disk file. */
   ArenaConfig evaluateSourceForTest(final String source, final String virtualPath) {
     return GroovySettingsHost.INSTANCE.evaluate(ADAPTER, source, virtualPath);
   }
 
-  /** Adapter holding the {@code arena { … }} DSL semantics. */
+  /** DSL adapter for {@code arena{…}}. */
   private static final class ArenaAdapter
       implements GroovySettingsAdapter<ArenaConfig, ArenaConfigBuilder> {
 
     @Override
     public List<String> allowedImports() {
-      // arena.groovy uses no explicit imports; auto-imports cover String/List.
       return Collections.emptyList();
     }
 
@@ -136,7 +85,7 @@ public final class GroovyArenaLoader {
     }
   }
 
-  /** Bound to the {@code arena} variable; mirrors {@code ZoneClosure}. */
+  /** Backing closure for the {@code arena{…}} DSL block. */
   private static final class ArenaClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 
@@ -156,18 +105,12 @@ public final class GroovyArenaLoader {
     }
   }
 
-  /**
-   * Delegate for the {@code arena { ... }} block. Fields default to
-   * {@link ArenaConfig#EMPTY}'s values so partial scripts are valid; missing
-   * directives mean "use the empty default."
-   */
+  /** Delegate for {@code arena{…}}; fields default to {@link ArenaConfig#EMPTY}. */
   public static final class ArenaConfigBuilder {
 
     private String mapFile = "";
     private String shipsScript = "";
-    // Default to the arena's centre tile so an arena.groovy that omits the
-    // `spawn` directive puts players in the middle of the map instead of the
-    // NW corner. Mirrors ArenaConfig.EMPTY's spawn fallback.
+    // Default to arena centre (matches ArenaConfig.EMPTY) so an omitted `spawn` directive avoids the NW corner.
     private int spawnX = ArenaConfig.EMPTY.spawnX();
     private int spawnZ = ArenaConfig.EMPTY.spawnZ();
     private final List<String> fragmentIncludes = new ArrayList<>();
@@ -175,7 +118,6 @@ public final class GroovyArenaLoader {
     private final List<SpawnerSpec> spawners = new ArrayList<>();
     private int friendlyFire = ArenaConfig.EMPTY.friendlyFire();
 
-    // Package-private so tests can build configs without the full GroovyShell.
     ArenaConfigBuilder() {}
 
     public void map(final String mapFile) {
@@ -197,15 +139,7 @@ public final class GroovyArenaLoader {
       }
     }
 
-    /**
-     * Per-contact fraction of <i>tangential</i> velocity drained on
-     * ship-vs-wall hits (sliding-deceleration). Not the resolver's standard
-     * Coulomb friction — that would torque the body's heading at off-center
-     * contact points, which is wrong for arcade ship physics. See
-     * {@link ArenaConfig#wallFriction()} for the full semantic and tuning
-     * guidance. {@code 0.0} (default) keeps walls frictionless. Values
-     * outside {@code [0, 1]} are rejected.
-     */
+    /** Tangential-velocity drain fraction on ship-vs-wall hits, {@code [0, 1]}; see {@link ArenaConfig#wallFriction()}. */
     public void wallFriction(final Number value) {
       if (value == null) {
         throw new IllegalArgumentException("wallFriction requires a number");
@@ -218,14 +152,7 @@ public final class GroovyArenaLoader {
       this.wallFriction = v;
     }
 
-    /**
-     * Tri-state friendly-fire policy. {@code 0} = off (default — same-team
-     * weapons deal no damage). {@code 1} = bomb splash only (bomb AoE
-     * damages teammates within blast radius; bullets / burst / mines still
-     * pass through teammates without damage). {@code 2} = all weapons damage
-     * teammates. Subspace canon uses per-weapon flags; this single tri-state
-     * is an Infinity-specific simplification scoped to slice 9a.
-     */
+    /** Tri-state FF: 0=off, 1=bomb splash only, 2=all weapons. Infinity simplification of Subspace's per-weapon flags. */
     public void friendlyFire(final Number value) {
       if (value == null) {
         throw new IllegalArgumentException("friendlyFire requires a number (0, 1, or 2)");

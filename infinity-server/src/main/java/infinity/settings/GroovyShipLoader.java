@@ -15,66 +15,15 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Evaluates an arena's Groovy ship config and installs the result into
- * {@link ConfigRegistrySystem}. Thin facade over {@link GroovySettingsHost} —
- * the host owns I/O, hardening and error handling; this class supplies the
- * {@code ship(Ship.X) { … }} DSL via {@link ShipConfigBuilder} and composes
- * the result with {@code ConfigRegistrySystem.replace}.
- *
- * <p>Failure handling — any failure (no path configured, missing file, parse
- * error, eval error) logs a warning and installs the {@link ShipFallback#FALLBACK}
- * snapshot so the arena stays playable. Callers never see an exception.
- *
- * <p>Script DSL — see {@link ShipConfigBuilder} for per-block stat / weapon /
- * inventory / status methods. Example shape:
- *
- * <pre>{@code
- * ship(Ship.WARBIRD) {
- *     rotation initial: 210, max: 300, upgrade: 40
- *     thrust   initial: 16,  max: 19,  upgrade: 2
- *     speed    initial: 2010, max: 3250, upgrade: 250
- *     recharge initial: 400,  max: 1150, upgrade: 166
- *     energy   initial: 1000, max: 1700, upgrade: 100
- *     linearDamping       0.99
- *     turnResponsiveness  8.0
- *     bounceRestitution   1.0
- *     radarRange          250
- *     bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 10, fireDelay: 25, speed: 2000, thrust: 400
- *     bullets start: BulletLevel.LEVEL_1, max: BulletLevel.LEVEL_4, cost: 10, fireDelay: 25
- *     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 50, fireDelay: 500, speed: 0
- *     bursts  start: 5, max: 5
- *     thors   start: 2, max: 2, fireDelay: 1000
- *     repels  start: 10, max: 20
- * }
- * }</pre>
- *
- * <p>The {@code Ship}, {@code BombLevel}, and {@code BulletLevel} enums are
- * added as default imports (and whitelisted) by the host. See
- * {@link ShipConfigBuilder} Javadoc for default-handling rules and the
- * canonical-Subspace mapping of each block.
- */
+/** Evaluates {@code ships.groovy} for an arena and installs the resulting {@link ConfigRegistry}; never throws (installs {@link #FALLBACK} on any failure). */
 public final class GroovyShipLoader {
 
   private static final Logger log = LoggerFactory.getLogger(GroovyShipLoader.class);
   private static final ShipAdapter ADAPTER = new ShipAdapter();
 
-  /**
-   * Re-export of {@link ShipConfigBuilder#DEFAULT_RADAR_RANGE} so the
-   * {@code GroovyShipLoaderRadarTest} contract — checking that the FALLBACK
-   * radar range matches the documented default — keeps a stable
-   * fully-qualified reference. Other defaults live on
-   * {@link ShipConfigBuilder} (movement / feel) or {@link ShipFallback}
-   * (weapon / inventory).
-   */
+  // Re-exports kept for test/stable-API references.
   static final double DEFAULT_RADAR_RANGE = ShipConfigBuilder.DEFAULT_RADAR_RANGE;
 
-  /**
-   * Re-export of {@link ShipFallback#FALLBACK} for callers that historically
-   * referenced {@code GroovyShipLoader.FALLBACK}. Public surface — kept as a
-   * stable lookup for arena-bootstrap code, doc references in
-   * {@link infinity.config.ArenaConfig}, and the radar test contract.
-   */
   public static final ConfigRegistry FALLBACK = ShipFallback.FALLBACK;
 
   private final ConfigRegistrySystem configRegistry;
@@ -83,16 +32,7 @@ public final class GroovyShipLoader {
     this.configRegistry = configRegistry;
   }
 
-  /**
-   * Load and install the ship config for {@code arenaId} from the given
-   * classpath path. {@code null} or missing/broken script → log a warning
-   * and install {@link #FALLBACK}. Never throws.
-   *
-   * @param arenaId the arena to populate
-   * @param classpathPath classpath-absolute path to the script (e.g.
-   *     {@code "/conf/trench-04-2026/ships.groovy"}), or {@code null} if
-   *     no script is configured for this arena
-   */
+  /** Loads the ship config for {@code arenaId}; missing/broken → install {@link #FALLBACK}. Never throws. */
   public void apply(final ArenaId arenaId, @Nullable final String classpathPath) {
     if (classpathPath == null || classpathPath.isBlank()) {
       installFallback(
@@ -128,11 +68,6 @@ public final class GroovyShipLoader {
     logSuccess(classpathPath, arenaId, snapshot);
   }
 
-  /**
-   * Common "log warn + install FALLBACK" path for the three fallback branches
-   * of {@link #apply}. Extracted to keep apply's flow readable and to centralise
-   * the warn-guard discipline.
-   */
   private void installFallback(final ArenaId arenaId, final String fmt, final Object... args) {
     if (log.isWarnEnabled()) {
       log.warn(fmt, args);
@@ -140,10 +75,6 @@ public final class GroovyShipLoader {
     configRegistry.replace(arenaId, FALLBACK);
   }
 
-  /**
-   * Logs a successful ships.groovy load: one INFO header and one INFO line per
-   * configured ship. Guarded so we don't pay the iteration when info is off.
-   */
   private static void logSuccess(
       final String classpathPath, final ArenaId arenaId, final ConfigRegistry snapshot) {
     if (log.isInfoEnabled()) {
@@ -158,18 +89,12 @@ public final class GroovyShipLoader {
     }
   }
 
-  /** Adapter holding the {@code ship(Ship.X) { … }} DSL semantics. */
+  /** DSL adapter for {@code ship(Ship.X){…}}. */
   private static final class ShipAdapter
       implements GroovySettingsAdapter<ConfigRegistry, ConfigRegistry.Builder> {
 
     @Override
     public List<String> allowedImports() {
-      // Scripts reference three enums directly: Ship (for the ship() block
-      // arg), BombLevel (for bombs/mines start/max), and BulletLevel (for bullets
-      // start/max). The host adds each as a default import (so
-      // `Ship.WARBIRD` / `BombLevel.BOMB_1` / `BulletLevel.LEVEL_1` work without
-      // explicit `import` lines) AND whitelists them so an explicit import
-      // would also be valid.
       return List.of(Ship.class.getName(), BombLevel.class.getName(), BulletLevel.class.getName());
     }
 
@@ -191,11 +116,7 @@ public final class GroovyShipLoader {
     }
   }
 
-  /**
-   * Bound to the {@code ship} variable in the script. Takes a {@link Ship}
-   * type and a configuring closure; builds a {@link ShipConfig} and adds it
-   * to the registry snapshot under construction.
-   */
+  /** Backing closure for {@code ship(Ship.X){…}} — builds one {@link ShipConfig} into the registry. */
   private static final class ShipClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 

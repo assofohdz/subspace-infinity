@@ -161,11 +161,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-/**
- * The main GameServer that manages the back end game services, hosts connections, etc..
- *
- * @author Paul Speed
- */
+/** Backend game-services owner: networking, ECS, physics, the system registration list. */
 public class GameServer {
 
   static Logger log = LoggerFactory.getLogger(GameServer.class);
@@ -175,13 +171,6 @@ public class GameServer {
   private final GameLoop loop;
   private final DefaultColumnDb colDb;
 
-  /**
-   * Creates a new GameServer that will listen on the specified port.
-   *
-   * @param port The port to listen on.
-   * @param description The description of the server.
-   * @throws IOException If there was a problem creating the server.
-   */
   public GameServer(final int port, @SuppressWarnings("unused") final String description)
       throws IOException {
     // Make sure we are running with a fresh serializer registry
@@ -206,13 +195,7 @@ public class GameServer {
     // And a separate channel for terrain stuff
     server.addChannel(port + 3);
 
-    // Adding a delay for the connectionAdded right after the serializer
-    // registration
-    // service gets to run lets the client get a small break in the buffer that
-    // should
-    // generally prevent the RpcCall messages from coming too quickly and getting
-    // processed
-    // before the SerializerRegistrationMessage has had a chance to process.
+    // DelayService — gives SerializerRegistrationMessage a buffer of its own; see DelayService Javadoc.
     server.getServices().addService(new DelayService());
 
     InfinityChatHostedService chp = new InfinityChatHostedService(InfinityConstants.CHAT_CHANNEL);
@@ -268,47 +251,22 @@ public class GameServer {
     systems.addSystem(
         new EntityUpdater(server.getServices().getService(EntityDataHostedService.class), true));
 
-    // ADR 0001 canonical writers MUST register BEFORE DecaySystem. The
-    // Change-entity drain pattern relies on the writer's update running
-    // first so the tick that reaps a Decay-bound Change entity sees:
-    // (a) writer.add → apply + cache (target, delta) THEN (b) reaper
-    // destroys THEN (next tick) writer.remove → reverse from cache.
-    // Registering EnergySystem / EnergyStatsSystem after DecaySystem
-    // would let the reaper destroy the entity before the writer has a
-    // chance to cache the tuple, breaking reverse-on-expiry.
+    // ADR 0001 canonical writers MUST register BEFORE DecaySystem so the writer's
+    // add-handler caches (target, delta) before the reaper destroys the Change
+    // entity — otherwise reverse-on-expiry breaks. See ADR 0001 for the full pattern.
     systems.register(EnergySystem.class, new EnergySystem());
     systems.register(EnergyStatsSystem.class, new EnergyStatsSystem());
-    // Movement slice (ADR 0001 wave 1) — Rotation/Speed/Thrust live-value writers.
-    // Stats records are spawn-only (ShipSpawnSystem) so no *StatsSystem needed.
-    // Register BEFORE DecaySystem: rocket-buff temporary deltas need apply+cache
-    // on add → reaper destroys → next-tick writer reverses on remove.
     systems.register(RotationSystem.class, new RotationSystem());
     systems.register(SpeedSystem.class, new SpeedSystem());
     systems.register(ThrustSystem.class, new ThrustSystem());
-    // Status-family slice (ADR 0001 wave 3a) — Cloak/Stealth/XRadar/Antiwarp Continuous-half
-    // writers. Stats records are spawn-only (ShipStatusProjector via ShipSpawnSystem) so no
-    // *StatsSystem needed (2-level aspect — PRD §"2-level vs 3-level aspects"). Register
-    // BEFORE DecaySystem: future temporary toggle buffs need apply+cache on add → reaper
-    // destroys → next-tick writer reverses on remove (same shape as movement slice).
     systems.register(CloakSystem.class, new CloakSystem());
     systems.register(StealthSystem.class, new StealthSystem());
     systems.register(XRadarSystem.class, new XRadarSystem());
     systems.register(AntiwarpSystem.class, new AntiwarpSystem());
-    // Weapon-levels slice (ADR 0001 wave 4a) — Bomb/Bullet/Mine/Burst Continuous-half
-    // writers. Stats records are spawn-only (ShipWeaponsProjector via ShipSpawnSystem)
-    // so no *StatsSystem needed (2-level aspect — PRD §"2-level vs 3-level aspects").
-    // Register BEFORE DecaySystem for the same reason as Status family.
     systems.register(BombSystem.class, new BombSystem());
     systems.register(BulletSystem.class, new BulletSystem());
     systems.register(MineSystem.class, new MineSystem());
     systems.register(BurstSystem.class, new BurstSystem());
-    // Inventory slice (ADR 0001 wave 4b) — Brick/Decoy/Portal/Repel/Rocket/Thor
-    // Continuous-half writers. Stats records are spawn-only (ShipWeaponsProjector
-    // via ShipSpawnSystem) so no *StatsSystem needed (2-level aspect — PRD
-    // §"2-level vs 3-level aspects"). Register BEFORE DecaySystem for the same
-    // reason as Status family. RepelCountSystem is a sibling of RepelSystem
-    // (impulse mechanic, registered later with the physics stack); see its
-    // class Javadoc for the option-(b) split rationale.
     systems.register(infinity.systems.ship.BrickSystem.class, new infinity.systems.ship.BrickSystem());
     systems.register(infinity.systems.ship.DecoySystem.class, new infinity.systems.ship.DecoySystem());
     systems.register(infinity.systems.ship.PortalSystem.class, new infinity.systems.ship.PortalSystem());
@@ -316,10 +274,8 @@ public class GameServer {
     systems.register(infinity.systems.ship.RocketSystem.class, new infinity.systems.ship.RocketSystem());
     systems.register(infinity.systems.ship.ThorSystem.class, new infinity.systems.ship.ThorSystem());
 
-    // Add some standard systems
+    // Standard systems.
     systems.addSystem(new DecaySystem());
-    // Slice 9c-JitterTime: reap expired Jitter components from bomb-damage
-    // victims (component carries deadline; reaper runs once per tick).
     systems.addSystem(new infinity.systems.JitterReaperSystem());
 
     // We'll need the block set in order to have physics collision
@@ -362,13 +318,7 @@ public class GameServer {
 
     systems.register(InfinityChatHostedService.class, chp);
 
-    // Opt-in body filter for the coarse large-static contact pass. Only bodies
-    // tagged with CollidesWithLargeStatics (ships at spawn) generate pairs with
-    // arena ghost-cubes; everything else skips the pass before narrow phase.
-    // Per-frame contact-gen still scales with (ships in arena × loaded arenas);
-    // if STAT_CONTACTS shows pressure, the next throttle is a penetration
-    // discriminator (drop pairs with contact.penetration < shipRadius) for
-    // interactive large statics that want to skip resolving inside-the-cube.
+    // Only CollidesWithLargeStatics-tagged bodies (ships at spawn) generate pairs with arena ghost-cubes.
     mBlockShapeMPhysSystem.getPhysicsSpace().setLargeStaticCollisionFilter(
         body -> ed.getComponent(body.id, CollidesWithLargeStatics.class) != null);
 
@@ -383,18 +333,11 @@ public class GameServer {
     ContactSystem<EntityId, MBlockShape> contactSystem = new ContactSystem<>();
     systems.register(ContactSystem.class, contactSystem);
     mBlockShapeMPhysSystem.getPhysicsSpace().setContactDispatcher(contactSystem);
-    // Then add gamesystems:
-    // EnergySystem / EnergyStatsSystem registered earlier (above
-    // DecaySystem) per ADR 0001 Change-entity drain ordering.
+    // Game systems.
     systems.register(AvatarSystem.class, new AvatarSystem());
     systems.register(MovementInputSystem.class, new MovementInputSystem());
     systems.register(MobSystem.class, new MobSystem());
-    // RaM pilot — WeaponsSystem split into Fire (queue + spawn projection +
-    // cooldowns + cost), Reaper (detonation + Decay + explosion + damage
-    // emission), and Impact (ContactListener + Bounce decrement). The reaper
-    // must register BEFORE the impact system because Impact.initialize() looks
-    // it up via getSystem(...). The fire system has no inter-trio
-    // dependency. See docs/adr/0001-ecs-component-model.md.
+    // WeaponsReaperSystem must register BEFORE WeaponsImpactSystem — Impact.initialize() looks it up.
     systems.register(WeaponsFireSystem.class, new WeaponsFireSystem());
     systems.register(WeaponsReaperSystem.class, new WeaponsReaperSystem());
     systems.register(WeaponsImpactSystem.class, new WeaponsImpactSystem());
@@ -402,12 +345,9 @@ public class GameServer {
     systems.register(RocketBuffSystem.class, new RocketBuffSystem());
     systems.register(StatusDrainSystem.class, new StatusDrainSystem());
     systems.register(ProximityFuseSystem.class, new ProximityFuseSystem());
-    // Slice S5 — applies one-shot impulse to Repellable bodies inside a
-    // repel effect's radius (added-set scan; uses sio2-mphys Impulse).
     systems.register(RepelSystem.class, new RepelSystem());
     systems.register(ArenaSystem.class, new ArenaSystem());
-    // ArenaCommandsSystem must register AFTER ArenaSystem — its initialize()
-    // looks up ArenaSystem.class via getSystem(...) and throws if absent.
+    // ArenaCommandsSystem must register AFTER ArenaSystem — its initialize() looks it up.
     systems.register(ArenaCommandsSystem.class, new ArenaCommandsSystem());
     systems.register(ArenaMembershipSystem.class, new ArenaMembershipSystem());
     systems.register(RegionSystem.class, new RegionSystem());
@@ -449,13 +389,6 @@ public class GameServer {
     registerSerializers();
   }
 
-  /**
-   * Allow running a basic dedicated server from the command line using the default port. If we want
-   * something more advanced, then we should break it into a separate class with a proper shell and
-   * so on.
-   */
-  // Canonical Java entry point + canonical `while ((line = readLine()) != null)`
-  // — both PMD-flagged but neither is sensibly refactorable.
   @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "PMD.AssignmentInOperand"})
   public static void main(final String... args) throws Exception {
 
@@ -568,16 +501,11 @@ public class GameServer {
     Serializer.registerClass(RadarRange.class, new FieldSerializer());
     Serializer.registerClass(RadarShapeInfo.class, new FieldSerializer());
     Serializer.registerClass(ArenaFootprint.class, new FieldSerializer());
-    // Client-visible components surfaced by the immutability audit
-    // (a3c62a2): each is read by a client AppState/view and would crash
-    // the first network sync without a registered serializer.
+    // Client-visible components — required by per-component network sync; see components.md.
     Serializer.registerClass(MobType.class, new FieldSerializer());
     Serializer.registerClass(ProbeInfo.class, new FieldSerializer());
     Serializer.registerClass(Speech.class, new FieldSerializer());
-    // Slice 8d: spawner-driven "client should not render" marker.
     Serializer.registerClass(infinity.es.Hidden.class, new FieldSerializer());
-    // Slice 9c-JitterTime: server stamps on bomb-damage victims, client
-    // JitterState reads on local avatar id to drive camera shake.
     Serializer.registerClass(infinity.es.Jitter.class, new FieldSerializer());
   }
 
@@ -589,7 +517,6 @@ public class GameServer {
     return systems;
   }
 
-  /** Starts the systems and begins accepting remote connections. */
   public void start() {
     log.info("Starting game server...");
     server.start();
@@ -597,10 +524,7 @@ public class GameServer {
     log.info("Game server started.");
   }
 
-  /**
-   * Kicks all current connection, closes the network host, stops all systems, and finally
-   * terminates them. The GameServer is not restartable at this point.
-   */
+  /** Kicks all clients, stops systems, terminates — not restartable. */
   public void close(final String kickMessage) {
     log.info("Stopping game server...{}", kickMessage);
     loop.stop();
@@ -622,15 +546,10 @@ public class GameServer {
     log.info("Game server stopped.");
   }
 
-  /**
-   * Closes the network host, stops all systems, and finally terminates them. The GameServer is not
-   * restartable at this point.
-   */
   public void close() {
     close(null);
   }
 
-  /** Logs the current connection statistics for each connection. */
   public void logStats() {
 
     final EtherealHost host = server.getServices().getService(EtherealHost.class);
@@ -664,12 +583,7 @@ public class GameServer {
     }
   }
 
-  /**
-   * This works around a limitation in SpiderMonkey that can cause problems for the
-   * SerializationRegistryService if there are other messages in the same buffer as the registry
-   * update call. This adds a slight delay to connections in the hopes that the messages will end up
-   * in separate buffers.
-   */
+  /** SpiderMonkey workaround: a per-connection sleep keeps RpcCall messages from sharing a buffer with SerializerRegistrationMessage. */
   private static class DelayService extends AbstractHostedService {
 
     private void safeSleep(final long ms) {
@@ -683,12 +597,10 @@ public class GameServer {
 
     @Override
     protected void onInitialize(final HostedServiceManager serviceManager) {
-      // Auto-generated method stub
     }
 
     @Override
     public void start() {
-      // Auto-generated method stub
     }
 
     @Override

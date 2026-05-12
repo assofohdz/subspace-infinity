@@ -39,21 +39,10 @@ import java.util.function.Consumer;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 
-/**
- * Stateless helpers extracted from {@link ArenaSystem} to keep the host
- * system's class-level cyclomatic-complexity sum below PMD's class threshold.
- *
- * <p>Only pure helpers (math, string normalisation, mtime polling) live here —
- * the registry, EntitySets, chat-command handlers, and the lifecycle reconcile
- * loop all stay in {@link ArenaSystem} so arena state is owned by one system.
- *
- * <p>Logger is passed explicitly to the helpers that emit log messages so the
- * output keeps the host class's logger name.
- */
+/** Stateless helpers for {@link ArenaSystem}; logger passed explicitly so log lines keep the host name. */
 public final class ArenaLogic {
 
   private ArenaLogic() {
-    // utility class
   }
 
   /**

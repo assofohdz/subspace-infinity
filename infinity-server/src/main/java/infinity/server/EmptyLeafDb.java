@@ -44,13 +44,7 @@ import com.simsilica.mblock.*;
 import com.simsilica.mworld.*;
 import com.simsilica.mworld.db.LeafDb;
 
-/**
- *  Stub {@link LeafDb} that always returns empty leaves and discards stores.
- *  Currently only referenced from a commented-out line in {@code GameServer};
- *  kept as a minimal placeholder for tests / disabled-world scenarios.
- *
- *  @author    Paul Speed
- */
+/** Stub {@link LeafDb} returning empty leaves; placeholder for tests. */
 public class EmptyLeafDb implements LeafDb {
 
     static Logger log = LoggerFactory.getLogger(EmptyLeafDb.class);

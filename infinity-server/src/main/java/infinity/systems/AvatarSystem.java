@@ -33,30 +33,18 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * This system is responsible for managing the avatar entities. It is responsible
- * for creating and destroying them as players join and leave the game. It also
- * manages the team restrictions for each ship.
- *
- * @author Asser
- */
+/** Manages avatar lifecycle (create/destroy on join/leave) + per-team ship restrictions. Drains {@link ShipTypeChange}. */
 public class AvatarSystem extends BaseInfinitySystem {
 
-  // Ship-type wire bytes (SPEC/WARBIRD/JAVELIN/SPIDER/LEVI/TERRIER/WEASEL/
-  // LANCASTER/SHARK) now live in api/ as `infinity.net.ShipTypeId`. The
-  // method below takes a raw byte off the wire — convert via
-  // `ShipTypeId.fromWireId(byte)` if you need enum-level dispatch.
   private EntityData ed;
   private EngineConfigSystem engineConfigSystem;
   private EntitySet frequencies;
   private EntitySet shipTypeChanges;
-  /** The number of allowed players in each ship on this team. */
   private Map<Integer, ShipRestrictor> teamRestrictions;
 
   private EntitySet captains;
 
   public AvatarSystem() {
-    // Nothing to do here
   }
 
   @Override
@@ -87,17 +75,12 @@ public class AvatarSystem extends BaseInfinitySystem {
   @SuppressWarnings("unused")
   @Override
   public void update(final SimTime tpf) {
-    // Keep `captains` current — isCaptain() reads from the live set.
-    // TODO: react to add / change / remove events when captain logic lands.
     captains.applyChanges();
     shipTypeChanges.applyChanges();
     drainShipTypeChanges();
   }
 
-  /**
-   * Canonical drain for {@link ShipTypeChange} (ADR 0001). Value-replacement;
-   * one-shot only (no Decay-bound ship swaps). Same-tick fold is last-write-wins.
-   */
+  /** Canonical drain — value-replacement; last-write-wins same-tick. */
   private void drainShipTypeChanges() {
     final Map<EntityId, Ship> typeByShip = new LinkedHashMap<>();
     final List<EntityId> oneShotHolders = new ArrayList<>();
@@ -124,20 +107,12 @@ public class AvatarSystem extends BaseInfinitySystem {
 
   @Override
   public void start() {
-    // Auto-generated method stub
   }
 
   @Override
   public void stop() {
-    // Auto-generated method stub
   }
 
-  /**
-   * Request a ship change.
-   *
-   * @param shipEntity The entity to change
-   * @param shipType The ship type to change to
-   */
   public void requestShipChange(final EntityId shipEntity, final byte shipType) {
     // TODO: Check for energy (full energy to switch ships)
 

@@ -5,28 +5,10 @@ package infinity.settings;
 
 import infinity.config.RocketConfig;
 
-/**
- * Typed Groovy adapter for {@code rocket.groovy} fragments. Parses a
- * {@code rocket { … }} block into a {@link RocketConfig} record.
- *
- * <p>Script DSL:
- *
- * <pre>{@code
- * rocket {
- *     thrust  100   // [Rocket] RocketThrust (override Thrust while active)
- *     speed   3000  // [Rocket] RocketSpeed (override Speed while active)
- * }
- * }</pre>
- *
- * <p>Per-ship {@code RocketTime} (buff lifetime) lives in
- * {@code ships.groovy} via
- * {@link infinity.config.RocketStats#activeTimeCs} — Subspace authors it
- * per-ship, not arena-global.
- */
+/** Typed adapter for {@code rocket {…}} → {@link RocketConfig}. REFERENCE.md §Rocket. */
 public final class RocketAdapter
     extends SingleClosureAdapter<RocketConfig, RocketAdapter.RocketBuilder> {
 
-  /** Stateless; safe to share across calls. */
   public static final RocketAdapter INSTANCE = new RocketAdapter();
 
   private RocketAdapter() {

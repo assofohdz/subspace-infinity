@@ -16,18 +16,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * Batch tile-ID survey across many {@code .lvl} files. Unlike {@link MapAnalyzer} (which
- * drills into one or two maps), this tool answers zone-wide questions: which tile IDs
- * are actually used in real-world maps, how common are they, and which IDs fall outside
- * the ranges {@code LegacyMapProjector.project} currently handles.
- *
- * <p>Usage: {@code ./gradlew :infinity:surveyMaps --args "[paths/dirs]"}
- *
- * <p>With no arguments, recursively scans every {@code *.lvl} under
- * {@code infinity/assets/Maps/}. Arguments can be individual files, directories
- * (searched recursively), or paths relative to {@code infinity/assets/Maps/}.
- */
+/** Batch tile-ID survey across {@code .lvl} files. Run via {@code :infinity:surveyMaps}; no args → recursively scans {@code infinity/assets/Maps/}. */
 public final class MapTileSurvey {
 
   private static final int SIZE = 1024;

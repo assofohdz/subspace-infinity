@@ -21,63 +21,19 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Tracks per-ship arena membership and fires enter / leave events derived from MOSS
- * sensor contacts (the ghost-sphere bodies {@link ArenaSystem} attaches to each loaded
- * arena, marked with {@link Sensor}). Listens to {@link ContactSystem} via the standard
- * {@link ContactListener} fan-out; the contact-disable in {@link ContactSystem#newContact}
- * runs first so the resolver never sees these contacts (ship motion is unaffected).
- *
- * <p>MOSS only fires {@code newContact} (no end-contact callback). Exit detection is a
- * silence-window: each {@code (ship, arena)} pair stores its last observed frame, and
- * the per-tick {@link #update} sweep declares a leave once the frame gap exceeds
- * {@link #EXIT_GRACE_FRAMES}. This handles Paul's "fires inside but maybe not
- * consistently" caveat — a few skipped frames don't fire spurious leaves.
- *
- * <p>Multi-arena design notes:
- * <ul>
- *   <li>Ships are allowed to roam in no-arena void — leaving an arena clears the ship's
- *       {@link ArenaId} component but doesn't kill / bounce / warp.
- *   <li>{@link ArenaId} is rewritten on entry / removed on leave. {@code ShipSpawnSystem}
- *       watches a {@code (ShipType, ArenaId)} EntitySet and re-projects the per-arena
- *       {@code ShipConfig} on the resulting add / change events — no direct call from
- *       this system into {@code ShipSpawnSystem}.
- * </ul>
- *
- * <p><b>Rejected alternatives</b> (don't re-investigate without new evidence):
- * <ul>
- *   <li><i>Polling fallback</i> — periodic point-in-bounds checks for every ship. Verbose
- *       and adds latency on the leave side; sensor contacts already fire reliably as long
- *       as the cube is in a coarse static-only bin index (see {@code LargeObject} marker
- *       on the arena entity). Tried during early Pattern 4 #14 work; abandoned.
- *   <li><i>Per-ship {@code ControlDriver}</i> — push membership updates from the driver
- *       loop. Same downside as polling plus tighter coupling to physics internals; the
- *       contact-driven path keeps membership a pure ECS observer.
- * </ul>
- *
- * @author Asser Fahrenholz
- */
+/** Tracks per-ship arena membership via MOSS sensor contacts; writes {@link ArenaId} on entry, removes on leave (silence-window exit). */
 public class ArenaMembershipSystem extends AbstractGameSystem
     implements ContactListener<EntityId, MBlockShape> {
 
   private static final Logger log = LoggerFactory.getLogger(ArenaMembershipSystem.class);
 
-  /**
-   * Frames of contact-silence before declaring a ship has left an arena. ~1 second at
-   * the standard 60 Hz sim tick. Tune up if MOSS turns out to skip many consecutive
-   * frames for at-rest interpenetrating bodies; tune down if exit latency feels sluggish.
-   */
+  // ~1 s at 60 Hz — contact-silence window before declaring a leave.
   private static final long EXIT_GRACE_FRAMES = 60;
 
   private EntityData ed;
 
-  /** Ship → arena entity id of the arena the ship is currently considered "in". */
   private final Map<EntityId, EntityId> currentArena = new HashMap<>();
 
-  /**
-   * Ship → (arena entity id → last sim frame the contact was observed). Used by the
-   * per-tick exit sweep — contacts older than {@link #EXIT_GRACE_FRAMES} fire a leave.
-   */
   private final Map<EntityId, Map<EntityId, Long>> lastSeenFrame = new HashMap<>();
 
   private long currentFrame;
@@ -151,25 +107,12 @@ public class ArenaMembershipSystem extends AbstractGameSystem
     applyMembership(shipId, arenaEntityId);
   }
 
-  /**
-   * Warp-driven membership update: mirrors what {@link #newContact} would do if a
-   * contact had fired between {@code shipId} and the arena sensor at
-   * {@code arenaEntityId}. Used by {@link WarpSystem} so a teleport that drops a ship
-   * into an arena keeps {@link #currentArena} / {@link #lastSeenFrame} aligned without
-   * waiting for the body to wake up — the warp zeros velocity, the body sleeps, and
-   * contact-gen stops firing for it until movement resumes. Without this, the per-tick
-   * exit-grace sweep fires a redundant "left arena" log a second after every spawn-warp.
-   */
+  /** Warp-driven enter; bypasses the contact path (warp sleeps the body, stopping contact-gen). */
   public void markEntered(final EntityId shipId, final EntityId arenaEntityId) {
     applyMembership(shipId, arenaEntityId);
   }
 
-  /**
-   * Warp-driven counterpart to {@link #markEntered} — the ship was teleported into
-   * no-arena void, so any current memberships should fire a leave immediately rather
-   * than waiting out the exit-grace window. Does nothing if the ship has no tracked
-   * memberships.
-   */
+  /** Warp-driven leave; fires immediately instead of waiting out the exit-grace window. */
   public void markLeft(final EntityId shipId) {
     final EntityId previousArena = currentArena.remove(shipId);
     final Map<EntityId, Long> arenaToFrame = lastSeenFrame.remove(shipId);
@@ -212,13 +155,11 @@ public class ArenaMembershipSystem extends AbstractGameSystem
     }
   }
 
-  /** True if the entity has both {@link Sensor} and {@link ArenaId} (i.e. an arena). */
   private boolean isArenaSensor(final EntityId entityId) {
     return ed.getComponent(entityId, Sensor.class) != null
         && ed.getComponent(entityId, ArenaId.class) != null;
   }
 
-  /** True if the entity carries a {@link ShipType} component. */
   private boolean hasShipType(final EntityId entityId) {
     return ed.getComponent(entityId, ShipType.class) != null;
   }

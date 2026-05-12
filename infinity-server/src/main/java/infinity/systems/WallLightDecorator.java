@@ -12,43 +12,15 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Wall-run light-emitter generator. Scans a decoded .lvl tile grid for straight wall runs of
- * at least {@link CoreViewConstants#WALL_LIGHT_MIN_RUN} tiles (horizontal or vertical) and
- * writes light-emitter cells ({@link InfinityConstants#LIGHT_EMITTER_BLOCK_TYPE}) above them.
- *
- * <p>The emitter cells carry packed light values on their {@code BlockType} that
- * {@code LightUtils.recalculateLighting} flood-fills into neighbour cells' {@code lightData},
- * which the tile shader reads via vertex colors. A "wall" is any tile id in the standard
- * solid range ({@code vieNormalStart..vieNormalEnd}); branches off the run are tolerated —
- * only the straight axis is measured.
- *
- * <p>Extracted from {@code MapSystem} to keep the host system focused on map lifecycle
- * (load/unload/swap) while the visual-decoration strategy lives here as a standalone,
- * independently testable strategy. This is the single canonical writer for
- * {@link InfinityConstants#LIGHT_EMITTER_BLOCK_TYPE} cells (per
- * <a href="../../../../../.claude/rules/replacement-as-mutation.md">RaM</a>).
- */
+/** Writes light-emitter cells above straight wall runs; canonical writer of {@link InfinityConstants#LIGHT_EMITTER_BLOCK_TYPE}. */
 public final class WallLightDecorator {
 
   private static final Logger log = LoggerFactory.getLogger(WallLightDecorator.class);
 
   private WallLightDecorator() {
-    // utility class — pure-function wall-run decoration; state-free
   }
 
-  /**
-   * Decorate a decoded tile grid with light-emitter cells along long straight wall runs.
-   * Mutates {@code world} (writes {@link InfinityConstants#LIGHT_EMITTER_BLOCK_TYPE}) and
-   * {@code coordinates} (records every emitter location so the corresponding unload
-   * pass can clear them).
-   *
-   * @param tiles        decoded {@code [x][z]} tile-id grid (square; reads are flipped to
-   *                     match {@link LegacyMapProjector#project}'s coordinate frame)
-   * @param arenaOffset  world-space offset to add to each cell location
-   * @param world        target {@link World} (cell-write target)
-   * @param coordinates  set populated with every world-cell location written by this pass
-   */
+  /** Writes emitter cells; populates {@code coordinates} with every touched location for unload. */
   public static void decorate(
       final short[][] tiles,
       final Vec3d arenaOffset,
@@ -106,21 +78,12 @@ public final class WallLightDecorator {
     return count;
   }
 
-  /**
-   * Scan one axis of {@code wall} for runs of contiguous {@code true} cells and emit a
-   * light-emitter block above each run that meets {@code minRun}. Lights are spaced
-   * approximately {@code spacing} tiles apart along the run.
-   *
-   * @param horizontal when {@code true}, scan rows (constant z, varying x); when
-   *                   {@code false}, scan columns (constant x, varying z)
-   * @return a 2-element array {@code [lightCount, longestRunLength]}
-   */
+  /** @return {@code [lightCount, longestRunLength]}. */
   private static int[] scanWallRunsAxis(
       final boolean[][] wall, final int sx, final int sz, final boolean horizontal,
       final int minRun, final int spacing, final int lightY,
       final Vec3d arenaOffset, final World world, final Set<Vec3d> coordinates) {
-    // Mutable accumulator: [0] = longestRun, [1] = lightsEmitted. Mapped to the documented
-    // {lights, longestRun} return order at exit.
+    // [0] = longestRun, [1] = lightsEmitted; remapped to {lights, longestRun} on return.
     final int[] runStats = {0, 0};
     final int outerLimit = horizontal ? sz : sx;
     final int innerLimit = horizontal ? sx : sz;
@@ -134,15 +97,6 @@ public final class WallLightDecorator {
     return new int[] {runStats[1], runStats[0]};
   }
 
-  /**
-   * Inner step of {@link #scanWallRunsAxis}: if a wall run starts at {@code (outer, inner)},
-   * measure it, update {@code runStats}, optionally emit lights, and return the next
-   * {@code inner} position past the run. If no run starts here, just advance {@code inner}
-   * by one.
-   *
-   * @param runStats {@code [0]} = longest-run-length so far (mutated);
-   *                 {@code [1]} = lights-emitted so far (mutated)
-   */
   private static int processRunAt(
       final boolean[][] wall, final boolean horizontal,
       final int outer, final int inner, final int innerLimit,
@@ -163,7 +117,6 @@ public final class WallLightDecorator {
     return inner + Math.max(len, 1);
   }
 
-  /** Emit light-emitter cells along the run; returns how many lights were placed. */
   private static int emitLightsAlongRun(
       final boolean horizontal, final int outer, final int inner, final int len,
       final int spacing, final int lightY,

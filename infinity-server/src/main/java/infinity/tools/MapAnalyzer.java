@@ -17,15 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-/**
- * Standalone map inspector — loads one or two Subspace .lvl files directly via
- * {@link LevelFile} (no JME AssetManager) and reports tile counts, category
- * breakdowns, and (for two maps) a position-level diff showing which cells are
- * unique to each map. Useful for diagnosing why a swapMap leaves cells behind:
- * the "unique to old" set is what must be cleared successfully.
- *
- * Run via: ./gradlew :infinity:analyzeMaps --args "trench.lvl trench2.lvl"
- */
+/** Standalone .lvl inspector — tile counts + two-map diff. Run via {@code :infinity:analyzeMaps}. */
 public final class MapAnalyzer {
 
   private static final int SIZE = 1024;

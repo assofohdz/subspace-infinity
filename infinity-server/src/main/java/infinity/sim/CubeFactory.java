@@ -9,10 +9,7 @@ import com.simsilica.mblock.phys.MBlockShape;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This is a factory that can create cubes. We need ato implement our own since MOSS is not there
- * yet with a real ghost cube.
- */
+/** Cube {@link ShapeFactory}; placeholder until MOSS lands a real ghost-cube. */
 public class CubeFactory implements ShapeFactory<MBlockShape> {
   static Logger log = LoggerFactory.getLogger(CubeFactory.class);
 

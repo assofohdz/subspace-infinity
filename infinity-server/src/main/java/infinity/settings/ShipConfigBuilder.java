@@ -18,20 +18,7 @@ import infinity.config.ShipStat;
 import infinity.config.StatusStats;
 import java.util.Map;
 
-/**
- * Delegate for a {@code ship(Ship.X) { ... }} block in a {@code ships.groovy}
- * preset. Each stat method accepts a Groovy named-argument map and stores a
- * {@link ShipStat} (or weapon/inventory/status sub-record). Stats not called
- * stay at {@code (0, 0, 0)}; inventory/status blocks not declared stay
- * {@code null} (= "ship doesn't carry / can't acquire this item" per the B2
- * grilled-through plan in {@code .scratch/settings-pipeline-slices.md}).
- *
- * <p>Extracted from {@link GroovyShipLoader} per arch-review finding #10 — see
- * {@code .scratch/arch-review.md}. The builder is reused by
- * {@link GroovyShipLoader.ShipClosure} (DSL evaluator) and by tests that
- * exercise per-field projection without standing up the full {@code GroovyShell}
- * pipeline.
- */
+/** Delegate for {@code ship(Ship.X){…}} in {@code ships.groovy}. Unset stats stay at {@code (0,0,0)}; unset inventory/status remain {@code null} (= disallowed). */
 final class ShipConfigBuilder {
 
   /**

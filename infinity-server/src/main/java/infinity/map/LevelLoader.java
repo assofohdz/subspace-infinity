@@ -10,10 +10,7 @@ import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetLoader;
 import com.jme3.asset.AssetManager;
 
-/**
- *
- * @author Asser
- */
+/** JME {@link AssetLoader} producing {@link LevelFile} from {@code .lvl}/{@code .lvz}. */
 public class LevelLoader implements AssetLoader {
 
     private AssetManager am;

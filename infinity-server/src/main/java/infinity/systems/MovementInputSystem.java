@@ -54,12 +54,7 @@ import infinity.sim.PlayerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Manages the control drivers of entities with MovementInput components and makes sure that have
- * the latest movement input data.
- *
- * @author Paul Speed
- */
+/** Manages control drivers for entities with {@link MovementInput} / {@link CharacterInput}; keeps movement input current. */
 public class MovementInputSystem extends BaseInfinitySystem {
 
   static Logger log = LoggerFactory.getLogger(MovementInputSystem.class);
@@ -72,10 +67,8 @@ public class MovementInputSystem extends BaseInfinitySystem {
   private EngineConfigSystem engineConfigSystem;
 
   public MovementInputSystem() {
-    // At the moment, we don't need to do anything here.
   }
 
-  // Temporary for testing
   public PlayerDriver getDriver(EntityId id) {
     return players.getObject(id);
   }
@@ -88,39 +81,12 @@ public class MovementInputSystem extends BaseInfinitySystem {
     this.space = physics.getPhysicsSpace();
     physics.getBodyFactory().addDynamicInitializer(initializer);
 
-    // EngineConfigSystem provides the per-tick scale knobs the PlayerDriver
-    // needs (shipMaxSpeedScale at the cap clamp). Optional dependency: in
-    // tests / minimal harnesses without engine.groovy registered, the
-    // PlayerDriver falls back to EngineConfig.DEFAULTS.
+    // Optional; falls back to EngineConfig.DEFAULTS in minimal harnesses.
     this.engineConfigSystem = getSystem(EngineConfigSystem.class);
-
-    // There are two ways that a PlayerDriver can be set on a
-    // RigidBody.
-    // 1) when the body is created on demand, if the entity is already
-    //    being managed by the 'players' EntityContainer then the above
-    //    initialize will just set the existing driver.
-    // 2) if the rigid body already exists when the entity as added
-    //    to the 'players' EntityContainer then the created driver is set
-    //    on the body then.
-    //
-    // This covers all use-cases... bin becoming active before the player
-    // container saw the entity, entity having its MovementInput removed/added
-    // on the fly, body's bin going to sleep and getting activated again, etc..
-    // All possible life cycle paths are handled by this two-prong approach.
-    // ...and probably a few I haven't thought of.  (One case we don't handle
-    // but would be easily handled is the case where we get a new MovementInput
-    // but the body is not active... we don't specifically activate it.  We
-    // assume in our simple demo that the 'just added' body hasn't had a chance
-    // to fall asleep yet.
-    //
-    // This control driver handling is trickier than in some of the simpler ES
-    // demos or the SiO2 bullet-char demo because the rigid bodies can be dynamically
-    // loaded and unloaded in mphys.
   }
 
   @Override
   protected void terminate() {
-    // At the moment, we don't need to do anything here.
   }
 
   @Override
@@ -227,7 +193,6 @@ public class MovementInputSystem extends BaseInfinitySystem {
     }
   }
 
-  // I guess this could have been done with an ObjectStatusListener instead
   private class MovementBodyInitializer
       implements Function<RigidBody<EntityId, MBlockShape>, Void> {
     public Void apply(RigidBody<EntityId, MBlockShape> body) {

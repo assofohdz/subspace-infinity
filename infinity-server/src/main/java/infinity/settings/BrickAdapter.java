@@ -5,23 +5,10 @@ package infinity.settings;
 
 import infinity.config.BrickConfig;
 
-/**
- * Typed Groovy adapter for {@code brick.groovy} fragments. Parses a
- * {@code brick { … }} block into a {@link BrickConfig} record.
- *
- * <p>Script DSL:
- *
- * <pre>{@code
- * brick {
- *     span  7      // [Brick] BrickSpan (wall length in tiles)
- *     time  1000   // [Brick] BrickTime (centiseconds → ms ×10)
- * }
- * }</pre>
- */
+/** Typed adapter for {@code brick {…}} → {@link BrickConfig}. REFERENCE.md §Brick. */
 public final class BrickAdapter
     extends SingleClosureAdapter<BrickConfig, BrickAdapter.BrickBuilder> {
 
-  /** Stateless; safe to share across calls. */
   public static final BrickAdapter INSTANCE = new BrickAdapter();
 
   private BrickAdapter() {
@@ -51,10 +38,7 @@ public final class BrickAdapter
       this.spanTiles = value;
     }
 
-    /**
-     * {@code [Brick] BrickTime} in <em>centiseconds</em>; the adapter
-     * multiplies by 10 to store milliseconds (Subspace VIE convention).
-     */
+    /** {@code [Brick] BrickTime} — centiseconds (×10 → ms). */
     public void time(final int centiseconds) {
       this.timeMs = Validators.centisecondsToMs("brick.time", centiseconds);
     }

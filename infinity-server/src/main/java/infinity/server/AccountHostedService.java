@@ -30,14 +30,7 @@ import infinity.net.AccountSessionListener;
 import infinity.sim.AccessLevel;
 import infinity.sim.AccountManager;
 
-/**
- * Provides super-basic account services like logging in. This could be expanded
- * to be more complicated based on a real game's needs. The basics have been
- * included here as a minimal example that includes the basic types of
- * communication necessary.
- *
- * @author Paul Speed
- */
+/** Minimal login service — placeholder for a real account system. */
 public class AccountHostedService extends AbstractHostedConnectionService implements AccountManager {
 
     static Logger log = LoggerFactory.getLogger(AccountHostedService.class);

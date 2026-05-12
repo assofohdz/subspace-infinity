@@ -5,22 +5,10 @@ package infinity.settings;
 
 import infinity.config.DecoyConfig;
 
-/**
- * Typed Groovy adapter for {@code decoy.groovy} fragments. Parses a
- * {@code decoy { … }} block into a {@link DecoyConfig} record.
- *
- * <p>Script DSL:
- *
- * <pre>{@code
- * decoy {
- *     aliveTime  3000   // [Misc] DecoyAliveTime (centiseconds → ms ×10)
- * }
- * }</pre>
- */
+/** Typed adapter for {@code decoy {…}} → {@link DecoyConfig}. REFERENCE.md §Misc {@code DecoyAliveTime}. */
 public final class DecoyAdapter
     extends SingleClosureAdapter<DecoyConfig, DecoyAdapter.DecoyBuilder> {
 
-  /** Stateless; safe to share across calls. */
   public static final DecoyAdapter INSTANCE = new DecoyAdapter();
 
   private DecoyAdapter() {
@@ -44,10 +32,7 @@ public final class DecoyAdapter
 
     DecoyBuilder() {}
 
-    /**
-     * {@code [Misc] DecoyAliveTime} in <em>centiseconds</em>; the adapter
-     * multiplies by 10 to store milliseconds (Subspace VIE convention).
-     */
+    /** {@code [Misc] DecoyAliveTime} — centiseconds (×10 → ms). */
     public void aliveTime(final int centiseconds) {
       this.aliveTimeMs = Validators.centisecondsToMs("decoy.aliveTime", centiseconds);
     }

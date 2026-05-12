@@ -49,13 +49,7 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.StaticBody;
 import com.simsilica.sim.AbstractGameSystem;
 
-/**
- * A game system that registers a listener with the SimplePhysics system and
- * then forwards those events to the SimEtheral zone manager, which in turn will
- * package them up for the clients in an efficient way.
- *
- * @author Paul Speed
- */
+/** Forwards mphys body events to the SimEthereal zone manager for client sync. */
 public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSystem {
 
     static Logger log = LoggerFactory.getLogger(ZoneNetworkSystem.class);

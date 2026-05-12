@@ -5,11 +5,7 @@ package infinity.sim;
 
 import infinity.es.input.MovementInput;
 
-/**
- * Receives movement input on behalf of a driven entity.
- *
- * @author AFahrenholz
- */
+/** Receives movement input for a driven entity. */
 public interface Driver {
 
     void applyMovementState(MovementInput movement);

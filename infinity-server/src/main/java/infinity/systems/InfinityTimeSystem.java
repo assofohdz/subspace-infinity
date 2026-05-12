@@ -8,28 +8,25 @@ import com.simsilica.sim.SimTime;
 
 import infinity.sim.TimeManager;
 
-/**
- *
- * @author AFahrenholz
- */
+/** Sim-tick time accessor via {@link TimeManager}. */
 public class InfinityTimeSystem extends AbstractGameSystem implements TimeManager {
 
     long time;
 
     @Override
     public void stop() {
-        super.stop(); // To change body of generated methods, choose Tools | Templates.
+        super.stop();
     }
 
     @Override
     public void update(final SimTime simTime) {
-        super.update(simTime); // To change body of generated methods, choose Tools | Templates.
+        super.update(simTime);
         time = simTime.getTime();
     }
 
     @Override
     public void start() {
-        super.start(); // To change body of generated methods, choose Tools | Templates.
+        super.start();
     }
 
     @Override

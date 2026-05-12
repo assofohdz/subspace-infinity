@@ -28,25 +28,8 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Owns the lifecycle of loaded maps: which arenas are loaded where, the spiral
- * auto-placement walk, and the async load/unload/swap pipeline. The per-tile
- * decode + cell-write strategy lives in {@link LegacyMapProjector}; the wall-run
- * light-emitter strategy lives in {@link WallLightDecorator}. This class
- * coordinates those — it does not write world cells directly.
- *
- * <p>Map names are unique identifiers of each map.
- *
- * @author Asser
- */
+/** Map lifecycle owner — spiral auto-placement + async load/unload/swap; delegates cell-writes to {@link LegacyMapProjector} + {@link WallLightDecorator}. */
 public class MapSystem extends BaseInfinitySystem {
-
-  // Wire-stable action selectors for GameSession.map(...) used to live here as
-  // public static final byte CREATE/READ/UPDATE/DELETE; clients reached across
-  // the api → server boundary to read them and only slipped past
-  // LayerDependencyTest because the Java compiler inlines byte constants at
-  // the call site. Replaced by the typed infinity.events.MapAction enum on the
-  // RMI surface; see GameSession#map(MapAction, Vec3d).
 
   public static final int MAP_SIZE = InfinityConstants.TILE_SIZE;
   public static final float NOISE4J_CORRIDOR = 0f;
@@ -55,9 +38,7 @@ public class MapSystem extends BaseInfinitySystem {
 
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
   private final String mapDirectory = "Maps";
-  // Map that holds all block coordinates for a given map:
   private final Map<String, Set<Vec3d>> activeMaps = new HashMap<>();
-  // Map that holds the offset coordinates of each map:
   private final Map<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
   private Vec3d currentMapLoc = new Vec3d(-1, 0, -1);
   private SimTime time;

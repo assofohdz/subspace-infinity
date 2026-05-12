@@ -17,17 +17,9 @@ import com.simsilica.sim.SimTime;
 
 import infinity.es.Gold;
 
-/**
- * This state is meant to keep track of resources that can be spent.
- *
- * @author ss
- */
+/** Tracks spendable resources (Gold, etc.). Tower/gold-economy is shelved; values are co-located until reactivated. */
 public class ResourceSystem extends AbstractGameSystem {
 
-    // Tuning defaults — Pattern 4 candidates. Tower / gold-economy is on the
-    // shelf today (no active gameplay), so per-arena promotion waits until
-    // the feature comes back. Until then they're co-located here so the
-    // file is self-contained.
     private static final double RESOURCE_UPDATE_INTERVAL = 1;
     private static final double GOLD_PER_SECOND = 10000;
     private static final int TOWER_COST = 1000;

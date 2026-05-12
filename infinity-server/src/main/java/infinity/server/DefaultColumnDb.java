@@ -51,10 +51,7 @@ import com.google.common.cache.*;
 import com.simsilica.mworld.*;
 import com.simsilica.mworld.io.ColumnDataProtocol;
 
-/**
- *
- *  @author Asser
- */
+/** Backing column-database for world cell storage. */
 public class DefaultColumnDb extends AbstractColumnDb {
   static Logger log = LoggerFactory.getLogger(DefaultColumnDb.class);
 

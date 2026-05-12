@@ -80,11 +80,7 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This system spawns prizes and handles prize acquisition.
- *
- * @author Asser
- */
+/** Spawns prizes per {@link Spawner} cadence + dispatches per-type {@link PrizeApplier}s on ship contact. */
 public class PrizeSystem extends BaseInfinitySystem implements ContactListener<EntityId, MBlockShape> {
 
   static Logger log = LoggerFactory.getLogger(PrizeSystem.class);

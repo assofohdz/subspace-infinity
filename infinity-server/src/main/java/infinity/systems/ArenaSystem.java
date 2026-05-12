@@ -33,53 +33,15 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Arena lifecycle manager. Owns a registry of arenas the server knows about and drives their state
- * toward a declared "desired" set via a reconcile loop on each tick.
- *
- * <p>Flow:
- *
- * <ol>
- *   <li><b>Discovery</b> — at first {@link #update}, scan {@code arenas/&#47;arena.conf} on the
- *       classpath and register each folder as {@link ArenaState#NOT_LOADED}.
- *   <li><b>Zone startup config</b> — read {@code zone.conf}'s {@code [Startup] AutoLoad=} key and
- *       flip {@code desired=true} for each listed arena.
- *   <li><b>Reconcile</b> — every tick, compare each record's {@code desired} bit to its {@link
- *       ArenaState}. Desired but not loaded → load; not desired but loaded → unload.
- * </ol>
- *
- * Chat commands ({@code ~loadArena}, {@code ~loadMap}, {@code ~unloadMap}) are a thin imperative
- * face over the same desired-state API — they flip the bit and call {@link #reconcile} immediately
- * so they can return an accurate status string.
- *
- * @author Asser
- */
+/** Arena lifecycle manager — registry of arenas + per-tick reconcile of {@code desired} ↔ {@link ArenaState}. */
 public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
 
   static final Logger log = LoggerFactory.getLogger(ArenaSystem.class);
 
-  /** Lifecycle state of an arena in the registry. */
   public enum ArenaState {
-    /** Registered but not running. Transitions to {@link #LOADING} when {@code desired=true}. */
-    NOT_LOADED,
-    /** Load in progress. Currently transient (loads complete synchronously). */
-    LOADING,
-    /** Arena entity and settings are live; map block generation may still be streaming in. */
-    LOADED,
-    /** Unload in progress. Transient. */
-    UNLOADING,
-    /** Last attempt failed; the record stays here until manual retry clears it. */
-    FAILED
+    NOT_LOADED, LOADING, LOADED, UNLOADING, FAILED
   }
 
-  /**
-   * One registry row per known arena. Mutated only on the sim thread.
-   *
-   * <p>Package-private so {@link ArenaSpatialIndex} can read the
-   * {@code entityId} + {@code config} fields directly when resolving
-   * spatial queries (round 25 extraction). External code goes through
-   * the public accessors on {@link ArenaSystem}.
-   */
   static final class ArenaRecord {
     final String name;
     boolean desired;
@@ -87,14 +49,6 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     EntityId entityId;
     int arenaIndex = -1; // assigned by the slot allocator at load-time; -1 when not loaded
     String lastError;
-    /**
-     * Typed arena-scope config — the in-scope subset of what used to live in
-     * {@code arena.conf} (map / shipsScript / spawn / fragment list). Populated
-     * at load-time from {@code arena.groovy} when present, otherwise
-     * synthesised from the legacy INI so callers can read uniformly without
-     * caring which authoring format produced the values. Stays
-     * {@link ArenaConfig#EMPTY} until {@code doLoad} runs.
-     */
     ArenaConfig config = ArenaConfig.EMPTY;
 
     ArenaRecord(final String name) {
@@ -145,34 +99,9 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
   private final GroovyArenaLoader arenaLoader = new GroovyArenaLoader();
   private boolean bootstrapped;
 
-  /**
-   * Hot-reload watcher for Groovy files (the arena's {@code ships.groovy} +
-   * every {@code .groovy} fragment in {@code arena.groovy}'s
-   * {@code includeFragment} list). Round 24 split: state + polling cadence
-   * + register/unregister methods all moved to {@link ArenaReloadWatcher}.
-   * Reload callbacks delegate back to the public
-   * {@link #handleShipsScriptReload} / {@link #handleFragmentReload}
-   * methods on this class so the watcher stays thin.
-   */
   private final ArenaReloadWatcher reloadWatcher = new ArenaReloadWatcher(this);
 
-  /**
-   * Spatial-query index for world↔arena lookups + per-arena spawn
-   * resolution. Round 25 split: the {@code (ArenaId + ArenaMap)}
-   * EntitySet, {@code findArenaAt}/{@code findArenaEntityAt},
-   * {@code getArenaSpawn}, {@code getArenaMap}, {@code worldToArena} +
-   * the static {@code arenaToWorld} all moved to
-   * {@link ArenaSpatialIndex}. Public methods on this class remain as
-   * thin forwarders so existing callers don't churn (mirrors the
-   * {@link ArenaReloadWatcher} precedent — internal plumbing, public
-   * face stable).
-   */
   private final ArenaSpatialIndex spatialIndex = new ArenaSpatialIndex(this);
-
-  // Chat command patterns + handlers moved to ArenaCommandsSystem in
-  // round 23 (class-level CC split mirroring ChecksShipsSystem). This
-  // class now exposes the desired-state mutators + lookup accessors that
-  // ArenaCommandsSystem needs; the chat-binding glue lives there.
 
   @Override
   protected void initialize() {
@@ -207,27 +136,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     }
   }
 
-  /**
-   * Register a per-arena watch on a Groovy file so a dev-mode edit fires
-   * {@code onChanged} on the next throttled poll. No-op if the file isn't
-   * reachable on disk (production / classpath-only deployments) or the path
-   * is blank.
-   */
-  /* ---------------------------------------------------------------- */
-  /* Hot-reload callbacks (invoked by ArenaReloadWatcher)             */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * Reload callback fired by {@link ArenaReloadWatcher} when an arena's
-   * {@code shipsScript} file changes on disk. Re-applies the typed config
-   * via {@code ConfigRegistrySystem.load} and reprojects every live ship
-   * via {@link ShipSpawnSystem#reprojectAll}.
-   *
-   * <p>Looks up the arena record fresh so a swap-map / hot-edit cycle
-   * picks up the latest {@link ArenaConfig} rather than a stale snapshot
-   * captured at watch-registration time. No-op if the arena has been
-   * unloaded between watch and callback (record gone from registry).
-   */
+  /** Reapplies typed config and reprojects every live ship. */
   public void handleShipsScriptReload(final ArenaId arenaId, final String shipsScript) {
     final ArenaRecord rec = registry.get(arenaId.getArena());
     if (rec == null) {
@@ -242,13 +151,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     }
   }
 
-  /**
-   * Reload callback fired by {@link ArenaReloadWatcher} when a fragment
-   * referenced by {@code arena.groovy}'s {@code includeFragment} list
-   * changes on disk. Asks {@code ConfigRegistrySystem} to rebuild the
-   * merged settings store; consumers re-read on next consumption — no
-   * event/callback fires beyond this.
-   */
+  /** Rebuilds the merged settings store; consumers re-read on next use. */
   public void handleFragmentReload(final ArenaId arenaId, final String fragmentPath) {
     final ArenaRecord rec = registry.get(arenaId.getArena());
     if (rec == null) {
@@ -301,16 +204,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     return ArenaSpatialIndex.arenaToWorld(map, localX, localZ);
   }
 
-  /**
-   * Return the typed arena-scope config for the named arena. Returns
-   * {@link ArenaConfig#EMPTY} when the arena is unknown or hasn't reached the
-   * {@code LOADED} state yet, so hot-path callers can skip null-checks and
-   * just read {@code .wallFriction()} / {@code .mapFile()} / etc. uniformly.
-   *
-   * <p>Read-only view of {@code rec.config}; the config is replaced atomically
-   * (whole-record swap) when an arena reloads, so a concurrent reader on the
-   * physics thread never sees a torn record.
-   */
+  /** {@link ArenaConfig#EMPTY} when unknown / not-yet-loaded — never null. */
   public ArenaConfig getArenaConfig(final String arenaName) {
     final ArenaRecord rec = registry.get(arenaName);
     if (rec == null) {
@@ -331,61 +225,27 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     return spatialIndex.worldToArena(arenaName, world);
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Package-private accessors for {@link ArenaSpatialIndex}          */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * Look up the registry record for {@code arenaName}, or {@code null}
-   * if the arena hasn't been registered. Exposed for
-   * {@link ArenaSpatialIndex} so its query methods can read
-   * {@link ArenaRecord#entityId} + {@link ArenaRecord#config} without
-   * each lookup going through three accessors.
-   */
   @Nullable
   ArenaRecord lookupRecord(final String arenaName) {
     return registry.get(arenaName);
   }
 
-  /**
-   * The shared {@link ConfigRegistrySystem} reference resolved at
-   * {@link #initialize()} time. Exposed for {@link ArenaSpatialIndex}'s
-   * {@code getArenaSpawn} which needs to read each arena's typed
-   * {@link SpawnConfig}.
-   */
   ConfigRegistrySystem getConfigRegistry() {
     return configRegistry;
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Desired-state API                                                */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * Declare whether the named arena should be running. Idempotent; the reconciler (called from
-   * {@link #update}) makes reality match. If the arena is not yet in the registry it is created.
-   */
+  /** Declare whether the named arena should be running; reconcile makes reality match. */
   public void setDesired(final String arenaName, final boolean desired) {
     registry.computeIfAbsent(arenaName, ArenaRecord::new).desired = desired;
   }
 
-  /**
-   * Programmatic entry point for loading an arena: flips desired=true and reconciles now. The
-   * returned string reflects the state reached by that reconcile step.
-   */
+  /** Flips desired=true and reconciles now; returns the reached state. */
   public String loadArena(final String arenaName) {
     setDesired(arenaName, true);
     reconcile(arenaName);
     return describe(arenaName);
   }
 
-  /**
-   * Render a one-line state description for {@code arenaName}. Used by
-   * {@link #loadArena} and (via the public {@link #getArenaState} / {@link
-   * #getArenaError} accessors) by {@link ArenaCommandsSystem}'s identical
-   * helper. Inline here to keep {@code loadArena}'s public-facing string
-   * stable without coupling ArenaSystem to ArenaCommandsSystem.
-   */
   private String describe(final String arenaName) {
     return ArenaLogic.describeArena(
         getArenaState(arenaName), arenaName, () -> getArenaError(arenaName));
@@ -408,7 +268,6 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     }
   }
 
-  /** Scan {@code arenas/&#47;arena.conf} on the classpath and register each folder. */
   private void discoverArenas() throws IOException, URISyntaxException {
     ArenaLogic.discoverArenaNames(
         ARENA_ROOT,
@@ -423,38 +282,13 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     }
   }
 
-  // stripTrailingSlash moved to ArenaLogic.stripTrailingSlash.
-
-  /**
-   * Resolve the arena's typed config from {@code arenas/<arenaName>/arena.groovy}.
-   * Pure parse — no side effects. Fragment loading + typed-record assembly
-   * happens later via {@link ConfigRegistrySystem#load}.
-   *
-   * @return the parsed config, or {@code null} if the Groovy file is missing
-   *     entirely; callers fail-fast in that case (no INI fallback —
-   *     {@code arena.conf} support was retired in zone-arena-to-groovy #3)
-   */
+  /** Pure parse; {@code null} when arena.groovy is missing (callers fail-fast). */
   @Nullable
   private ArenaConfig loadArenaConfig(final String arenaName) {
     return arenaLoader.load(arenaName);
   }
 
-  /**
-   * Load {@code zone.groovy} into {@link #zoneConfig} and set desired=true for each
-   * arena in {@code autoLoad}. Idempotent — safe to call once at startup.
-   *
-   * <p>Also resolves {@code zone/zone.groovy} on disk and arms a
-   * {@link GroovyFileWatcher} so subsequent edits hot-reload the held
-   * snapshot. Resolution falls back to {@code null} when the file is
-   * classpath-only (production deployments without a dist install of
-   * {@code zone/}); live reload is silently disabled in that case.
-   *
-   * <p>Reload semantics: only the in-memory {@link ZoneConfig} snapshot is
-   * replaced. {@code autoLoad} is NOT re-applied (autoLoad is a
-   * startup-only intent — already-loaded arenas don't get unloaded if the
-   * list shrinks). Hot-reloadable knobs are the ones consumers re-read
-   * each call (repelFriendlies, scriptPollIntervalSeconds, enterSpawn).
-   */
+  /** Loads zone.groovy, sets desired=true for each autoLoad arena, arms hot-reload. autoLoad is startup-only — reload doesn't re-apply it. */
   private void applyZoneStartupConfig() {
     zoneConfig = new GroovyZoneLoader().load();
     final java.nio.file.Path onDisk =
@@ -487,18 +321,10 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     }
   }
 
-  /**
-   * The zone-scope config loaded at startup. Returns {@link ZoneConfig#EMPTY}
-   * before {@link #applyZoneStartupConfig()} runs (idempotent fallback so
-   * callers don't need null guards).
-   */
+  /** {@link ZoneConfig#EMPTY} before startup-apply runs — never null. */
   public ZoneConfig getZoneConfig() {
     return zoneConfig;
   }
-
-  /* ---------------------------------------------------------------- */
-  /* Reconciler                                                       */
-  /* ---------------------------------------------------------------- */
 
   private void reconcileAll() {
     for (final ArenaRecord rec : registry.values()) {
@@ -506,14 +332,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     }
   }
 
-  /**
-   * Drive one arena's state toward its declared {@code desired} bit. Called
-   * each tick by {@link #reconcileAll} and synchronously by {@link #loadArena}
-   * + {@link ArenaCommandsSystem}'s {@code ~unloadMap} so chat handlers can
-   * return an accurate post-action status string. Package-private so
-   * {@link ArenaCommandsSystem} (same package) can reach it without exposing
-   * it on the public API.
-   */
+  /** Drives one arena's state toward its desired bit. */
   void reconcile(final String arenaName) {
     final ArenaRecord rec = registry.get(arenaName);
     if (rec == null) {
@@ -539,9 +358,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
       }
       rec.arenaIndex = allocatedSlot;
 
-      // arena.groovy is the only authoring surface for arena-scope config —
-      // INI arena.conf was retired in zone-arena-to-groovy #3. A missing
-      // arena.groovy is a configuration error rather than a fallback case.
+      // arena.groovy is the only authoring surface; missing arena.groovy is a config error, not a fallback.
       final ArenaConfig groovyConfig = loadArenaConfig(rec.name);
       if (groovyConfig == null) {
         fail(rec, null, "No arena.groovy found for arena '" + rec.name + "'");
@@ -561,12 +378,8 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
         fail(rec, arena, "loadMap returned false for " + mapFile);
         return;
       }
-      // Ghost-cube setup: covers the full map bounds (1 TILE_SIZE per arena slot).
-      // Sphere-vs-cube contacts route through ContactSystem; Sensor marker
-      // makes ContactSystem disable the contact so the cube doesn't block ships,
-      // while still fanning out to ArenaMembershipSystem for enter/leave events.
-      // LargeGridCell is set directly to avoid moss's LargeGridIndexSystem
-      // dropping the second arena loaded in the same frame.
+      // Ghost-cube: Sensor marker makes ContactSystem disable contacts (cube doesn't block);
+      // LargeGridCell set directly to dodge moss dropping the second arena loaded in the same frame.
       ArenaLogic.configureGhostCube(
           ed, arena,
           maps.getMapBoundsMin(mapFile), maps.getMapBoundsMax(mapFile),
@@ -584,19 +397,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     }
   }
 
-  /**
-   * Translate each {@link SpawnerSpec} from the arena's typed config into
-   * a real spawner entity inside the loaded arena. Arena-local {@code (x, z)}
-   * is mapped to world coords via {@link #arenaToWorld}, then handed to
-   * {@link infinity.sim.MapFactory#createSpawner(EntityData, EntityId,
-   * PhysicsSpace, long, Vec3d, double, boolean, double, int, long,
-   * java.util.Map, int, double, int, boolean)} so the
-   * resulting spawner carries the per-spawner {@code maxCount} and (optional)
-   * {@code PrizeDecayMillis}. The spawner is tagged with the arena's
-   * {@link ArenaId} so {@code PrizeSystem}'s membership-aware lookups (e.g.
-   * the {@code ShipConfig} read in {@code handleAcquireBomb}) keep working
-   * for the prizes it produces.
-   */
+  /** Materializes each {@link SpawnerSpec} as a real spawner entity tagged with the arena's {@link ArenaId}. */
   private void materializePrizeSpawners(final ArenaRecord rec, final EntityId arenaEntity) {
     @SuppressWarnings("rawtypes")
     final PhysicsSpace phys = requireSystem(PhysicsSpace.class);
@@ -636,7 +437,6 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     }
   }
 
-  /** Find and reserve a free arena slot. Returns the index or {@code -1} if the table is full. */
   private int allocateSlot() {
     for (int i = 0; i < arenaSlots.length; i++) {
       if (!arenaSlots[i]) {
@@ -647,7 +447,6 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     return -1;
   }
 
-  /** Release the slot this record held (idempotent — no-op if it wasn't holding one). */
   private void releaseSlot(final ArenaRecord rec) {
     if (rec.arenaIndex >= 0 && rec.arenaIndex < arenaSlots.length) {
       arenaSlots[rec.arenaIndex] = false;
@@ -655,40 +454,19 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     rec.arenaIndex = -1;
   }
 
-  /* ---------------------------------------------------------------- */
-  /* Public accessors for ArenaCommandsSystem                         */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * Lifecycle state of the named arena, or {@code null} if the arena is not
-   * in the registry. Exposed for {@link ArenaCommandsSystem}'s {@code describe}
-   * helper so command handlers can render state-aware status strings without
-   * reaching into the private registry.
-   */
   @Nullable
   public ArenaState getArenaState(final String arenaName) {
     final ArenaRecord rec = registry.get(arenaName);
     return rec == null ? null : rec.state;
   }
 
-  /**
-   * Last error message recorded for an arena in {@link ArenaState#FAILED}
-   * state, or {@code null} if no error / arena absent. Companion to
-   * {@link #getArenaState} for the FAILED branch of the state-render helper.
-   */
   @Nullable
   public String getArenaError(final String arenaName) {
     final ArenaRecord rec = registry.get(arenaName);
     return rec == null ? null : rec.lastError;
   }
 
-  /**
-   * In-place map swap for a loaded arena. Returns a human-readable status
-   * string (rendered by {@code ~swapMap} chat command). The arena entity,
-   * name, and settings are preserved; only the underlying map cells change
-   * via {@link MapSystem#swapMap}, and {@link ArenaRecord#config} is
-   * rebuilt with the new map name.
-   */
+  /** In-place map swap; preserves arena identity + settings. */
   public String swapArenaMap(final String arenaName, final String newMap) {
     final ArenaRecord rec = registry.get(arenaName);
     if (rec == null) {
@@ -702,10 +480,6 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     }
     return outcome.message;
   }
-
-  /* ---------------------------------------------------------------- */
-  /* ArenaManager API                                                 */
-  /* ---------------------------------------------------------------- */
 
   @Override
   public String[] getActiveArenas() {

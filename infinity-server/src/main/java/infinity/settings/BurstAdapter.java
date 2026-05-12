@@ -5,28 +5,10 @@ package infinity.settings;
 
 import infinity.config.BurstFireConfig;
 
-/**
- * Typed Groovy adapter for {@code burst.groovy} fragments. Parses a
- * {@code burst { … }} block into a {@link BurstFireConfig} record. Replaces
- * the legacy {@code GroovyWeaponsLoader.loadBurst}.
- *
- * <p>Script DSL:
- *
- * <pre>{@code
- * burst {
- *     damageLevel  515    // [Burst] BurstDamageLevel
- * }
- * }</pre>
- *
- * <p>Subspace VIE has no canonical {@code BurstShrapnelCount} or
- * {@code BurstAliveTime} keys; {@link BurstFireConfig#projectileCount} and
- * {@link BurstFireConfig#decayMs} stay on their Infinity defaults until/unless
- * a future slice surfaces them through this DSL.
- */
+/** Typed adapter for {@code burst {…}} → {@link BurstFireConfig}. REFERENCE.md §Burst. */
 public final class BurstAdapter
     extends SingleClosureAdapter<BurstFireConfig, BurstAdapter.BurstBuilder> {
 
-  /** Stateless; safe to share across calls. */
   public static final BurstAdapter INSTANCE = new BurstAdapter();
 
   private BurstAdapter() {

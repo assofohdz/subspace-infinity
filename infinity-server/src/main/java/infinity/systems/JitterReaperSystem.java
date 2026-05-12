@@ -10,19 +10,7 @@ import com.simsilica.sim.SimTime;
 
 import infinity.es.Jitter;
 
-/**
- * Removes expired {@link Jitter} components from victims. The component
- * carries a deadline ({@code endTime}); this reaper walks the active
- * jittering set each tick and clears entries where {@code now &gt;= endTime}.
- *
- * <p>Mirrors the {@link DelaySystem} pattern. Pairs with
- * {@code WeaponsDamageLogic.stampJitter} (the only writer; called from
- * {@code WeaponsImpactSystem} for direct hits and {@code WeaponsReaperSystem}
- * for splash) and the client-side {@code JitterState} (the consumer). See
- * slice 9c-JitterTime.
- *
- * @author Asser
- */
+/** Reaps expired {@link Jitter} components (endTime ≤ now). */
 public class JitterReaperSystem extends AbstractGameSystem {
 
   private EntityData ed;

@@ -10,19 +10,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 
-/**
- * Stateless helpers extracted from {@link MapSystem} to keep the host
- * system's class-level cyclomatic-complexity sum under PMD's class threshold
- * without fragmenting the physics-critical-path state across two systems.
- *
- * <p>All methods are {@code public static} (or {@code static} package-private
- * where appropriate); callers pass the {@link Logger} explicitly so this class
- * holds no state and emits log messages under the host class's logger name —
- * preserving log-output behaviour exactly.
- *
- * <p>Pure data containers ({@link MapBuildStats}, {@link Direction}) also
- * live here so they don't bloat the host system's class CC.
- */
+/** Stateless helpers + pure data containers for {@link MapSystem}. */
 public final class MapSystemLogic {
 
   private MapSystemLogic() {

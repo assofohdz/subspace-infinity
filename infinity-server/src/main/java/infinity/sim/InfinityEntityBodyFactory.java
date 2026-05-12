@@ -19,13 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
-/**
- * This class is a factory for creating entity bodies. It is used by the MPhysSystem to create the
- * bodies for entities that have the SpawnPosition and ShapeInfo components. It is also used by the
- * MPhysDebugState to create the debug shapes for entities that have the ShapeInfo component.
- *
- * @author AFahrenholz
- */
+/** Factory for entity bodies from {@link SpawnPosition} + {@link ShapeInfo}. */
 public class InfinityEntityBodyFactory
     extends EntityBodyFactory<MBlockShape> {
 

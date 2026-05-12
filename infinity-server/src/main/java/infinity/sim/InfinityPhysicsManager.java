@@ -5,11 +5,7 @@ package infinity.sim;
 
 import com.simsilica.mphys.PhysicsSpace;
 
-/**
- * Default {@link PhysicsManager} backed by a {@link PhysicsSpace}.
- *
- * @author AFahrenholz
- */
+/** {@link PhysicsManager} adapter over a {@link PhysicsSpace}. */
 public class InfinityPhysicsManager implements PhysicsManager {
 
     PhysicsSpace<?, ?> space;

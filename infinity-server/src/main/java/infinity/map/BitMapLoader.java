@@ -9,10 +9,7 @@ import java.io.InputStream;
 import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetLoader;
 
-/**
- *
- * @author Asser
- */
+/** JME {@link AssetLoader} producing {@link BitMap}. */
 public class BitMapLoader implements AssetLoader {
 
     @Override

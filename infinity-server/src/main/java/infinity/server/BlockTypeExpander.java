@@ -15,46 +15,15 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Server-side bootstrap helpers for the per-arena tile-block range
- * (block types {@code 100..3139}). Two coordinated steps:
- *
- * <ol>
- *   <li>{@link #expandBlockTypeIndex()} grows {@link BlockTypeIndex} from
- *       Moss's default 82-slot array to {@link InfinityConstants#BLOCK_TYPE_INDEX_SIZE}
- *       so tile types have somewhere to live, filling the new slots with
- *       Moss's {@code INVISIBLE_BLOCK_TYPE} stand-in. Without this,
- *       collider lookups succeed but {@code CubeCollider.getSphereContact}
- *       early-returns because {@code dirMask == 0} — see
- *       {@link com.simsilica.mblock.MaskUtils#recalculateSideMasks}.
- *   <li>{@link #expandCollidersForTiles(Collider[])} installs a unit-cube
- *       collider for every visible tile in every arena slot, leaving
- *       flyover (173–175) and flyunder (176–190) tiles' colliders null so
- *       ships pass through.
- * </ol>
- *
- * <p>Extracted from {@code GameServer} so the bootstrap orchestration stays
- * focused on lifecycle / network setup, while this class owns the tile-range
- * arithmetic and the reflection into {@link BlockTypeIndex}'s static fields.
- * Server-side only; the client's {@code BlockGeometryIndex} performs an
- * analogous (visual) expansion separately.
- */
+/** Server bootstrap for the per-arena tile-block range (100..3139): expand {@link BlockTypeIndex}, install per-tile colliders. */
 public final class BlockTypeExpander {
 
   private static final Logger log = LoggerFactory.getLogger(BlockTypeExpander.class);
 
   private BlockTypeExpander() {
-    // utility class
   }
 
-  /**
-   * Expands the {@link BlockTypeIndex} static array to
-   * {@link InfinityConstants#BLOCK_TYPE_INDEX_SIZE}, filling tile slots with
-   * the {@code INVISIBLE_BLOCK_TYPE} stand-in so {@code MaskUtils} treats
-   * them as solid cubes. Idempotent — no-op if the array is already big
-   * enough. Uses reflection because {@code BlockTypeIndex} exposes no
-   * resize API.
-   */
+  /** Idempotent; fills new slots with {@code INVISIBLE_BLOCK_TYPE} so {@code MaskUtils} sees them as solid. Uses reflection — {@link BlockTypeIndex} has no resize API. */
   public static void expandBlockTypeIndex() {
     try {
       final BlockType[] currentTypes = BlockTypeIndex.getTypes();
@@ -94,26 +63,7 @@ public final class BlockTypeExpander {
     }
   }
 
-  /**
-   * Installs colliders for tile block types. Visible tiles get a unit-cube
-   * collider; flyover (173-175) and flyunder (176-190) stay null so ships
-   * pass through. The same per-tile pattern is repeated for every arena
-   * slot ({@code arenaIndex} 0..{@link InfinityConstants#MAX_ARENAS}-1) at
-   * offset {@code TILE_TYPE_BASE + arenaIndex * TILE_COUNT}, mirroring the
-   * encoding {@code ArenaSystem} uses to allocate tile-type ranges per
-   * loaded arena. Without the per-arena loop, ships colliding with a tile
-   * in arena 1+ would index off the end of the colliders array (or hit a
-   * null collider) and crash in
-   * {@code MBlockCollisionSystem.getCollider}.
-   *
-   * @param baseColliders colliders produced by {@code ColliderFactories}
-   *     against the (already-expanded) {@link BlockTypeIndex}; may be
-   *     shorter than {@link InfinityConstants#BLOCK_TYPE_INDEX_SIZE} on
-   *     the first call
-   * @return either {@code baseColliders} (when already sized) or a copy
-   *     padded to the full {@code BLOCK_TYPE_INDEX_SIZE} with the per-arena
-   *     tile colliders installed
-   */
+  /** Per-arena tile colliders: visible tiles get a unit-cube collider; flyover (173-175) and flyunder (176-190) stay null. */
   public static Collider[] expandCollidersForTiles(final Collider[] baseColliders) {
     final Collider[] expanded =
         baseColliders.length >= InfinityConstants.BLOCK_TYPE_INDEX_SIZE
