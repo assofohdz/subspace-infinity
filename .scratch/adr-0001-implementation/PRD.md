@@ -333,10 +333,10 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 
 ### Fresh-find aspects
 
-- ⬜ Frequency — `FrequencyChange`, `FrequencySystem` becomes canonical writer, migrate `AvatarSystem.requestFreqChange` + `FrequencySystem.changeFrequency` emit sites
-- ⬜ ShipType — `ShipTypeChange`, canonical writer TBD (`AvatarSystem` vs new `ShipTypeSystem`), migrate `AvatarSystem.requestShipChange`
-- ⬜ WarpTo — `WarpToChange`, `WarpSystem` becomes canonical writer, migrate `AvatarSystem` + four `WarpSystem` emit sites
-- ⬜ Impulse — snapshot-annotation only; no code change
+- ✅ **Frequency** — `FrequencyChange(int newFrequency)` value-replacement; `FrequencySystem` canonical writer (mid-game); 4 mid-game emit sites migrated; spawn-seed direct writes retained per ADR exception; `Frequency` stays wire-registered, `FrequencyChange` server-only. Landed 79c49e70.
+- ✅ **ShipType** — `ShipTypeChange(Ship newShipType)` value-replacement; `AvatarSystem` canonical writer (option a — already owns swap lifecycle); drain stamps `ShipType + ResetLivePool` atomically for same-flush reproject. Landed 79c49e70.
+- ✅ **WarpTo** — `WarpToChange(Vec3d target)` value-replacement; `WarpSystem` canonical drain; 5 emit sites migrated with `ChangeTarget(target, source)` attribution semantic. Old `WarpTo` intent component deleted. Landed 79c49e70.
+- ✅ **Impulse** — spot-check 2026-05-12: zero server-side reads of `Impulse` outside sio2-mphys integrator. Promoted from "multi-writer violations" to "canonical writers" snapshot. Landed 79c49e70.
 
 ### Non-ship audit (Yes/No/Defer per aspect)
 
