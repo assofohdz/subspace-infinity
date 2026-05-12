@@ -2,45 +2,55 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.systems.ship.applier;
 
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
+import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 import com.simsilica.es.base.DefaultEntityData;
-import infinity.es.ship.toggles.XRadar;
-import infinity.es.ship.toggles.XRadarStatus;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.toggles.XRadarActive;
+import infinity.es.ship.toggles.XRadarActiveChange;
+import infinity.es.ship.toggles.XRadarStats;
 import org.junit.Test;
 
 /**
  * Status-family applier test for XRadar — same tri-state shape as
- * {@link CloakPrizeApplierTest}; one happy-path + one no-op-on-zero
- * case to pin the parallel implementation. AntiWarp follows the same
- * shape; symmetry is verified by inspection.
+ * {@link CloakPrizeApplierTest}. AntiWarp follows the same shape; symmetry verified by inspection.
  */
 public class XRadarPrizeApplierTest {
 
+  private static int countChangeHolders(final EntityData ed) {
+    final EntitySet set = ed.getEntities(XRadarActiveChange.class, ChangeTarget.class);
+    try {
+      return set.size();
+    } finally {
+      set.release();
+    }
+  }
+
   @Test
-  public void apply_statusOne_enablesXRadar() {
+  public void apply_statusOne_emitsChange() {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId ship = ed.createEntity();
-    ed.setComponent(ship, new XRadarStatus(1));
-    ed.setComponent(ship, new XRadar(false));
+    ed.setComponent(ship, new XRadarStats(1, 200.0));
+    ed.setComponent(ship, new XRadarActive(false));
 
     new XRadarPrizeApplier().apply(ship, new PrizeApplierContext(ed, null, null));
 
-    assertTrue("Acquirable ship must have XRadar toggled on",
-        ed.getComponent(ship, XRadar.class).isEnabled());
+    assertEquals("Acquirable ship must produce exactly one Change holder",
+        1, countChangeHolders(ed));
   }
 
   @Test
   public void apply_statusZero_noop() {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId ship = ed.createEntity();
-    ed.setComponent(ship, new XRadarStatus(0));
+    ed.setComponent(ship, new XRadarStats(0, 0.0));
 
     new XRadarPrizeApplier().apply(ship, new PrizeApplierContext(ed, null, null));
 
-    assertNull("Forbidden ship must not gain an XRadar toggle",
-        ed.getComponent(ship, XRadar.class));
+    assertEquals("Forbidden ship must not produce any Change holders",
+        0, countChangeHolders(ed));
   }
 }

@@ -126,11 +126,15 @@ import infinity.systems.ChecksWorldSystem;
 import infinity.systems.RegionSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ContactSystem;
+import infinity.systems.ship.AntiwarpSystem;
+import infinity.systems.ship.CloakSystem;
 import infinity.systems.ship.EnergySystem;
 import infinity.systems.ship.EnergyStatsSystem;
 import infinity.systems.ship.RotationSystem;
 import infinity.systems.ship.SpeedSystem;
+import infinity.systems.ship.StealthSystem;
 import infinity.systems.ship.ThrustSystem;
+import infinity.systems.ship.XRadarSystem;
 import infinity.systems.FrequencySystem;
 import infinity.systems.GravitySystem;
 import infinity.systems.InfinityTimeSystem;
@@ -277,6 +281,15 @@ public class GameServer {
     systems.register(RotationSystem.class, new RotationSystem());
     systems.register(SpeedSystem.class, new SpeedSystem());
     systems.register(ThrustSystem.class, new ThrustSystem());
+    // Status-family slice (ADR 0001 wave 3a) — Cloak/Stealth/XRadar/Antiwarp Continuous-half
+    // writers. Stats records are spawn-only (ShipStatusProjector via ShipSpawnSystem) so no
+    // *StatsSystem needed (2-level aspect — PRD §"2-level vs 3-level aspects"). Register
+    // BEFORE DecaySystem: future temporary toggle buffs need apply+cache on add → reaper
+    // destroys → next-tick writer reverses on remove (same shape as movement slice).
+    systems.register(CloakSystem.class, new CloakSystem());
+    systems.register(StealthSystem.class, new StealthSystem());
+    systems.register(XRadarSystem.class, new XRadarSystem());
+    systems.register(AntiwarpSystem.class, new AntiwarpSystem());
 
     // Add some standard systems
     systems.addSystem(new DecaySystem());

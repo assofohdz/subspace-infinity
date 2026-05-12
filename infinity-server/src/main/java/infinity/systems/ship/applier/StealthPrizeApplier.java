@@ -5,22 +5,16 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.toggles.Stealth;
-import infinity.es.ship.toggles.StealthStatus;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.toggles.StealthActive;
+import infinity.es.ship.toggles.StealthActiveChange;
+import infinity.es.ship.toggles.StealthStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>STATUS family.</b> Activates the {@link Stealth} toggle on the ship
- * when the per-ship {@link StealthStatus} permits it.
- *
- * <p>Subspace canonical encoding (REFERENCE.md "Ship abilities"):
- * {@code StealthStatus} is tri-state — {@code 0} = forbidden (this prize
- * is a no-op), {@code 1} = acquirable via prize, {@code 2} = acquirable
- * + starts active at spawn. Apply respects that signal: if
- * {@code StealthStatus} is missing or {@code 0}, no-op. Otherwise
- * stamp {@code Stealth(true)} so the {@code StatusDrainSystem} starts
- * draining energy at the per-ship rate from {@code StealthEnergy}.
+ * Activates {@link StealthActive} when {@link StealthStats#statusTier()} permits. Subspace canonical
+ * tri-state per REFERENCE.md {@code ## Stealth}. See ADR 0001 + {@link CloakPrizeApplier}.
  */
 public final class StealthPrizeApplier implements PrizeApplier {
 
@@ -29,14 +23,19 @@ public final class StealthPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final StealthStatus status = ed.getComponent(ship, StealthStatus.class);
-    if (status == null || status.getStatus() == 0) {
+    final StealthStats stats = ed.getComponent(ship, StealthStats.class);
+    if (stats == null || stats.statusTier() == 0) {
+      return;
+    }
+    final StealthActive current = ed.getComponent(ship, StealthActive.class);
+    if (current != null && current.isActive()) {
       return;
     }
     if (log.isInfoEnabled()) {
-      log.info("Ship {} picked up stealth prize (status={}); enabling Stealth toggle",
-          ship, status.getStatus());
+      log.info("Ship {} picked up stealth prize (tier={}); emitting StealthActiveChange(true)",
+          ship, stats.statusTier());
     }
-    ed.setComponent(ship, new Stealth(true));
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new StealthActiveChange(true));
   }
 }

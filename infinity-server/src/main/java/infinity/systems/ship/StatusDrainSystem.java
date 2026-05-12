@@ -8,40 +8,28 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.SimTime;
 import infinity.es.ship.Energy;
-import infinity.es.ship.toggles.Antiwarp;
-import infinity.es.ship.toggles.AntiwarpEnergy;
-import infinity.es.ship.toggles.Cloak;
-import infinity.es.ship.toggles.CloakEnergy;
-import infinity.es.ship.toggles.Stealth;
-import infinity.es.ship.toggles.StealthEnergy;
-import infinity.es.ship.toggles.XRadar;
-import infinity.es.ship.toggles.XRadarEnergy;
+import infinity.es.ship.toggles.AntiwarpActive;
+import infinity.es.ship.toggles.AntiwarpStats;
+import infinity.es.ship.toggles.CloakActive;
+import infinity.es.ship.toggles.CloakStats;
+import infinity.es.ship.toggles.StealthActive;
+import infinity.es.ship.toggles.StealthStats;
+import infinity.es.ship.toggles.XRadarActive;
+import infinity.es.ship.toggles.XRadarStats;
 import infinity.systems.BaseInfinitySystem;
 
 /**
- * Drains Health from ships with active Status-family toggles
- * ({@link Cloak}, {@link Stealth}). Subspace canonical conversion
- * (REFERENCE.md "Ship abilities"): the {@code *Energy} value is
- * <em>1000ths of an energy unit per centisecond</em> — so the per-tick
- * Health drain is {@code (energy / 1000) * (tpfSeconds * 100)} =
- * {@code energy * tpfSeconds / 10}.
- *
- * <p>Slice 6a wires Cloak + Stealth; Slice 6b extends to XRadar +
- * AntiWarp by adding two more EntitySets and per-tick drain calls.
+ * Drains {@link Energy} from ships with active Status-family toggles. Emits per-tick negative
+ * {@code EnergyChange} via {@link EnergySystem#damage} when an aspect's {@code *Active} is on.
+ * Drain rate (energy/sec) lives on each {@code *Stats} record; see REFERENCE.md "Ship abilities"
+ * and {@link ShipStatusProjector} for the 1000ths-per-cs → energy/sec conversion.
  *
  * <p><b>Behaviour notes (Subspace canon):</b>
  * <ul>
- *   <li>Drain runs unconditionally while a toggle is active —
- *       deliberately including when {@code Health} is at or near zero.
- *       {@link EnergySystem} handles the death transition; the drain
- *       system doesn't auto-disable the toggle on energy floor.
- *   <li>The toggle is turned <em>on</em> by the corresponding prize
- *       applier (or by spawn projection when {@code *Status == 2}).
- *       Player-initiated toggle-off is not wired in Slice 6a (no input
- *       binding yet); deferred to a later input slice.
- *   <li>The drain accumulates through {@link EnergySystem#damage}
- *       (negative delta), so it interleaves correctly with recharge,
- *       weapon-fire cost, and contact damage in the same tick.
+ *   <li>Drain runs unconditionally while a toggle is active — deliberately including at zero
+ *       energy. {@link EnergySystem} handles the death transition.
+ *   <li>The toggle is turned on by the corresponding prize applier (or spawn projection when
+ *       {@code statusTier == 2}). Player-initiated toggle-off is deferred to a later input slice.
  * </ul>
  */
 public class StatusDrainSystem extends BaseInfinitySystem {
@@ -56,10 +44,10 @@ public class StatusDrainSystem extends BaseInfinitySystem {
   protected void initialize() {
     final EntityData ed = requireSystem(EntityData.class);
     energySystem = requireSystem(EnergySystem.class);
-    cloakDrainers = ed.getEntities(Cloak.class, CloakEnergy.class, Energy.class);
-    stealthDrainers = ed.getEntities(Stealth.class, StealthEnergy.class, Energy.class);
-    xradarDrainers = ed.getEntities(XRadar.class, XRadarEnergy.class, Energy.class);
-    antiwarpDrainers = ed.getEntities(Antiwarp.class, AntiwarpEnergy.class, Energy.class);
+    cloakDrainers = ed.getEntities(CloakActive.class, CloakStats.class, Energy.class);
+    stealthDrainers = ed.getEntities(StealthActive.class, StealthStats.class, Energy.class);
+    xradarDrainers = ed.getEntities(XRadarActive.class, XRadarStats.class, Energy.class);
+    antiwarpDrainers = ed.getEntities(AntiwarpActive.class, AntiwarpStats.class, Energy.class);
   }
 
   @Override
@@ -91,61 +79,58 @@ public class StatusDrainSystem extends BaseInfinitySystem {
 
   private void drainCloak(final double tpf) {
     for (final Entity e : cloakDrainers) {
-      if (!e.get(Cloak.class).isEnabled()) {
+      if (!e.get(CloakActive.class).isActive()) {
         continue;
       }
-      applyDrain(e, e.get(CloakEnergy.class).getEnergy(), tpf);
+      applyDrain(e, e.get(CloakStats.class).energyDrainPerSecond(), tpf);
     }
   }
 
   private void drainStealth(final double tpf) {
     for (final Entity e : stealthDrainers) {
-      if (!e.get(Stealth.class).isEnabled()) {
+      if (!e.get(StealthActive.class).isActive()) {
         continue;
       }
-      applyDrain(e, e.get(StealthEnergy.class).getEnergy(), tpf);
+      applyDrain(e, e.get(StealthStats.class).energyDrainPerSecond(), tpf);
     }
   }
 
   private void drainXRadar(final double tpf) {
     for (final Entity e : xradarDrainers) {
-      if (!e.get(XRadar.class).isEnabled()) {
+      if (!e.get(XRadarActive.class).isActive()) {
         continue;
       }
-      applyDrain(e, e.get(XRadarEnergy.class).getEnergy(), tpf);
+      applyDrain(e, e.get(XRadarStats.class).energyDrainPerSecond(), tpf);
     }
   }
 
   private void drainAntiwarp(final double tpf) {
     for (final Entity e : antiwarpDrainers) {
-      if (!e.get(Antiwarp.class).isEnabled()) {
+      if (!e.get(AntiwarpActive.class).isActive()) {
         continue;
       }
-      applyDrain(e, e.get(AntiwarpEnergy.class).getEnergy(), tpf);
+      applyDrain(e, e.get(AntiwarpStats.class).energyDrainPerSecond(), tpf);
     }
   }
 
-  private void applyDrain(final Entity e, final int rate, final double tpf) {
-    final int drain = perTickDrain(rate, tpf);
+  private void applyDrain(final Entity e, final double ratePerSecond, final double tpf) {
+    final int drain = perTickDrain(ratePerSecond, tpf);
     if (drain > 0) {
       energySystem.damage(e.getId(), -drain);
     }
   }
 
   /**
-   * Convert Subspace's {@code 1000ths-per-centisecond} encoding to a
-   * per-tick integer Health delta. Visible for tests.
+   * Per-tick integer Energy drain from {@code energy/sec × tpf}, rounded half-up. Visible for tests.
    *
-   * @param energyDrainPer1000Cs raw {@code *Energy} value (0..32000)
+   * @param energyDrainPerSecond drain rate in energy units per second (non-negative)
    * @param tpfSeconds tick length in seconds
-   * @return Health units to drain this tick (rounded; never negative)
+   * @return Energy units to drain this tick (rounded; never negative)
    */
-  static int perTickDrain(final int energyDrainPer1000Cs, final double tpfSeconds) {
-    if (energyDrainPer1000Cs <= 0 || tpfSeconds <= 0.0) {
+  static int perTickDrain(final double energyDrainPerSecond, final double tpfSeconds) {
+    if (energyDrainPerSecond <= 0.0 || tpfSeconds <= 0.0) {
       return 0;
     }
-    // (energy / 1000) energy-units-per-cs × (tpf × 100) cs-per-tick =
-    // energy × tpf / 10. Compute as double, round half-up to int.
-    return (int) Math.round((double) energyDrainPer1000Cs * tpfSeconds / 10.0);
+    return (int) Math.round(energyDrainPerSecond * tpfSeconds);
   }
 }

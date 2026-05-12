@@ -5,26 +5,19 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.toggles.Antiwarp;
-import infinity.es.ship.toggles.AntiwarpStatus;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.toggles.AntiwarpActive;
+import infinity.es.ship.toggles.AntiwarpActiveChange;
+import infinity.es.ship.toggles.AntiwarpStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>STATUS family.</b> Activates the {@link Antiwarp} toggle on the ship
- * when the per-ship {@link AntiwarpStatus} permits it.
+ * Activates {@link AntiwarpActive} when {@link AntiwarpStats#statusTier()} permits. Subspace canonical
+ * tri-state per REFERENCE.md {@code ## Antiwarp}. See ADR 0001 + {@link CloakPrizeApplier}.
  *
- * <p>Subspace canonical encoding (REFERENCE.md "Ship abilities"):
- * {@code AntiWarpStatus} is tri-state — {@code 0} = forbidden (this
- * prize is a no-op), {@code 1} = acquirable via prize, {@code 2} =
- * acquirable + starts active at spawn. Apply respects that signal: if
- * {@code AntiwarpStatus} is missing or {@code 0}, no-op. Otherwise
- * stamp {@code Antiwarp(true)} so the {@code StatusDrainSystem} starts
- * draining energy at the per-ship rate from {@code AntiwarpEnergy}.
- *
- * <p>Note: arena-global {@code [Toggle] AntiWarpPixels} (effective
- * range) and {@code [Misc] AntiWarpSettleDelay} (post-warp grace) are
- * separate concerns — deferred to the polish bag, not part of Slice 6b.
+ * <p>Arena-global {@code [Toggle] AntiWarpPixels} (range) and {@code [Misc] AntiWarpSettleDelay}
+ * are separate concerns, deferred to their own slices.
  */
 public final class AntiWarpPrizeApplier implements PrizeApplier {
 
@@ -33,14 +26,19 @@ public final class AntiWarpPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final AntiwarpStatus status = ed.getComponent(ship, AntiwarpStatus.class);
-    if (status == null || status.getStatus() == 0) {
+    final AntiwarpStats stats = ed.getComponent(ship, AntiwarpStats.class);
+    if (stats == null || stats.statusTier() == 0) {
+      return;
+    }
+    final AntiwarpActive current = ed.getComponent(ship, AntiwarpActive.class);
+    if (current != null && current.isActive()) {
       return;
     }
     if (log.isInfoEnabled()) {
-      log.info("Ship {} picked up antiwarp prize (status={}); enabling Antiwarp toggle",
-          ship, status.getStatus());
+      log.info("Ship {} picked up antiwarp prize (tier={}); emitting AntiwarpActiveChange(true)",
+          ship, stats.statusTier());
     }
-    ed.setComponent(ship, new Antiwarp(true));
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new AntiwarpActiveChange(true));
   }
 }

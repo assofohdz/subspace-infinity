@@ -5,22 +5,16 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.toggles.XRadar;
-import infinity.es.ship.toggles.XRadarStatus;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.toggles.XRadarActive;
+import infinity.es.ship.toggles.XRadarActiveChange;
+import infinity.es.ship.toggles.XRadarStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>STATUS family.</b> Activates the {@link XRadar} toggle on the ship
- * when the per-ship {@link XRadarStatus} permits it.
- *
- * <p>Subspace canonical encoding (REFERENCE.md "Ship abilities"):
- * {@code XRadarStatus} is tri-state — {@code 0} = forbidden (this prize
- * is a no-op), {@code 1} = acquirable via prize, {@code 2} = acquirable
- * + starts active at spawn. Apply respects that signal: if
- * {@code XRadarStatus} is missing or {@code 0}, no-op. Otherwise stamp
- * {@code XRadar(true)} so the {@code StatusDrainSystem} starts draining
- * energy at the per-ship rate from {@code XRadarEnergy}.
+ * Activates {@link XRadarActive} when {@link XRadarStats#statusTier()} permits. Subspace canonical
+ * tri-state per REFERENCE.md {@code ## XRadar}. See ADR 0001 + {@link CloakPrizeApplier}.
  */
 public final class XRadarPrizeApplier implements PrizeApplier {
 
@@ -29,14 +23,19 @@ public final class XRadarPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final XRadarStatus status = ed.getComponent(ship, XRadarStatus.class);
-    if (status == null || status.getStatus() == 0) {
+    final XRadarStats stats = ed.getComponent(ship, XRadarStats.class);
+    if (stats == null || stats.statusTier() == 0) {
+      return;
+    }
+    final XRadarActive current = ed.getComponent(ship, XRadarActive.class);
+    if (current != null && current.isActive()) {
       return;
     }
     if (log.isInfoEnabled()) {
-      log.info("Ship {} picked up xradar prize (status={}); enabling XRadar toggle",
-          ship, status.getStatus());
+      log.info("Ship {} picked up xradar prize (tier={}); emitting XRadarActiveChange(true)",
+          ship, stats.statusTier());
     }
-    ed.setComponent(ship, new XRadar(true));
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new XRadarActiveChange(true));
   }
 }

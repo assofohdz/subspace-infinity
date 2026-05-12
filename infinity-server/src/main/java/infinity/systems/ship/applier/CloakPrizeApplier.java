@@ -5,23 +5,16 @@ package infinity.systems.ship.applier;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
-import infinity.es.ship.toggles.Cloak;
-import infinity.es.ship.toggles.CloakStatus;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.toggles.CloakActive;
+import infinity.es.ship.toggles.CloakActiveChange;
+import infinity.es.ship.toggles.CloakStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <b>STATUS family.</b> Activates the {@link Cloak} toggle on the ship
- * when the per-ship {@link CloakStatus} permits it.
- *
- * <p>Subspace canonical encoding (REFERENCE.md "Ship abilities"):
- * {@code CloakStatus} is tri-state — {@code 0} = forbidden (this prize
- * is a no-op), {@code 1} = acquirable via prize, {@code 2} = acquirable
- * + starts active at spawn. Apply respects that signal: if
- * {@code CloakStatus} is missing or {@code 0}, no-op (matches Subspace
- * "ship can't cloak"). Otherwise stamp {@code Cloak(true)} so the
- * {@code StatusDrainSystem} starts draining energy at the per-ship
- * rate from {@code CloakEnergy}.
+ * Activates {@link CloakActive} when {@link CloakStats#statusTier()} permits. Subspace canonical tri-state
+ * per REFERENCE.md {@code ## Cloak} — 0=forbidden (no-op), 1=acquirable, 2=starts-active. See ADR 0001.
  */
 public final class CloakPrizeApplier implements PrizeApplier {
 
@@ -30,15 +23,21 @@ public final class CloakPrizeApplier implements PrizeApplier {
   @Override
   public void apply(final EntityId ship, final PrizeApplierContext ctx) {
     final EntityData ed = ctx.ed();
-    final CloakStatus status = ed.getComponent(ship, CloakStatus.class);
-    if (status == null || status.getStatus() == 0) {
+    final CloakStats stats = ed.getComponent(ship, CloakStats.class);
+    if (stats == null || stats.statusTier() == 0) {
       // Capability forbidden for this ship type — Subspace canonical no-op.
       return;
     }
-    if (log.isInfoEnabled()) {
-      log.info("Ship {} picked up cloak prize (status={}); enabling Cloak toggle",
-          ship, status.getStatus());
+    final CloakActive current = ed.getComponent(ship, CloakActive.class);
+    if (current != null && current.isActive()) {
+      // Already on — emitting the Change would be a no-op the writer skips. Short-circuit here.
+      return;
     }
-    ed.setComponent(ship, new Cloak(true));
+    if (log.isInfoEnabled()) {
+      log.info("Ship {} picked up cloak prize (tier={}); emitting CloakActiveChange(true)",
+          ship, stats.statusTier());
+    }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(holder, ChangeTarget.self(ship), new CloakActiveChange(true));
   }
 }

@@ -290,10 +290,9 @@ final class ShipConfigBuilder {
    * ({@code 0..2}) and {@code energy} drain rate ({@code 0..32000},
    * 1000ths-per-centisecond per REFERENCE.md). Stored raw on
    * {@link StatusStats}; {@code ShipSpawnSystem} projects to
-   * {@link infinity.es.ship.toggles.CloakStatus} +
-   * {@link infinity.es.ship.toggles.CloakEnergy} +
-   * {@link infinity.es.ship.toggles.Cloak} components per the Status-
-   * family applier rule.
+   * {@link infinity.es.ship.toggles.CloakStats} +
+   * {@link infinity.es.ship.toggles.CloakActive} components (ADR 0001
+   * 2-level shape).
    */
   public void cloak(final Map<String, ?> args) {
     this.cloak =
@@ -305,9 +304,8 @@ final class ShipConfigBuilder {
    * {@code stealth status: 1, energy: 100}
    *
    * <p>Same shape as {@link #cloak}. Projects to
-   * {@link infinity.es.ship.toggles.StealthStatus} +
-   * {@link infinity.es.ship.toggles.StealthEnergy} +
-   * {@link infinity.es.ship.toggles.Stealth}.
+   * {@link infinity.es.ship.toggles.StealthStats} +
+   * {@link infinity.es.ship.toggles.StealthActive}.
    */
   public void stealth(final Map<String, ?> args) {
     this.stealth =
@@ -319,9 +317,8 @@ final class ShipConfigBuilder {
    * {@code xradar status: 1, energy: 100}
    *
    * <p>Same shape as {@link #cloak}. Projects to
-   * {@link infinity.es.ship.toggles.XRadarStatus} +
-   * {@link infinity.es.ship.toggles.XRadarEnergy} +
-   * {@link infinity.es.ship.toggles.XRadar}.
+   * {@link infinity.es.ship.toggles.XRadarStats} +
+   * {@link infinity.es.ship.toggles.XRadarActive}.
    */
   public void xradar(final Map<String, ?> args) {
     this.xradar =
@@ -333,9 +330,8 @@ final class ShipConfigBuilder {
    * {@code antiwarp status: 1, energy: 100}
    *
    * <p>Same shape as {@link #cloak}. Projects to
-   * {@link infinity.es.ship.toggles.AntiwarpStatus} +
-   * {@link infinity.es.ship.toggles.AntiwarpEnergy} +
-   * {@link infinity.es.ship.toggles.Antiwarp}.
+   * {@link infinity.es.ship.toggles.AntiwarpStats} +
+   * {@link infinity.es.ship.toggles.AntiwarpActive}.
    *
    * <p>Note: arena-global {@code [Toggle] AntiWarpPixels} (range) and
    * {@code [Misc] AntiWarpSettleDelay} are separate concerns —

@@ -6,45 +6,35 @@ package infinity.systems.ship;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import infinity.config.StatusStats;
-import infinity.es.ship.toggles.Antiwarp;
-import infinity.es.ship.toggles.AntiwarpEnergy;
-import infinity.es.ship.toggles.AntiwarpStatus;
-import infinity.es.ship.toggles.Cloak;
-import infinity.es.ship.toggles.CloakEnergy;
-import infinity.es.ship.toggles.CloakStatus;
-import infinity.es.ship.toggles.Stealth;
-import infinity.es.ship.toggles.StealthEnergy;
-import infinity.es.ship.toggles.StealthStatus;
-import infinity.es.ship.toggles.XRadar;
-import infinity.es.ship.toggles.XRadarEnergy;
-import infinity.es.ship.toggles.XRadarStatus;
+import infinity.es.ship.toggles.AntiwarpActive;
+import infinity.es.ship.toggles.AntiwarpStats;
+import infinity.es.ship.toggles.CloakActive;
+import infinity.es.ship.toggles.CloakStats;
+import infinity.es.ship.toggles.StealthActive;
+import infinity.es.ship.toggles.StealthStats;
+import infinity.es.ship.toggles.XRadarActive;
+import infinity.es.ship.toggles.XRadarStats;
 import javax.annotation.Nullable;
 
 /**
- * Pattern-4 spawn-projection helpers for the Status-family capabilities
- * (Cloak / Stealth / XRadar / AntiWarp). Extracted from {@link ShipSpawnSystem}
- * as pure static methods; same boundary discipline as
- * {@link ShipWeaponsProjector} (called only from
- * {@code ShipSpawnSystem.project}).
+ * Pattern 4 spawn-projection helpers for the Status-family aspects (Cloak / Stealth / XRadar /
+ * AntiWarp) per ADR 0001. Called only from {@code ShipSpawnSystem.project}.
  *
- * <p>Each method follows the Subspace canonical Status-family shape:
+ * <p>For each aspect this projects two ECS components from the {@link StatusStats} template:
  *
  * <ul>
- *   <li>The {@code *Status} component (tri-state: 0 forbidden, 1 acquirable,
- *       2 starts active) <b>always</b> projects, so prize appliers and
- *       {@code StatusDrainSystem} can read it without a null check.
- *   <li>The {@code *Energy} drain component projects only when the
- *       capability is at least acquirable ({@code status >= 1}).
- *   <li>The toggle component (e.g. {@link Cloak}) is seeded only on
- *       {@code resetLivePool == true} (respawn), as {@code true} when
- *       {@code status == 2} and {@code false} when {@code status == 1}.
- *       {@code resetLivePool == false} preserves the live toggle state
- *       across ship swaps / mid-arena reloads.
+ *   <li>{@code *Stats(statusTier, energyDrainPerSecond)} — always re-project (mirrors
+ *       {@code ThrustStats} / {@code EnergyStats}), even when {@code statusTier == 0}, so the
+ *       prize applier can read the tier without a null check.
+ *   <li>{@code *Active(boolean)} — Continuous half. Only seeded on {@code resetLivePool == true}
+ *       (respawn / fresh spawn), {@code true} iff {@code statusTier == 2} (Subspace canon
+ *       "start active"). Mid-arena tuning reproject ({@code resetLivePool == false}) preserves
+ *       the live toggle so a Groovy edit doesn't clobber the player's state.
  * </ul>
  *
- * <p>Package-private; not part of any public API. Methods take
- * {@link EntityData} as their first argument because that's the only
- * piece of {@code ShipSpawnSystem} state they read.
+ * <p>The Subspace {@code *Energy} value is in {@code 1000ths-per-centisecond}; converted to
+ * energy-per-second at this boundary ({@code raw / 10.0}) so the runtime consumer reads
+ * SI-ish units. See REFERENCE.md "Ship abilities".
  */
 final class ShipStatusProjector {
 
@@ -52,10 +42,11 @@ final class ShipStatusProjector {
     // utility class — instantiation prevented
   }
 
-  /**
-   * Pattern 4 spawn projection for the Cloak Status-family capability.
-   * See class Javadoc for the tri-state semantics.
-   */
+  /** Subspace 1000ths-per-centisecond → energy-per-second. */
+  private static double drainPerSecond(final int energyDrainPer1000Cs) {
+    return energyDrainPer1000Cs / 10.0;
+  }
+
   static void projectCloak(
       final EntityData ed,
       final EntityId shipId,
@@ -64,18 +55,13 @@ final class ShipStatusProjector {
     if (cloak == null) {
       return;
     }
-    ed.setComponent(shipId, new CloakStatus(cloak.status()));
-    if (cloak.status() >= 1) {
-      ed.setComponent(shipId, new CloakEnergy(cloak.energyDrainPer1000Cs()));
-    }
+    ed.setComponent(shipId, new CloakStats(cloak.status(), drainPerSecond(cloak.energyDrainPer1000Cs())));
     if (resetLivePool && cloak.status() >= 1) {
-      // status == 0 (forbidden) → no toggle component; status == 1 → off;
-      // status == 2 → start active (Subspace canon).
-      ed.setComponent(shipId, new Cloak(cloak.status() == 2));
+      // statusTier == 0 (forbidden) → no Continuous toggle; tier == 1 → off; tier == 2 → start active.
+      ed.setComponent(shipId, new CloakActive(cloak.status() == 2));
     }
   }
 
-  /** Same shape as {@link #projectCloak} for Stealth. */
   static void projectStealth(
       final EntityData ed,
       final EntityId shipId,
@@ -84,16 +70,12 @@ final class ShipStatusProjector {
     if (stealth == null) {
       return;
     }
-    ed.setComponent(shipId, new StealthStatus(stealth.status()));
-    if (stealth.status() >= 1) {
-      ed.setComponent(shipId, new StealthEnergy(stealth.energyDrainPer1000Cs()));
-    }
+    ed.setComponent(shipId, new StealthStats(stealth.status(), drainPerSecond(stealth.energyDrainPer1000Cs())));
     if (resetLivePool && stealth.status() >= 1) {
-      ed.setComponent(shipId, new Stealth(stealth.status() == 2));
+      ed.setComponent(shipId, new StealthActive(stealth.status() == 2));
     }
   }
 
-  /** Same shape as {@link #projectCloak} for XRadar. */
   static void projectXRadar(
       final EntityData ed,
       final EntityId shipId,
@@ -102,16 +84,12 @@ final class ShipStatusProjector {
     if (xradar == null) {
       return;
     }
-    ed.setComponent(shipId, new XRadarStatus(xradar.status()));
-    if (xradar.status() >= 1) {
-      ed.setComponent(shipId, new XRadarEnergy(xradar.energyDrainPer1000Cs()));
-    }
+    ed.setComponent(shipId, new XRadarStats(xradar.status(), drainPerSecond(xradar.energyDrainPer1000Cs())));
     if (resetLivePool && xradar.status() >= 1) {
-      ed.setComponent(shipId, new XRadar(xradar.status() == 2));
+      ed.setComponent(shipId, new XRadarActive(xradar.status() == 2));
     }
   }
 
-  /** Same shape as {@link #projectCloak} for AntiWarp. */
   static void projectAntiwarp(
       final EntityData ed,
       final EntityId shipId,
@@ -120,12 +98,9 @@ final class ShipStatusProjector {
     if (antiwarp == null) {
       return;
     }
-    ed.setComponent(shipId, new AntiwarpStatus(antiwarp.status()));
-    if (antiwarp.status() >= 1) {
-      ed.setComponent(shipId, new AntiwarpEnergy(antiwarp.energyDrainPer1000Cs()));
-    }
+    ed.setComponent(shipId, new AntiwarpStats(antiwarp.status(), drainPerSecond(antiwarp.energyDrainPer1000Cs())));
     if (resetLivePool && antiwarp.status() >= 1) {
-      ed.setComponent(shipId, new Antiwarp(antiwarp.status() == 2));
+      ed.setComponent(shipId, new AntiwarpActive(antiwarp.status() == 2));
     }
   }
 }

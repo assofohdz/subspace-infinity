@@ -4,6 +4,7 @@
 package infinity.systems;
 
 import com.simsilica.es.ComponentFilter;
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -15,15 +16,21 @@ import com.simsilica.mathd.Vec3d;
 import infinity.Ship;
 import infinity.sim.ShipRestrictor;
 import infinity.es.Captain;
+import infinity.es.ChangeTarget;
 import infinity.es.Frequency;
+import infinity.es.FrequencyChange;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.ResetLivePool;
 import infinity.es.ship.ShipType;
-import infinity.es.ship.actions.WarpTo;
+import infinity.es.ship.ShipTypeChange;
+import infinity.es.ship.actions.WarpToChange;
 import infinity.events.arena.ShipEvent;
 import infinity.settings.EngineConfigSystem;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,6 +49,7 @@ public class AvatarSystem extends BaseInfinitySystem {
   private EntityData ed;
   private EngineConfigSystem engineConfigSystem;
   private EntitySet frequencies;
+  private EntitySet shipTypeChanges;
   /** The number of allowed players in each ship on this team. */
   private Map<Integer, ShipRestrictor> teamRestrictions;
 
@@ -58,6 +66,7 @@ public class AvatarSystem extends BaseInfinitySystem {
 
     frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
     captains = ed.getEntities(ShapeInfo.class, Captain.class);
+    shipTypeChanges = ed.getEntities(ShipTypeChange.class, ChangeTarget.class);
 
     teamRestrictions = new HashMap<>();
   }
@@ -70,6 +79,9 @@ public class AvatarSystem extends BaseInfinitySystem {
 
     captains.release();
     captains = null;
+
+    shipTypeChanges.release();
+    shipTypeChanges = null;
   }
 
   @SuppressWarnings("unused")
@@ -78,6 +90,36 @@ public class AvatarSystem extends BaseInfinitySystem {
     // Keep `captains` current — isCaptain() reads from the live set.
     // TODO: react to add / change / remove events when captain logic lands.
     captains.applyChanges();
+    shipTypeChanges.applyChanges();
+    drainShipTypeChanges();
+  }
+
+  /**
+   * Canonical drain for {@link ShipTypeChange} (ADR 0001). Value-replacement;
+   * one-shot only (no Decay-bound ship swaps). Same-tick fold is last-write-wins.
+   */
+  private void drainShipTypeChanges() {
+    final Map<EntityId, Ship> typeByShip = new LinkedHashMap<>();
+    final List<EntityId> oneShotHolders = new ArrayList<>();
+    for (final Entity added : shipTypeChanges.getAddedEntities()) {
+      final ChangeTarget ct = added.get(ChangeTarget.class);
+      final Ship newType = added.get(ShipTypeChange.class).newShipType();
+      oneShotHolders.add(added.getId());
+      if (ct == null || ct.target() == null || newType == null) {
+        continue;
+      }
+      typeByShip.put(ct.target(), newType);
+    }
+    for (final Map.Entry<EntityId, Ship> e : typeByShip.entrySet()) {
+      // Atomic stamp: setComponents writes ShipType + ResetLivePool in the same flush so the
+      // ShipSpawnSystem (ShipType, ArenaId) watcher sees the new type AND the respawn marker
+      // together. Without atomicity the watcher might project the OLD type's stats and then a
+      // second projection would have to undo it.
+      ed.setComponents(e.getKey(), new ShipType(e.getValue()), new ResetLivePool());
+    }
+    for (final EntityId id : oneShotHolders) {
+      ed.removeEntity(id);
+    }
   }
 
   @Override
@@ -120,17 +162,16 @@ public class AvatarSystem extends BaseInfinitySystem {
             ShapeInfo.create(shapeName, engineConfigSystem.get().shipRadius(), ed));
       }
 
-      // Re-project ship stats from the arena's ShipConfig (Pattern 4). Remove+set
-      // surfaces in ShipSpawnSystem.update() — Zay-ES coalesces same-tick
-      // remove+set on a tracked field into a "changed" event (not "added"), so we
-      // also stamp ResetLivePool to flag this projection as a respawn (= reset
-      // Health/Energy and re-stamp *CurrentLevel starts from ShipConfig). Without
-      // the marker, swapping to a weapon-equipped ship from a non-equipped one
-      // leaves the *CurrentLevel components never written and the weapon
-      // EntitySet membership filter excludes the ship → no fire.
-      ed.removeComponent(shipEntity, ShipType.class);
-      ed.setComponent(shipEntity, new ShipType(Ship.getShip(shipType)));
-      ed.setComponent(shipEntity, new ResetLivePool());
+      // ShipType + ResetLivePool atomicity: the canonical writer (drainShipTypeChanges below)
+      // stamps both via setComponents in the same flush, so ShipSpawnSystem's reproject sees
+      // the new type and the respawn marker together. Without the marker, swapping to a
+      // weapon-equipped ship from a non-equipped one leaves the *CurrentLevel components
+      // never written and the weapon EntitySet membership filter excludes the ship → no fire.
+      final EntityId h = ed.createEntity();
+      ed.setComponents(
+          h,
+          ChangeTarget.self(shipEntity),
+          new ShipTypeChange(Ship.getShip(shipType)));
 
       // Teleport to the ship's *current* arena's configured spawn point.
       // ArenaId is maintained by ArenaMembershipSystem (sensor contacts) +
@@ -145,7 +186,11 @@ public class AvatarSystem extends BaseInfinitySystem {
       if (arena != null) {
         final Vec3d target = getSystem(ArenaSystem.class).getArenaSpawn(arena.getArena(), freq);
         if (target != null) {
-          ed.setComponent(shipEntity, new WarpTo(target));
+          final EntityId warpHolder = ed.createEntity();
+          ed.setComponents(
+              warpHolder,
+              ChangeTarget.self(shipEntity),
+              new WarpToChange(target));
         }
       }
 
@@ -203,7 +248,8 @@ public class AvatarSystem extends BaseInfinitySystem {
   public void requestFreqChange(final EntityId entityId, final int newFreq) {
     // TODO: Check the ship restrictor in place to make sure the new frequency is
     // allowed
-    ed.setComponent(entityId, new Frequency(newFreq));
+    final EntityId h = ed.createEntity();
+    ed.setComponents(h, ChangeTarget.self(entityId), new FrequencyChange(newFreq));
   }
 
   /**
@@ -262,8 +308,8 @@ public class AvatarSystem extends BaseInfinitySystem {
     // Could perhaps be that we should set frequency to 0 instead of removing
     // frequency
     if (entityId != null) {
-      final Frequency freq = new Frequency(0);
-      ed.setComponent(entityId, freq);
+      final EntityId h = ed.createEntity();
+      ed.setComponents(h, ChangeTarget.self(entityId), new FrequencyChange(0));
     }
   }
 

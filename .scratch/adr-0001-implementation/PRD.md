@@ -313,12 +313,12 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 ### Ship-state aspects (pilot first, then alphabetical)
 
 - ✅ **Energy (pilot)** — rename `Health` → `Energy`, bundle into `EnergyStats`, migrate `Buff + HealthChange` → `EnergyChange + ChangeTarget`, migrate `EnergyPrizeApplier`, `RechargePrizeApplier`, `QuickChargePrizeApplier`, all damage emit sites, audit `Buff.startTime` callers
-- ⬜ Antiwarp — `AntiwarpActive` + `AntiwarpStats`, migrate `AntiWarpPrizeApplier`, resolve `ShipStatusProjector` co-write
+- ✅ **Antiwarp** — `AntiwarpActive` + `AntiwarpStats` + `AntiwarpActiveChange`; `AntiwarpSystem` drains; migrated `AntiWarpPrizeApplier` to emit Change holder; `ShipStatusProjector` writes Continuous + Stats directly (factory tier).
 - ⬜ Bomb — `BombCurrentLevel` + `BombStats`, migrate `BombPrizeApplier`, resolve `ShipWeaponsProjector` + `WeaponsEligibility` co-write
 - ⬜ Brick — `BrickCurrentCount` + `BrickStats`, migrate `BrickPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
 - ⬜ Bullet — `BulletCurrentLevel` + `BulletStats`, migrate `GunPrizeApplier`, resolve `ShipWeaponsProjector` + `WeaponsEligibility` co-write
 - ⬜ Burst — `BurstCurrentCount` + `BurstStats`, migrate `BurstPrizeApplier`, resolve `ShipWeaponsProjector` co-write
-- ⬜ Cloak — `CloakActive` + `CloakStats`, migrate `CloakPrizeApplier`, resolve `ShipStatusProjector` co-write
+- ✅ **Cloak** — `CloakActive` + `CloakStats` + `CloakActiveChange`; `CloakSystem` drains; migrated `CloakPrizeApplier` to emit Change holder; `ShipStatusProjector` writes Continuous + Stats directly (factory tier).
 - ⬜ Decoy — `DecoyCurrentCount` + `DecoyStats`, migrate `DecoyPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
 - ⬜ Mine — `MineCurrentLevel` + `MineStats`, migrate `MinePrizeApplier`, resolve `ShipWeaponsProjector` + `WeaponsEligibility` co-write
 - ⬜ Portal — `PortalCurrentCount` + `PortalStats`, migrate `PortalPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
@@ -326,10 +326,10 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 - ⬜ Rocket — `RocketCurrentCount` + `RocketStats`, migrate `RocketPrizeApplier`, resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
 - ✅ **Rotation** — `Rotation` + `RotationStats`, migrate `RotationPrizeApplier` off `Intent`/`CapBump`
 - ✅ **Speed** — `Speed` + `SpeedStats`, migrate `TopSpeedPrizeApplier` off `Intent`/`CapBump`, migrate `RocketBuffIntent` Speed swap to temporary `SpeedChange` with Decay
-- ⬜ Stealth — `StealthActive` + `StealthStats`, migrate `StealthPrizeApplier`, resolve `ShipStatusProjector` co-write
+- ✅ **Stealth** — `StealthActive` + `StealthStats` + `StealthActiveChange`; `StealthSystem` drains; migrated `StealthPrizeApplier` to emit Change holder; `ShipStatusProjector` writes Continuous + Stats directly (factory tier).
 - ⬜ Thor — `ThorStats` (no Continuous), migrate `ThorPrizeApplier` (fix the `ThorFireDelay` fallback divergence), resolve `ShipWeaponsProjector` + `ConsumableSystem` co-write
 - ✅ **Thrust** — `Thrust` + `ThrustStats`, migrate `ThrusterPrizeApplier` off `Intent`/`CapBump`, migrate `RocketBuffIntent` Thrust swap to temporary `ThrustChange` with Decay
-- ⬜ XRadar — `XRadarActive` + `XRadarStats`, migrate `XRadarPrizeApplier`, resolve `ShipStatusProjector` co-write
+- ✅ **XRadar** — `XRadarActive` + `XRadarStats` + `XRadarActiveChange`; `XRadarSystem` drains; migrated `XRadarPrizeApplier` to emit Change holder; `ShipStatusProjector` writes Continuous + Stats directly (factory tier).
 
 ### Fresh-find aspects
 

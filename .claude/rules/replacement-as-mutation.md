@@ -197,6 +197,15 @@ component types. Keep them that way.
   `ShipSpawnSystem`'s territory and gated on a `ResetLivePool` marker).
 - **`mphys` integrator (sio2-mphys, external)** — `Impulse` (drains;
   applies as one-shot velocity delta then removes the component).
+  Two upstream emitters write `Impulse` (`RepelSystem` for the radial
+  push, `WeaponsDamageLogic` for damage-knockback) plus three spawn-time
+  factories (`WeaponFactory.createBomb` / `createBullet` / `createBurst`
+  carry initial linear velocity). All five emitters are intent-shaped
+  by design — no system reads `Impulse` between emit and drain
+  (server-side spot-check 2026-05-12: only `*.set(new Impulse(...))`
+  writes; no `getComponent(..., Impulse.class)` reads outside the
+  integrator). Multi-emitter is therefore the canonical "one writer
+  draining, many emitters" shape, not a violation.
 - **central decay reaper (per [`decay-ttl.md`](./decay-ttl.md))** —
   `Decay` (read-only — reaper removes entity when deadline expires).
 
@@ -216,14 +225,13 @@ a second pass. Re-run + diff this section when adding or removing a
 system writer; the totals below ground the diff.
 
 **Totals at snapshot date** — ~95 substantive component types
-audited; ~70 single-writer (canonical) or spawn-only (factory tier);
-**~14 multi-writer violations** flagged below (down from ~19 at C4
+audited; ~75 single-writer (canonical) or spawn-only (factory tier);
+**~11 multi-writer violations** flagged below (down from ~19 at C4
 audit: C1 RocketBuff race + C2a cap-bump body-stats + C2-Movement
-Rotation/Speed/Thrust prize collisions all resolved). Of the 14
-remaining, ~11 align with BACKLOG C2 (status, weapon-level, and
-inventory prize-applier collisions) and 3 (`Frequency`, `ShipType`,
-`Impulse`) are fresh finds documented here — `WarpTo` already in
-BACKLOG C4 at audit time.
+Rotation/Speed/Thrust prize collisions + the four status-family
+toggles + the four C4 fresh-find aspects (`WarpTo`, `Frequency`,
+`ShipType`, `Impulse`) all resolved). The 11 remaining all align
+with BACKLOG C2 (weapon-level + inventory prize-applier collisions).
 `Decay` is the one documented multi-writer exception (see its own
 subsection).
 
@@ -259,13 +267,19 @@ subsection).
   `Rocket`, `ThorCurrentCount`, `ThorFireDelay` at spawn — flagged
   as multi-writer below because prize appliers and `ConsumableSystem`
   also write those.)
-- **`ShipStatusProjector`** — `AntiwarpEnergy`, `AntiwarpStatus`,
-  `CloakEnergy`, `CloakStatus`, `StealthEnergy`, `StealthStatus`,
-  `XRadarEnergy`, `XRadarStatus`. Spawn projection of the
-  status-family per-ship knobs (`*Status` tri-state + per-cs
-  drain rate). Also writes the `Antiwarp`/`Cloak`/`Stealth`/`XRadar`
-  marker components — flagged as multi-writer below (prize appliers
-  collide).
+- **`ShipStatusProjector`** — `CloakStats`, `StealthStats`,
+  `XRadarStats`, `AntiwarpStats`. Spawn projection of the status-family
+  per-ship knobs (tri-state tier + energy-per-second drain rate). Also
+  writes the `CloakActive`/`StealthActive`/`XRadarActive`/`AntiwarpActive`
+  Continuous toggle on `resetLivePool == true` (matches the
+  `Energy` / `Thrust` projector pattern — factory tier, exempt from
+  RaM).
+- **`CloakSystem`** — `CloakActive` (Continuous-half; drains
+  `CloakActiveChange` + `ChangeTarget` value-replacement holders;
+  Decay-bound holders reversed to cached previous value on remove).
+- **`StealthSystem`** — `StealthActive` (same shape as `CloakSystem`).
+- **`XRadarSystem`** — `XRadarActive` (same shape as `CloakSystem`).
+- **`AntiwarpSystem`** — `AntiwarpActive` (same shape as `CloakSystem`).
 - **`WeaponsImpactSystem`** — `Bounce` (decrement-or-remove on
   projectile world bounce; class Javadoc explicitly claims
   single-writer status; spawn-side stamping not yet wired in tree).
@@ -336,13 +350,6 @@ inside an unrelated change** — that work is BACKLOG Round 2 (C1 +
 C2). The rows exist so reviewers can distinguish a *new* violation
 from a *known* one.
 
-**Status family — prize-applier collisions (BACKLOG C2):**
-
-- **`Antiwarp`** — `ShipStatusProjector`, `AntiWarpPrizeApplier`. ⚠️
-- **`Cloak`** — `ShipStatusProjector`, `CloakPrizeApplier`. ⚠️
-- **`Stealth`** — `ShipStatusProjector`, `StealthPrizeApplier`. ⚠️
-- **`XRadar`** — `ShipStatusProjector`, `XRadarPrizeApplier`. ⚠️
-
 **Weapon-level upgrades — prize-applier collisions (BACKLOG C2):**
 
 - **`BombCurrentLevel`** — `ShipWeaponsProjector`, `BombPrizeApplier`. ⚠️
@@ -378,25 +385,15 @@ RaM target — one canonical writer draining `+1` and `-1` intents.
 
 **Other multi-writers (fresh finds — not yet in BACKLOG):**
 
-- **`WarpTo`** — `AvatarSystem` (centerOfArena, `?warp` commands),
-  `WarpSystem` (wormhole touch + explicit-coordinate warp). ⚠️
-  **Already flagged in BACKLOG C4 ("WarpTo (already 2 writers!)").**
-- **`Frequency`** — `ShipFactory` (seed=1), `AIEntities` (seed=1),
-  `AvatarSystem` (`?team` rebind), `FrequencySystem` (`=NN` chat
-  command). ⚠️ Four writers; the two seed sites are spawn-time
-  (safe), but the two mid-game writers race on team change because
-  there is no canonical drain.
-- **`ShipType`** — `ShipFactory` (initial), `AvatarSystem` (`=N`
-  ship-swap command). ⚠️ The swap writer competes with the seed
-  write at the moment a player swaps ships; `ShipSpawnSystem.reproject`
-  keys off `ShipType` changes, so this is a sequencing risk if the
-  swap and a reproject overlap a tick.
-- **`Impulse`** — `RepelSystem` (radial push), `WeaponsDamageLogic`
-  (knockback). ⚠️ Two upstream emitters into one consumer
-  (`sio2-mphys` integrator drains and removes). Arguably already
-  *intent-shaped* (`Impulse` is a fire-and-forget intent that the
-  integrator drains), but worth a Round-2 confirmation pass that no
-  other system reads `Impulse` before the drain.
+(`WarpTo`, `Frequency`, `ShipType`, `Impulse` were the four
+fresh-find rows at the C4 audit. All four are now resolved:
+`WarpTo` → `WarpToChange` (`WarpSystem` canonical drain),
+`Frequency` → `FrequencyChange` (`FrequencySystem` canonical drain),
+`ShipType` → `ShipTypeChange` (`AvatarSystem` canonical drain;
+spawn writes in `ShipFactory.createShip` and `AIEntities.createMobShip`
+remain spawn-time exempt per the spawn-tier rule below), `Impulse`
+moved to the canonical-writers section above as the documented
+"one drainer, many intent-shaped emitters" shape.)
 
 #### Future-migration candidates to the Change-entity recipe
 

@@ -3,104 +3,93 @@
 package infinity.systems.ship.applier;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
+import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 import com.simsilica.es.base.DefaultEntityData;
-import infinity.es.ship.toggles.Cloak;
-import infinity.es.ship.toggles.CloakStatus;
+import infinity.es.ChangeTarget;
+import infinity.es.ship.toggles.CloakActive;
+import infinity.es.ship.toggles.CloakActiveChange;
+import infinity.es.ship.toggles.CloakStats;
 import org.junit.Test;
 
 /**
  * Status-family applier test for Cloak. Subspace tri-state behaviour
  * (REFERENCE.md "Ship abilities"):
  * <ul>
- *   <li>{@code CloakStatus 0} (forbidden) → applier no-ops; no
- *       {@link Cloak} toggle conjured.
- *   <li>{@code CloakStatus 1} (acquirable) → applier stamps
- *       {@code Cloak(true)}.
- *   <li>{@code CloakStatus 2} (start-active) → spawn projection sets
- *       {@code Cloak(true)} already, but a re-pickup is idempotent —
- *       applier still leaves the toggle on.
+ *   <li>{@code statusTier 0} (forbidden) → applier no-ops; no Change emitted.
+ *   <li>{@code statusTier 1} (acquirable) → applier emits {@link CloakActiveChange}{@code (true)}.
+ *   <li>{@code statusTier 2} (start-active) → if {@link CloakActive} is already on (spawn projection
+ *       set it), applier short-circuits without emitting.
  * </ul>
  *
- * <p>StealthPrizeApplier follows the same shape; symmetry is verified
- * by inspection (one applier-class implementation; one parallel test
- * would be redundant).
+ * <p>Stealth / XRadar / AntiWarp appliers follow the same shape; symmetry verified by inspection.
  */
 public class CloakPrizeApplierTest {
+
+  private static int countChangeHolders(final EntityData ed) {
+    final EntitySet set = ed.getEntities(CloakActiveChange.class, ChangeTarget.class);
+    try {
+      return set.size();
+    } finally {
+      set.release();
+    }
+  }
 
   @Test
   public void apply_statusZero_noop() {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId ship = ed.createEntity();
-    ed.setComponent(ship, new CloakStatus(0));
+    ed.setComponent(ship, new CloakStats(0, 0.0));
 
     new CloakPrizeApplier().apply(ship, new PrizeApplierContext(ed, null, null));
 
-    assertNull("Forbidden ship must not gain a Cloak toggle",
-        ed.getComponent(ship, Cloak.class));
-    assertEquals("CloakStatus must remain unchanged",
-        0, ed.getComponent(ship, CloakStatus.class).getStatus());
+    assertEquals("Forbidden ship must not produce any Change holders",
+        0, countChangeHolders(ed));
+    assertNull("Forbidden ship must not gain a CloakActive toggle",
+        ed.getComponent(ship, CloakActive.class));
   }
 
   @Test
-  public void apply_statusOne_enablesCloak() {
+  public void apply_statusOne_emitsChange() {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId ship = ed.createEntity();
-    ed.setComponent(ship, new CloakStatus(1));
-    ed.setComponent(ship, new Cloak(false));
+    ed.setComponent(ship, new CloakStats(1, 125.0));
+    ed.setComponent(ship, new CloakActive(false));
 
     new CloakPrizeApplier().apply(ship, new PrizeApplierContext(ed, null, null));
 
-    assertTrue("Acquirable ship must have Cloak toggled on",
-        ed.getComponent(ship, Cloak.class).isEnabled());
+    assertEquals("Acquirable ship must produce exactly one Change holder",
+        1, countChangeHolders(ed));
   }
 
   @Test
-  public void apply_statusTwo_idempotentlyKeepsCloakOn() {
+  public void apply_statusTwoAlreadyActive_noop() {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId ship = ed.createEntity();
-    ed.setComponent(ship, new CloakStatus(2));
-    ed.setComponent(ship, new Cloak(true));
+    ed.setComponent(ship, new CloakStats(2, 125.0));
+    ed.setComponent(ship, new CloakActive(true));
 
     new CloakPrizeApplier().apply(ship, new PrizeApplierContext(ed, null, null));
 
-    assertTrue("Start-active ship must remain cloaked after re-pickup",
-        ed.getComponent(ship, Cloak.class).isEnabled());
+    assertEquals("Re-pickup on already-active ship is a no-op (no Change emitted)",
+        0, countChangeHolders(ed));
+    assertNotNull("CloakActive remains on",
+        ed.getComponent(ship, CloakActive.class));
   }
 
   @Test
-  public void apply_missingStatus_noop() {
+  public void apply_missingStats_noop() {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId ship = ed.createEntity();
-    // No CloakStatus component — capability not authored on this ship.
+    // No CloakStats — capability not authored on this ship.
 
     new CloakPrizeApplier().apply(ship, new PrizeApplierContext(ed, null, null));
 
-    assertNull("Ship without CloakStatus must not gain a Cloak toggle",
-        ed.getComponent(ship, Cloak.class));
-  }
-
-  /**
-   * Mid-arena reload (e.g. operator edits ships.groovy live). The toggle
-   * is preserved on a {@code resetLivePool=false} respawn so the
-   * applier-driven toggle isn't clobbered by spawn projection. Sanity
-   * check: applying a cloak prize when the toggle is already on stays on.
-   */
-  @Test
-  public void apply_alreadyOn_remainsOn() {
-    final DefaultEntityData ed = new DefaultEntityData();
-    final EntityId ship = ed.createEntity();
-    ed.setComponent(ship, new CloakStatus(1));
-    ed.setComponent(ship, new Cloak(true));
-
-    new CloakPrizeApplier().apply(ship, new PrizeApplierContext(ed, null, null));
-
-    assertTrue(ed.getComponent(ship, Cloak.class).isEnabled());
-    assertFalse("Sanity: applying does not flip the toggle off",
-        !ed.getComponent(ship, Cloak.class).isEnabled());
+    assertEquals("Ship without CloakStats must not produce a Change holder",
+        0, countChangeHolders(ed));
   }
 }

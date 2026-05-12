@@ -7,9 +7,10 @@ package infinity.config;
  * Per-ship Status-family capability template (Cloak / Stealth / XRadar /
  * AntiWarp). Captures Subspace's per-ship {@code *Status} tri-state +
  * {@code *Energy} drain rate as one immutable pair, projected at spawn
- * time onto the corresponding {@code *Status} / {@code *Energy} ECS
- * components plus the toggle component
- * ({@link infinity.es.ship.toggles.Cloak} / {@code Stealth} / etc.).
+ * time onto the per-aspect {@code *Stats} record (which bundles tier +
+ * energy-per-second drain) and the {@code *Active} Continuous toggle —
+ * see {@link infinity.es.ship.toggles.CloakStats} /
+ * {@link infinity.es.ship.toggles.CloakActive} and siblings.
  *
  * <p>Subspace per-ship key encoding (REFERENCE.md "Ship abilities"):
  * <ul>
