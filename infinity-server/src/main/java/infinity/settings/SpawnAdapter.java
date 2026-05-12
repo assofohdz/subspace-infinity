@@ -37,7 +37,14 @@ public final class SpawnAdapter
 
     SpawnBuilder() {}
 
-    /** Disc radius (tiles) around the legacy single-spawn; 0 = exact point. Diverges from Subspace {@code [Misc] WarpRadiusLimit} (arena-center anchor). */
+    /**
+     * Tile-radius around the legacy {@code arena.groovy spawn x, z} coord;
+     * {@code 0} = exact-point spawn. Applies only on the legacy-fallback
+     * path — when {@code team(…)} entries are authored, their per-team
+     * radius wins. Diverges from Subspace {@code [Misc] WarpRadiusLimit}
+     * (arena-center anchor; "1024 = anywhere" sentinel does not apply
+     * here). See {@link SpawnConfig#spawnRadius()}.
+     */
     public void spawnRadius(final int tiles) {
       this.spawnRadius = tiles;
     }

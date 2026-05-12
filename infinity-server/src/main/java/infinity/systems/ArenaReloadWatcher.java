@@ -15,7 +15,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Hot-reload watch plumbing for {@link ArenaSystem}; owns the watched-files map and per-tick polling cadence. */
+/**
+ * Hot-reload watch plumbing for {@link ArenaSystem}. Owns the watched-files
+ * map and per-tick polling cadence. Sim-thread only; the {@link Map} is
+ * {@link ConcurrentHashMap} as defence in depth (no concurrent-write
+ * contract is exposed).
+ */
 final class ArenaReloadWatcher {
 
     static final Logger log = LoggerFactory.getLogger(ArenaReloadWatcher.class);

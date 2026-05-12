@@ -36,6 +36,10 @@ import java.util.Map;
 /** Manages avatar lifecycle (create/destroy on join/leave) + per-team ship restrictions. Drains {@link ShipTypeChange}. */
 public class AvatarSystem extends BaseInfinitySystem {
 
+  // Ship-type wire bytes (SPEC/WARBIRD/JAVELIN/SPIDER/LEVI/TERRIER/WEASEL/
+  // LANCASTER/SHARK) live in api/ as `infinity.net.ShipTypeId`. The chat-side
+  // entry point takes a raw byte off the wire — convert via
+  // `ShipTypeId.fromWireId(byte)` for enum-level dispatch.
   private EntityData ed;
   private EngineConfigSystem engineConfigSystem;
   private EntitySet frequencies;

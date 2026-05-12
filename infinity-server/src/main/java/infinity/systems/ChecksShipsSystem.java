@@ -59,7 +59,18 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Ship / avatar diagnostic chat commands ({@code ~checkships}, {@code ~ship [id]}, {@code ~checkcaptains}). Read-only. */
+/**
+ * Ship / avatar diagnostic chat commands. Read-only.
+ * <ul>
+ *   <li>{@code ~checkships} — Pattern-4 component-coverage audit across
+ *       all live ships (Energy/Stats × Rotation/Thrust/Speed + weapon
+ *       current/max pairs; missing = projection bug).
+ *   <li>{@code ~ship [id]} — deep-dump every projected component on one
+ *       ship (default: caller's avatar).
+ *   <li>{@code ~checkcaptains} — verifies {@code AvatarSystem.isCaptain}
+ *       agrees with the {@link Captain} EntitySet.
+ * </ul>
+ */
 public class ChecksShipsSystem extends AbstractGameSystem {
 
   static final Logger log = LoggerFactory.getLogger(ChecksShipsSystem.class);

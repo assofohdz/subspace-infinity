@@ -15,7 +15,15 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Server bootstrap for the per-arena tile-block range (100..3139): expand {@link BlockTypeIndex}, install per-tile colliders. */
+/**
+ * Server bootstrap for the per-arena tile-block range (100..3139). Expands
+ * {@link BlockTypeIndex} from Moss's default 82-slot array (filling new slots
+ * with {@code INVISIBLE_BLOCK_TYPE} — without this, {@code CubeCollider
+ * .getSphereContact} early-returns because {@code dirMask == 0} per
+ * {@link com.simsilica.mblock.MaskUtils#recalculateSideMasks}), then installs
+ * a unit-cube collider for every visible tile in every arena slot (flyover
+ * 173-175 and flyunder 176-190 stay null so ships pass through).
+ */
 public final class BlockTypeExpander {
 
   private static final Logger log = LoggerFactory.getLogger(BlockTypeExpander.class);

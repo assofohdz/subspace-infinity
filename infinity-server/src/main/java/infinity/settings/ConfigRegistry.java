@@ -29,7 +29,14 @@ import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-/** Immutable per-arena typed {@code *Config} snapshot. Add a slot by appending to {@link #SLOTS}; live-reload via {@link ConfigRegistrySystem#replace}. */
+/**
+ * Immutable per-arena typed {@code *Config} snapshot — defensively-copied at
+ * construction, atomic-swap via {@link ConfigRegistrySystem#replace}.
+ * Readers see either the old or new snapshot, never a torn state. Slots are
+ * keyed internally by their {@code *Config} {@link Class}; adding a new
+ * sub-record is one line in {@link #SLOTS} (config class + DEFAULTS sentinel)
+ * plus an optional named accessor.
+ */
 public final class ConfigRegistry {
 
   // Declared BEFORE EMPTY: EMPTY = builder().build() iterates SLOTS at <clinit>.

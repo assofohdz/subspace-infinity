@@ -152,7 +152,11 @@ public final class GroovyArenaLoader {
       this.wallFriction = v;
     }
 
-    /** Tri-state FF: 0=off, 1=bomb splash only, 2=all weapons. Infinity simplification of Subspace's per-weapon flags. */
+    /**
+     * Tri-state friendly-fire: 0=off, 1=bomb splash only, 2=all weapons.
+     * Infinity-specific divergence from Subspace canon (which uses per-weapon
+     * flags) — see {@code .scratch/subspace-ini-reference/REFERENCE.md}.
+     */
     public void friendlyFire(final Number value) {
       if (value == null) {
         throw new IllegalArgumentException("friendlyFire requires a number (0, 1, or 2)");

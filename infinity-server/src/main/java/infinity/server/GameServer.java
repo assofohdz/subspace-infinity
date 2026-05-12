@@ -251,22 +251,42 @@ public class GameServer {
     systems.addSystem(
         new EntityUpdater(server.getServices().getService(EntityDataHostedService.class), true));
 
-    // ADR 0001 canonical writers MUST register BEFORE DecaySystem so the writer's
-    // add-handler caches (target, delta) before the reaper destroys the Change
-    // entity — otherwise reverse-on-expiry breaks. See ADR 0001 for the full pattern.
+    // ADR 0001 canonical writers MUST register BEFORE DecaySystem. The
+    // Change-entity drain pattern relies on the writer's update running
+    // first: tick N writer.add → apply + cache (target, delta); tick N reaper
+    // destroys the Decay-bound Change entity; tick N+1 writer.remove →
+    // reverse from cache. Reaper-before-writer ordering would let the
+    // entity vanish before the writer cached the tuple, breaking
+    // reverse-on-expiry for every temporary buff (rocket-thrust, super,
+    // future status toggles).
     systems.register(EnergySystem.class, new EnergySystem());
     systems.register(EnergyStatsSystem.class, new EnergyStatsSystem());
+    // Movement (ADR 0001 wave 1) — Rotation/Speed/Thrust Continuous-half writers.
+    // SpeedSystem/ThrustSystem bypass their normal SpeedStats.max / ThrustStats.max
+    // clamp for Decay-bound (temporary) deltas because rocket-buff RocketSpeed /
+    // RocketThrust legally exceed the per-ship caps; the bypass is what makes
+    // the buff visible. Stats records are spawn-only (ShipSpawnSystem) so no
+    // *StatsSystem needed in this wave.
     systems.register(RotationSystem.class, new RotationSystem());
     systems.register(SpeedSystem.class, new SpeedSystem());
     systems.register(ThrustSystem.class, new ThrustSystem());
+    // Status family (ADR 0001 wave 3a) — Cloak/Stealth/XRadar/Antiwarp Continuous-
+    // half writers. 2-level aspect (Continuous + Stats only; no Live pool), so
+    // no *StatsSystem — ShipStatusProjector handles spawn-time projection.
     systems.register(CloakSystem.class, new CloakSystem());
     systems.register(StealthSystem.class, new StealthSystem());
     systems.register(XRadarSystem.class, new XRadarSystem());
     systems.register(AntiwarpSystem.class, new AntiwarpSystem());
+    // Weapon levels (ADR 0001 wave 4a) — Bomb/Bullet/Mine/Burst Continuous-half
+    // writers. 2-level aspect; ShipWeaponsProjector handles spawn-time.
     systems.register(BombSystem.class, new BombSystem());
     systems.register(BulletSystem.class, new BulletSystem());
     systems.register(MineSystem.class, new MineSystem());
     systems.register(BurstSystem.class, new BurstSystem());
+    // Inventory (ADR 0001 wave 4b) — Brick/Decoy/Portal/Repel/Rocket/Thor
+    // Continuous-half writers (count clamps at 0 below and *Stats.max above).
+    // RepelCountSystem is split from the impulse-applying RepelSystem
+    // registered with the physics stack (option-(b) per its class Javadoc).
     systems.register(infinity.systems.ship.BrickSystem.class, new infinity.systems.ship.BrickSystem());
     systems.register(infinity.systems.ship.DecoySystem.class, new infinity.systems.ship.DecoySystem());
     systems.register(infinity.systems.ship.PortalSystem.class, new infinity.systems.ship.PortalSystem());
@@ -274,8 +294,9 @@ public class GameServer {
     systems.register(infinity.systems.ship.RocketSystem.class, new infinity.systems.ship.RocketSystem());
     systems.register(infinity.systems.ship.ThorSystem.class, new infinity.systems.ship.ThorSystem());
 
-    // Standard systems.
+    // DecaySystem registers AFTER the ADR 0001 writers above (see ordering comment).
     systems.addSystem(new DecaySystem());
+    // Per-component reaper for Jitter (deadline-on-component, not Decay-driven).
     systems.addSystem(new infinity.systems.JitterReaperSystem());
 
     // We'll need the block set in order to have physics collision
@@ -318,7 +339,11 @@ public class GameServer {
 
     systems.register(InfinityChatHostedService.class, chp);
 
-    // Only CollidesWithLargeStatics-tagged bodies (ships at spawn) generate pairs with arena ghost-cubes.
+    // Coarse large-static pass body filter: only CollidesWithLargeStatics-tagged
+    // bodies (ships at spawn) generate pairs with arena ghost-cubes; everything
+    // else skips before narrow phase. Per-frame contact-gen still scales with
+    // (ships × loaded arenas); the next throttle if STAT_CONTACTS shows pressure
+    // is a penetration discriminator (drop pairs with penetration < shipRadius).
     mBlockShapeMPhysSystem.getPhysicsSpace().setLargeStaticCollisionFilter(
         body -> ed.getComponent(body.id, CollidesWithLargeStatics.class) != null);
 

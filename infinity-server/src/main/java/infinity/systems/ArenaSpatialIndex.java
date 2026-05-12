@@ -17,7 +17,13 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Spatial-query plumbing for {@link ArenaSystem}; owns the {@code (ArenaId+ArenaMap)} EntitySet and per-arena spawn resolution. */
+/**
+ * Spatial-query plumbing for {@link ArenaSystem} — owns the
+ * {@code (ArenaId + ArenaMap)} EntitySet + per-arena spawn resolution.
+ * Mutated only on the sim thread (matches ArenaSystem); reads rely on
+ * {@link ArenaSystem#update} having applied changes this tick. Arenas
+ * don't move within a tick, so a one-tick-stale read is harmless.
+ */
 final class ArenaSpatialIndex {
 
   static final Logger log = LoggerFactory.getLogger(ArenaSpatialIndex.class);

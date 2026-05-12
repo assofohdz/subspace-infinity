@@ -31,7 +31,13 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Canonical writer for {@link Frequency}; drains {@link FrequencyChange} (ADR 0001). Also handles flag-touch contacts (claims a flag for the toucher's frequency) and the {@code =N} chat command. See {@code .claude/rules/replacement-as-mutation.md}. */
+/**
+ * Canonical writer for {@link Frequency}; drains {@link FrequencyChange}
+ * (ADR 0001). Two emit paths: ship-vs-flag contacts (claim the flag for the
+ * toucher's frequency; source = toucher for attribution), and the
+ * {@code =N} chat command (player retargets own frequency). See
+ * {@code .claude/rules/replacement-as-mutation.md}.
+ */
 public class FrequencySystem extends AbstractGameSystem
     implements ContactListener<EntityId, MBlockShape> {
 

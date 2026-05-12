@@ -21,7 +21,14 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Tracks per-ship arena membership via MOSS sensor contacts; writes {@link ArenaId} on entry, removes on leave (silence-window exit). */
+/**
+ * Tracks per-ship arena membership via MOSS sensor contacts on
+ * {@link ArenaSystem}'s ghost-sphere arena bodies. Writes {@link ArenaId}
+ * on entry, removes on leave. MOSS only fires {@code newContact} (no
+ * end-contact callback), so exit detection is a silence-window: each
+ * {@code (ship, arena)} stores its last observed frame and {@link #update}
+ * fires a leave once the gap exceeds {@link #EXIT_GRACE_FRAMES}.
+ */
 public class ArenaMembershipSystem extends AbstractGameSystem
     implements ContactListener<EntityId, MBlockShape> {
 

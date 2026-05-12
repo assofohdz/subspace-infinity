@@ -20,7 +20,14 @@ import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Stateless pipeline: resolve source (fs-first, classpath fallback), build a hardened {@link GroovyShell}, eval, extract. Never throws. */
+/**
+ * Stateless pipeline: resolve source (filesystem-first dev mode, classpath
+ * fallback via {@link #resolveOnDisk}), build a hardened {@link GroovyShell},
+ * run the adapter's DSL bindings, evaluate, extract. Any failure logs and
+ * returns the adapter's {@link GroovySettingsAdapter#empty} sentinel —
+ * nothing propagates. Live-reload polling cadence is the caller's
+ * responsibility; this host owns I/O resolution but not polling.
+ */
 public final class GroovySettingsHost {
 
   private static final Logger log = LoggerFactory.getLogger(GroovySettingsHost.class);

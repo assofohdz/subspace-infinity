@@ -288,7 +288,14 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     return arenaLoader.load(arenaName);
   }
 
-  /** Loads zone.groovy, sets desired=true for each autoLoad arena, arms hot-reload. autoLoad is startup-only — reload doesn't re-apply it. */
+  /**
+   * Loads zone.groovy, sets desired=true for each autoLoad arena, arms hot-reload.
+   * <p>Reload semantics: only the in-memory {@link ZoneConfig} snapshot is
+   * replaced. {@code autoLoad} is NOT re-applied (startup-only intent —
+   * already-loaded arenas don't get unloaded if the list shrinks). Hot-reloadable
+   * knobs are those consumers re-read each call (repelFriendlies,
+   * scriptPollIntervalSeconds, enterSpawn).
+   */
   private void applyZoneStartupConfig() {
     zoneConfig = new GroovyZoneLoader().load();
     final java.nio.file.Path onDisk =

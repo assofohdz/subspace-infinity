@@ -20,7 +20,15 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Projects a Subspace .lvl tile grid onto Moss world cells + entity-backed tile spawns. Canonical writer of arena-tile world cells (with {@link WallLightDecorator}). */
+/**
+ * Projects a Subspace .lvl tile grid onto Moss world cells + ECS entities.
+ * Cell-backed tiles (visible Subspace tiles 1..190 minus entity-backed ids)
+ * become a single world cell at Y=1 with block type
+ * {@code arenaTileBase + tileId - 1}. Entity-backed tiles (turf flags,
+ * asteroids, doors, wormholes) spawn the matching {@link MapFactory} entity
+ * and leave the cell empty. Canonical writer of arena-tile world cells (with
+ * {@link WallLightDecorator}).
+ */
 public final class LegacyMapProjector {
 
   private static final Logger log = LoggerFactory.getLogger(LegacyMapProjector.class);

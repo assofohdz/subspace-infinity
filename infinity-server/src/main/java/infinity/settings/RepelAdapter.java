@@ -44,7 +44,12 @@ public final class RepelAdapter
       this.timeMs = Validators.centisecondsToMs("repel.time", centiseconds);
     }
 
-    /** {@code [Repel] RepelDistance} expressed in tiles (Infinity-native; SVS authors px @ 16 px/tile). */
+    /**
+     * {@code [Repel] RepelDistance} expressed in tiles (Infinity-native;
+     * sim doesn't speak pixels). Effect radius applied to
+     * {@link infinity.es.Repellable} bodies in range. SVS authors pixels
+     * (512 px = 32 tiles at 16 px/tile); divide by 16 when porting.
+     */
     public void distance(final Number value) {
       this.distanceTiles = Validators.finiteNonNegativeDouble("repel.distance", value);
     }

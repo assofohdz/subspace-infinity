@@ -12,7 +12,15 @@ import java.nio.file.Paths;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Loads {@code engine.groovy} once at init, hot-reloads via {@link GroovyFileWatcher}, exposes {@link EngineConfig} via {@link #get()}. */
+/**
+ * Engine-tier (fourth scope above preset/arena/zone) config holder. Loads
+ * {@code engine.groovy} once at init, hot-reloads via
+ * {@link GroovyFileWatcher}; the held snapshot is {@code volatile} so
+ * watcher writes publish safely to readers without further sync. Parse /
+ * eval failures fall back to {@link EngineConfig#DEFAULTS} with a warning.
+ * Live reload is silently disabled on classpath-only production deployments
+ * where {@code engine.groovy} isn't reachable on disk.
+ */
 public class EngineConfigSystem extends AbstractGameSystem {
 
   private static final Logger log = LoggerFactory.getLogger(EngineConfigSystem.class);

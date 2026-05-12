@@ -12,7 +12,15 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Writes light-emitter cells above straight wall runs; canonical writer of {@link InfinityConstants#LIGHT_EMITTER_BLOCK_TYPE}. */
+/**
+ * Writes light-emitter cells above straight wall runs of {@code >=
+ * CoreViewConstants.WALL_LIGHT_MIN_RUN} tiles. Emitter cells carry packed
+ * light values on their {@code BlockType} that
+ * {@code LightUtils.recalculateLighting} flood-fills into neighbour cells'
+ * {@code lightData} (the tile shader reads via vertex colors). "Wall" = any
+ * tile id in {@code vieNormalStart..vieNormalEnd}; branches off the run are
+ * tolerated. Canonical writer of {@link InfinityConstants#LIGHT_EMITTER_BLOCK_TYPE}.
+ */
 public final class WallLightDecorator {
 
   private static final Logger log = LoggerFactory.getLogger(WallLightDecorator.class);

@@ -30,7 +30,17 @@ import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** World-state diagnostic chat commands ({@code ~checkprizes}, {@code ~checkarenas}, {@code ~checkdecay}). Read-only. */
+/**
+ * World-state diagnostic chat commands. Read-only.
+ * <ul>
+ *   <li>{@code ~checkprizes} — audits Spawner config + Decay projection on
+ *       live prizes.
+ *   <li>{@code ~checkarenas} — loaded arenas with per-arena ship/spawner
+ *       counts.
+ *   <li>{@code ~checkdecay} — flags past-deadline (reaper lag) or
+ *       absurd-future Decay deadlines; surfaces decay-ttl.md violations.
+ * </ul>
+ */
 public class ChecksWorldSystem extends BaseInfinitySystem {
 
   static final Logger log = LoggerFactory.getLogger(ChecksWorldSystem.class);

@@ -22,7 +22,11 @@ import infinity.settings.EngineConfigSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Per-ship MOSS control driver — projects live {@link Thrust}/{@link Speed}/{@link Rotation} onto the {@link RigidBody}. */
+/**
+ * Per-ship MOSS control driver — projects live {@link Thrust}/{@link Speed}/{@link Rotation}
+ * onto the {@link RigidBody}. If any of those components are missing, the ship is left idle
+ * (not-yet-configured case, e.g. arena config not loaded and no fallback installed).
+ */
 public class PlayerDriver extends AbstractControlDriver<EntityId, MBlockShape> {
 
     private static final Logger log = LoggerFactory.getLogger(PlayerDriver.class);
