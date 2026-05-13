@@ -40,7 +40,16 @@ import org.junit.runner.RunWith;
     importOptions = ImportOption.DoNotIncludeTests.class)
 public class LayerDependencyTest {
 
-  /** api/ (components + events + sim factories + config records) must not leak into server/client/modules/ai. */
+  /**
+   * api/ (components + events + sim factories + config records) must not leak into
+   * server/client/modules/ai/settings.
+   *
+   * <p>Note: the {@code infinity.sim..} package prefix matches BOTH api-side
+   * (factories, manager interfaces — the module-facing ABI) and server-side
+   * {@code infinity.sim.internal..} (concrete impls relocated per ADR-0005). The
+   * latter is server-tier and legitimately depends on server-tier classes; the
+   * {@code .and().resideOutsideOfPackage} clause excludes it from this rule.
+   */
   @ArchTest
   static final ArchRule api_must_not_depend_on_server_client_or_modules =
       noClasses()
@@ -50,6 +59,8 @@ public class LayerDependencyTest {
               "infinity.events..",
               "infinity.sim..",
               "infinity.config..")
+          .and()
+          .resideOutsideOfPackage("infinity.sim.internal..")
           .should()
           .dependOnClassesThat()
           .resideInAnyPackage(
@@ -57,7 +68,8 @@ public class LayerDependencyTest {
               "infinity.server..",
               "infinity.client..",
               "infinity.modules..",
-              "infinity.ai..");
+              "infinity.ai..",
+              "infinity.settings..");
 
   /** Server, modules, and AI must not reach into client code. */
   @ArchTest

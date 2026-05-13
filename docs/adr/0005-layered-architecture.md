@@ -162,7 +162,6 @@ New exceptions should be rare and documented at the rule site.
 
 The decision is fully described above. Enforcement and migration items live in `.scratch/architectural-review-2026-05-13.md`:
 
-- **Extend `LayerDependencyTest`** Rule 1 to add `infinity.settings..` to its forbidden list (api/ must not depend on server-side settings impls). The Rule 3 + `infinity.sim.internal..` relocation landed; Rule 1 closure remains (architectural review P1-c).
 - **Add `infinity.config..` import guard** to `LayerDependencyTest` for the hot-path discipline per ADR-0002 (architectural review P1-d).
 - **Mechanise the canonical-writer guard** per ADR-0001 — same ArchUnit infrastructure (architectural review P1-a).
 - **Decide module package convention** — `modules.<module-name>..` is suggested in ADR-0004; once the loader lands, add it to `LayerDependencyTest` Rule 2's forbidden-for-server-imports list so modules cannot accidentally bleed into core server systems.
