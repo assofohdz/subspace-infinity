@@ -29,14 +29,14 @@ An immutable `EntityComponent` in `api/src/main/java/infinity/es/...` — pure d
 _Avoid_: "model", "data class".
 
 **Spawn system**:
-The seam where a `*Config` template (Pattern 4) is projected into per-entity components at spawn time. The only place template values cross into the live entity world.
+The seam where a `*Config` template (Config-Component Projection, [ADR-0002](docs/adr/0002-config-component-projection.md)) is projected into per-entity components at spawn time. The only place template values cross into the live entity world.
 _Avoid_: "factory", "builder".
 
 ### Settings
 
 **Settings layer**:
 The Groovy-DSL → typed-config pipeline in `infinity/src/main/java/infinity/settings/...` plus the Groovy files under `infinity/zone/`. Loads at boot, polls for live reload, drives `SettingsSystem` and `ConfigRegistry`.
-_Avoid_: "config layer" (ambiguous — also means Pattern 4 templates).
+_Avoid_: "config layer" (ambiguous — also means CCP / [ADR-0002](docs/adr/0002-config-component-projection.md) templates).
 
 **Settings host**:
 A `GroovySettingsHost<T>` instance — runs the read-evaluate-extract pipeline for one kind of Groovy file. Owns I/O resolution (filesystem-first dev, classpath fallback), security hardening (per-adapter import whitelist), error-to-empty translation, and `resolveOnDisk` for caller-driven mtime polling.
@@ -50,8 +50,8 @@ _Avoid_: "settings parser", "loader".
 A small Groovy file under `infinity/zone/conf/<preset>/` that contributes one or more INI sections (`section('Bullet') { ... }`) to a per-arena settings tree. Loaded via `GroovyFragmentLoader`; included recursively from `arena.groovy` via the `include` directive.
 _Avoid_: "preset file", "settings snippet".
 
-**Pattern 4**:
-The template-vs-instance split: `*Config` records in `api/src/main/java/infinity/config/` are templates (one per type, immutable, server-only), projected to per-entity components by spawn systems. Hot-path code reads components only.
+**Config-Component Projection (CCP)**:
+The template-vs-instance split: `*Config` records in `api/src/main/java/infinity/config/` are templates (one per type, immutable, server-only), projected to per-entity components by spawn systems. Hot-path code reads components only. Formalised by [ADR-0002](docs/adr/0002-config-component-projection.md); the historical "Pattern 4" name is retired.
 _Avoid_: confusing this with the **Settings layer** — they overlap (Groovy populates the templates) but the *pattern* is about who reads what at runtime.
 
 ### Events
@@ -92,6 +92,6 @@ _Avoid_: "game event", "in-game event".
 
 ## Flagged ambiguities
 
-- "config" was used to mean both Pattern 4 *templates* and arena-tier *settings*. Resolved: the templates are **Pattern 4** (`*Config` records); the file pipeline is the **Settings layer**.
+- "config" was used to mean both **Config-Component Projection** *templates* and arena-tier *settings*. Resolved: the templates are CCP (`*Config` records, formalised by [ADR-0002](docs/adr/0002-config-component-projection.md)); the file pipeline is the **Settings layer** ([ADR-0004](docs/adr/0004-settings-pipeline.md)). The historical "Pattern 4" name is retired.
 - "loader" was used for both the host (the I/O+evaluation pipeline) and the adapter (the DSL semantics). Resolved: **host** runs the pipeline, **adapter** supplies the per-kind specifics. Existing `Groovy*Loader` classnames will become thin facades wrapping `host.load(adapter)`.
 - "event" was used to mean three different things — a transient ECS component, an arena-scope `EventBus` event, and a zone-scope `EventBus` event. Resolved: see the three definitions in **Events** above. Events that turn out to need queryability or atomicity belong as transient components, not bus events.

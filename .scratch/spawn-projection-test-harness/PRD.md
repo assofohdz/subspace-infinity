@@ -2,12 +2,12 @@
 
 Status: ready-for-human (slice 0 done — four pillars wired)
 
-End-to-end ECS flows have zero automated coverage today. Every Pattern 4 / spawn / prize / energy refactor is verified by manual game launch — see [`project_spawn_projection_test_gap.md`](../../.claude/projects/-home-assofohdz-github-assofohdz-subspace-infinity/memory/project_spawn_projection_test_gap.md). This PRD closes that gap by introducing a minimal SiO2 `GameSystemManager` test fixture that boots only the systems under test, projects a synthetic `ConfigRegistry` snapshot, and asserts the resulting ECS components match.
+End-to-end ECS flows have zero automated coverage today. Every CCP / spawn / prize / energy refactor is verified by manual game launch — see [`project_spawn_projection_test_gap.md`](../../.claude/projects/-home-assofohdz-github-assofohdz-subspace-infinity/memory/project_spawn_projection_test_gap.md). This PRD closes that gap by introducing a minimal SiO2 `GameSystemManager` test fixture that boots only the systems under test, projects a synthetic `ConfigRegistry` snapshot, and asserts the resulting ECS components match.
 
 ## Why
 
 - The conf-fragments-to-groovy work just shipped a hot-reload path that touches `SettingListener` events and the merged `Ini` store; no automated test exercises it. The gate before commit was a manual launch.
-- Every Pattern 4 cluster still on the [backlog](../BACKLOG.md) (damage / projectile speeds / decays / cooldowns / health / etc.) follows the same shape: template → spawn-time projection → ECS component. Each of those is a candidate for the same kind of programmatic round-trip test.
+- Every CCP cluster still pending (damage / projectile speeds / decays / cooldowns / health / etc.) follows the same shape: template → spawn-time projection → ECS component. Each of those is a candidate for the same kind of programmatic round-trip test.
 - The cost of "manual launch is the only verification" compounds — slows iteration, makes refactors riskier, makes regressions invisible until somebody loads the right arena.
 
 ## Out of scope
@@ -54,7 +54,7 @@ Each slice adds one independently-testable flow. Land them as separate PRs so ea
 | **1d** | **RaM intent-drain pillar** ✅ | `EnergySystemIntentTest` boots `GameSystemManager` + `EnergySystem`, emits `(Buff + HealthChange)` intent entities, ticks once, and asserts the canonical writer folds them into a single `Health` replacement and reaps the intent entity. Pins the intent-emission → drain → final-state round-trip that `replacement-as-mutation.md` formalizes. |
 | 2 | **Tuning projection (no live-pool reset)** | Damaging a ship (manual `Health` write), then triggering a tuning re-project (ArenaId change OR `reprojectAll`), preserves Health/Energy and Bomb/Gun/Mine/Burst/Thor/Repel current counts while updating capability stats and `*Max`. |
 | 4 | **No-config fallback** | Ship in an arena with no entry in the registry retains its prior component values; the system logs the warning and skips projection. |
-| 5 | **Pattern-4 candidate slices** | One slice per cluster as those Pattern 4 migrations land — Damage, Projectile speeds, Decays, etc. Each is a carbon copy of slice 1 but for a different `*Config` record + spawn system. |
+| 5 | **Pattern-4 candidate slices** | One slice per cluster as those CCP migrations land — Damage, Projectile speeds, Decays, etc. Each is a carbon copy of slice 1 but for a different `*Config` record + spawn system. |
 
 ## Locked-in design decisions
 
@@ -68,6 +68,6 @@ Each slice adds one independently-testable flow. Land them as separate PRs so ea
 
 ### Test harness for spawn / projection / prize flows — slice 0 done
 
-Tracked in [`spawn-projection-test-harness/PRD.md`](../spawn-projection-test-harness/PRD.md). Four pillars shipped: ship-spawn projection (`ShipSpawnSystemTest`), prize pickup (`RepelPrizeApplierTest`), projectile spawn (`BulletFactoryTest`), and RaM intent-drain (`EnergySystemIntentTest`). Slice 3 also landed (`ShipSpawnSystemHotReloadTest`) — pins the `ConfigRegistrySystem.replace` → `ShipSpawnSystem.reprojectAll` seam the Groovy hot-reload path depends on (capability stats track new snapshot, live pools preserved, per-arena isolation, observer EntitySets surface the changed ship). The `GameSystemManager` + `DefaultEntityData` + `ConfigRegistrySystem` fixture, the no-system applier fixture, the `PhysicsSpace`-from-`Grid` factory fixture, and the GSM-with-intent-emission fixture are all callable templates for the remaining slices. Remaining: tuning projection (no live-pool reset), no-config fallback, and one-per-cluster Pattern 4 candidates as those migrations land.
+Tracked in [`spawn-projection-test-harness/PRD.md`](../spawn-projection-test-harness/PRD.md). Four pillars shipped: ship-spawn projection (`ShipSpawnSystemTest`), prize pickup (`RepelPrizeApplierTest`), projectile spawn (`BulletFactoryTest`), and RaM intent-drain (`EnergySystemIntentTest`). Slice 3 also landed (`ShipSpawnSystemHotReloadTest`) — pins the `ConfigRegistrySystem.replace` → `ShipSpawnSystem.reprojectAll` seam the Groovy hot-reload path depends on (capability stats track new snapshot, live pools preserved, per-arena isolation, observer EntitySets surface the changed ship). The `GameSystemManager` + `DefaultEntityData` + `ConfigRegistrySystem` fixture, the no-system applier fixture, the `PhysicsSpace`-from-`Grid` factory fixture, and the GSM-with-intent-emission fixture are all callable templates for the remaining slices. Remaining: tuning projection (no live-pool reset), no-config fallback, and one-per-cluster CCP candidates as those migrations land.
 
 This is also slice 0 in [`settings-pipeline-slices.md`](../settings-pipeline-slices.md) — pipeline tracker's Test column can now honestly flip to ✅ for slices that exercise these four pillars.

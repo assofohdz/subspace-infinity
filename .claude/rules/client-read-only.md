@@ -6,7 +6,7 @@ paths:
 ---
 # Client Layer Rules
 
-Client code **observes** authoritative state; the server **owns** it. Writes travel server-ward via RMI commands, never by mutating shared `EntityData` locally.
+Formalised by [ADR-0005](../../docs/adr/0005-layered-architecture.md). Client code **observes** authoritative state; the server **owns** it. Writes travel server-ward via RMI commands, never by mutating shared `EntityData` locally.
 
 - **Never mutate shared entity state from the client.** Don't call `entityData.setComponent(...)` on authoritative components.
 - **Avatar position comes from SimEthereal `BodyPosition`**, not from RMI polling or direct physics-space queries.

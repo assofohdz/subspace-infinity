@@ -6,7 +6,7 @@ the same change that retired `SSSLoader`. The `.set` / `.sss` files were no
 longer being loaded at runtime — `SSSLoader` was registered for the
 extensions but no code called `assetManager.loadAsset(*.sss|*.set)`. The
 **data**, however, is the canonical Mine GO BOOM reference set and worth
-keeping for tuning work and Pattern 4 promotions.
+keeping for tuning work and CCP promotions ([ADR-0002](../../docs/adr/0002-config-component-projection.md)).
 
 This file pairs with [`REFERENCE.md`](./REFERENCE.md) — that page has the
 field **descriptions**, this page has the canonical **defaults and ranges**.
@@ -21,7 +21,7 @@ Example: `Warbird:InitialBombs:1:0:3:Initial level a ship's bombs fire`
 ## Per-ship defaults — side-by-side comparison
 
 The 8 canonical Subspace ships (97 fields each in canonical order). Use
-this table when porting per-ship knobs to Pattern 4 `ShipConfig` records or
+this table when porting per-ship knobs to CCP `ShipConfig` records or
 when a Groovy preset wants to use canonical defaults as a starting point.
 
 | Field | Warbird | Javelin | Spider | Leviathan | Terrier | Weasel | Lancaster | Shark | Range | Description |

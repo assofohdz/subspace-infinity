@@ -55,4 +55,4 @@ encodings — the appliers should match.
 ## Reference
 
 - [`REFERENCE.md`](../../.scratch/subspace-ini-reference/REFERENCE.md) — Subspace settings spec, indexed by section.
-- [`config-pattern.md`](./config-pattern.md) — template-vs-instance Pattern 4 (where the per-prize knobs live in the typed pipeline).
+- [`config-pattern.md`](./config-pattern.md) — Config-Component Projection ([ADR-0002](../../docs/adr/0002-config-component-projection.md)) template-vs-instance split (where the per-prize knobs live in the typed pipeline).

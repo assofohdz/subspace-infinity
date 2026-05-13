@@ -56,7 +56,7 @@ The trench testbed introduces:
      `GroovyShipLoader.FALLBACK` per-arena snapshot), or
    - point it at `/conf/base/ships.groovy` (does not exist today; legacy
      `/conf/base/ship-<name>.groovy` INI fragments exist instead and run
-     through the SettingsSystem ini path, not Pattern 4).
+     through the SettingsSystem ini path, not Config-Component Projection).
 
 ## Suggested order
 

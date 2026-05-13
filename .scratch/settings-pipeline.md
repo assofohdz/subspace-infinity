@@ -163,7 +163,7 @@ zone/conf/<preset>/
 | 8 | **Subsystem** | Which Java consumer reads the value at runtime? | `Class.method` / ❌ if dead |
 | 9 | **Test** | Automated test exercising this setting end-to-end | `Class.method` / ❌ none |
 
-The **Component** column appears only on tables where Pattern 4
+The **Component** column appears only on tables where Config-Component Projection (CCP, [ADR-0002](../docs/adr/0002-config-component-projection.md))
 (template → component → consumer, see [`config-pattern.md`](../.claude/rules/config-pattern.md))
 applies: per-ship stat tables and the [PrizeWeight] dispatch table.
 Arena-global tuning tables ([Bomb], [Bullet], etc.) read `*Config`

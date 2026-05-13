@@ -16,7 +16,7 @@
 | `EntitySet` lifecycle (released in `terminate()` / `cleanup()`) | **0 leaks** on server; **1 leak on client** — see E |
 | Canonical-writer rule (one writer per component) | **0 violations** — `replacement-as-mutation.md` snapshot confirms 0 remaining multi-writer hot-spots across ~95 component types |
 | Decay-TTL parallelism | **0 violations** — `Decay` is the sole entity-lifetime mechanism. `Delay` and `Jitter` are distinct concepts (deferred-action; component-reaper) |
-| Hot-path config-import discipline | **2 violations** (Pattern 4 leak) — see D2 |
+| Hot-path config-import discipline | **2 violations** (CCP leak) — see D2 |
 
 The migration work the team has already invested is real. The audit found exactly the shape ADR-0001 promised. The next-most-valuable investment is a mechanised guard that prevents regressions — see ADR-1 below and item P1-a.
 
@@ -37,7 +37,7 @@ The migration work the team has already invested is real. The audit found exactl
 - `ConfigRegistry` ownership is clean: one `ConfigRegistrySystem` per server, `ConcurrentHashMap<arenaId, ConfigRegistry>`. Arena lookups via `forArena()` with `EMPTY` fallback.
 - **16 / 18 `*Config` records** are fully wired through the loader → registry → projection chain. Two dangling `ConfigRegistry.SLOTS` entries — `ThorConfig`, `GravBombConfig` — have no fragment adapters and fall back to `DEFAULTS`. Intentional today (Thor is per-ship via `ships.groovy`; GravBomb hasn't diverged from Bomb yet) but undocumented — a future author may waste effort adding an adapter that wouldn't be loaded.
 - **32 / 32 prize appliers** emit `ChangeTarget + *Change` entity holders per ADR-0001. None directly mutate components. Spot-checked appliers (`Cloak`, `Thor`, `Shields`) all cite REFERENCE.md or document an Infinity divergence.
-- **Live-reload coverage is partial — by design.** Editing `ships.groovy` triggers `ShipSpawnSystem.reprojectAll()` and re-flows into live ships. Editing weapon / prize fragments updates the registry but does not re-flow into existing entities — new spawns / new shots pick up the change. Defensible (template vs instance, Pattern 4) but surprising to operators; merits an operator-runbook note.
+- **Live-reload coverage is partial — by design.** Editing `ships.groovy` triggers `ShipSpawnSystem.reprojectAll()` and re-flows into live ships. Editing weapon / prize fragments updates the registry but does not re-flow into existing entities — new spawns / new shots pick up the change. Defensible (template vs instance, CCP) but surprising to operators; merits an operator-runbook note.
 
 ### D. Server cohesion — good, three pin-pricks
 
@@ -136,7 +136,7 @@ The codebase has exactly **one ADR today** (`docs/adr/0001-ecs-component-model.m
 
 Candidates, in order of ratchet-leverage:
 
-### ADR-0002 candidate — Pattern 4: template-vs-instance config split
+### ADR-0002 candidate — CCP: template-vs-instance config split
 
 The split between immutable `*Config` records in `api/src/main/java/infinity/config/` (one per type, registry-owned, read at spawn) and per-entity components (one per entity, mutable, read on the hot path) is the foundational decision that makes the settings pipeline tractable. Today it's documented in `.claude/rules/config-pattern.md` and CONTEXT.md prose. The decision *and the alternatives rejected* (single-tier config; components-only; hot-path registry lookup) deserve an ADR — especially because the audit found two live Pattern-4 leaks (D2) that would have been visible at code-review time against an ADR with a clear forbidden-import list.
 
@@ -154,7 +154,7 @@ Two rules today: `.claude/rules/api-contracts.md` ("api is data + interfaces onl
 
 ### ADR-0006 candidate — Tuning-knob locale (Groovy, not Java)
 
-CLAUDE.md Rule 3 ("Tuning knobs go in Groovy, not Java") is a strong opinionated policy with three tiers (preset / arena / zone) and an explicit exception list (math identities, protocol constants). The policy interacts with Pattern 4 (Groovy populates `*Config` templates; templates project to components). The decision rationale ("easier to demote a knob back to a constant than to flush a magic number") deserves to be captured once instead of restated in every PR review. Operator-facing.
+CLAUDE.md Rule 3 ("Tuning knobs go in Groovy, not Java") is a strong opinionated policy with three tiers (preset / arena / zone) and an explicit exception list (math identities, protocol constants). The policy interacts with CCP (Groovy populates `*Config` templates; templates project to components). The decision rationale ("easier to demote a knob back to a constant than to flush a magic number") deserves to be captured once instead of restated in every PR review. Operator-facing.
 
 ### ADR-0007 candidate — Single TTL mechanism: `Decay`
 
@@ -171,7 +171,7 @@ CLAUDE.md Rule 3 ("Tuning knobs go in Groovy, not Java") is a strong opinionated
 
 Pulling ADRs in this order maximises ratchet leverage: each closes a class of recurring review comment, and each gives the agent rule files a cross-link target.
 
-1. **ADR-0002 (Pattern 4)** — closes the two live leaks in D2 against a named source.
+1. **ADR-0002 (CCP)** — closes the two live leaks in D2 against a named source.
 2. **ADR-0003 (Three event planes)** — closes the most overloaded vocabulary problem in the codebase.
 3. **ADR-0005 (Layers + client read-only)** — pairs with extending `LayerDependencyTest` (P1-c) and the CubeFactory move (P0-b).
 4. **ADR-0004 (Settings pipeline)** — captures three months of slice work in one document.
@@ -186,7 +186,7 @@ Pulling ADRs in this order maximises ratchet leverage: each closes a class of re
 
 - **The two coverage gaps that matter** (prize appliers translating REFERENCE.md; settings adapters translating Groovy DSL) sit at the **boundary between Subspace canon and Infinity code**. Both are "translation" boundaries — the kind of code that drifts silently against an external spec. Both deserve their own tier of tests that pin canonical behaviour. The spawn-projection harness PRD already exists and is ready-for-human; the analogue for prize-canon and DSL-canon would complete the test triad.
 
-- **Naming hazards.** Three flagged: `StatsSystem` (telemetry, not ADR-0001 `*Stats`), api-side `infinity.sim` vs server-side `infinity.sim` (same FQN, different layers), and "config" pre-disambiguation between Pattern 4 templates and the settings pipeline (resolved in CONTEXT.md but not yet in code). All three are real cognitive load and one of them (the `sim` collision) is a load-bearing test gap.
+- **Naming hazards.** Three flagged: `StatsSystem` (telemetry, not ADR-0001 `*Stats`), api-side `infinity.sim` vs server-side `infinity.sim` (same FQN, different layers), and "config" pre-disambiguation between CCP templates and the settings pipeline (resolved in CONTEXT.md but not yet in code). All three are real cognitive load and one of them (the `sim` collision) is a load-bearing test gap.
 
 - **The bus is severely underused.** Three `EventBus.publish` sites in the whole codebase (one for ship-spawn, two for account login/logout); six declared `EventType` constants never published; an orphan `infinity.sim.Events` enum paralleling the bus surface from an earlier design that did not retire. Direct `getSystem` method calls fill the announcement gap and accumulate implicit registration-order contracts (D3). ADR-0003 names the discipline; P2-c / P2-d / P2-j are the cleanup. The risk shape is the opposite of "bus spaghetti" — it's "bus disuse + direct-call spaghetti".
 

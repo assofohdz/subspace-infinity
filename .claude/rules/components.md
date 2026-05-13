@@ -5,7 +5,7 @@ paths:
 ---
 # ECS Component Rules
 
-Components must be immutable, with a no-arg constructor (required for Zay-ES deserialization).
+Component immutability + Change-entity mutation formalised by [ADR-0001](../../docs/adr/0001-ecs-component-model.md). Components must be immutable, with a no-arg constructor (required for Zay-ES deserialization).
 
 **Register components that cross the wire for network serialization.** A component crosses the wire when a client (`infinity.client.*`) references its type — directly, via `watchEntity`/`getEntities`, or as part of a shared `EntitySet` filter. If yours does, register it in [`GameServer.registerSerializers()`](../../infinity-server/src/main/java/infinity/server/GameServer.java) via `Serializer.registerClass(MyComponent.class, new FieldSerializer())` in the same change that adds the class. The failure mode is `IllegalArgumentException: Class has not been registered` thrown at runtime on first client use — not at compile time, so missing registrations slip past the build.
 

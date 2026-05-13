@@ -6,7 +6,7 @@ paths:
 ---
 # Entity TTL — `Decay` is canonical
 
-`com.simsilica.es.common.Decay` is the **only** mechanism for "this entity
+Formalised by [ADR-0007](../../docs/adr/0007-entity-ttl-decay.md). `com.simsilica.es.common.Decay` is the **only** mechanism for "this entity
 expires at time T". A central system reads it and removes the entity when
 the deadline passes. Adding a parallel TTL marker (e.g. a custom
 `*Decay` / `*Lifetime` / `*ExpiresAt` component) creates two systems racing
@@ -42,6 +42,8 @@ trusts `Decay` as the single source of truth.
 
 ## Why
 
-The same architectural reason as Pattern 4 (`*Config` → spawn projection →
-component): "duration is config, deadline is per-instance state, the spawn
-system is the boundary." Drift between those layers is where the bugs live.
+The same architectural reason as Config-Component Projection
+([ADR-0002](../../docs/adr/0002-config-component-projection.md): `*Config` →
+spawn projection → component): "duration is config, deadline is per-instance
+state, the spawn system is the boundary." Drift between those layers is
+where the bugs live.

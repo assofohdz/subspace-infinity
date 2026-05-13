@@ -12,7 +12,7 @@ names match the INI section headers under
 
 Use this as a guide when porting INI fragments to Groovy or when adding
 typed accessors in the settings layer. Fields that have already been
-promoted to Pattern 4 (`*Config` records) or live as ECS components do
+promoted to CCP (`*Config` records, per [ADR-0002](../../docs/adr/0002-config-component-projection.md)) or live as ECS components do
 **not** need their INI entries kept in sync — Groovy is the source of
 truth there.
 

@@ -9,7 +9,7 @@ Spec: [docs/adr/0001-ecs-component-model.md](../../docs/adr/0001-ecs-component-m
 Ship state mutation in Subspace Infinity is racy and the dispatch shape doesn't scale.
 
 Today the ~95 ship-state component types are written from a mix of:
-- One canonical writer (the well-behaved cases — `EnergySystem.Health`, `ShipSpawnSystem.Thrust/Speed/...` via Pattern 4, `mphys` integrator for `Impulse`).
+- One canonical writer (the well-behaved cases — `EnergySystem.Health`, `ShipSpawnSystem.Thrust/Speed/...` via CCP / [ADR-0002](../../docs/adr/0002-config-component-projection.md), `mphys` integrator for `Impulse`).
 - A universal `Intent(target, kind, payload)` + `CapBump(field, delta)` + `CapField` enum wrapper for the five upgrade-prize cap-bumps (Energy, Recharge, Rotation, Thrust, Speed).
 - A bespoke `RocketBuffIntent` for rocket-buff Thrust/Speed swaps.
 - A bespoke `Buff(target, startTime) + HealthChange(delta)` pair for damage / regen / refill.

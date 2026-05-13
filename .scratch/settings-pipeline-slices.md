@@ -800,7 +800,7 @@ what unit anything is in.
 5. **Mines force `velocity = (0, 0, 0)` in `getAttackInfo`** as a
    special-case, instead of the spawn pipeline projecting an
    appropriate component value. Same shape of problem as bullet/bomb
-   speed before Slice 10 — could be folded into the same Pattern 4
+   speed before Slice 10 — could be folded into the same CCP ([ADR-0002](../docs/adr/0002-config-component-projection.md))
    solution.
 
 **Audit questions to answer (not pre-decided):**

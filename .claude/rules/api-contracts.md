@@ -4,7 +4,7 @@ paths:
 ---
 # API Layer Rules
 
-The `api/` module is the shared contract layer — data and interfaces only. Both server (`infinity/`, `modules/`) and client (`infinity.client.*`) depend on it, so anything added here becomes a cross-layer commitment.
+Formalised by [ADR-0005](../../docs/adr/0005-layered-architecture.md). The `api/` module is the shared contract layer — data and interfaces only. Both server (`infinity/`, `modules/`) and client (`infinity.client.*`) depend on it, so anything added here becomes a cross-layer commitment.
 
 - **Data + interfaces only.** No business logic, no system implementations, no state mutation logic. Exception: see "Module-facing entity-construction ABI" below.
 - **Components live in `infinity.es.*`** and must be immutable (see [components.md](./components.md)).
@@ -20,6 +20,6 @@ The same exception extends to **Change-entity emit helpers** — thin api/-side 
 
 Constraints on both the entity-construction factories and the intent-dispatch routers:
 
-- **Tuning numbers do not live in the factory body.** Starting weapon levels, inventory caps, fire delays, drag/turn/bounce values, etc. flow through Pattern 4 (`*Config` records → `ShipSpawnSystem` projection → ECS components). The factory composes structural pieces (Parent, ShapeNames, Mass, Gravity, Position, CollisionCategory, Meta) and lets the spawn system project the tuned values. See [`config-pattern.md`](./config-pattern.md).
+- **Tuning numbers do not live in the factory body.** Starting weapon levels, inventory caps, fire delays, drag/turn/bounce values, etc. flow through Config-Component Projection ([ADR-0002](../../docs/adr/0002-config-component-projection.md): `*Config` records → `ShipSpawnSystem` projection → ECS components). The factory composes structural pieces (Parent, ShapeNames, Mass, Gravity, Position, CollisionCategory, Meta) and lets the spawn system project the tuned values. See [`config-pattern.md`](./config-pattern.md).
 - **Do not import server-side packages.** No `infinity.systems.*`, `infinity.server.*`, `infinity.client.*` imports. The factory or dispatcher composes api/-only types.
 - **Method names and signatures are an ABI contract.** Renames or signature changes are breaking changes for module authors; treat them as such.

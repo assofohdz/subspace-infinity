@@ -1,6 +1,6 @@
-# Config Pattern — Template vs Instance
+# Config-Component Projection (CCP) — Template vs Instance
 
-Gameplay tuning (ship stats, weapon parameters, etc.) splits into two tiers. Keep them separate.
+Formalised by [ADR-0002](../../docs/adr/0002-config-component-projection.md). Gameplay tuning (ship stats, weapon parameters, etc.) splits into two tiers. Keep them separate.
 
 ## The two tiers
 
@@ -49,4 +49,4 @@ Hot-path consumers must not import from `infinity.config`. Spawn systems are the
 
 ## Reference
 
-See `ShipConfig` / `ShipStat` in `api/src/main/java/infinity/config/` for the canonical shape, and the Pattern 4 discussion in project history for the rationale this page summarizes.
+See `ShipConfig` / `ShipStat` in `api/src/main/java/infinity/config/` for the canonical shape, and [ADR-0002](../../docs/adr/0002-config-component-projection.md) for the full rationale this page summarises.

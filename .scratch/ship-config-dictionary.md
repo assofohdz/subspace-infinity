@@ -1,10 +1,10 @@
 # Ship Config Dictionary — typed `ShipConfig` port status
 
-Tracks the per-ship tuning surface and which keys have been promoted to the typed Groovy `ShipConfig` template (Pattern 4 — `ship(Ship.X) { … }` blocks in `ships.groovy`) vs. which still live as untyped `shipSection 'X' { Key value }` blocks in the per-preset Groovy fragments under `zone/conf/<preset>/ship-<name>.groovy`.
+Tracks the per-ship tuning surface and which keys have been promoted to the typed Groovy `ShipConfig` template (Config-Component Projection per [ADR-0002](../docs/adr/0002-config-component-projection.md) — `ship(Ship.X) { … }` blocks in `ships.groovy`) vs. which still live as untyped `shipSection 'X' { Key value }` blocks in the per-preset Groovy fragments under `zone/conf/<preset>/ship-<name>.groovy`.
 
 **Scope:** the 84 keys per ship that appear in every `ship-<name>.groovy` fragment under `zone/conf/trench-04-2026/` (verified to be the same set across all 8 ships). The same key set holds for the SVS preset family. (These keys came from the original Subspace `shipSection` surface; the conf-fragments-to-groovy migration ported the bag verbatim into `shipSection` blocks — the names and values are unchanged.)
 
-**Why this file exists:** Always-on rule #3 in [CLAUDE.md](../CLAUDE.md) says "tuning knobs go in Groovy, not Java". All 84 keys are in Groovy now, but only 15 are *typed* — the rest sit in untyped `shipSection` blocks (read by `SettingsSystem.getInt/getString` if read at all). This dictionary is the running ledger of which knobs are typed (Pattern 4 — projected to ECS components at spawn) vs. which still flow through the untyped flat-bag accessors. Without it, it's hard to answer "is `BulletFireEnergy` already a typed field, or do I need to add it?"
+**Why this file exists:** Always-on rule #3 in [CLAUDE.md](../CLAUDE.md) says "tuning knobs go in Groovy, not Java". All 84 keys are in Groovy now, but only 15 are *typed* — the rest sit in untyped `shipSection` blocks (read by `SettingsSystem.getInt/getString` if read at all). This dictionary is the running ledger of which knobs are typed (CCP — projected to ECS components at spawn, per [ADR-0002](../docs/adr/0002-config-component-projection.md)) vs. which still flow through the untyped flat-bag accessors. Without it, it's hard to answer "is `BulletFireEnergy` already a typed field, or do I need to add it?"
 
 ## How to use
 
@@ -58,7 +58,7 @@ Update this file in the same change that adds/moves/removes a typed config field
 
 ## Infinity-only Groovy fields (no fragment source)
 
-Added during Pattern 4 follow-up #4. Defaults match the historical Java globals so existing Groovy scripts keep the prior feel.
+Added during CCP follow-up #4. Defaults match the historical Java globals so existing Groovy scripts keep the prior feel.
 
 | Groovy DSL | `ShipConfig` field | Projected component | Hot-path consumer | Default | Notes |
 |---|---|---|---|---|---|
@@ -161,7 +161,7 @@ Added during Pattern 4 follow-up #4. Defaults match the historical Java globals 
 
 ## Notes on porting
 
-- **Add fields incrementally.** Don't try to port all 69 in one pass — port the subset a feature actually needs, wire its consumers (per Pattern 4: typed `*Config` field → projection → component → consumer), then update this file.
+- **Add fields incrementally.** Don't try to port all 69 in one pass — port the subset a feature actually needs, wire its consumers (per CCP / [ADR-0002](../docs/adr/0002-config-component-projection.md): typed `*Config` field → projection → component → consumer), then update this file.
 - **Group related keys into nested config records.** `BulletFireDelay` / `BulletFireEnergy` / `BulletSpeed` likely become a `BulletConfig` record nested in `ShipConfig` rather than 3 flat fields. Same for `BombConfig`, `BurstConfig`, etc. Keep the Groovy DSL ergonomic — flat top-level setters per cluster, like the existing `rotation initial: ..., max: ..., upgrade: ...`.
-- **Cap-style stats follow the Pattern 4 triple shape** (`initial / max / upgrade`); see [`config-pattern.md`](rules/config-pattern.md). Pure config with no upgrade axis (e.g. `BombSpeed`) is just a single field.
+- **Cap-style stats follow the CCP triple shape** (`initial / max / upgrade`); see [`config-pattern.md`](rules/config-pattern.md) / [ADR-0002](../docs/adr/0002-config-component-projection.md). Pure config with no upgrade axis (e.g. `BombSpeed`) is just a single field.
 - **Don't port "orphan" keys** — those without any consumer in the Java code today. Adding them to Groovy creates orphan config (declared, never read) without delivering value. Wire the consumer first or skip.

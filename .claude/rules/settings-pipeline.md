@@ -1,6 +1,6 @@
 # Settings Pipeline — Look up Subspace canon first
 
-Before authoring or modifying anything in the typed settings pipeline —
+Pipeline architecture formalised by [ADR-0004](../../docs/adr/0004-settings-pipeline.md). Before authoring or modifying anything in the typed settings pipeline —
 a Groovy `*Adapter` in `infinity.settings.*`, a `*Config` record in
 `api/src/main/java/infinity/config/**`, or a runtime consumer that reads from
 `ConfigRegistry` — **look up the Subspace key in
