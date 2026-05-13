@@ -143,14 +143,13 @@ Multiple sources slowing the same ship is the trivial case: each emits its own `
 
 ## Resolved decisions
 
-- **Writer topology:** per-component canonical writer. One system per component type — `EnergySystem` writes `Energy`, `EnergyStatsSystem` writes `EnergyStats`. Many systems may *create* `*Change` entities; only the canonical writer applies them. Rationale: "who writes X?" has one grep answer by rule, the pattern scales without judgment ("are these two coupled enough to fold?"), and cross-stat coordination works through the same mechanism as any two systems — e.g. `EnergyStatsSystem` lowering `max` from 1000 to 500 below the current `Energy` of 800 emits an `EnergyChange(-300)` to clamp, rather than touching `Energy` directly.
-- **Conflict resolution policy:** fold-additive. Multiple `*Change` entities targeting the same component sum.
-- **One-shot vs temporary marker:** presence/absence of `Decay`. No additional flag.
-- **Baseline storage:** none. Writer uses EntitySet `addedEntities` / `removedEntities` signals — apply on add, reverse on remove for `Decay`-bound entities; apply-then-destroy for one-shot. Target component holds the current effective value at all times.
-- **Provenance / source field:** `ChangeTarget` carries `(target, source)` as required fields. `source == target` is valid for self-changes.
-- **`Buff` absorption:** `Buff` is replaced by `ChangeTarget`. Existing payloads like `HealthChange` slot into the model unchanged.
-- **Allocation:** accepted as cost-of-doing-business; the Continuous boundary exists with or without this design.
-- **Cross-tick visibility:** next tick is intentional, not a problem to solve.
+- **Writer topology:** one canonical writer per component type; many emitters per `*Change` payload.
+- **Conflict resolution:** fold-additive — canonical writer sums deltas from all `*Change` entities targeting the same component this tick.
+- **One-shot vs temporary marker:** presence of `Decay` on the Change entity.
+- **Baseline storage:** none — writer uses `addedEntities` / `removedEntities` signals to apply / reverse.
+- **Provenance:** `ChangeTarget(target, source)` required; `source == target` is valid.
+- **`Buff` absorption:** replaced by `ChangeTarget`; existing payloads slot in unchanged.
+- **Allocation + next-tick visibility:** accepted as design (see Costs).
 
 ## Open work (PRD-scope)
 

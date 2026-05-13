@@ -1,78 +1,119 @@
-# Groovy module loader — Groovy-scripted game modules at runtime
+# Groovy module loader — implementation PRD
 
-Status: ready-for-human
-Cross-ref: follows [`deprecate-adaptive-loader`](../../.scratch-archive/deprecate-adaptive-loader/PRD.md)
+Status: design-locked (per [ADR-0004](../../docs/adr/0004-settings-pipeline.md)); implementation gated on a first real consumer.
+Cross-ref: implements ADR-0004's *Module extensions* design; follows [`deprecate-adaptive-loader`](../../.scratch-archive/deprecate-adaptive-loader/PRD.md).
 
-The legacy `AdaptiveLoader` (custom `ClassLoader` + reflection-instantiation + `~startModule` chat command) was removed. The [`BaseGameModule`](../../api/src/main/java/infinity/sim/BaseGameModule.java) / [`BaseGameService`](../../api/src/main/java/infinity/sim/BaseGameService.java) abstractions are kept, but currently have no runtime instantiator. (The 6 `*Tester` stubs were deleted in commit `8e7c3833` as YAGNI; bring them back fresh when a module wants to ship.) This PRD captures the design space for filling that gap.
+The legacy `AdaptiveLoader` (custom `ClassLoader` + reflection-instantiation + `~startModule` chat command) was retired. The [`BaseGameModule`](../../api/src/main/java/infinity/sim/BaseGameModule.java) / [`BaseGameService`](../../api/src/main/java/infinity/sim/BaseGameService.java) abstractions in `api/` survive but currently have no runtime instantiator. ADR-0004 settles the design space; this PRD captures the concrete implementation sketch.
 
 ## Why a hot-module surface at all
 
-- Some gameplay features genuinely want script-tier authoring (mode rules, periodic events, arena-specific quirks) that don't fit the `*Config` template-vs-component pattern, which is for tuning numbers, not behaviour.
-- Live reload of behaviour (without a server restart) is the same productivity win that `GroovyShipLoader` already delivers for ships — and the loader infrastructure is already paid for.
-- A Groovy module surface is the natural home for things that were previously sketched as `*Tester` Java stubs (basic / door / light / prize / wang / warp — deleted in `8e7c3833`).
+- The project's stated direction (per ADR-0004 Context) is that zone authors — community contributors, server operators, third parties — extend gameplay without forking Infinity or rebuilding it. Game modes, custom scoring rules, per-zone behaviours, HUD elements.
+- Some gameplay features genuinely want script-tier authoring (mode rules, periodic events, arena-specific quirks) that don't fit Config-Component Projection (per [ADR-0002](../../docs/adr/0002-config-component-projection.md)), which is for tuning numbers, not behaviour.
+- The Settings pipeline machinery (host + adapter + security customisers) already exists; the module loader is the second face of the same surface.
 
 ## Why this is `ready-for-human`, not `ready-for-agent`
 
-There's no live consumer demanding this. Until someone wants to ship a behaviour change as a Groovy module, building a loader for nothing is the same YAGNI trap that motivated deleting `AdaptiveLoader`. **Pull this PRD into work the moment a module wants to ship.** Until then it's design notes.
+The design is locked. The implementation is still gated on a real consumer: until someone wants to ship a behaviour change as a Groovy module, building the loader for nothing is the same YAGNI trap that motivated deleting `AdaptiveLoader`. **Pull this PRD into work the moment a module wants to ship.** Until then it's an implementation sketch.
 
-## Open design questions
+Current guidance from [`.claude/skills/create-module/SKILL.md`](../../.claude/skills/create-module/SKILL.md) — "fold the logic into a regular `BaseInfinitySystem` until the loader exists" — stands until the loader lands.
 
-The user explicitly flagged that `BaseGameModule` / `BaseGameService` are *one* option, not mandatory. Treat the existing abstractions as a familiarity anchor, not a constraint.
+## Decisions locked by ADR-0004
 
-### 1. What is a "module" in 2026?
+The five "Open design questions" in the previous draft are now resolved:
 
-Three plausible shapes:
+1. **What is a module?** A Groovy class (or set of classes) extending an api/-side base class — `BaseInfinitySystem` (or `BaseGameModule` for legacy modules needing `*Manager` accessors) on the server; `BaseAppState` on the client. Plus optional `EntityComponent` classes the module defines. Manifest `module.groovy` declares what each module ships.
+2. **Lifecycle hooks.** The base class's own lifecycle (`initialize` / `update` / `terminate` on server; `initialize` / `onEnable` / `onDisable` / `cleanup` on client). No new closure-DSL — modules write straight Groovy classes.
+3. **What the script sees.** All `api/` types (components, `*Config`, `ChangeTarget`, factories) plus the chosen base class. Imports go through `SecureASTCustomizer` whitelist; modules cannot import server-impl or client-impl packages.
+4. **Per-arena vs per-zone.** Modules load at zone start, before arenas, with their own `ClassLoader` per module. Arena-scoping is declared in the module manifest (or `arena.groovy` opt-in — detail pending in implementation, see "Remaining implementation questions" below).
+5. **Keep `BaseGameModule`?** Yes — kept as the legacy server-extension contract; new modules should prefer `BaseInfinitySystem` directly. Both shapes work.
 
-- **(a) Behaviour-only Groovy script** — a `.groovy` file under `infinity/zone/conf/<preset>/modules/` (or arena-tier) declaring `onLoad { … }`, `onTick(SimTime t) { … }`, `onChat(EntityId p, String msg) { … }`, etc. Stateless from the loader's POV; per-arena state lives in ECS components or a script-local closure. **No `BaseGameModule` extension.** Closer to the existing `arena.groovy` / `ships.groovy` pattern.
-- **(b) Groovy class extending `BaseGameModule`** — keep the abstraction, swap the loader. Modules still use the `AbstractGameSystem` lifecycle (`initialize()` / `update()` / `terminate()`). Good if modules need to participate as full systems, hold `EntitySet`s, etc. Familiar, but inherits `BaseGameModule`'s opinions (chat poster, account manager, time, physics injected).
-- **(c) Typed `ModuleConfig` records + Java/Groovy executor** — modules-as-data: a Groovy DSL declares triggers + actions (e.g. "on player enter region X, give them prize Y"), a Java executor runs them. No script code paths; type-checked end-to-end. Closest in spirit to Pattern 4 / `*Config`. Probably too restrictive for the more behavioural testers.
+Additional decisions ADR-0004 added that this PRD did not previously cover:
 
-Most likely answer: **(a)** for everything that's just "react to events", **(b)** for the few that need real `EntitySet` lifecycles. **(c)** ruled out unless we discover the trigger-action shape covers the actual workload.
+- **Client-side `BaseAppState` modules** — modules ship both server and client halves. The previous PRD considered only the server side.
+- **Module-defined `EntityComponent` types** — registered on both sides via `FieldSerializer` by the loader at module load. A manifest-hash handshake at session start catches server / client mismatch.
+- **Cross-side delivery for v1: operator-installed on both sides.** Server and client both have `zone/modules/` directories; the operator places identical module contents in both. Auto-distribution (server pushes module Groovy to client) is **deferred** — raises trust questions the v1 model does not solve.
+- **Trust model: operator-vetted.** `SecureASTCustomizer` + per-module `ClassLoader` + import whitelist are accidental-damage guards. **Not safe against deliberate malice.** Anonymous-author submissions, in-server marketplace, sandbox-against-malice all explicitly deferred.
+- **No hot-reload of module code.** Restart-the-zone is the workflow. Settings data hot-reloads; module code does not — classloader-swap mid-game has too many lifecycle hazards.
+- **Modules add, never replace.** Operator's "subtract" control is at the module-load level (include/exclude in load set). Modules do not replace or remove core systems — core is load-bearing for ADR-0001 / 0002 / 0003 discipline.
 
-### 2. What lifecycle hooks does a module get?
+## Implementation sketch
 
-`AbstractGameSystem`'s `initialize` / `start` / `stop` / `terminate` / `update(SimTime)` is the existing menu. A Groovy DSL can expose them as closures:
+When a real consumer is ready to ship:
+
+### 1. Directory layout
+
+```
+zone/modules/<module-name>/
+├── module.groovy          ← manifest
+├── server/*.groovy        ← *System classes
+├── client/*.groovy        ← *AppState classes
+└── components/*.groovy    ← EntityComponent classes
+```
+
+### 2. Manifest DSL
+
+Implement `ModuleManifestAdapter extends SingleClosureAdapter<ModuleManifest, ModuleManifest.Builder>` (parallel to `BombAdapter` / `BulletAdapter`):
 
 ```groovy
-module("doorTester") {
-  onInitialize { … }
-  onUpdate { SimTime t -> … }
-  onTerminate { … }
-  chatCommand(~/\\~doortest\\s(\\w+)/, "...help...") { player, msg, matcher -> … }
+module {
+    name 'flag-game-mode'
+    version '1.0.0'
+    requires apiVersion: '>=1.0.18'
+
+    serverSystems 'modules.flag.FlagSystem', 'modules.flag.FlagScoreSystem'
+    clientAppStates 'modules.flag.FlagHudState'
+    components 'modules.flag.FlagState'
+    rmiServices 'modules.flag.FlagRmiService'
+
+    // Optional: arena-scoping (otherwise zone-global)
+    arenas 'trench', 'svs'
 }
 ```
 
-Each closure compiles to a `Runnable` / `Consumer<SimTime>` / etc. that the loader's adapter invokes. The adapter itself is one `BaseGameModule` instance per script (not per closure).
+### 3. Loader
 
-### 3. What does the script see?
+`GroovyModuleLoader` (new class in `infinity-server/src/main/java/infinity/settings/` for the server half; mirror class on the client):
 
-The current `BaseGameModule` injects `chp / am / arenas / time / physics`. A Groovy module probably wants the same set, plus `EntityData`, plus access to the per-arena `SettingsSystem` typed accessors and `ConfigRegistry`. Inject as binding variables — `binding.setVariable("ed", entityData)` — so scripts can reference `ed`, `arenas`, `time`, etc. without ceremony.
+- Scan `zone/modules/*/module.groovy` at zone start.
+- For each module: build a child `ClassLoader` (parent = api/ classloader, no access to server-impl or client-impl).
+- Compile each declared class via `GroovyShell` against the module's classloader, with `SecureASTCustomizer` import whitelist scoped to `infinity.es.*`, `infinity.config.*`, `infinity.sim.*`, plus the chosen base class types.
+- Register `EntityComponent` classes with `Serializer.registerClass(...)` on both sides before any session accepts entity sync.
+- Instantiate server systems and attach them to `GameSystemManager` after core systems (preserves ADR-0001 writer-ordering rule: canonical writers register first).
+- On client: instantiate `BaseAppState` classes and attach to `AppStateManager` at session-handshake time.
 
-Cross-cutting concern: limit what scripts can call. The legacy loader was unsandboxed. A Groovy `CompilerConfiguration` with `SecureASTCustomizer` can lock down imports and forbid `System.exit` etc. — worth doing at the start, not after.
+### 4. Handshake
 
-### 4. Per-arena vs. per-zone scope
+Server publishes a module-manifest hash at session start (extends the existing `GameSession` RMI surface). Client compares against its own. Mismatch = session-fatal handshake error with a clear log message ("Module X version mismatch: server v1.0.0, client v0.9.7" or "Module X present on server, missing on client").
 
-`ships.groovy` is per-preset. `arena.groovy` is per-arena. Modules likely want **per-arena** scope (different arenas run different game modes), but with a per-zone fallback for shared rules. Mirror the existing `ArenaSystem.pollScriptWatches` mtime-poll pattern for live reload.
+### 5. Failure handling
 
-### 5. Do we keep `BaseGameModule` / `BaseGameService`?
+A broken module logs an error and is **skipped** (the zone keeps running with the other modules). Same shape as the settings host's `empty()` sentinel — broken extensions never crash the runtime, they just don't contribute. Crash-the-zone is reserved for genuinely irrecoverable conditions.
 
-Two paths:
+### 6. Lifecycle integration
 
-- **Keep them and have the loader produce instances.** Smallest behavioural-change diff. Each Groovy script compiles to / wraps a `BaseGameModule` subclass.
-- **Retire them.** If we go with shape (a) above, `BaseGameModule` doesn't actually buy us anything that a thinner script-runner adapter wouldn't. Delete after the loader stabilises.
+- **Module load** at zone start, immediately after `EngineConfigSystem` and `GroovyZoneLoader`, before any arena is created.
+- **Module attach to GameSystemManager** after core systems but before `DecaySystem` (preserves ADR-0001 writer-ordering rule for any module-defined canonical writers).
+- **Module unload** at zone shutdown — `terminate()` each module's systems in reverse-attach order.
+- **No live unload** for individual modules in v1; restart the zone.
 
-Decision is downstream of question #1. **Keep them in the codebase until the loader's shape is settled** — they're cheap to keep and removing now would force the design.
+## Remaining implementation questions
 
-## Approach (sketch — only when there's a real consumer)
+These are detail-level — not blockers for landing the design:
 
-1. Decide question #1 above based on what the real module actually needs.
-2. Add `GroovyModuleLoader` parallel to [`GroovyShipLoader`](../../infinity-server/src/main/java/infinity/settings/GroovyShipLoader.java): typed DSL for the chosen module shape, a per-arena registry, mtime-based live reload via `ArenaSystem.pollScriptWatches`.
-3. Author the first Groovy module under `infinity/zone/conf/<preset>/modules/` (or `infinity/zone/arenas/<name>/modules/` if per-arena scope wins) and verify it working.
-4. Once the loader is stable, decide #5 above (keep or retire `BaseGameModule` / `BaseGameService`).
+- **`arena.groovy` opt-in syntax.** Modules can declare `arenas 'trench', 'svs'` in their manifest, but should `arena.groovy` also have an explicit `modules 'flag-game-mode'` directive for the per-arena view? Probably yes — operator inspects one file per arena to see what's running there.
+- **Serializer registration timing.** `Serializer.registerClass(...)` must run before SimEthereal connections open. Concrete call site: probably `GameServer.initialize()` after module load, before `NetworkServer.start()`.
+- **API version range syntax.** `requires apiVersion: '>=1.0.18'` — Gradle-style range parsing, or simpler exact-version match? Defer to first module that actually wants to declare incompatibility.
+- **Module-internal package convention.** `modules.<module-name>.*` is the suggested package root; the loader enforces no leakage outside the module's classloader anyway, so this is for author ergonomics.
+- **Test harness shape.** Module authors will want a way to run a module's server systems against a synthetic `GameSystemManager` for unit tests. The spawn-projection test harness (`.scratch/spawn-projection-test-harness/`) is the closest existing model; extend it or build parallel.
+- **Concurrent module load.** Probably load-modules sequentially — parallel loading buys little (load is one-shot per zone-start) and adds classloader-init race risk.
 
-## Out of scope
+## Out of scope (locked by ADR-0004)
 
-- Hot-load of *new* dependencies / jars. The `AdaptiveClassLoader` magic was unused. Groovy scripts run on the existing classpath; they cannot pull in third-party libraries that aren't already a Gradle dep. If hot deps ever become a real ask, that's a separate PRD.
-- A "marketplace" or remote module fetch. Modules live in `infinity/zone/conf/` (or wherever the loader plants them) — files on disk, version-controlled with the rest of the zone.
+- **Sandbox against deliberate malice.** Anonymous-author submissions, in-server marketplace, third-party fetch — all deferred. Real sandbox would require separate JVMs / GraalVM isolates / `SecurityManager`-equivalent; not v1.
+- **Auto-distribution from server to client.** Operator installs identical `zone/modules/` on both sides. Server-pushes-Groovy-to-client raises trust questions; deferred.
+- **Hot-load of new dependencies / jars.** The `AdaptiveClassLoader` magic was unused and is gone. Modules run on the existing classpath; they cannot pull in third-party libraries that aren't already a Gradle dep.
+- **Hot-reload of module code.** Restart-the-zone reload. Classloader-swap mid-game has too many lifecycle edges.
+- **Modules replacing or removing core systems.** Modules add capability; the operator's add/subtract is at the module-load-set level, not at the system level.
+- **Marketplace / remote module fetch.** Modules live in `zone/modules/` — files on disk, version-controlled with the rest of the zone.
 
 ## Comments
