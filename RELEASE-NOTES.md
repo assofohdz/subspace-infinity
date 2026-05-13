@@ -3,6 +3,66 @@
 Latest release only. Earlier history lives in git tags + commit log
 (`git log v<previous>..v<this>`).
 
+## v1.0.18 — 2026-05-13
+
+Architecture-formalisation release. The single ADR (0001) the v1.0.17 release shipped now has six siblings; the operational rules that previously lived only in `.claude/rules/*.md` prose have formal ADRs behind them, and three ArchUnit guards lock in the discipline at build time. Plus three concrete bugs caught by the P0 audit (client `EntitySet` / `WatchedEntity` leaks across 7 app states; `Delay` wall-clock breaking pause / replay; per-shot `BombConfig` hot-path read in `WeaponsEligibility`). 10 commits since v1.0.17.
+
+### For players
+
+No observable gameplay changes. Subtle memory-growth fix from the client lifecycle cleanup may help long sessions; otherwise the visible game is unchanged.
+
+### For authors (zones, arenas, ship presets)
+
+**No `.groovy` file edits required.** Same fragment shape, same hot-reload behaviour. The architectural changes are all internal.
+
+**Naming change:** "Pattern 4" is retired in favour of **Config-Component Projection (CCP)** per ADR-0002. Anywhere your zone docs or notes used "Pattern 4" to describe the template-vs-component split, that's now CCP. Behaviour unchanged.
+
+### For developers / contributors
+
+**Six new ADRs** in `docs/adr/`, each formalising a previously-implicit decision:
+
+- **ADR-0002** — Config-Component Projection (CCP). Template (`*Config` records in `api/`) → component (per-entity, ECS) projection at spawn. Hot-path code reads components, never templates.
+- **ADR-0003** — Communication channels. Intent components (`*Change` + `ChangeTarget`) for mutation requests, EventBus for announcements, ContactSystem-shape for high-frequency domain firehoses. Decision tree included.
+- **ADR-0004** — `zone/` extension surface. Settings pipeline (host + adapter + `ConfigRegistry`) **plus** the guardrailed Groovy module-loader design — modules ship `*System` (server) + `*AppState` (client) + components, compiled against api/ only.
+- **ADR-0005** — Layered architecture. api / server / client / modules with directed deps; `infinity.sim.internal..` carved out from the api-tier namespace for the server-side relocation.
+- **ADR-0006** — Tuning knobs vs. magic numbers. The literal-promotion decision rule (when does a Java `60` belong in Groovy?).
+- **ADR-0007** — Entity TTL via `Decay`. Single mechanism, deadline-shaped, multi-writer-by-design exception. `Delay` and `Jitter` explicitly distinguished as adjacent concerns.
+
+Plus `docs/adr/README.md` indexes them with suggested reading order.
+
+**Three ArchUnit guards** added to `LayerDependencyTest` + `CanonicalWriterTest`:
+
+- **Layer Rule 1 extended** — api/ classes may not depend on `infinity.settings..` (was: only systems/server/client/modules/ai forbidden).
+- **Hot-path config-import guard** — no class in `infinity.systems..` imports `infinity.config..` except a named-allowlist of spawn-tier / creation-time / admin sites. Mechanises ADR-0002's discipline.
+- **Canonical-writer registry extended** — `CanonicalWriterTest` now covers 32 component types (was 24), closing ADR-0001's TBD-3 open item.
+
+**Server-internal relocation** (potentially breaking for module authors who imported these directly):
+
+- `infinity.sim.CubeFactory` → `infinity.sim.internal.CubeFactory`
+- `infinity.sim.InfinityDefaultLeafWorld` → `infinity.sim.internal.InfinityDefaultLeafWorld`
+- `infinity.sim.InfinityEntityBodyFactory` → `infinity.sim.internal.InfinityEntityBodyFactory`
+- `infinity.sim.InfinityPhysicsManager` → `infinity.sim.internal.InfinityPhysicsManager`
+- `infinity.sim.PlayerDriver` → `infinity.sim.internal.PlayerDriver`
+- `infinity.sim.Driver` — **deleted** (was unused interface, zero references)
+
+api-side `infinity.sim..` is now unambiguously the module-facing ABI (`ShipFactory`, `WeaponFactory`, `MapFactory`, `PhysicsManager`, `TimeManager`, `ChatHostedPoster`, `AccountManager`, …).
+
+**P0 bug fixes (audit-driven):**
+
+- **Client `EntitySet` / `WatchedEntity` / `EntityContainer` release sweep.** 7 client `BaseAppState` classes never released their resources in `cleanup()` — `InfinityCameraState`, `MobDebugState`, `AudioState`, `HudLabelState`, `MapState`, `SpeechViewState`, `PlayerListState`. Defensive `if (field != null) { stop/release(); field = null; }` pattern applied.
+- **`Delay` stores SimTime deadline.** Was using `System.nanoTime()` in the constructor — wall-clock in a sim component breaks pause, replay, and deterministic test fixtures. Now mirrors `Decay`'s `(startTime, endTime)` shape.
+- **`BombSafetyRadius` projected at ship spawn.** `WeaponsEligibility` was reading `BombConfig.bombSafety()` + `BombConfig.proximityDistance()` on every shot check (CCP hot-path leak). Now reads a per-ship component projected at spawn.
+
+**New api/ component / utility:**
+
+- `infinity.es.ship.weapons.BombSafetyRadius` — per-ship snapshot of arena bomb-safety + L1 prox tiles.
+- `infinity.config.PhysicsDefaults` — physics fallback constants for the no-arena case (`DEFAULT_WALL_FRICTION = 0.0`).
+- `ArenaSystem.getWallFriction(arenaName)` — hides `ArenaConfig` from per-contact callers.
+
+**Rule cross-links.** Each `.claude/rules/*.md` file with a paired ADR now references it at its header (`config-pattern.md` → ADR-0002; `decay-ttl.md` → ADR-0007; etc.). `CLAUDE.md`'s path-scoped rule list adds ADR parentheticals so agents loading CLAUDE.md as first context see both pointers.
+
+**Architectural review.** Full review in `.scratch/architectural-review-2026-05-13.md` — 4 P0 items + 3 P1 items closed this release; P0 tier is now empty.
+
 ## v1.0.17 — 2026-05-12
 
 ECS architecture release. ADR 0001 (Continuous + Stats with
