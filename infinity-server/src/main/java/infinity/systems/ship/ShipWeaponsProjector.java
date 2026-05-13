@@ -24,6 +24,7 @@ import infinity.es.ship.actions.ThorFireDelay;
 import infinity.es.ship.actions.ThorStats;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
+import infinity.es.ship.weapons.BombSafetyRadius;
 import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletCurrentLevel;
 import infinity.es.ship.weapons.BulletFireDelay;
@@ -54,6 +55,20 @@ final class ShipWeaponsProjector {
         shipId,
         new BombStats(bombs.max(), bombs.cost(), fireDelayMillis, bombs.speed(), bombs.thrust()));
     ed.setComponent(shipId, new BombFireDelay(fireDelayMillis));
+  }
+
+  /**
+   * Per-ship snapshot of the arena's bomb-safety toggle + L1 proximity tiles. Read by
+   * {@code WeaponsEligibility} at fire time, removing the {@code BombConfig} hot-path import.
+   * Per ADR-0002 Config-Component Projection.
+   */
+  static void projectBombSafety(
+      final EntityData ed,
+      final EntityId shipId,
+      final infinity.config.BombConfig bombConfig) {
+    ed.setComponent(
+        shipId,
+        new BombSafetyRadius(bombConfig.bombSafety(), bombConfig.proximityDistance()));
   }
 
   static void projectBullets(

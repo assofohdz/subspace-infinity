@@ -14,11 +14,10 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.QueryFilter;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.SphereVolume;
-import infinity.config.BombConfig;
 import infinity.es.Frequency;
-import infinity.es.arena.ArenaId;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
+import infinity.es.ship.weapons.BombSafetyRadius;
 import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletFireDelay;
 import infinity.es.ship.weapons.BulletStats;
@@ -27,8 +26,6 @@ import infinity.es.ship.weapons.GravityBombFireDelay;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineStats;
 import infinity.es.ship.weapons.WeaponType;
-import infinity.settings.ConfigRegistry;
-import infinity.settings.ConfigRegistrySystem;
 
 /** Pre-fire eligibility + cooldown stamp + cost deduction; canonical writer (post-spawn) for {@code *FireDelay}. */
 final class WeaponsEligibility {
@@ -37,7 +34,6 @@ final class WeaponsEligibility {
 
     static boolean canAttack(
             final EntityData ed,
-            final ConfigRegistrySystem cr,
             final PhysicsSpace<EntityId, MBlockShape> physicsSpace,
             final EnergySystem energy,
             final EntitySet bullets,
@@ -55,7 +51,7 @@ final class WeaponsEligibility {
             case WeaponType.BULLET:
                 return canAttackBullet(ed, bullets, energy, requester);
             case WeaponType.BOMB:
-                return canAttackBomb(ed, cr, physicsSpace, energy, bombs, energyEntities, requester);
+                return canAttackBomb(ed, physicsSpace, energy, bombs, energyEntities, requester);
             case WeaponType.GRAVBOMB:
                 return canAttackGravityBomb(ed, gravityBombs, energy, requester);
             case WeaponType.MINE:
@@ -87,7 +83,6 @@ final class WeaponsEligibility {
     /** Bomb eligibility — adds bomb-safety scan (rejects fire when an enemy is inside proximity-arm radius). */
     static boolean canAttackBomb(
             final EntityData ed,
-            final ConfigRegistrySystem cr,
             final PhysicsSpace<EntityId, MBlockShape> physicsSpace,
             final EnergySystem energy,
             final EntitySet bombs,
@@ -105,7 +100,7 @@ final class WeaponsEligibility {
         if (stats == null || stats.fireCostEnergy() > energy.getHealth(requesterId)) {
             return false;
         }
-        return bombSafetyClear(ed, cr, physicsSpace, bombs, energyEntities, requesterId);
+        return bombSafetyClear(ed, physicsSpace, bombs, energyEntities, requesterId);
     }
 
     static boolean canAttackGravityBomb(
@@ -150,7 +145,6 @@ final class WeaponsEligibility {
     /** Rejects bomb fire when an enemy sits inside proximity-arm radius; no-op when arena's BombSafety is off. */
     static boolean bombSafetyClear(
             final EntityData ed,
-            final ConfigRegistrySystem cr,
             final PhysicsSpace<EntityId, MBlockShape> physicsSpace,
             final EntitySet bombs,
             final EntitySet energyEntities,
@@ -160,7 +154,7 @@ final class WeaponsEligibility {
         if (ownerBody == null) {
             return true;
         }
-        final double radius = effectiveBombSafetyRadius(ed, cr, bombs, requesterId);
+        final double radius = effectiveBombSafetyRadius(ed, bombs, requesterId);
         if (radius <= 0.0) {
             return true;
         }
@@ -188,30 +182,23 @@ final class WeaponsEligibility {
         return true;
     }
 
-    /** Bomb-safety scan radius after BombConfig toggle + per-level scaling; 0.0 = safety off (caller early-outs). */
+    /**
+     * Bomb-safety scan radius from per-ship {@code BombSafetyRadius} snapshot + bomb-level scaling;
+     * 0.0 = safety off (caller early-outs). Snapshot is projected at ship spawn from arena
+     * {@code BombConfig} per ADR-0002 — no hot-path config read.
+     */
     static double effectiveBombSafetyRadius(
             final EntityData ed,
-            final ConfigRegistrySystem cr,
             final EntitySet bombs,
             final EntityId requesterId) {
-        final ConfigRegistry cfg = weaponsFor(ed, cr, requesterId);
-        final BombConfig bombCfg = cfg.bomb();
-        if (!bombCfg.bombSafety() || bombCfg.proximityDistance() <= 0) {
+        final BombSafetyRadius safety = ed.getComponent(requesterId, BombSafetyRadius.class);
+        if (safety == null || !safety.enabled() || safety.baseTiles() <= 0) {
             return 0.0;
         }
         final BombCurrentLevel bombLevel =
                 bombs.getEntity(requesterId).get(BombCurrentLevel.class);
         return WeaponsLogic.proximityRadiusForLevel(
-                bombCfg.proximityDistance(), bombLevel.getLevel().level);
-    }
-
-    private static ConfigRegistry weaponsFor(
-            final EntityData ed, final ConfigRegistrySystem cr, final EntityId attacker) {
-        final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
-        if (arenaId == null) {
-            return ConfigRegistry.EMPTY;
-        }
-        return cr.forArena(arenaId);
+                safety.baseTiles(), bombLevel.getLevel().level);
     }
 
     /** Stamps a fresh {@code *FireDelay} on the ship; burst has no cooldown yet. */

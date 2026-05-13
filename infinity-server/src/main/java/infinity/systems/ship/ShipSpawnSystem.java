@@ -105,12 +105,13 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     if (shipType == null || shipType.getType() == null || arena == null) {
       return;
     }
-    final ShipConfig cfg = configRegistry.forArena(arena).getShip(shipType.getType());
+    final infinity.settings.ConfigRegistry registry = configRegistry.forArena(arena);
+    final ShipConfig cfg = registry.getShip(shipType.getType());
     if (cfg == null) {
       warnMissingShipConfig(shipType, arena);
       return;
     }
-    project(shipEntity.getId(), cfg, resetLivePool);
+    project(shipEntity.getId(), cfg, registry.bomb(), resetLivePool);
     logProjectionApplied(shipEntity, shipType, arena, cfg, resetLivePool);
   }
 
@@ -148,7 +149,11 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     }
   }
 
-  private void project(final EntityId shipId, final ShipConfig cfg, final boolean resetLivePool) {
+  private void project(
+      final EntityId shipId,
+      final ShipConfig cfg,
+      final infinity.config.BombConfig bombConfig,
+      final boolean resetLivePool) {
     projectThrust(shipId, cfg.thrust(), resetLivePool);
     projectSpeed(shipId, cfg.speed(), resetLivePool);
     projectRotation(shipId, cfg.rotation(), resetLivePool);
@@ -156,6 +161,7 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     projectFeel(shipId, cfg);
     projectRadar(shipId, cfg);
     ShipWeaponsProjector.projectBombs(ed, shipId, cfg.bombs(), resetLivePool);
+    ShipWeaponsProjector.projectBombSafety(ed, shipId, bombConfig);
     ShipWeaponsProjector.projectBullets(ed, shipId, cfg.bullets(), resetLivePool);
     ShipWeaponsProjector.projectMines(ed, shipId, cfg.mines(), resetLivePool);
     ShipWeaponsProjector.projectBursts(ed, shipId, cfg.bursts(), resetLivePool);

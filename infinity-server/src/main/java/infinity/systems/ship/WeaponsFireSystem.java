@@ -145,7 +145,7 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
 
   private boolean canAttack(final Entity requester, final byte weaponType) {
     return WeaponsEligibility.canAttack(
-        ed, configRegistry, physicsSpace, energySystem,
+        ed, physicsSpace, energySystem,
         bullets, bombs, gravityBombs, mines, bursts, energyEntities,
         requester, weaponType);
   }

@@ -39,9 +39,8 @@ The migration work the team has already invested is real. The audit found exactl
 
 1. **No god systems by accretion-of-state.** `PrizeSystem` (805 lines), `WeaponsFireSystem` (546), `ConsumableSystem` (557) are domain-coherent — none are accreted state. System/Logic pairs (`MapSystem`/`MapSystemLogic`, `WeaponsFireSystem`/`WeaponsLogic`, `ConsumableSystem`/`ConsumableLogic`) are clean ECS-shell + pure-helper splits. **By Use-Case granularity** (Clean Architecture's Single Responsibility applied to gameplay rules) the answer is different: `PrizeSystem` carries at least three distinct Use Cases — arena prize spawning, prize-on-contact consumption, death-prize spawning — and `WeaponsFireSystem` carries at least three — eligibility check, projectile-spawn dispatch, audio side-effects. Splitting either by Use Case would improve testability and per-rule isolation. `ConsumableSystem` is single-Use-Case ("player consumable actions") despite the line count. Splits tracked as P2-k.
 2. **`infinity.config` imports outside the spawn-tier exempt set** (per ADR-0002 Config-Component Projection). Two hot-path leaks plus four edge cases the ADR's rule-as-written does not unambiguously cover:
-   - **Hot-path violations** (project the read off the hot path):
-     - `infinity-server/src/main/java/infinity/systems/ship/WeaponsEligibility.java:17` imports `infinity.config.BombConfig` and reads `cfg.bomb()` on every shot-eligibility check. Should project `BombSafetyRadius` + `ProximityDistance` into per-ship components at spawn time.
-     - `infinity-server/src/main/java/infinity/systems/ship/WeaponsDamageLogic.java:18-19` imports `infinity.config.ArenaConfig` + `infinity.config.EngineConfig` and reads them per detonation. Lower per-tick frequency than the WeaponsEligibility case but the same shape.
+   - **Hot-path violations**:
+     - `infinity-server/src/main/java/infinity/systems/ship/WeaponsDamageLogic.java:18-19` imports `infinity.config.ArenaConfig` + `infinity.config.EngineConfig` and reads them per detonation. Lower per-tick frequency than the resolved `WeaponsEligibility` case but the same shape — tracked as P2-h.
    - **Spawn-adjacent reads not named in the ADR's exempt set** (settings agent classified as "creation-time / acceptable"; consistent with CCP intent but would fail a strict ArchUnit guard as written today):
      - `WeaponsFireSystem.createProjectileBullet()` reads `BulletConfig` / `BombConfig` at projectile spawn.
      - `PrizeSystem.spawnBounty()` reads `PrizeWeightsConfig` and `PrizeConfig` at prize spawn.
@@ -90,7 +89,6 @@ The migration work the team has already invested is real. The audit found exactl
 
 | # | Item | Owner suggestion | Effort |
 |---|---|---|---|
-| P0-c | Convert `WeaponsEligibility` per-shot config read into a per-ship component projection (`BombSafetyRadius`, `ProximityDistance`) at spawn time (`ShipSpawnSystem`). CCP (ADR-0002) leak on the hot path. **Design note:** decide live-reload semantics for the new components before landing — either `ArenaReloadWatcher` re-projects on `bomb.groovy` edits, or accept new-spawn-only semantics (consistent with the existing weapon/prize fragment story; simpler). Make the decision in the PR, not after | server / CCP | 1-2 hrs |
 
 ### P1 — high-leverage architectural ratchets
 
