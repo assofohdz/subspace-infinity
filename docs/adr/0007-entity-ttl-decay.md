@@ -43,7 +43,7 @@ Per-spawner / per-template tuning lives in [ADR-0002](./0002-config-component-pr
 
 ### `SimTime`, not wall-clock
 
-All deadlines are in `SimTime.getTime()` nanoseconds — the simulation clock controlled by the server's tick driver. Wall-clock timestamps (`System.nanoTime()`, `System.currentTimeMillis()`) are **forbidden** in `Decay` (and in any TTL-shaped component). Wall-clock breaks pause semantics, deterministic replay, and unit-test fixtures that drive `SimTime` manually. The architectural review flagged `Delay` (a different component, see below) as using wall-clock in violation; that's a real bug, not a deliberate choice.
+All deadlines are in `SimTime.getTime()` nanoseconds — the simulation clock controlled by the server's tick driver. Wall-clock timestamps (`System.nanoTime()`, `System.currentTimeMillis()`) are **forbidden** in `Decay` (and in any TTL-shaped component). Wall-clock breaks pause semantics, deterministic replay, and unit-test fixtures that drive `SimTime` manually. `Delay` (a different component, see below) was previously a wall-clock violation; it now stores a `SimTime` deadline of the same shape.
 
 ### Three TTL-shaped concerns, distinct mechanisms
 
@@ -57,7 +57,7 @@ All deadlines are in `SimTime.getTime()` nanoseconds — the simulation clock co
 
 Component-expiry components carry their own end-time fields by design — `Decay` would be wrong because the *entity* is not expiring. The number of component-expiry shapes is small today (one: `Jitter`); they are intentional carve-outs, not violations.
 
-Deferred-action is its own pattern — closer to a scheduled task queue than a TTL. `Delay` deserves its own thinking (currently uses wall-clock per the architectural review's P0-d finding; should move to `SimTime`); that work is outside this ADR's scope.
+Deferred-action is its own pattern — closer to a scheduled task queue than a TTL. `Delay` shares `Decay`'s `(startTime, endTime)` SimTime shape but is consumed by `DelaySystem` (executes the deferred action) rather than the central decay reaper (removes the entity).
 
 ## Consequences
 
@@ -73,7 +73,6 @@ Deferred-action is its own pattern — closer to a scheduled task queue than a T
 ### Costs
 
 - **Component-expiry needs a bespoke reaper per case.** `JitterReaperSystem` is hand-written and small; if the codebase grows ten of these, the pattern starts to repeat. Mitigation: at that point, a generic *Expiring Component* abstraction is worth designing — but the current count is one, so YAGNI.
-- **`Delay` is a real wall-clock bug today.** `infinity.es.Delay` uses `System.nanoTime()` in its constructor. Per the architectural-review P0-d finding, the fix is to store an absolute `SimTime` deadline and have `DelaySystem` compare against `SimTime.getTime()`. Tracked outside this ADR.
 - **The line between "entity expiry" and "component expiry" is sometimes a design choice, not a fact.** A power-up could be modeled either way: (a) entity carrying `Decay` and a per-frame visual; (b) component on the ship with its own end-time. Pick by asking "does the *entity* end, or does an *effect on a still-living entity* end?" Usually obvious; sometimes a judgment call.
 
 ### Neutral / deferred
@@ -101,7 +100,6 @@ Deferred-action is its own pattern — closer to a scheduled task queue than a T
 
 ## Open work
 
-- **Fix `Delay` to use `SimTime`** (architectural review P0-d). Currently uses `System.nanoTime()` in the constructor — wall-clock violation. Same shape fix as `Decay` already has.
 - **Mechanise the "no `*Ttl` / `*Lifetime` parallel" rule** as a cheap ArchUnit check (architectural review P1-b family). Currently audited by hand; 0 violations today but a one-line rule guards forever.
 - **Generic `ExpiringComponent<T>` abstraction** is deferred until the count of `Jitter`-shaped components grows past ~3. Today: one case.
 

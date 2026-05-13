@@ -91,7 +91,6 @@ The migration work the team has already invested is real. The audit found exactl
 | # | Item | Owner suggestion | Effort |
 |---|---|---|---|
 | P0-c | Convert `WeaponsEligibility` per-shot config read into a per-ship component projection (`BombSafetyRadius`, `ProximityDistance`) at spawn time (`ShipSpawnSystem`). CCP (ADR-0002) leak on the hot path. **Design note:** decide live-reload semantics for the new components before landing — either `ArenaReloadWatcher` re-projects on `bomb.groovy` edits, or accept new-spawn-only semantics (consistent with the existing weapon/prize fragment story; simpler). Make the decision in the PR, not after | server / CCP | 1-2 hrs |
-| P0-d | Fix `Delay` to store an absolute sim-time deadline (like `Decay`) and have `DelaySystem` compare against `SimTime.getTime()` instead of `System.nanoTime()`. Wall-clock in a component breaks determinism + replay | api / sim | 1 hr |
 
 ### P1 — high-leverage architectural ratchets
 

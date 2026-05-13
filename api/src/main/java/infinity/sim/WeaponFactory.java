@@ -47,7 +47,9 @@ public final class WeaponFactory {
                 spec.radius()));
 
     ed.setComponents(
-        lastDelayedBomb, new Delay(spec.scheduledMillis(), spec.delayedComponents(), Delay.SET));
+        lastDelayedBomb,
+        Delay.duration(
+            spec.createdTime(), spec.scheduledMillis(), spec.delayedComponents(), Delay.SET));
     ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
 
     return lastDelayedBomb;
