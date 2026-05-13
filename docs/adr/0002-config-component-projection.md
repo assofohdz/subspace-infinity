@@ -137,8 +137,6 @@ CCP is the rule for the spawn-time crossing from template to component; [ADR-000
 
 The decision is fully described above. What remains for the decision to be *enforced* rather than *audited by hand*:
 
-- **Mechanise the hot-path-import discipline.** A static rule (ArchUnit or equivalent) that asserts no class under `infinity.systems..` imports `infinity.config..` except the spawn-tier exempt set. Doing this requires deciding the precise predicate for "spawn-tier": named-class allowlist, package-convention, or marker-annotation. The trade-offs and current violations are tracked in `.scratch/architectural-review-2026-05-13.md`, not here.
-- **Define a precise scope for the exempt set.** The narrative above names ship spawn / projectors / live-reload reconcilers. Entity-spawn sites for non-ship entities (projectile spawn, prize spawn, arena setup) and sentinel-constant lookups (`*Config.EMPTY.*`) are conceptually consistent with CCP but the rule's wording does not currently say so. Either generalise the rule or enumerate.
 - **Rename the rule file.** `.claude/rules/config-pattern.md` → `.claude/rules/config-component-projection.md`. The file's header has been updated to reference this ADR but the filename rename is deferred (cascades to many cross-references).
 
 ## References

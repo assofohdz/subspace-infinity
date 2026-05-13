@@ -99,6 +99,50 @@ public class LayerDependencyTest {
    *       structural, not a layering leak.
    * </ul>
    */
+  /**
+   * Hot-path systems must not import {@code infinity.config..} — Config-Component Projection
+   * (ADR-0002) says tuning values cross into the entity world at spawn time only, and hot-path
+   * code reads components. The named-allowlist regex below covers the spawn-tier exempt set:
+   * ship spawn + per-aspect projectors, arena structural setup, admin / reload paths, and
+   * entity-creation sites (projectile spawn, consumable spawn, prize spawn) that project
+   * per-instance state at creation time. Each entry matches the outer class and any
+   * {@code $Inner} class via the trailing optional group.
+   *
+   * <p>{@code WeaponsDamageLogic} is on the allowlist as a TOMBSTONE — it still reads {@code
+   * ArenaConfig} / {@code EngineConfig} per-detonation (tracked as architectural-review P2-h).
+   * Remove it from the allowlist when P2-h lands.
+   */
+  @ArchTest
+  static final ArchRule hot_path_systems_must_not_depend_on_infinity_config =
+      noClasses()
+          .that()
+          .resideInAPackage("infinity.systems..")
+          .and()
+          .haveNameNotMatching(
+              "infinity\\.systems\\.("
+                  + "ArenaCommandsSystem"
+                  + "|ArenaLogic|ArenaLogic\\$.*"
+                  + "|ArenaSpatialIndex"
+                  + "|ArenaSystem|ArenaSystem\\$.*"
+                  + "|AvatarSystem"
+                  + "|LegacyMapProjector|LegacyMapProjector\\$.*"
+                  + "|MapSystem"
+                  + "|PrizeSystem|PrizeSystem\\$.*"
+                  + "|ship\\.ConsumableLogic"
+                  + "|ship\\.ConsumableSystem"
+                  + "|ship\\.RepelSystem"
+                  + "|ship\\.ShipSpawnSystem"
+                  + "|ship\\.ShipStatusProjector"
+                  + "|ship\\.ShipWeaponsProjector"
+                  + "|ship\\.WeaponsFireSystem"
+                  // TODO P2-h: remove WeaponsDamageLogic when it projects ArenaConfig+EngineConfig
+                  // values onto components instead of reading per-detonation.
+                  + "|ship\\.WeaponsDamageLogic"
+                  + ")")
+          .should()
+          .dependOnClassesThat()
+          .resideInAPackage("infinity.config..");
+
   @ArchTest
   static final ArchRule client_must_not_depend_on_server_modules_or_ai =
       noClasses()

@@ -212,6 +212,15 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     return rec.config;
   }
 
+  /**
+   * Per-arena wall friction without exposing {@link ArenaConfig} to the caller. Lets hot-path
+   * consumers (e.g. {@code ContactSystem}) avoid importing {@code infinity.config..} per ADR-0002.
+   * Falls back to {@link infinity.config.PhysicsDefaults#DEFAULT_WALL_FRICTION} on unknown arena.
+   */
+  public double getWallFriction(final String arenaName) {
+    return getArenaConfig(arenaName).wallFriction();
+  }
+
   /** See {@link ArenaSpatialIndex#getArenaMap}. */
   @Nullable
   public ArenaMap getArenaMap(final String arenaName) {

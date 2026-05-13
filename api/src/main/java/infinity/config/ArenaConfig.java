@@ -28,5 +28,6 @@ public record ArenaConfig(
 
   /** Empty fallback — spawn at arena center, frictionless walls, friendly-fire off. */
   public static final ArenaConfig EMPTY =
-      new ArenaConfig("", "", 512, 512, List.of(), 0.0, List.of(), 0);
+      new ArenaConfig(
+          "", "", 512, 512, List.of(), PhysicsDefaults.DEFAULT_WALL_FRICTION, List.of(), 0);
 }

@@ -17,7 +17,7 @@ import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.DynArray;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.SimTime;
-import infinity.config.ArenaConfig;
+import infinity.config.PhysicsDefaults;
 import infinity.es.CollisionCategory;
 import infinity.es.Parent;
 import infinity.es.Sensor;
@@ -187,9 +187,9 @@ public class ContactSystem<K, S extends AbstractShape> extends BaseInfinitySyste
   private double wallFrictionFor(final EntityId bodyId) {
     final ArenaId arenaId = ed.getComponent(bodyId, ArenaId.class);
     if (arenaId == null) {
-      return ArenaConfig.EMPTY.wallFriction();
+      return PhysicsDefaults.DEFAULT_WALL_FRICTION;
     }
-    return arenaSystem.getArenaConfig(arenaId.getArena()).wallFriction();
+    return arenaSystem.getWallFriction(arenaId.getArena());
   }
 
   /**
