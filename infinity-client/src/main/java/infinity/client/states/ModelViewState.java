@@ -60,6 +60,7 @@ import com.simsilica.ethereal.TimeSource;
 import com.simsilica.ext.mblock.BlocksResourceShapeFactory;
 import com.simsilica.ext.mblock.SphereFactory;
 import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeFactory;
 import com.simsilica.ext.mphys.ShapeFactoryRegistry;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
@@ -79,7 +80,6 @@ import infinity.es.Flag;
 import infinity.es.Frequency;
 import infinity.es.ShapeNames;
 import infinity.es.ship.Player;
-import infinity.sim.CubeFactory;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
@@ -279,7 +279,10 @@ public class ModelViewState extends BaseAppState {
     shapeFactory.registerFactory(ShapeNames.OVER5, sphereFactory);
     shapeFactory.registerFactory(ShapeNames.FLAG, sphereFactory);
 
-    CubeFactory cubeFactory = new CubeFactory();
+    // Local cube-shape factory: client doesn't depend on server-side `CubeFactory`
+    // per ADR-0005. Same one-liner as the server-side impl in infinity.sim.internal.
+    ShapeFactory<MBlockShape> cubeFactory =
+        (name, scale, mass) -> MBlockShape.createCube(scale);
     shapeFactory.registerFactory(ShapeNames.DOOR, cubeFactory);
     shapeFactory.registerFactory(ShapeNames.ARENA, cubeFactory);
 

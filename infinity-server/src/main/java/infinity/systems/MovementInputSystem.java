@@ -50,7 +50,7 @@ import com.simsilica.sim.SimTime;
 import infinity.es.input.CharacterInput;
 import infinity.es.input.MovementInput;
 import infinity.settings.EngineConfigSystem;
-import infinity.sim.PlayerDriver;
+import infinity.sim.internal.PlayerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

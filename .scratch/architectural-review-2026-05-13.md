@@ -25,11 +25,7 @@ The migration work the team has already invested is real. The audit found exactl
 - `modules/` is cleanly excised at the source level (removed from `settings.gradle` in v1.0.17, zero imports referencing it). Only stale `1.0.17` build artifacts remain on disk — harmless but worth a `./gradlew clean` and a `.gitignore` check.
 - `api/` is clean. Zero imports of `infinity.client.*`, `infinity.systems.*`, `infinity.server.*`, `infinity.settings.*`.
 - Server is clean. Zero imports of `infinity.client.*`.
-- **One concrete client → server-sim leak**: `infinity-client/src/main/java/infinity/client/states/ModelViewState.java:82` imports `infinity.sim.CubeFactory`, which lives in `infinity-server/src/main/java/infinity/sim/` (server-side `infinity.sim`, not the api-side one of the same package name).
-- `LayerDependencyTest` (`infinity-client/src/test/java/infinity/architecture/LayerDependencyTest.java`) has three rule-coverage gaps:
-  - **Rule 3** does not forbid `infinity.sim..` on the client — that's why CubeFactory slips through.
-  - **Rule 1** does not forbid `infinity.settings..` from `api/`.
-  - The test does not distinguish api-side `infinity.sim` from server-side `infinity.sim` — same FQN root, different layers. A package rename or a fine-grained import filter is needed.
+- ADR-0005's `infinity.sim.internal..` relocation landed: `CubeFactory` moved to `api/`; the 5 server-internal classes (`InfinityDefaultLeafWorld`, `InfinityEntityBodyFactory`, `InfinityPhysicsManager`, `PlayerDriver`, plus `Driver` which was dead code) moved to `infinity.sim.internal..`. `LayerDependencyTest` Rule 3 now forbids `infinity.sim.internal..` on the client. Remaining gap (per P1-c): `infinity.settings..` is not yet in Rule 1's forbidden list.
 
 ### C. Settings pipeline — well-architected
 
@@ -94,7 +90,6 @@ The migration work the team has already invested is real. The audit found exactl
 
 | # | Item | Owner suggestion | Effort |
 |---|---|---|---|
-| P0-b | Move `CubeFactory` to `api/` (it composes api-only types — see `api-contracts.md` "module-facing entity-construction ABI"). Restores client→api purity and unblocks the test-gap fix in P1-c | layout | 30 min |
 | P0-c | Convert `WeaponsEligibility` per-shot config read into a per-ship component projection (`BombSafetyRadius`, `ProximityDistance`) at spawn time (`ShipSpawnSystem`). CCP (ADR-0002) leak on the hot path. **Design note:** decide live-reload semantics for the new components before landing — either `ArenaReloadWatcher` re-projects on `bomb.groovy` edits, or accept new-spawn-only semantics (consistent with the existing weapon/prize fragment story; simpler). Make the decision in the PR, not after | server / CCP | 1-2 hrs |
 | P0-d | Fix `Delay` to store an absolute sim-time deadline (like `Decay`) and have `DelaySystem` compare against `SimTime.getTime()` instead of `System.nanoTime()`. Wall-clock in a component breaks determinism + replay | api / sim | 1 hr |
 
@@ -104,7 +99,7 @@ The migration work the team has already invested is real. The audit found exactl
 |---|---|---|---|
 | P1-a | **Mechanised canonical-writer guard** (the `TBD-3` gap called out in `replacement-as-mutation.md`). One ArchUnit / custom test that asserts, for every component type registered in the canonical-writer registry, exactly one writer system exists. Existing `CanonicalWriterTest` is the seed | Prevents silent regression of the 0-violation state the team has invested heavily in | half day |
 | P1-b | **Component immutability + no-arg-ctor ArchUnit rule** — encodes `.claude/rules/components.md` as a test | The rule is currently audited by hand; a five-line ArchUnit rule guards it forever | 1 hr |
-| P1-c | **Extend `LayerDependencyTest`**: add `infinity.sim..` to Rule 3 forbidden list (after P0-b moves CubeFactory); add `infinity.settings..` to Rule 1 forbidden list | Two real boundary leaks would be impossible to introduce | 30 min |
+| P1-c | **Extend `LayerDependencyTest`** with the remaining gap from the 2026-05-13 audit: add `infinity.settings..` to Rule 1 forbidden list (api/ must not depend on server-side settings impls). The `infinity.sim.internal..` extension landed with the P0-b sweep | Closes the remaining layer-rule gap | 15 min |
 | P1-d | **Hot-path `infinity.config` import guard** — ArchUnit rule: no class under `infinity.systems..` imports `infinity.config..` except the spawn-tier exempt set. Encodes ADR-0002. **Design questions to settle before mechanising** (see D2): (a) how is "spawn-tier exempt" expressed — named allowlist (brittle), package convention (`infinity.systems.spawn..`?), or marker annotation (`@ConfigProjector`); (b) how are non-ship entity-spawn sites (`WeaponsFireSystem`, `PrizeSystem`) included — same predicate or separate exception; (c) is `*.EMPTY.*` sentinel-constant lookup allowed, or does `ContactSystem` need to refactor `ArenaConfig.EMPTY.wallFriction()` out (move constant to a `Defaults` class, or read off a component) | Locks in CCP once P0-c lands; the boundary decisions become the de-facto refinement of ADR-0002's exempt-set scope | 1 hr predicate + ~1 hr refactors |
 | P1-e | **Pull spawn-projection harness PRD** (slices 2, 4, 5×N). Already designed; the PRD says it's ready-for-human. Closes the documented "manual launch is the only verification" risk | Memory note: this is a known scar | half-week |
 | P1-f | **Prize-applier subspace-canon tests** — one per applier, pinning REFERENCE.md semantics. 29 missing; the 4 existing ones (`Cloak`, `Repel`, `MultiFire`, `XRadar`) show the cheap shape | Refactor risk: today the appliers cannot be safely simplified | 1-2 days, parallelisable |

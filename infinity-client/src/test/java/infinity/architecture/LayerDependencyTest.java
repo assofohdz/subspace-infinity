@@ -71,7 +71,9 @@ public class LayerDependencyTest {
           .resideInAPackage("infinity.client..");
 
   /**
-   * Client must not reach into server/modules/ai. Commands go via RMI, not direct calls.
+   * Client must not reach into server/modules/ai/internal. Commands go via RMI, not direct calls.
+   * See ADR-0005 for the api-side {@code infinity.sim..} vs server-internal
+   * {@code infinity.sim.internal..} relocation that closed the CubeFactory class of leak.
    *
    * <p>Exceptions:
    *
@@ -97,5 +99,9 @@ public class LayerDependencyTest {
           .should()
           .dependOnClassesThat()
           .resideInAnyPackage(
-              "infinity.systems..", "infinity.server..", "infinity.modules..", "infinity.ai..");
+              "infinity.systems..",
+              "infinity.server..",
+              "infinity.modules..",
+              "infinity.ai..",
+              "infinity.sim.internal..");
 }

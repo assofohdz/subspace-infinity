@@ -17,7 +17,7 @@ import com.simsilica.mworld.db.LeafDb;
 import infinity.InfinityConstants;
 import infinity.map.MapTypes;
 import infinity.sim.CoreViewConstants;
-import infinity.sim.InfinityDefaultLeafWorld;
+import infinity.sim.internal.InfinityDefaultLeafWorld;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;

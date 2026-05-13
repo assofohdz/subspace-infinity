@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // Copyright (c) 2018-2026 Asser Fahrenholz
 
-package infinity.sim;
+package infinity.sim.internal;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;

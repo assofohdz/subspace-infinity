@@ -35,7 +35,7 @@ import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.CommandTriFunction;
 import infinity.sim.MapFactory;
-import infinity.sim.InfinityEntityBodyFactory;
+import infinity.sim.internal.InfinityEntityBodyFactory;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;

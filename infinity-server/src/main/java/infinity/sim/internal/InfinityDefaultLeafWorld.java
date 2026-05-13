@@ -34,7 +34,7 @@
  * OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package infinity.sim;
+package infinity.sim.internal;
 
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.MaskUtils;

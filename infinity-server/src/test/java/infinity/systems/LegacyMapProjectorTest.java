@@ -27,7 +27,7 @@ import infinity.es.GravityWell;
 import infinity.map.BitMap;
 import infinity.map.LevelFile;
 import infinity.map.MapTypes;
-import infinity.sim.InfinityDefaultLeafWorld;
+import infinity.sim.internal.InfinityDefaultLeafWorld;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
