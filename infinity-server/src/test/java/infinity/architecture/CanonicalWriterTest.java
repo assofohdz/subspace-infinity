@@ -66,9 +66,38 @@ public class CanonicalWriterTest {
     put("infinity.es.ship.weapons.BombFireDelay", "infinity.systems.ship.WeaponsEligibility");
     put("infinity.es.ship.weapons.BulletFireDelay", "infinity.systems.ship.WeaponsEligibility");
     put("infinity.es.ship.weapons.MineFireDelay", "infinity.systems.ship.WeaponsEligibility");
-    // WarpToChange deliberately omitted: side-effect intent (physics teleport via BodyPosition),
-    // not a target-component write. WarpSystem is the sole drainer by inspection; code review
-    // is the safety net for this shape since the constructor-call check doesn't apply.
+    // Per-projectile / per-effect single-writer markers.
+    put("infinity.es.ProximityArmed", "infinity.systems.ship.ProximityFuseSystem");
+    put("infinity.es.ship.actions.RocketActive", "infinity.systems.ship.RocketBuffSystem");
+    // Death-edge + per-ship lifecycle markers.
+    put("infinity.es.Dead", "infinity.systems.ship.EnergySystem");
+    put("infinity.es.Captain", "infinity.systems.AvatarSystem");
+    put("infinity.es.ship.ResetLivePool", "infinity.systems.AvatarSystem");
+    // Consumable-spawned per-effect tunables (Repel projectile).
+    put("infinity.es.ship.actions.RepelSpeed", "infinity.systems.ship.ConsumableSystem");
+    put("infinity.es.ship.actions.RepelDistance", "infinity.systems.ship.ConsumableSystem");
+    // Jitter — bomb-hit screen-shake stamp; sole writer is WeaponsDamageLogic (component-expiry
+    // reaper JitterReaperSystem removes it but never writes it).
+    put("infinity.es.Jitter", "infinity.systems.ship.WeaponsDamageLogic");
+
+    // Deliberately omitted:
+    // - WarpToChange: side-effect intent (physics teleport), not a target-component write.
+    // - Damage / SplashDamage / ProximityFuse: multi-writer-by-design — WeaponsFireSystem stamps
+    //   on bullets/bombs at fire; ConsumableSystem also stamps Damage on Thor projectiles.
+    //   Disjoint entities; the constructor-call test framework can't express "multi-writer on
+    //   disjoint targets" cleanly.
+    // - Repellable: WeaponsFireSystem stamps at fire AND ShipSpawnSystem stamps at spawn (latter
+    //   is spawn-tier exempt; the fire-time stamp is on a different entity, the projectile).
+    // - Impulse: multi-emitter is the canonical "one writer draining (mphys integrator), many
+    //   emitters" shape per ADR-0001.
+    // - Decay: documented multi-writer exception per decay-ttl.md / ADR-0007.
+    // - ThorFireDelay: ConsumableSystem (cooldown re-stamp) + ThorPrizeApplier (prize-pickup
+    //   ready-stamp). Multi-writer on the same entity; would need RaM intent shape to unify.
+    // - RotationStats / SpeedStats / ThrustStats / Bounce: spawn-tier only today (no post-spawn
+    //   `new X(...)` writer in tree). RaM snapshot lists *StatsSystem as forward-compat writers
+    //   that drain *StatsChange via `with(...)` updates rather than `new X(...)` calls — the
+    //   constructor-call test can't see those mutations. Re-add when an aspect lands a `new`
+    //   writer.
   }
 
   /**

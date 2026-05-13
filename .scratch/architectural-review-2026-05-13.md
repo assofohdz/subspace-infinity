@@ -94,7 +94,6 @@ The migration work the team has already invested is real. The audit found exactl
 
 | # | Item | Why | Effort |
 |---|---|---|---|
-| P1-a | **Mechanised canonical-writer guard** (the `TBD-3` gap called out in `replacement-as-mutation.md`). One ArchUnit / custom test that asserts, for every component type registered in the canonical-writer registry, exactly one writer system exists. Existing `CanonicalWriterTest` is the seed | Prevents silent regression of the 0-violation state the team has invested heavily in | half day |
 | P1-b | **Component immutability + no-arg-ctor ArchUnit rule** — encodes `.claude/rules/components.md` as a test | The rule is currently audited by hand; a five-line ArchUnit rule guards it forever | 1 hr |
 | P1-e | **Pull spawn-projection harness PRD** (slices 2, 4, 5×N). Already designed; the PRD says it's ready-for-human. Closes the documented "manual launch is the only verification" risk | Memory note: this is a known scar | half-week |
 | P1-f | **Prize-applier subspace-canon tests** — one per applier, pinning REFERENCE.md semantics. 29 missing; the 4 existing ones (`Cloak`, `Repel`, `MultiFire`, `XRadar`) show the cheap shape | Refactor risk: today the appliers cannot be safely simplified | 1-2 days, parallelisable |
@@ -117,56 +116,6 @@ The migration work the team has already invested is real. The audit found exactl
 | P2-j | **Audit dormant `EventType` declarations and retire the orphan `infinity.sim.Events` enum.** Either wire `ShipEvent.shipDestroyed` / `weaponFired` / etc. to natural publishers (`DeathSystem`, `WeaponsFireSystem`) or remove the declarations. Same decision on `PlayerEvent.playerBanned`. The `Events` enum (`DEATHEVENT`, `WEAPONFIRED`) parallels the bus surface — early prototype that should retire entirely (or, if kept, unify with the bus types). Per ADR-0003 open work | Closes ADR-0003's dormant-surface item; one source of truth for announcements |
 | P2-k | **Split `PrizeSystem` by Use Case** — extract `PrizeSpawnerSystem` (arena prize spawning + cap-scaling), `PrizeConsumptionSystem` (prize-on-contact application via the existing applier table), and `DeathPrizeSystem` (death-edge prize drop, decoupled from `EnergySystem` per P2-c). `WeaponsFireSystem` split (eligibility / spawn / audio) is a similar candidate but lower-priority. Per D1 Use-Case-granularity finding | Per-Use-Case testability; each split is independently mockable; the canonical-writer rule per ADR-0001 stays intact (each Use Case writes a disjoint set of components) | 1-2 days |
 | P2-l | **`*Spec` → `*Args` rename** in `api/src/main/java/infinity/sim/specs/`. `api.config.SpawnerSpec` (template tier, arena DSL declaration) and `api.sim.specs.SpawnerCreateSpec` (factory-call argument) both end in `Spec`; the suffix collides because `*Config` migration introduced the template-tier `*Spec` naming alongside the existing factory-arg `*Spec`. Rename the factory-arg side to `*Args` while the surface is small (18 records, mechanical import updates). Calcifies as more modules ship against the api surface | Naming hazard against ADR-0002 `*Config` records; mechanical now, expensive later | half-day |
-
----
-
-## Proposed ADR candidates
-
-The codebase has exactly **one ADR today** (`docs/adr/0001-ecs-component-model.md`). Several other architectural decisions are equally load-bearing but live as informal rules, code conventions, or CONTEXT.md prose. Formalising them as ADRs would (a) give future contributors a single linked source for the *why*, (b) make superseding decisions explicit when they happen, and (c) give the agent rule files (`.claude/rules/*.md`) a stable target to cross-link.
-
-Candidates, in order of ratchet-leverage:
-
-### ADR-0002 candidate — CCP: template-vs-instance config split
-
-The split between immutable `*Config` records in `api/src/main/java/infinity/config/` (one per type, registry-owned, read at spawn) and per-entity components (one per entity, mutable, read on the hot path) is the foundational decision that makes the settings pipeline tractable. Today it's documented in `.claude/rules/config-pattern.md` and CONTEXT.md prose. The decision *and the alternatives rejected* (single-tier config; components-only; hot-path registry lookup) deserve an ADR — especially because the audit found two live Pattern-4 leaks (D2) that would have been visible at code-review time against an ADR with a clear forbidden-import list.
-
-### ADR-0003 candidate — Three event planes
-
-CONTEXT.md defines three event shapes (ECS transient component / arena `EventBus` event / zone `EventBus` event) and names them, with a worked example of when to pick which. This is a high-traffic decision: every cross-system communication channel is one of these three. The CONTEXT.md "Flagged ambiguities" note explicitly says "event" was an overloaded term — that resolution belongs in an ADR. Includes the open question of whether arena scoping needs runtime split into per-arena bus instances.
-
-### ADR-0004 candidate — Settings pipeline architecture (host / adapter / registry / reload)
-
-The four-layer pipeline — Groovy fragment file → `GroovySettingsHost<T>` (I/O + eval + security) → `GroovySettingsAdapter<T>` (DSL semantics) → `ConfigRegistry` (per-arena snapshot) → `ArenaReloadWatcher` + `ShipSpawnSystem.reprojectAll()` — was decided over multiple slices, and the resolution of host-vs-adapter (CONTEXT.md "Flagged ambiguities") is non-trivial. An ADR locks in the boundary, names the legacy loaders that are not (yet) thin facades (`GroovyShipLoader`, `GroovyArenaLoader`), and documents the live-reload coverage decision (ships re-flow; fragments apply to new spawns only).
-
-### ADR-0005 candidate — Layer dependency model + client read-only
-
-Two rules today: `.claude/rules/api-contracts.md` ("api is data + interfaces only; no deps on server/client") and `.claude/rules/client-read-only.md` ("client observes; server owns; writes via RMI; `BodyPosition` not polling"). Both are enforced by `LayerDependencyTest` (with the three coverage gaps in B). An ADR would name the four layers (api / server / client / future-modules), document the api-side vs server-side `infinity.sim` ambiguity, and pin the test as the mechanism. The CubeFactory leak makes this concrete — the *next* such leak should be impossible.
-
-### ADR-0006 candidate — Tuning-knob locale (Groovy, not Java)
-
-CLAUDE.md Rule 3 ("Tuning knobs go in Groovy, not Java") is a strong opinionated policy with three tiers (preset / arena / zone) and an explicit exception list (math identities, protocol constants). The policy interacts with CCP (Groovy populates `*Config` templates; templates project to components). The decision rationale ("easier to demote a knob back to a constant than to flush a magic number") deserves to be captured once instead of restated in every PR review. Operator-facing.
-
-### ADR-0007 candidate — Single TTL mechanism: `Decay`
-
-`.claude/rules/decay-ttl.md` mandates that `Decay` is the only entity-TTL mechanism and that templates project to `Decay`, not to parallel `*Time` / `*Ttl` / `*Lifetime` components. The audit found this is currently enforced (0 violations) and that two components which *look* like parallels (`Delay`, `Jitter`) serve different semantic roles. An ADR formalises the distinction (entity lifetime vs deferred action vs component-reaper) so a future author doesn't accidentally re-introduce `*Lifetime`.
-
-### Lower-priority candidates (could be inline rules or short ADRs)
-
-- **Replacement-as-mutation rule** — currently `.claude/rules/replacement-as-mutation.md`. ADR-0001 already references it as the rule it generalises; could be folded into ADR-0001 as a "consequence" section rather than a separate ADR.
-- **PMD ratchet discipline** (`.claude/rules/pmd-on-touched-files.md`) — operational policy more than architecture. Stays a rule.
-- **Javadoc discipline** (`.claude/rules/javadoc-discipline.md`) — style rule, not architecture.
-- **Player-count scaling** (`.claude/rules/player-scaling.md`) — design checklist, not architecture.
-
-### Recommended sequencing for ADRs
-
-Pulling ADRs in this order maximises ratchet leverage: each closes a class of recurring review comment, and each gives the agent rule files a cross-link target.
-
-1. **ADR-0002 (CCP)** — closes the two live leaks in D2 against a named source.
-2. **ADR-0003 (Three event planes)** — closes the most overloaded vocabulary problem in the codebase.
-3. **ADR-0005 (Layers + client read-only)** — pairs with extending `LayerDependencyTest` (P1-c) and the CubeFactory move (P0-b).
-4. **ADR-0004 (Settings pipeline)** — captures three months of slice work in one document.
-5. **ADR-0006 (Tuning-knob locale)** — operator-facing; least technical.
-6. **ADR-0007 (Decay)** — short; cleanup.
 
 ---
 

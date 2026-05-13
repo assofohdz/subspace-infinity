@@ -220,8 +220,10 @@ the four C4 fresh-find aspects (`WarpTo`, `Frequency`, `ShipType`,
 `Impulse`) + the four Wave 4a weapon-level rows (Bomb/Bullet/Mine/
 Burst) + the six Wave 4b inventory rows (Brick/Decoy/Portal/Repel/
 Rocket/Thor) all resolved). `Decay` is the one documented multi-
-writer exception (see its own subsection). Only the architectural
-test (TBD-3 in the PRD) remains.
+writer exception (see its own subsection). The architectural test
+([`CanonicalWriterTest`](../../infinity-server/src/test/java/infinity/architecture/CanonicalWriterTest.java))
+guards 32 component types against single-writer regressions
+(architectural-review P1-a / TBD-3).
 
 #### Additional single-writer mechanics (canonical)
 
@@ -360,9 +362,10 @@ status-family toggles, the four C4 fresh-find aspects `WarpTo` /
 rows Bomb/Bullet/Mine/Burst, and the six Wave 4b inventory rows
 Brick/Decoy/Portal/Repel/Rocket/Thor) is now landed. `Decay` is the
 one documented multi-writer exception (per its own subsection above).
-Only the architectural test (TBD-3 in
-[`.scratch/adr-0001-implementation/PRD.md`](../../.scratch/adr-0001-implementation/PRD.md))
-remains as a guard against future single-writer regressions.
+The architectural test
+([`CanonicalWriterTest`](../../infinity-server/src/test/java/infinity/architecture/CanonicalWriterTest.java))
+guards 32 component types as of architectural-review P1-a; expand the
+registry there when adding a new `*Change` type.
 
 #### Future-migration candidates to the Change-entity recipe
 
