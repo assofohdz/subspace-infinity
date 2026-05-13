@@ -85,7 +85,10 @@ public class AudioState extends BaseAppState {
 
   @Override
   protected void cleanup(final Application app) {
-    // Nothing to do
+    if (sounds != null) {
+      sounds.stop();
+      sounds = null;
+    }
   }
 
   @Override

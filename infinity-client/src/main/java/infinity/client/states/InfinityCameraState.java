@@ -71,6 +71,10 @@ public class InfinityCameraState extends CameraState implements AnalogFunctionLi
 
   @Override
   protected void cleanup(final Application app) {
+    if (self != null) {
+      self.release();
+      self = null;
+    }
   }
 
   @Override

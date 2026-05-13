@@ -76,7 +76,10 @@ public class HudLabelState extends BaseAppState {
 
   @Override
   protected void cleanup(Application app) {
-    //No cleanup to do
+    if (labels != null) {
+      labels.stop();
+      labels = null;
+    }
   }
 
   @Override

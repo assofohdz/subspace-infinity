@@ -107,6 +107,10 @@ public class SpeechViewState extends BaseAppState {
 
     @Override
     protected void cleanup( Application app ) {
+        if (bubbles != null) {
+            bubbles.stop();
+            bubbles = null;
+        }
     }
 
     @Override
@@ -119,7 +123,10 @@ public class SpeechViewState extends BaseAppState {
     @Override
     protected void onDisable() {
         root.removeFromParent();
-        bubbles.stop();
+        if (bubbles != null) {
+            bubbles.stop();
+            bubbles = null;
+        }
     }
 
     @Override

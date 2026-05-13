@@ -70,6 +70,10 @@ public class PlayerListState extends BaseAppState {
 
   @Override
   protected void cleanup(final Application app) {
+    if (players != null) {
+      players.stop();
+      players = null;
+    }
     final InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
     inputMapper.removeDelegate(MainGameFunctions.F_PLAYER_LIST, this, "toggleEnabled");
   }

@@ -155,6 +155,13 @@ public class MobDebugState extends BaseAppState {
 
     @Override
     protected void cleanup( Application app ) {
+        if( probes != null ) {
+            if( probesStarted ) {
+                probes.stop();
+                probesStarted = false;
+            }
+            probes = null;
+        }
         DebugHudState debug = getState(DebugHudState.class);
         if( debug != null ) {
             debug.removeDebugValue("AI Time");

@@ -201,7 +201,10 @@ public class MapState extends BaseAppState {
 
     @Override
     protected void cleanup(final Application app) {
-        return;
+        if (tileImages != null) {
+            tileImages.stop();
+            tileImages = null;
+        }
     }
 
     @Override
