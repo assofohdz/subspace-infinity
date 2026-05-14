@@ -26,7 +26,7 @@ public class ResourceSystem extends AbstractGameSystem {
 
     private EntityData ed;
     private EntitySet ships;
-    private double time_since_last_update;
+    private double timeSinceLastUpdate;
     private final Map<EntityId, Integer> goldMap = new HashMap<>();
 
     public ResourceSystem(@SuppressWarnings("unused") final HostedServiceManager serviceManager) {
@@ -50,8 +50,8 @@ public class ResourceSystem extends AbstractGameSystem {
         // only update every RESOURCE_UPDATE_INTERVAL
         ships.applyChanges();
 
-        if (time_since_last_update > RESOURCE_UPDATE_INTERVAL) {
-            time_since_last_update = 0;
+        if (timeSinceLastUpdate > RESOURCE_UPDATE_INTERVAL) {
+            timeSinceLastUpdate = 0;
 
             // TPF is in seconds
             final int gold = (int) (tpf.getTpf() * GOLD_PER_SECOND);
@@ -66,7 +66,7 @@ public class ResourceSystem extends AbstractGameSystem {
             }
         }
         // update time
-        time_since_last_update += tpf.getTpf();
+        timeSinceLastUpdate += tpf.getTpf();
 
     }
 

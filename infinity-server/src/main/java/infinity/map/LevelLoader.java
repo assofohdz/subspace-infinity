@@ -19,13 +19,13 @@ public class LevelLoader implements AssetLoader {
     private static final Logger log = LoggerFactory.getLogger(LevelLoader.class);
 
     private AssetManager am;
-    public LevelFile m_lvlFile;
+    public LevelFile lvlFile;
 
     @Override
     public LevelFile load(final AssetInfo assetInfo) throws IOException {
 
         am = assetInfo.getManager();
-        final String m_file = assetInfo.getKey().getName();
+        final String file = assetInfo.getKey().getName();
 
         String errorWithELVL;
         BitMap bmp;
@@ -36,17 +36,17 @@ public class LevelLoader implements AssetLoader {
         }
         try (InputStream is = assetInfo.openStream(); BufferedInputStream bis = new BufferedInputStream(is)) {
             if (bmp.isBitMap()) {
-                m_lvlFile = new LevelFile(bis, bmp, true, bmp.hasELVL, m_file);
+                lvlFile = new LevelFile(bis, bmp, true, bmp.hasELVL, file);
             } else {
                 bmp = loadDefaultTileset();
-                m_lvlFile = new LevelFile(bis, bmp, false, bmp.hasELVL, m_file);
+                lvlFile = new LevelFile(bis, bmp, false, bmp.hasELVL, file);
             }
-            errorWithELVL = m_lvlFile.readLevel();
+            errorWithELVL = lvlFile.readLevel();
 
             if (errorWithELVL != null) {
 
-                m_lvlFile = new LevelFile(bis, bmp, false, false, m_file); // attempt load without meta data
-                final String error = m_lvlFile.readLevel();
+                lvlFile = new LevelFile(bis, bmp, false, false, file); // attempt load without meta data
+                final String error = lvlFile.readLevel();
 
                 if (error != null) { // I give up
                     log.error("First error = {}", errorWithELVL);
@@ -63,10 +63,10 @@ public class LevelLoader implements AssetLoader {
         } catch (@SuppressWarnings("unused") final IOException e) {
             // Create our lvl file
             bmp = loadDefaultTileset();
-            m_lvlFile = new LevelFile(bmp);
+            lvlFile = new LevelFile(bmp);
         }
 
-        return m_lvlFile;
+        return lvlFile;
     }
 
     private BitMap loadDefaultTileset() {

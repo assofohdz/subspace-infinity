@@ -15,10 +15,10 @@ public class LevelFile {
 
     private static final Logger log = LoggerFactory.getLogger(LevelFile.class);
 
-    public String m_file;
-    private final BitMap m_bitmap;
-    private BufferedInputStream m_stream;
-    private boolean m_containsBM;
+    public String file;
+    private final BitMap bitmap;
+    private BufferedInputStream stream;
+    private boolean containsBm;
     private boolean hasELVLData;
     private String mapName;
 
@@ -40,7 +40,7 @@ public class LevelFile {
     // unknown ELVL chunks read in on load
     public List<Byte> unknownELVLData = new ArrayList<>();
 
-    private final short[][] m_level = new short[1024][1024];
+    private final short[][] level = new short[1024][1024];
 
     /**
      * Reads in a *.lvl file.
@@ -55,11 +55,11 @@ public class LevelFile {
     public LevelFile(final BufferedInputStream bufferedStream, final BitMap b, final boolean hasBMP,
             final boolean hasELVL, final String file) {
 
-        m_bitmap = b;
-        m_containsBM = hasBMP;
+        bitmap = b;
+        containsBm = hasBMP;
         hasELVLData = hasELVL;
-        m_stream = bufferedStream;
-        m_file = file;
+        stream = bufferedStream;
+        this.file = file;
     }
 
     /**
@@ -69,7 +69,7 @@ public class LevelFile {
      *          contain bitmap portion)
      */
     public LevelFile(final BitMap b) {
-        m_bitmap = b;
+        bitmap = b;
     }
 
     /**
@@ -190,7 +190,7 @@ public class LevelFile {
             readIn(padding);
             return current + padding;
         }
-        log.warn("EOF while reading eLVL chunk padding (file={}).", m_file);
+        log.warn("EOF while reading eLVL chunk padding (file={}).", file);
         return current;
     }
 
@@ -202,9 +202,9 @@ public class LevelFile {
      */
     public String readLevel() throws IOException {
         if (hasELVLData) {
-            readIn(m_bitmap.ELvlOffset);
-        } else if (m_containsBM) {
-            readIn(m_bitmap.getFileSize());
+            readIn(bitmap.eLvlOffset);
+        } else if (containsBm) {
+            readIn(bitmap.getFileSize());
         }
 
         String error = null;
@@ -222,12 +222,12 @@ public class LevelFile {
                 final int tile = i >> 24 & 0x00ff;
                 final int y = (i >> 12) & 0x03FF;
                 final int x = i & 0x03FF;
-                m_level[x][y] = (short) tile;
+                level[x][y] = (short) tile;
             }
         }
 
         // Close the stream so it doesn't remain opened.
-        m_stream.close();
+        stream.close();
 
         return error;
     }
@@ -238,18 +238,18 @@ public class LevelFile {
             // returns as soon as *any* bytes are available and can short-read on large requests
             // (e.g. skipping past a 24-bit BMP + eLVL, which can be ~146KB), silently leaving the
             // stream mid-chunk and causing NegativeArraySize downstream.
-            return m_stream.readNBytes(n);
+            return stream.readNBytes(n);
         } catch (final IOException e) {
-            log.warn("readIn failed (file={})", m_file, e);
+            log.warn("readIn failed (file={})", file, e);
             return new byte[0];
         }
     }
 
     public boolean available(final int n) {
         try {
-            return m_stream.available() >= n;
+            return stream.available() >= n;
         } catch (final IOException e) {
-            log.warn("available() failed (file={})", m_file, e);
+            log.warn("available() failed (file={})", file, e);
             return false;
         }
     }
@@ -261,10 +261,10 @@ public class LevelFile {
      * {@link BitmapData#subRegion(int, int, int, int)}.
      */
     public BitmapData getTileset() {
-        return m_bitmap.getBitmap();
+        return bitmap.getBitmap();
     }
 
     public short[][] getMap() {
-        return m_level;
+        return level;
     }
 }
