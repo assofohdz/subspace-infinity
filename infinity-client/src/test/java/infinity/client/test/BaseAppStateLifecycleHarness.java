@@ -39,9 +39,13 @@ public final class BaseAppStateLifecycleHarness {
         new RecordingEntityData());
   }
 
-  public SyntheticApplication application() { return app; }
+  public SyntheticApplication application() {
+    return app;
+  }
 
-  public RecordingEntityData entityData() { return entityData; }
+  public RecordingEntityData entityData() {
+    return entityData;
+  }
 
   /** Attach dependency states (e.g. a stubbed {@code ConnectionState}) before the state under test. */
   public BaseAppStateLifecycleHarness attachDependency(final AppState state) {

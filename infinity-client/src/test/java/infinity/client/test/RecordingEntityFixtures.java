@@ -76,10 +76,16 @@ public final class RecordingEntityFixtures {
     private final EntitySet delegate;
     private int releaseCount;
 
-    RecordingEntitySet(final EntitySet delegate) { this.delegate = delegate; }
+    RecordingEntitySet(final EntitySet delegate) {
+      this.delegate = delegate;
+    }
 
-    public int releaseCount() { return releaseCount; }
-    public boolean wasReleased() { return releaseCount > 0; }
+    public int releaseCount() {
+      return releaseCount;
+    }
+    public boolean wasReleased() {
+      return releaseCount > 0;
+    }
 
     @Override public void release() {
       releaseCount++;
@@ -88,33 +94,85 @@ public final class RecordingEntityFixtures {
 
     // --- pass-through ------------------------------------------------------
 
-    @Override public void resetFilter(final ComponentFilter filter) { delegate.resetFilter(filter); }
-    @Override public void resetEntityCriteria(final EntityCriteria criteria) { delegate.resetEntityCriteria(criteria); }
-    @Override public boolean containsId(final EntityId id) { return delegate.containsId(id); }
-    @Override public Set<EntityId> getEntityIds() { return delegate.getEntityIds(); }
-    @Override public Entity getEntity(final EntityId id) { return delegate.getEntity(id); }
-    @Override public Set<Entity> getAddedEntities() { return delegate.getAddedEntities(); }
-    @Override public Set<Entity> getChangedEntities() { return delegate.getChangedEntities(); }
-    @Override public Set<Entity> getRemovedEntities() { return delegate.getRemovedEntities(); }
-    @Override public void clearChangeSets() { delegate.clearChangeSets(); }
-    @Override public boolean hasChanges() { return delegate.hasChanges(); }
-    @Override public boolean applyChanges() { return delegate.applyChanges(); }
+    @Override public void resetFilter(final ComponentFilter filter) {
+      delegate.resetFilter(filter);
+    }
+    @Override public void resetEntityCriteria(final EntityCriteria criteria) {
+      delegate.resetEntityCriteria(criteria);
+    }
+    @Override public boolean containsId(final EntityId id) {
+      return delegate.containsId(id);
+    }
+    @Override public Set<EntityId> getEntityIds() {
+      return delegate.getEntityIds();
+    }
+    @Override public Entity getEntity(final EntityId id) {
+      return delegate.getEntity(id);
+    }
+    @Override public Set<Entity> getAddedEntities() {
+      return delegate.getAddedEntities();
+    }
+    @Override public Set<Entity> getChangedEntities() {
+      return delegate.getChangedEntities();
+    }
+    @Override public Set<Entity> getRemovedEntities() {
+      return delegate.getRemovedEntities();
+    }
+    @Override public void clearChangeSets() {
+      delegate.clearChangeSets();
+    }
+    @Override public boolean hasChanges() {
+      return delegate.hasChanges();
+    }
+    @Override public boolean applyChanges() {
+      return delegate.applyChanges();
+    }
     @SuppressWarnings("deprecation")
-    @Override public boolean applyChanges(final Set<EntityChange> updates) { return delegate.applyChanges(updates); }
-    @Override public boolean hasType(final Class type) { return delegate.hasType(type); }
-    @Override public int size() { return delegate.size(); }
-    @Override public boolean isEmpty() { return delegate.isEmpty(); }
-    @Override public boolean contains(final Object o) { return delegate.contains(o); }
-    @Override public Iterator<Entity> iterator() { return delegate.iterator(); }
-    @Override public Object[] toArray() { return delegate.toArray(); }
-    @Override public <T> T[] toArray(final T[] a) { return delegate.toArray(a); }
-    @Override public boolean add(final Entity e) { return delegate.add(e); }
-    @Override public boolean remove(final Object o) { return delegate.remove(o); }
-    @Override public boolean containsAll(final java.util.Collection<?> c) { return delegate.containsAll(c); }
-    @Override public boolean addAll(final java.util.Collection<? extends Entity> c) { return delegate.addAll(c); }
-    @Override public boolean retainAll(final java.util.Collection<?> c) { return delegate.retainAll(c); }
-    @Override public boolean removeAll(final java.util.Collection<?> c) { return delegate.removeAll(c); }
-    @Override public void clear() { delegate.clear(); }
+    @Override public boolean applyChanges(final Set<EntityChange> updates) {
+      return delegate.applyChanges(updates);
+    }
+    @Override public boolean hasType(final Class type) {
+      return delegate.hasType(type);
+    }
+    @Override public int size() {
+      return delegate.size();
+    }
+    @Override public boolean isEmpty() {
+      return delegate.isEmpty();
+    }
+    @Override public boolean contains(final Object o) {
+      return delegate.contains(o);
+    }
+    @Override public Iterator<Entity> iterator() {
+      return delegate.iterator();
+    }
+    @Override public Object[] toArray() {
+      return delegate.toArray();
+    }
+    @Override public <T> T[] toArray(final T[] a) {
+      return delegate.toArray(a);
+    }
+    @Override public boolean add(final Entity e) {
+      return delegate.add(e);
+    }
+    @Override public boolean remove(final Object o) {
+      return delegate.remove(o);
+    }
+    @Override public boolean containsAll(final java.util.Collection<?> c) {
+      return delegate.containsAll(c);
+    }
+    @Override public boolean addAll(final java.util.Collection<? extends Entity> c) {
+      return delegate.addAll(c);
+    }
+    @Override public boolean retainAll(final java.util.Collection<?> c) {
+      return delegate.retainAll(c);
+    }
+    @Override public boolean removeAll(final java.util.Collection<?> c) {
+      return delegate.removeAll(c);
+    }
+    @Override public void clear() {
+      delegate.clear();
+    }
   }
 
   /** Wraps a {@link WatchedEntity}, counting {@link #release()} invocations. */
@@ -122,10 +180,16 @@ public final class RecordingEntityFixtures {
     private final WatchedEntity delegate;
     private int releaseCount;
 
-    RecordingWatchedEntity(final WatchedEntity delegate) { this.delegate = delegate; }
+    RecordingWatchedEntity(final WatchedEntity delegate) {
+      this.delegate = delegate;
+    }
 
-    public int releaseCount() { return releaseCount; }
-    public boolean wasReleased() { return releaseCount > 0; }
+    public int releaseCount() {
+      return releaseCount;
+    }
+    public boolean wasReleased() {
+      return releaseCount > 0;
+    }
 
     @Override public void release() {
       releaseCount++;
@@ -134,13 +198,29 @@ public final class RecordingEntityFixtures {
 
     // --- pass-through ------------------------------------------------------
 
-    @Override public boolean hasChanges() { return delegate.hasChanges(); }
-    @Override public boolean applyChanges() { return delegate.applyChanges(); }
-    @Override public boolean applyChanges(final Set<EntityChange> updates) { return delegate.applyChanges(updates); }
-    @Override public EntityId getId() { return delegate.getId(); }
-    @Override public <T extends EntityComponent> T get(final Class<T> type) { return delegate.get(type); }
-    @Override public void set(final EntityComponent c) { delegate.set(c); }
-    @Override public boolean isComplete() { return delegate.isComplete(); }
-    @Override public EntityComponent[] getComponents() { return delegate.getComponents(); }
+    @Override public boolean hasChanges() {
+      return delegate.hasChanges();
+    }
+    @Override public boolean applyChanges() {
+      return delegate.applyChanges();
+    }
+    @Override public boolean applyChanges(final Set<EntityChange> updates) {
+      return delegate.applyChanges(updates);
+    }
+    @Override public EntityId getId() {
+      return delegate.getId();
+    }
+    @Override public <T extends EntityComponent> T get(final Class<T> type) {
+      return delegate.get(type);
+    }
+    @Override public void set(final EntityComponent c) {
+      delegate.set(c);
+    }
+    @Override public boolean isComplete() {
+      return delegate.isComplete();
+    }
+    @Override public EntityComponent[] getComponents() {
+      return delegate.getComponents();
+    }
   }
 }

@@ -57,9 +57,15 @@ public class InfinityCameraStateLifecycleTest {
       this.ed = ed;
     }
 
-    @Override public EntityData getEntityData() { return ed; }
-    @Override public TimeSource getRemoteTimeSource() { return () -> 0L; }
-    @Override public <T extends ClientService> T getService(final Class<T> type) { return null; }
+    @Override public EntityData getEntityData() {
+      return ed;
+    }
+    @Override public TimeSource getRemoteTimeSource() {
+      return () -> 0L;
+    }
+    @Override public <T extends ClientService> T getService(final Class<T> type) {
+      return null;
+    }
     @Override protected void initialize(final Application app) { /* no-op */ }
     @Override protected void cleanup(final Application app) { /* no-op */ }
     @Override protected void onEnable() { /* no-op */ }

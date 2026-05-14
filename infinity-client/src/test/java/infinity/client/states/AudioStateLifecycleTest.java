@@ -52,8 +52,12 @@ public class AudioStateLifecycleTest {
       this.ed = ed;
     }
 
-    @Override public EntityData getEntityData() { return ed; }
-    @Override public TimeSource getRemoteTimeSource() { return () -> 0L; }
+    @Override public EntityData getEntityData() {
+      return ed;
+    }
+    @Override public TimeSource getRemoteTimeSource() {
+      return () -> 0L;
+    }
     @Override protected void initialize(final Application app) { /* no-op */ }
     @Override protected void cleanup(final Application app) { /* no-op */ }
     @Override protected void onEnable() { /* no-op */ }

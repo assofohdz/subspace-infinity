@@ -89,27 +89,49 @@ public final class SyntheticApplication implements Application {
 
   // --- everything else is a no-op / null stub ------------------------------
 
-  @Override public LostFocusBehavior getLostFocusBehavior() { return LostFocusBehavior.Disabled; }
+  @Override public LostFocusBehavior getLostFocusBehavior() {
+    return LostFocusBehavior.Disabled;
+  }
   @Override public void setLostFocusBehavior(final LostFocusBehavior lostFocusBehavior) { /* no-op */ }
-  @Override public boolean isPauseOnLostFocus() { return false; }
+  @Override public boolean isPauseOnLostFocus() {
+    return false;
+  }
   @Override public void setPauseOnLostFocus(final boolean pauseOnLostFocus) { /* no-op */ }
   @Override public void setSettings(final AppSettings settings) { /* no-op */ }
   @Override public void setTimer(final Timer timer) { /* no-op */ }
-  @Override public Timer getTimer() { return null; }
-  @Override public InputManager getInputManager() { return null; }
-  @Override public RenderManager getRenderManager() { return null; }
-  @Override public Renderer getRenderer() { return null; }
-  @Override public Listener getListener() { return null; }
-  @Override public JmeContext getContext() { return null; }
+  @Override public Timer getTimer() {
+    return null;
+  }
+  @Override public InputManager getInputManager() {
+    return null;
+  }
+  @Override public RenderManager getRenderManager() {
+    return null;
+  }
+  @Override public Renderer getRenderer() {
+    return null;
+  }
+  @Override public Listener getListener() {
+    return null;
+  }
+  @Override public JmeContext getContext() {
+    return null;
+  }
   @Override public void start() { /* no-op */ }
   @Override public void start(final boolean waitFor) { /* no-op */ }
   @Override public void setAppProfiler(final AppProfiler prof) { /* no-op */ }
-  @Override public AppProfiler getAppProfiler() { return null; }
+  @Override public AppProfiler getAppProfiler() {
+    return null;
+  }
   @Override public void restart() { /* no-op */ }
   @Override public void stop() { /* no-op */ }
   @Override public void stop(final boolean waitFor) { /* no-op */ }
-  @Override public ViewPort getGuiViewPort() { return null; }
-  @Override public ViewPort getViewPort() { return null; }
+  @Override public ViewPort getGuiViewPort() {
+    return null;
+  }
+  @Override public ViewPort getViewPort() {
+    return null;
+  }
 
   /** Fluent builder; null-or-real per axis lets a test pick the minimum surface it needs. */
   public static final class Builder {
