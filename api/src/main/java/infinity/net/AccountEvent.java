@@ -21,12 +21,12 @@ public class AccountEvent {
     /**
      * Signals that a player has successfully logged in.
      */
-    public static EventType<AccountEvent> playerLoggedOn = EventType.create("PlayerLoggedOn", AccountEvent.class);
+    public static final EventType<AccountEvent> playerLoggedOn = EventType.create("PlayerLoggedOn", AccountEvent.class);
 
     /**
      * Signals that a player has logged out.
      */
-    public static EventType<AccountEvent> playerLoggedOff = EventType.create("PlayerLoggedOff", AccountEvent.class);
+    public static final EventType<AccountEvent> playerLoggedOff = EventType.create("PlayerLoggedOff", AccountEvent.class);
 
     private final HostedConnection conn;
     private final String playerName;

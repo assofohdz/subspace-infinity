@@ -128,16 +128,6 @@ public class InfinityDefaultLeafWorld implements World {
     return cellListenerArray;
   }
 
-  //    protected void fireCellChanged( LeafId leafId, int x, int y, int z, int value ) {
-  //// log.info("fireCellChanged(" + leafId + ", " + x + ", " + y + ", " + z + ", " + value + ")
-  // listeners count:" + cellListeners.size());
-  //        if( cellListeners.isEmpty() ) {
-  //            return;
-  //        }
-  //        CellChangeEvent event = new CellChangeEvent(leafId, x, y, z, value);
-  //        fireCellChanged(event);
-  //    }
-  //
   protected void fireCellChanged(CellChangeEvent event) {
     for (CellChangeListener l : getCellListenerArray()) {
       l.cellChanged(event);
@@ -151,7 +141,6 @@ public class InfinityDefaultLeafWorld implements World {
     // a 'setWorldCells' that takes a list of cells to change and
     // then does a single recalculation.
 
-    // log.info("setWorldCell(" + world + ", " + type + ")");
     LeafId id = LeafId.fromWorld(world);
     LeafData leaf = getLeaf(id);
     if (leaf == null) {
@@ -166,11 +155,9 @@ public class InfinityDefaultLeafWorld implements World {
 
     data.setCell(x, y, z, type);
     MaskUtils.recalculateSideMasks(data, x, y, z, -1); // -1 so that 'outside the world' is badType
-    //MaskUtils.oldRecalculateSideMasks(data, x, y, z);
 
     // Get the newly masked value to fire in the event
     int value = data.getCell(x, y, z);
-    // log.info("set cell:" + x + ", " + y + ", " + z + "  to: " + MaskUtils.valueToString(value));
 
     // Push the changes back to the DB
     for (LeafData mod : data.getModified()) {
@@ -183,7 +170,6 @@ public class InfinityDefaultLeafWorld implements World {
     }
 
     for (CellChangeEvent event : data.getChanges()) {
-      // log.info("firing event:" + event);
       fireCellChanged(event);
     }
 

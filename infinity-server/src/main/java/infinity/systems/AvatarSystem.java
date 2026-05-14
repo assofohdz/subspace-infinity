@@ -274,8 +274,7 @@ public class AvatarSystem extends BaseInfinitySystem {
    * @param team the team to clear and reset
    */
   public void reset(final int team) {
-    //When we get to this, we could do something like:
-    //players.clear(); changed = true; plist = null; ships = new Player[8][0];
+    // TODO: implement team reset (clear players, refresh ship slots).
   }
 
   /**

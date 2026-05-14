@@ -16,7 +16,7 @@ public class GravityBombFireDelay implements EntityComponent {
 
     public GravityBombFireDelay() {
         start = System.nanoTime();
-        delta = 1000000 * 10;
+        delta = 1000000L * 10;
     }
 
     public GravityBombFireDelay(final long deltaMillis) {

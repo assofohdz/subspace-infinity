@@ -16,7 +16,7 @@ public class BulletFireDelay implements EntityComponent {
 
     public BulletFireDelay() {
         start = System.nanoTime();
-        delta = 1000000 * 10;
+        delta = 1000000L * 10;
     }
 
     public BulletFireDelay(final long deltaMillis) {

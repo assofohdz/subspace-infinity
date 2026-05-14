@@ -96,7 +96,7 @@ public class PostProcessingState extends BaseAppState {
 
     @Override
     protected void cleanup(final Application app) {
-        return;
+        // no-op
     }
 
     @Override
@@ -106,7 +106,7 @@ public class PostProcessingState extends BaseAppState {
 
     @Override
     public void update(final float tpf) {
-        return;
+        // no-op
     }
 
     @Override

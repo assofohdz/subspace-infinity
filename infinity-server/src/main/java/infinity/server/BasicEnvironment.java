@@ -94,28 +94,6 @@ public class BasicEnvironment extends AbstractGameSystem {
 
     // Arena loads are driven by ArenaSystem from zone.conf [Startup] AutoLoad.
 
-    //    GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(-10, 1,
-    // -10));
-
-    // Create a square of turf flags 100x100 around x = 20, z = -20
-    //    for (int x = 20; x <= 30; x++) {
-    //      for (int z = -30; z <= -20; z++) {
-    //        GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, time, new Vec3d(x,
-    // 1, z));
-    //      }
-    //    }
-
-//        GameEntities.createWormhole(
-//            ed,
-//            EntityId.NULL_ID,
-//            phys,
-//            time,
-//            new Vec3d(8, 1, 16),
-//            750,
-//            GravityWell.PULL,
-//            new Vec3d(40, 1, 16),
-//            20);
-//
         MapFactory.createSpawner(
             ed,
             new infinity.sim.specs.SpawnerCreateSpec(
@@ -134,52 +112,6 @@ public class BasicEnvironment extends AbstractGameSystem {
                 1,
                 false));
 
-
-    //GameEntities.createTurfStationaryFlag(ed, EntityId.NULL_ID, phys, sysTime, new Vec3d(0, 1, 0));
-//
-//    AIEntities.createMobShip(
-//        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.JAVELIN.getId());
-//    AIEntities.createMobShip(
-//        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.SPIDER.getId());
-//    AIEntities.createMobShip(
-//        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.SHARK.getId());
-//    AIEntities.createMobShip(
-//        new Vec3d(-512,1,-512), ed, EntityId.NULL_ID, phys, sysTime, Ships.LANCASTER.getId());
-
-//
-//    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 18));
-//    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 17));
-//    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 16));
-//    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 15));
-//    GameEntities.createDoor(ed, EntityId.NULL_ID, phys, sysTime, 10000, new Vec3d(12, 1, 14));
-
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(40, -10, 20), 0);
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(30, -5, 5), 0);;
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(20, 15, -10), 0);;
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(10, 0, 30), 0);;
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(0, 10, 0), 0);
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(40, -10, 10), 0);
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(30, -5, 15), 0);;
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(20, 15, 5), 0);;
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(10, 0, -10), 0);;
-//    GameEntities.createAsteroidSmall(ed, EntityId.NULL_ID, phys, time, new Vec3d(0, 10, 5), 0);
-
-//    getSystem(World.class).setWorldCell(new Vec3d(0, 1, -1), 10);
-//    getSystem(World.class).setWorldCell(new Vec3d(1, 1, -1), 10);
-//    getSystem(World.class).setWorldCell(new Vec3d(2, 1, -1), 10);
-//    getSystem(World.class).setWorldCell(new Vec3d(3, 1, -1), 10);
-//    getSystem(World.class).setWorldCell(new Vec3d(4, 1, -1), 10);
-//    getSystem(World.class).setWorldCell(new Vec3d(0, 1, 4), 10);
-//    getSystem(World.class).setWorldCell(new Vec3d(1, 1, 4), 10);
-//    getSystem(World.class).setWorldCell(new Vec3d(2, 1, 4), 10);
-//    getSystem(World.class).setWorldCell(new Vec3d(3, 1, 4), 10);
-//    getSystem(World.class).setWorldCell(new Vec3d(4, 1, 4), 10);
-//
-//    getSystem(MapSystem.class).setCell(new Vec3d(1,1,1), 10);
-//    getSystem(MapSystem.class).setCell(new Vec3d(2,1,1), 10);
-//    getSystem(MapSystem.class).setCell(new Vec3d(3,1,1), 10);
-//    getSystem(MapSystem.class).setCell(new Vec3d(4,1,1), 10);
-//    getSystem(MapSystem.class).setCell(new Vec3d(5,1,1), 10);
     this.worldCreated = true;
   }
 }

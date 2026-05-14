@@ -33,7 +33,6 @@ public class DeathSystem extends BaseInfinitySystem {
     public void update(final SimTime tpf) {
         if (dead.applyChanges()) {
             for (final Entity e : dead) {
-                // final Dead d = e.get(Dead.class);
                 ed.removeComponent(e.getId(), Dead.class);
 
                 ed.setComponent(e.getId(), new Decay(tpf.getTime(), tpf.getTime()));
@@ -43,12 +42,10 @@ public class DeathSystem extends BaseInfinitySystem {
 
     @Override
     public void start() {
-        return;
     }
 
     @Override
     public void stop() {
-        return;
     }
 
 }

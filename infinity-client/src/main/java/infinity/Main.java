@@ -82,7 +82,12 @@ public class Main extends SimpleApplication {
         log.error("Uncaught exception in thread {}", thread.getName(), throwable);
       }
       // Give log4j time to flush
-      try { Thread.sleep(100); } catch (InterruptedException ignored) {}
+      try {
+        Thread.sleep(100);
+      } catch (InterruptedException ignored) {
+        // Re-interrupt: top-level uncaught-exception handler has no caller to rethrow to.
+        Thread.currentThread().interrupt();
+      }
     });
 
     log.info("=== Subspace Infinity Starting ===");
@@ -91,8 +96,6 @@ public class Main extends SimpleApplication {
       log.info("OS: {} {}", System.getProperty("os.name"), System.getProperty("os.arch"));
       log.info("Working directory: {}", System.getProperty("user.dir"));
     }
-
-    // final Application app;
 
     final Main main = new Main();
     final AppSettings settings = new AppSettings(true);
@@ -188,16 +191,12 @@ public class Main extends SimpleApplication {
     attrs.set(BACKGROUND_ATTR, new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
     attrs.set("insets", new Insets3f(0, 0, 0, 0));
 
-    // SkyState sky = stateManager.getState(SkyState.class);
-    // sky.getGroundColor().set(0.3f, 0.5f, 0.1f, 1);
-    // sky.setShowGroundDisc(true);
-
     // get a RuntimeMXBean reference
     final RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
 
     // get the jvm's input arguments as a list of strings
     final List<String> listOfArguments = runtimeMxBean.getInputArguments();
-    listOfArguments.forEach(s -> System.out.println("ARG:" + s));
+    listOfArguments.forEach(s -> log.info("ARG:{}", s));
   }
 
   @Override

@@ -121,20 +121,14 @@ public final class WeaponFactory {
 
     ed.setComponents(
         lastBomb,
-        // ViewTypes.burst(ed),
         ShapeInfo.create(infinity.es.ShapeNames.BURST, spec.radius(), ed),
         new SpawnPosition(spec.phys().getGrid(), spec.position()),
-        // new PhysicsVelocity(new Vec3d(linearVelocity.x, linearVelocity.y)),
         new Decay(
             spec.createdTime(),
             spec.createdTime()
                 + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
         WeaponTypes.burst(ed),
-        // PhysicsMassTypes.normal_bullet(ed),
-        // PhysicsShapes.burst(),
-        new Parent(spec.owner())
-        // new PointLightComponent(level.lightColor, level.lightRadius));
-        );
+        new Parent(spec.owner()));
     ed.setComponent(lastBomb, new Meta(spec.createdTime()));
     return lastBomb;
   }

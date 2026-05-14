@@ -7,26 +7,26 @@ import com.simsilica.es.EntityComponent;
 /** Current effective velocity cap; clamped at {@link SpeedStats#max()}. */
 public class Speed implements EntityComponent {
 
-    private final int speed;
+    private final int value;
 
     public Speed() {
         this(0);
     }
 
     public Speed(final int speed) {
-        this.speed = speed;
+        this.value = speed;
     }
 
     public int getSpeed() {
-        return speed;
+        return value;
     }
 
     public Speed newAdjusted(final int delta) {
-        return new Speed(speed + delta);
+        return new Speed(value + delta);
     }
 
     @Override
     public String toString() {
-        return "Speed[" + speed + "]";
+        return "Speed[" + value + "]";
     }
 }

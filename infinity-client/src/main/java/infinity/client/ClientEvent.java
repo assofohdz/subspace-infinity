@@ -43,10 +43,10 @@ import com.simsilica.event.EventType;
 /** Event-bus events for client-side state changes (connect/disconnect, session start/end). */
 public class ClientEvent {
 
-    public static EventType<ClientEvent> clientConnected = EventType.create("ClientConnected", ClientEvent.class);
-    public static EventType<ClientEvent> sessionStarted = EventType.create("SessionStarted", ClientEvent.class);
-    public static EventType<ClientEvent> sessionEnded = EventType.create("SessionEnded", ClientEvent.class);
-    public static EventType<ClientEvent> clientDisconnected = EventType.create("ClientDisconnected", ClientEvent.class);
+    public static final EventType<ClientEvent> clientConnected = EventType.create("ClientConnected", ClientEvent.class);
+    public static final EventType<ClientEvent> sessionStarted = EventType.create("SessionStarted", ClientEvent.class);
+    public static final EventType<ClientEvent> sessionEnded = EventType.create("SessionEnded", ClientEvent.class);
+    public static final EventType<ClientEvent> clientDisconnected = EventType.create("ClientDisconnected", ClientEvent.class);
 
     public ClientEvent() {
     }

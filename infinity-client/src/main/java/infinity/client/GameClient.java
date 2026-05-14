@@ -73,8 +73,6 @@ public class GameClient {
         Network.connectToServer(
             InfinityConstants.NAME, InfinityConstants.PROTOCOL_VERSION, host, port);
 
-    // client.addMessageListener(new MessageDebugger());
-
     log.info("Adding services...");
     client
         .getServices()

@@ -11,19 +11,19 @@ import com.simsilica.es.EntityComponent;
  */
 public class Gold implements EntityComponent {
 
-    private final int gold;
+    private final int value;
 
     public Gold() {
         this(0);
     }
 
     public Gold(final int gold) {
-        this.gold = gold;
+        this.value = gold;
 
     }
 
     public int getGold() {
-        return gold;
+        return value;
     }
 
 }

@@ -70,13 +70,6 @@ public class MobSystem extends AbstractGameSystem {
 
     private BrainScheduler scheduler = new BrainScheduler();
 
-    // Something simple for now... until we need things like
-    // rescheduling and stuff.
-    //private LinkedList<Brain> schedule = new LinkedList<>();
-
-    // Queued up brains that may need rescheduling
-    //private Set<Brain> reschedule = new HashSet<>();
-
     private MobStats stats = new MobStats();
     private MobStats.Stat frameTimeStat;
     private MobStats.Stat activeMobCountStat;
@@ -195,51 +188,7 @@ public class MobSystem extends AbstractGameSystem {
         } else {
             scheduler.update(time);
         }
-
-//        // Reschedule any pending reskeds
-//        if( !reschedule.isEmpty() ) {
-//            // Not efficient but functional
-//            schedule.removeAll(reschedule);
-//            for( Brain b : reschedule ) {
-//                schedule(b);
-//            }
-//            reschedule.clear();
-//        }
-//
-//        if( collectStats ) {
-//            long start = System.nanoTime();
-//            think(time);
-//            long end = System.nanoTime();
-//            frameTimeStat.updateValue(end - start);
-//            activeMobCountStat.updateValue(brains.size());
-//        } else {
-//            think(time);
-//        }
     }
-
-//    protected void think( SimTime time ) {
-//        if( schedule.isEmpty() ) {
-//            return;
-//        }
-//        // Run through all of the current 'expired' heartbeats
-//        long t = time.getTime();
-//        Brain brain = null;
-//        while( (brain = schedule.getFirst()) != null ) {
-//            if( brain.getNextHeartbeat() > t ) {
-//                break;
-//            }
-//            // Else this should be run
-//            brain.think(time);
-//            schedule.removeFirst();
-//
-//            // Sanity check the heartbeat
-//            if( brain.getNextHeartbeat() <= t ) {
-//                log.warn("possible endless loop caused by non-advancing time for:" + brain
-//                            + " next heartbeat:" + brain.getNextHeartbeat() + " t:" + t);
-//            }
-//            schedule(brain);
-//        }
-//    }
 
     @Override
     public void stop() {
@@ -250,7 +199,6 @@ public class MobSystem extends AbstractGameSystem {
     }
 
     protected void detectEvents() {
-        //log.info("detectEvents()");
         // The right solution is probably to keep track of which bins
         // that our mobs intersect with and then only check those.  Could
         // be updated when they move, etc..
@@ -268,16 +216,11 @@ public class MobSystem extends AbstractGameSystem {
         BinIndex<EntityId, MBlockShape> binIndex = space.getBinIndex();
         for( Bin<EntityId, MBlockShape> bin : binIndex.getActiveBins() ) {
             for( RigidBody<EntityId, MBlockShape> body : bin.getActiveObjects().getArray() ) {
-                //log.info("active body:" + body.id + "  sleepy:" + body.isSleepy());
                 // Seems to nicely only be the objects that are actually active
 
                 // We'll skip mobs here because mob->mob could be done in a more
                 // O(n * n/2) kind of way and we may want different kinds of filtering
-                // for that.
-                //if( body.getControlDriver() instanceof MobDriver ) {
-                //    continue;
-                //}
-                // The above is a nice idea but I'm letting it go for now.
+                // for that — letting it go for now.
                 // Movement perception is inherently asymmetric.  If brain1 is moving
                 // and brain2 is not then only one gets the notification.  Or if brain1
                 // cannot see brain2 because perception checks, etc..  The brain->brain
@@ -338,43 +281,16 @@ public class MobSystem extends AbstractGameSystem {
             double d = body.position.distanceSq(pos);
             double thresh = radius + perc;
             if( d < thresh * thresh ) {
-                //log.info("Can see movement:" + body.id);
                 SeenObject seen = new SeenObject(body.id, body.position,
                                                  body.orientation, body.getLinearVelocity(),
                                                  body.shape, getType(body), Math.sqrt(d));
 
                 if( brain.objectMoved(seen) ) {
-                    //reschedule.add(brain);
                     scheduler.reschedule(brain);
                 }
             }
         }
     }
-
-//    protected void schedule( Brain brain ) {
-//        if( schedule.isEmpty() ) {
-//            schedule.add(brain);
-//            return;
-//        }
-//
-//        long search = brain.getNextHeartbeat();
-//        for( ListIterator<Brain> it = schedule.listIterator(0); it.hasNext(); ) {
-//            Brain item = it.next();
-//            // Just in case, abort if we find ourselves
-//            if( item == brain ) {
-//                return;
-//            }
-//            if( item.getNextHeartbeat() > search ) {
-//                // Need to be before this item so back up one
-//                it.previous();
-//                it.add(brain);
-//                return;
-//            }
-//        }
-//        // Made it all the way through the list without something that
-//        // should be run after us... so just add it to the end
-//        schedule.add(brain);
-//    }
 
     // Even though they are largely doing parallel entity processing,
     // I'm keeping the bain container and the mob driver container separate

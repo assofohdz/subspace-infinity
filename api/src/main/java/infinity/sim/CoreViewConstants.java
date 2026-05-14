@@ -55,7 +55,7 @@ public class CoreViewConstants {
   public static final int WALL_LIGHT_MIN_RUN = 13;
   public static final int WALL_LIGHT_SPACING = 25;
 
-  public static float DOORSIZE = 1f;
+  public static final float DOORSIZE = 1f;
 
   private CoreViewConstants() {}
 }

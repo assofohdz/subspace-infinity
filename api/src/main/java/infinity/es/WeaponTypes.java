@@ -12,6 +12,8 @@ import com.simsilica.es.EntityData;
  */
 public class WeaponTypes {
 
+    private WeaponTypes() { /* utility class */ }
+
     public static final String BULLET = "bullet"; // Fast moving projectile
     public static final String BOMB = "bomb"; // Slower moving, hardrr hitting
     public static final String GRAVITYBOMB = "gravityBomb"; // Bomb that stops and sucks everything in

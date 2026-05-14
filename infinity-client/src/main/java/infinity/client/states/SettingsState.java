@@ -61,8 +61,6 @@ public class SettingsState extends BaseAppState {
 
     private TabbedPanel tabs;
 
-    // private final boolean originalCursorEventsEnabled = false;
-
     public SettingsState() {
         setEnabled(false);
     }
@@ -94,27 +92,6 @@ public class SettingsState extends BaseAppState {
 
         tabs = new TabbedPanel(GLASS_STYLE);
         mainContents.addChild(tabs);
-
-        /*
-         * PhysicsState physics = getState(PhysicsState.class); ShootState shoot =
-         * getState(ShootState.class); Container physicsSettings = new Container();
-         * tabs.addTab("Physics", physicsSettings); //physicsSettings.addChild(new
-         * Label("Projectiles", new ElementId("window.title.label")));
-         * //physicsSettings.addChild(shoot.getSettings()); physicsSettings.addChild(new
-         * Label("Simulation", new ElementId("window.title.label")));
-         * physicsSettings.addChild(physics.getSimulationSettings());
-         * physicsSettings.addChild(new Label("New Bodies", new
-         * ElementId("window.title.label")));
-         * physicsSettings.addChild(physics.getBodySettings());
-         * physicsSettings.addChild(new Label("Contacts", new
-         * ElementId("window.title.label")));
-         * physicsSettings.addChild(physics.getContactSettings());
-         * physicsSettings.addChild(new Label("Annealing", new
-         * ElementId("window.title.label")));
-         * physicsSettings.addChild(physics.getAnnealingSettings());
-         *
-         * tabs.addTab("Projectiles", shoot.getSettings());
-         */
 
         // SkySettingsState skySettings = getState(SkySettingsState.class);
         // getParameterTabs().addTab("Sky", skySettings.getSettings());

@@ -48,19 +48,16 @@ public class MainGameFunctions {
     public static final String IN_GAME = "In Game";
 
     public static final FunctionId F_IN_GAME_MENU = new FunctionId(IN_GAME, "Menu");
-    // public static final FunctionId F_IN_GAME_HELP = new FunctionId(IN_GAME,
-    // "In-Game Help");
     public static final FunctionId F_PLAYER_LIST = new FunctionId(IN_GAME, "Player List");
     public static final FunctionId F_CHAT_CONSOLE = new FunctionId(IN_GAME, "Chat");
-    // public static final FunctionId F_TIME_DEBUG = new FunctionId(IN_GAME, "Time
-    // Debug");
+
+    private MainGameFunctions() { /* utility */ }
 
     public static void initializeDefaultMappings(final InputMapper inputMapper) {
 
         inputMapper.map(F_IN_GAME_MENU, KeyInput.KEY_ESCAPE);
         inputMapper.map(F_IN_GAME_MENU, Button.JOYSTICK_SELECT); // the normal one
         inputMapper.map(F_IN_GAME_MENU, Button.JOYSTICK_BUTTON8); // just in case it's not a gamepad
-        // inputMapper.map(F_IN_GAME_HELP, KeyInput.KEY_F1);
 
         inputMapper.map(F_PLAYER_LIST, KeyInput.KEY_F2);
 

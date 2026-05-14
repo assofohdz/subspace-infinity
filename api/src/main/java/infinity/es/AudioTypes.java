@@ -13,6 +13,8 @@ import infinity.BulletLevel;
  */
 public class AudioTypes {
 
+    private AudioTypes() { /* utility class */ }
+
     public static final String FIRE_THOR = "fire_thor"; // Bomb that can penetrate walls
     public static final String PICKUP_PRIZE = "pickup_prize";
     public static final String FIRE_GRAVBOMB = "fire_gravbomb";

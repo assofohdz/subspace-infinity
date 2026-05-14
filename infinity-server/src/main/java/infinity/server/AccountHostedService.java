@@ -63,8 +63,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
     public static EntityId getPlayerEntity(final HostedConnection conn) {
         Object o = conn.getAttribute(ATTRIBUTE_PLAYER_ENTITYID);
         Long eId = (Long) o;
-        EntityId id = new EntityId(eId);
-        return id;
+        return new EntityId(eId);
     }
 
     @Override
@@ -289,8 +288,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
      */
     public boolean isBotExact(final EntityId id) {
 
-        return getAccessLevel(id) == AccessLevel.BOT_LEVEL; // || getAccessLevel(id) == SYSOP_LEVEL) &&
-                                                            // !sysops.contains(id)) {
+        return getAccessLevel(id) == AccessLevel.BOT_LEVEL;
     }
 
     /**

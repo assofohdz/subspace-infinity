@@ -10,17 +10,17 @@ package infinity.es.ship.weapons;
  */
 public class DoubleBarrel {
 
-    private final boolean doubleBarrel;
+    private final boolean enabled;
 
     public DoubleBarrel() {
         this(false);
     }
 
     public DoubleBarrel(final boolean doubleBarrel) {
-        this.doubleBarrel = doubleBarrel;
+        this.enabled = doubleBarrel;
     }
 
     public boolean isDoubleBarrel() {
-        return doubleBarrel;
+        return enabled;
     }
 }

@@ -8,6 +8,9 @@ package infinity.sim;
  * @author Asser
  */
 public class MessageTypes {
+
+    private MessageTypes() { /* utility class */ }
+
     public final static int MESSAGE = 1;
     public final static int WARNING = 2;
     public final static int ERROR = 3;

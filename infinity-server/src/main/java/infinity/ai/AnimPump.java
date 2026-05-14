@@ -63,9 +63,6 @@ public class AnimPump {
   }
 
   public void setCurrentAction(String action, double speed) {
-    // if( this.speed != speed ) {
-    //    log.info("action:" + action + "  speed:" + speed);
-    // }
     this.speed = speed;
     if (Objects.equals(this.action, action)) {
       return;
@@ -88,14 +85,10 @@ public class AnimPump {
   }
 
   public void setSpeed(double speed) {
-    // if( this.speed != speed ) {
-    //    log.info("setSpeed(" + speed + ")");
-    // }
     this.speed = speed;
   }
 
   public void update(double tpf) {
-    // log.info("update(" + tpf + ") action:" + action);
     if (action == null) {
       return;
     }
@@ -108,7 +101,6 @@ public class AnimPump {
     if (lastTime > time) {
       log.info("wrap at:{}", time);
     }
-    // log.info("time:" + time);
     rig.setTime(layer, time);
   }
 }

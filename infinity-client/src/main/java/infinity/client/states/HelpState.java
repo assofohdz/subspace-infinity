@@ -43,6 +43,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Joiner;
 
 import com.jme3.app.Application;
@@ -79,6 +82,8 @@ import infinity.client.view.ToolFunctions;
  * function ids (see {@code .scratch/debug-state-bindings/PRD.md} TD-1).
  */
 public class HelpState extends BaseAppState {
+
+    static final Logger log = LoggerFactory.getLogger(HelpState.class);
 
     public static final FunctionId F_HELP = new FunctionId("Help");
 
@@ -189,10 +194,13 @@ public class HelpState extends BaseAppState {
     }
 
     private static void dumpInputMappings(final InputMapper inputMapper) {
-        System.out.println("All InputMapper function mappings:");
+        if (!log.isInfoEnabled()) {
+            return;
+        }
+        log.info("All InputMapper function mappings:");
         for (final FunctionId id : inputMapper.getFunctionIds()) {
-            System.out.println(id);
-            System.out.println("  mappings:");
+            log.info("{}", id);
+            log.info("  mappings:");
             for (final Mapping m : inputMapper.getMappings(id)) {
                 dumpMapping(m);
             }
@@ -200,18 +208,21 @@ public class HelpState extends BaseAppState {
     }
 
     private static void dumpMapping(final Mapping m) {
-        System.out.println("    " + m);
+        if (!log.isInfoEnabled()) {
+            return;
+        }
+        log.info("    {}", m);
         final Object o = m.getPrimaryActivator();
         if (o instanceof Integer) {
             final Integer keyCode = (Integer) o;
-            System.out.println("      primary:" + KeyNames.getName(keyCode.intValue()));
+            log.info("      primary:{}", KeyNames.getName(keyCode.intValue()));
         } else {
-            System.out.println("      primary:" + o);
+            log.info("      primary:{}", o);
         }
         for (final Object mod : m.getModifiers()) {
             if (mod instanceof Integer) {
                 final Integer keyCode = (Integer) mod;
-                System.out.println("      modifier:" + KeyNames.getName(keyCode.intValue()));
+                log.info("      modifier:{}", KeyNames.getName(keyCode.intValue()));
             }
         }
     }

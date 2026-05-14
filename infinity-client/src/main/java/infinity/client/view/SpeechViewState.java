@@ -158,11 +158,9 @@ public class SpeechViewState extends BaseAppState {
             // BitmapText is such a ludicrously difficult class to use
             float width = font.getLineWidth(text)/font.getPreferredSize();
 
-//log.info("width:" + width + "  font size:" + font.getPreferredSize());
             spatial.setSize(0.1f);
             spatial.setText(text);
             spatial.setColor(color);
-            //spatial.setLineWrapMode(LineWrapMode.NoWrap);
             spatial.setBox(new Rectangle(-width * 0.5f, 0, width, 0.1f));
             spatial.setAlignment(BitmapFont.Align.Center);
             spatial.addControl(new BillboardControl());

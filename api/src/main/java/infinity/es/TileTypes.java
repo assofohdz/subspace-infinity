@@ -12,6 +12,8 @@ import com.simsilica.es.EntityData;
  */
 public class TileTypes {
 
+    private TileTypes() { /* utility class */ }
+
     public static final String LEGACY = "legacy"; // Legacy SS Map Tileset
     public static final String WANGBLOB = "wangblob"; // Wang Blob Tileset
 

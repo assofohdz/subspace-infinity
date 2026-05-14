@@ -24,6 +24,7 @@ import static java.util.Spliterator.ORDERED;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.Spliterators;
 import java.util.function.ToDoubleFunction;
@@ -180,6 +181,9 @@ public final class RandomSelector<T> {
 
         @Override
         public T next() {
+            if (!hasNext()) {
+                throw new NoSuchElementException();
+            }
             return RandomSelector.this.next(this.random);
         }
     }

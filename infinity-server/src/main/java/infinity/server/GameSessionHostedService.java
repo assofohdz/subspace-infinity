@@ -192,35 +192,22 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
     // arena.conf [Spawn] is reserved for in-arena respawn (ship change, death) and
     // is read off the ship's *current* ArenaId — which doesn't exist at connect time.
     private final Vec3d spawnLoc;
-    // private final EntityId test = null;
     private final Vec3d lastViewLoc = new Vec3d();
     private final Quatd lastViewOrient = new Quatd();
-    // private PlayerDriver driver;
     private final EntityId playerEntityId;
 
-    // private final EntityId activation = null;
-    // private final EntityId fireMain = null;
-    // private final EntityId fireAlt = null;
-    // private final BinIndex binIndex;
     private final WeaponsFireSystem weaponsFireSystem;
     private WarpSystem warpSys;
     private ConsumableSystem actionSys;
     private AvatarSystem avatarSys;
     private GameSessionListener callback;
-    // private final MPhysSystem mphys;
     private boolean spawned;
-    // private final Vec3d relativeLoc = null;
-    // private MapSystem mapSystem;
 
     public GameSessionImpl(final HostedConnection conn) {
       this.conn = conn;
 
       final PhysicsSpace<?, ?> phys = gameSystems.get(PhysicsSpace.class, true);
-      // mphys = gameSystems.get(MPhysSystem.class, true);
       weaponsFireSystem = gameSystems.get(WeaponsFireSystem.class, true);
-      // this.mapSystem = gameSystems.get(MapSystem.class, true);
-
-      // binIndex = phys.getBinIndex();
 
       // Engine-tier ship collision radius — slice s6-ship-radius lifted this
       // out of a legacy hardcoded constant (mirrors the projectile-radius
@@ -326,8 +313,6 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       if (hed == null) {
         throw new InfinityRunTimeException("Can't get hosted entity data for:" + conn);
       }
-      // hed.registerEntityVisibility(new
-      // BodyVisibility(ethereal.getStateListener(conn)));
       hed.registerComponentVisibility(new BodyVisibility(ethereal.getStateListener(conn)));
 
       log.info("GameSessionImpl.initialized()");
@@ -374,12 +359,8 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       // This is a bit of a hack and not officially supported to keep
       // resetting yourself... but it works.
       final NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
-      // nsl.setMaxMessageSize(2000);
       if (nsl != null) {
-        // && !selfSet) {
         nsl.setSelf(avatarEntityId.getId(), location);
-        // log.debug("Setting NSL self location to: "+location);
-        // selfSet = true;
       }
 
       lastViewLoc.set(location);

@@ -347,7 +347,6 @@ public class ModelViewState extends BaseAppState {
 
     tryInitializeAvatar();
 
-    // updateCenter(worldView.getViewLocation());
     bodies.update();
     models.update();
     largeModels.update();

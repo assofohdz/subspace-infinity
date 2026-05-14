@@ -56,21 +56,21 @@ public class TimeState extends BaseAppState implements TimeManager {
 
     @Override
     protected void initialize(final Application app) {
-        return;
+        // no-op
     }
 
     @Override
     protected void cleanup(final Application app) {
-        return;
+        // no-op
     }
 
     @Override
     protected void onEnable() {
-        return;
+        // no-op
     }
 
     @Override
     protected void onDisable() {
-        return;
+        // no-op
     }
 }

@@ -62,12 +62,17 @@ public class DefaultColumnDb extends AbstractColumnDb {
 
   private SpoolingObjectDb<ColumnId, ColumnData> storage;
 
-  public DefaultColumnDb( File root) {
+  // Class-wide write lock; FIXME above wants per-column locks but this matches the prior intent
+  // (serialize writeColumn). Locking on the `data` parameter (S2445) was unsafe — callers could
+  // hold an external monitor on the same ColumnData and deadlock with the spool thread.
+  private final Object writeLock = new Object();
+
+  public DefaultColumnDb( final File root) {
     // Use ParentIdFileFunction which handles the directory structure properly
     this(new ParentIdFileFunction<ColumnId>(root, "col"));
   }
 
-  public DefaultColumnDb(Function<ColumnId, File> fileFunc ) {
+  public DefaultColumnDb(final Function<ColumnId, File> fileFunc ) {
     this.fileFunc = fileFunc;
 
     this.cache = CacheBuilder.newBuilder()
@@ -75,13 +80,13 @@ public class DefaultColumnDb extends AbstractColumnDb {
         .build(new ColumnLoader());
 
     this.storage = new SpoolingObjectDb<ColumnId, ColumnData>("columns") {
-      protected ColumnData loadObject( ColumnId id ) {
+      protected ColumnData loadObject( final ColumnId id ) {
         return loadColumn(id);
       }
 
-      protected void storeObject( ColumnId id, ColumnData data ) {
+      protected void storeObject( final ColumnId id, final ColumnData data ) {
         // FIXME: column locks instead of hard sync
-        synchronized(data) {
+        synchronized(writeLock) {
           writeColumn(data);
         }
       }
@@ -120,12 +125,7 @@ public class DefaultColumnDb extends AbstractColumnDb {
       log.debug("generate column(" + columnId + ")");
     }
 
-    //ColumnData result = generator.apply(columnId);
-    //columnGenerated(result);
-
-    ColumnData result = new ColumnData(columnId, 1);
-
-    return result;
+    return new ColumnData(columnId, 1);
   }
 
   protected ColumnData readColumn( File f ) {

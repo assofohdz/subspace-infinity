@@ -120,9 +120,6 @@ public class AvatarMovementState extends BaseAppState
         AvatarMovementFunctions.F_SHARK,
         AvatarMovementFunctions.F_WARP,
         AvatarMovementFunctions.F_SHIFT);
-
-    // Position / Speed displays were previously published into DebugHudState here;
-    // PositionHudState now owns the on-screen world+arena coord readout.
   }
 
   @Override

@@ -17,7 +17,7 @@ public class ThorFireDelay implements EntityComponent {
 
   public ThorFireDelay() {
     start = System.nanoTime();
-    delta = 1000000 * 10;
+    delta = 1000000L * 10;
   }
 
   public ThorFireDelay(final long deltaMillis) {

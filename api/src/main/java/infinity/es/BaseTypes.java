@@ -6,6 +6,8 @@ import com.simsilica.es.EntityData;
 
 public class BaseTypes {
 
+    private BaseTypes() { /* utility class */ }
+
     public static final String BASE1 = "base1";
 
     public static BaseType base1(final EntityData ed) {

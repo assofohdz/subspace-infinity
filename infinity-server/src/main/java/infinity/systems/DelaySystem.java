@@ -63,11 +63,9 @@ public class DelaySystem extends AbstractGameSystem {
 
     @Override
     public void start() {
-        return;
     }
 
     @Override
     public void stop() {
-        return;
     }
 }

@@ -93,10 +93,10 @@ public class ThrustSystem extends BaseInfinitySystem {
     if (current == null) {
       return;
     }
-    final ThrustStats stats = ed.getComponent(target, ThrustStats.class);
+    final ThrustStats targetStats = ed.getComponent(target, ThrustStats.class);
     final int proposed = current.getThrust() + delta;
     // Bypass clamp for temporary deltas: rocket-buff RocketThrust (e.g. 100) exceeds ThrustStats.max (e.g. 19).
-    final int clamped = (temporary || stats == null) ? proposed : Math.min(proposed, stats.max());
+    final int clamped = (temporary || targetStats == null) ? proposed : Math.min(proposed, targetStats.max());
     if (clamped == current.getThrust()) {
       return;
     }

@@ -94,10 +94,12 @@ public class RotationSystem extends BaseInfinitySystem {
     if (current == null) {
       return;
     }
-    final RotationStats stats = ed.getComponent(target, RotationStats.class);
+    final RotationStats targetStats = ed.getComponent(target, RotationStats.class);
     // Bypass clamp for temporary deltas: rocket-buff-style overrides may exceed RotationStats.max.
     final double clamped =
-        (temporary || stats == null) ? proposed(current, delta) : Math.min(proposed(current, delta), stats.max());
+        (temporary || targetStats == null)
+            ? proposed(current, delta)
+            : Math.min(proposed(current, delta), targetStats.max());
     if (Double.compare(clamped, current.getRadSec()) == 0) {
       return;
     }

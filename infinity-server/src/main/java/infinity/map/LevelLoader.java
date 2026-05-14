@@ -6,12 +6,17 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetLoader;
 import com.jme3.asset.AssetManager;
 
 /** JME {@link AssetLoader} producing {@link LevelFile} from {@code .lvl}/{@code .lvz}. */
 public class LevelLoader implements AssetLoader {
+
+    private static final Logger log = LoggerFactory.getLogger(LevelLoader.class);
 
     private AssetManager am;
     public LevelFile m_lvlFile;
@@ -44,15 +49,15 @@ public class LevelLoader implements AssetLoader {
                 final String error = m_lvlFile.readLevel();
 
                 if (error != null) { // I give up
-                    System.out.println("First error = " + errorWithELVL);
-                    System.out.println("NON eLVL Load: " + error);
+                    log.error("First error = {}", errorWithELVL);
+                    log.error("NON eLVL Load: {}", error);
                     throw new IOException("Corrupt LVL File");
                 }
-                System.out.println("NON eLVL Load sucessful! Previous error: " + errorWithELVL);
+                log.warn("NON eLVL Load sucessful! Previous error: {}", errorWithELVL);
             }
 
             if (errorWithELVL != null) {
-                System.out.println("Error with eLVL Data!");
+                log.warn("Error with eLVL Data!");
             }
 
         } catch (@SuppressWarnings("unused") final IOException e) {
@@ -66,8 +71,7 @@ public class LevelLoader implements AssetLoader {
 
     private BitMap loadDefaultTileset() {
         am.registerLoader(BitMapLoader.class, "bmp");
-        final BitMap bmp = (BitMap) am.loadAsset("Textures/Tilesets/default.bmp");
-        return bmp;
+        return (BitMap) am.loadAsset("Textures/Tilesets/default.bmp");
     }
 
 }

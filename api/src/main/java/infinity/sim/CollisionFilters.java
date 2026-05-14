@@ -9,6 +9,8 @@ package infinity.sim;
  */
 public class CollisionFilters {
 
+  private CollisionFilters() { /* utility class */ }
+
   /** Static bodies collides with all bodies except other static bodies. */
   private static final long COLLISION_CATEGORY_STATIC_BODIES = 1;
 

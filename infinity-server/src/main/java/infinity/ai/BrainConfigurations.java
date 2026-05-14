@@ -51,12 +51,16 @@ import org.slf4j.LoggerFactory;
  *
  * @author Paul Speed
  */
-public class BrainConfigurations {
+public final class BrainConfigurations {
   static Logger log = LoggerFactory.getLogger(BrainConfigurations.class);
 
   // Configs should be reusable... let's make sure.
   private static final Map<String, BrainConfiguration> configs = new HashMap<>();
   private static BrainConfiguration defaultConfig;
+
+  private BrainConfigurations() {
+    // utility class
+  }
 
   private static final String HOME = "home";
   private static final String CORN = "corn";
@@ -355,9 +359,6 @@ public class BrainConfigurations {
                 })
             .onMoved(
                 (brain, obj) -> {
-                  // log.info("objectMoved(" + obj + ")  velocity:" + obj.getVelocity() + "  speed:"
-                  // + obj.getVelocity().length());
-
                   if (CORN.equals(obj.getType())) {
                     // We don't care about moving corn
                     return false;
@@ -372,22 +373,20 @@ public class BrainConfigurations {
         new Strategy<TimedGoal>(
                 (brain, goal) -> {
                   log.info(LOG_CREATE_LOOP, goal);
-                  LoopAction<TimedGoal> result =
-                      new LoopAction<>(
-                          goal,
-                          (b, g) -> {
-                            // Random duration between 2-5 seconds, not more than
-                            // whatever time is remaining
-                            double duration =
-                                Math.min(goal.getTimeRemaining(), 2 + Math.random() * 3);
+                  return new LoopAction<>(
+                      goal,
+                      (b, g) -> {
+                        // Random duration between 2-5 seconds, not more than
+                        // whatever time is remaining
+                        double duration =
+                            Math.min(goal.getTimeRemaining(), 2 + Math.random() * 3);
 
-                            // Random angle
-                            double angle = Math.random() * Math.PI * 2;
-                            Vec3d dir = new Vec3d(0, 0, 0.5);
+                        // Random angle
+                        double angle = Math.random() * Math.PI * 2;
+                        Vec3d dir = new Vec3d(0, 0, 0.5);
 
-                            return new WalkDir(angle, dir, duration, 0);
-                          });
-                  return result;
+                        return new WalkDir(angle, dir, duration, 0);
+                      });
                 })
             .onDone(
                 (brain, goal) -> {
@@ -496,9 +495,6 @@ public class BrainConfigurations {
                 })
             .onMoved(
                 (brain, obj) -> {
-                  // log.info("objectMoved(" + obj + ")  velocity:" + obj.getVelocity() + "  speed:"
-                  // + obj.getVelocity().length());
-
                   if (CORN.equals(obj.getType())) {
                     // We don't care about moving corn
                     return false;
@@ -513,22 +509,20 @@ public class BrainConfigurations {
         new Strategy<TimedGoal>(
                 (brain, goal) -> {
                   log.info(LOG_CREATE_LOOP, goal);
-                  LoopAction<TimedGoal> result =
-                      new LoopAction<>(
-                          goal,
-                          (b, g) -> {
-                            // Random duration between 2-5 seconds, not more than
-                            // whatever time is remaining
-                            double duration =
-                                Math.min(goal.getTimeRemaining(), 2 + Math.random() * 3);
+                  return new LoopAction<>(
+                      goal,
+                      (b, g) -> {
+                        // Random duration between 2-5 seconds, not more than
+                        // whatever time is remaining
+                        double duration =
+                            Math.min(goal.getTimeRemaining(), 2 + Math.random() * 3);
 
-                            // Random angle
-                            double angle = Math.random() * Math.PI * 2;
-                            Vec3d dir = new Vec3d(0, 0, 0.5);
+                        // Random angle
+                        double angle = Math.random() * Math.PI * 2;
+                        Vec3d dir = new Vec3d(0, 0, 0.5);
 
-                            return new WalkDir(angle, dir, duration, 0);
-                          });
-                  return result;
+                        return new WalkDir(angle, dir, duration, 0);
+                      });
                 })
             .onDone(
                 (brain, goal) -> {
@@ -622,23 +616,19 @@ public class BrainConfigurations {
     config.setStrategy(
         Wander.class,
         new Strategy<TimedGoal>(
-            (brain, goal) -> {
-              LoopAction<TimedGoal> result =
-                  new LoopAction<>(
-                      goal,
-                      (b, g) -> {
-                        // Random duration between 2-5 seconds, not more than
-                        // whatever time is remaining
-                        double duration = Math.min(goal.getTimeRemaining(), 2 + Math.random() * 3);
+            (brain, goal) -> new LoopAction<>(
+                goal,
+                (b, g) -> {
+                  // Random duration between 2-5 seconds, not more than
+                  // whatever time is remaining
+                  double duration = Math.min(goal.getTimeRemaining(), 2 + Math.random() * 3);
 
-                        // Random angle
-                        double angle = Math.random() * Math.PI * 2;
-                        Vec3d dir = new Vec3d(0, 0, 0.5);
+                  // Random angle
+                  double angle = Math.random() * Math.PI * 2;
+                  Vec3d dir = new Vec3d(0, 0, 0.5);
 
-                        return new WalkDir(angle, dir, duration, 0);
-                      });
-              return result;
-            }));
+                  return new WalkDir(angle, dir, duration, 0);
+                })));
 
     return config;
   }

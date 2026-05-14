@@ -308,7 +308,7 @@ public class InfinityGeometryFactory {
 
         private static float accumToFloat( int accum ) {
             // The accumulator is x 8, so divide by 8 to average it
-            int result = accum; // >> 3;
+            int result = accum;
             // Then make it from 0..1
             return result/15f;
         }

@@ -209,7 +209,6 @@ public final class InfinityChatHostedService extends AbstractHostedConnectionSer
       final Matcher matcher = pattern.matcher(message);
       if (matcher.matches()) {
         matched = true;
-        // final EntityId fromAvatar = GameSessionHostedService.getAvatarEntity(from.getConn());
         BiFunction<EntityId, Matcher, String> function =
             patternBiConsumer.get(pattern).getConsumer();
 

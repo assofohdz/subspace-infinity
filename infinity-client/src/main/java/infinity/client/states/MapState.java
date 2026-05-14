@@ -64,7 +64,6 @@ public class MapState extends BaseAppState {
 
     static Logger log = LoggerFactory.getLogger(MapState.class);
 
-    // AndFilter andFilter;
     private EntityData ed;
     private LegacyMapImageContainer tileImages;
     private final java.util.Map<Vec3d, EntityId> index = new ConcurrentHashMap<>();
@@ -74,7 +73,6 @@ public class MapState extends BaseAppState {
     private final Map<TileKey, Image> imageMap = new HashMap<>();
 
     private final Map<Integer, WangInfo> wangBlobIndexMap = new HashMap<>();
-    // private float tpfTime;
     private Camera camera;
 
     public MapState() {
@@ -94,10 +92,6 @@ public class MapState extends BaseAppState {
         imgLoader = new AWTLoader();
 
         generateWangBlobInfoMap(wangBlobIndexMap);
-
-        // arenas = ed.getEntities(FieldFilter.create(ShapeInfo.class, "id",
-        // ShapeInfo.create(ShapeNames.ARENA,0,ed).getShapeId()), ShapeInfo.class,
-        // BodyPosition.class);
     }
 
     public float getWangBlobRotations(final int indexNumber) {
@@ -189,10 +183,7 @@ public class MapState extends BaseAppState {
     }
 
     protected LevelFile loadMap(final String tileSet) {
-
-        final LevelFile localMap = (LevelFile) am.loadAsset(tileSet);
-
-        return localMap;
+        return (LevelFile) am.loadAsset(tileSet);
     }
 
     public EntityId getEntityId(final Vec3d coord) {
@@ -221,7 +212,6 @@ public class MapState extends BaseAppState {
 
     @Override
     public void update(final float tpf) {
-        // tpfTime = tpf;
         tileImages.update();
     }
 
@@ -274,7 +264,6 @@ public class MapState extends BaseAppState {
 
             final BitmapData tileBitmap = sliceTile(levelFiles.get(tileSet).getTileset(), tileIndex);
             final Image jmeOutputImage = imgLoader.load(toBufferedImage(tileBitmap), true);
-            // jmeOutputImage.dispose();
 
             imageMap.put(key, jmeOutputImage);
 
@@ -393,7 +382,7 @@ public class MapState extends BaseAppState {
     }
 
     public void setMapEditingActive(@SuppressWarnings("unused") final boolean active) {
-        return;
+        // no-op
     }
 
     public void addArenaMouseListeners(final Spatial arena) {
@@ -408,7 +397,7 @@ public class MapState extends BaseAppState {
 
             @Override
             protected void click(final MouseButtonEvent event, final Spatial target, final Spatial capture) {
-                return;
+                // no-op
             }
 
             @Override
@@ -428,14 +417,12 @@ public class MapState extends BaseAppState {
 
             @Override
             public void mouseEntered(final MouseMotionEvent event, final Spatial target, final Spatial capture) {
-                // Material m = ((Geometry) target).getMaterial();
-                // m.setColor("Color", ColorRGBA.Yellow);
+                // no-op
             }
 
             @Override
             public void mouseExited(final MouseMotionEvent event, final Spatial target, final Spatial capture) {
-                // Material m = ((Geometry) target).getMaterial();
-                // m.setColor("Color", ColorRGBA.Blue);
+                // no-op
             }
 
             @Override
@@ -444,14 +431,12 @@ public class MapState extends BaseAppState {
                     final GameSession session = requireGameSession();
                     final Vector3f contactPoint = rayCastClickToArena(event, target);
                     session.map(MapAction.CREATE, new Vec3d(contactPoint.x, 0, contactPoint.z));
-                    // session.createTile("", contactPoint.x, contactPoint.y);
                 }
 
                 if (isPressed && keyIndex == MouseInput.BUTTON_RIGHT) {
                     final GameSession session = requireGameSession();
                     final Vector3f contactPoint = rayCastClickToArena(event, target);
                     session.map(MapAction.DELETE, new Vec3d(contactPoint.x, 0, contactPoint.z));
-                    // session.removeTile(contactPoint.x, contactPoint.y);
                 }
             }
         });

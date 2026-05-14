@@ -14,9 +14,7 @@ public class BitMap {
 
     private final BufferedInputStream m_stream;
 
-    // private String fh_type;
     private int m_size;
-    // private int m_offset;
     private int m_width;
     private int m_height;
     private int m_bitCount;
@@ -250,9 +248,10 @@ public class BitMap {
 
     public int readByte() {
         try {
-            final byte[] b = new byte[1];
-            m_stream.read(b);
-            return b[0] & 255;
+            // Single-byte read() returns -1 on EOF (no short-read possible, unlike read(byte[])).
+            // Match the legacy silent-failure shape: surface EOF as 0, same as the IOException path.
+            final int b = m_stream.read();
+            return b == -1 ? 0 : b & 255;
         } catch (@SuppressWarnings("unused") final IOException e) {
             return 0;
         }

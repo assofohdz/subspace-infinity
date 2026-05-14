@@ -97,12 +97,12 @@ public class ChatState extends BaseAppState {
 
     @Override
     protected void onEnable() {
-        return;
+        // no-op
     }
 
     @Override
     protected void onDisable() {
-        return;
+        // no-op
     }
 
     private class ChatCommandEntry implements CommandEntry {

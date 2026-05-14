@@ -120,7 +120,6 @@ log.info("d1:{}  d2:{}    delta:{}", d1, d2, v);
 if (log.isInfoEnabled()) {
   log.info("pos:{}  target:{}   facing:{}", pos, target, Math.toDegrees(facing));
 }
-        //facing = 0; //-Math.PI * 0.25;
         if( facing < 0 ) {
             facing += Math.PI * 2;
         }
@@ -132,10 +131,10 @@ if (log.isInfoEnabled()) {
             // Check to see if we've failed
             double moved = pos.distance(lastPosition);
             double delta = t - lastTime;
-            double speed = moved/delta;
+            double currentSpeed = moved/delta;
 
             // If we're stuck then we've failed
-            if( speed < 0.2 ) {
+            if( currentSpeed < 0.2 ) {
 log.info("******************** Aborting WalkTo");
                 // Probably we want to be able to supply the brain
                 // some information on why we failed.

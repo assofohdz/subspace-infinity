@@ -91,11 +91,6 @@ public class MainMenuState extends BaseAppState {
             EventBus.addListener(this, ClientEvent.clientConnected);
             EventBus.addListener(this, ClientEvent.clientDisconnected);
 
-            // Now connect
-            //connection = new ConnectionState(this, "127.0.0.1", 8969);
-
-            //getStateManager().attach(connection);
-
             // Disable ourselves
             setEnabled(false);
         } catch (final RuntimeException e) {

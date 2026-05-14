@@ -7,6 +7,8 @@ import com.simsilica.es.EntityData;
 /** Factory methods for prize types — names are routed through {@code EntityData}'s string index. */
 public class PrizeTypes {
 
+    private PrizeTypes() { /* utility class */ }
+
     public static final String ALLWEAPONS = "AllWeapons";
     public static final String ANTIWARP = "AntiWarp";
     public static final String BOMB = "Bomb";

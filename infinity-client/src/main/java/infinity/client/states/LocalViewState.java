@@ -109,8 +109,7 @@ public class LocalViewState extends BaseAppState {
   static Logger log = LoggerFactory.getLogger(LocalViewState.class);
   private Application app;
   private final java.util.Set<Integer> registeredArenaTilesets = new java.util.HashSet<>();
-  private final Grid leafGrid = WorldGrids.LEAF_GRID; // new Grid(32, 32, 32);
-  // private Vec3i viewRadius = new Vec3i(2, 3, 2);
+  private final Grid leafGrid = WorldGrids.LEAF_GRID;
   private final Vec3i viewRadius = new Vec3i(2, 0, 2);
   private final Vec3i centerCell =
       new Vec3i(0, 100, 0); // set it to something that will never match
@@ -135,7 +134,6 @@ public class LocalViewState extends BaseAppState {
   private World world;
   private VersionedReference<Vec3d> posRef;
   private Vec3i centerWorld = new Vec3i();
-  // private Spatial maskDebugOld;
   private Spatial maskDebug;
   private float yMin = 0;
   private float yMax = 100;
@@ -213,10 +211,7 @@ public class LocalViewState extends BaseAppState {
 
     world = getState(ConnectionState.class).getService(WorldClientService.class);
 
-    // this.viewMask = new ViewMask(WorldGrids.LEAF_GRID, maxViewRadius);
     getState(BlackboardState.class).set(ViewMask.class, viewMask);
-
-    // fogSettingsRef = fogSettings.createReference();
 
     this.viewRoot = new Node("ViewRoot");
 
@@ -245,18 +240,9 @@ public class LocalViewState extends BaseAppState {
     // For testing our view mask
     Vec3i maskSize = viewMask.getSize();
     Quad quad;
-    // quad = new Quad(viewMask.getImageWidth(), viewMask.getImageHeight());
-    // geom = new Geometry("maskTest", quad);
-    // geom.setMaterial(GuiGlobals.getInstance().createMaterial(viewMask.getMaskTexture(),
-    // false).getMaterial());
-    // maskDebugOld = geom;
-    // maskDebugOld.setLocalScale(1);
 
     Material mat = new Material(app.getAssetManager(), "MatDefs/UnshadedArray.j3md");
     mat.setTexture("ColorMap", viewMask.getMaskTextures());
-
-    // log.info("view map image:" + viewMask.getLayerImage(0));
-    // logInfo("  ", viewMask.getLayerImage(0));
 
     Node debug = new Node("maskDebug");
     for (int i = 0; i < maskSize.y; i++) {
@@ -264,11 +250,6 @@ public class LocalViewState extends BaseAppState {
       quad.clearBuffer(VertexBuffer.Type.TexCoord);
       quad.setBuffer(
           VertexBuffer.Type.TexCoord, 3, new float[] {0, 0, i, 1, 0, i, 1, 1, i, 0, 1, i});
-      // int slice = i % 2;
-      // quad.setBuffer(VertexBuffer.Type.TexCoord, 3, new float[]{0, 0, slice,
-      //                                                          1, 0, slice,
-      //                                                          1, 1, slice,
-      //                                                          0, 1, slice});
       geom = new Geometry("maskTest", quad);
       geom.setMaterial(mat);
       geom.setLocalTranslation((maskSize.x + 2) * i, 5, 0);
@@ -289,7 +270,6 @@ public class LocalViewState extends BaseAppState {
               + tex.getWrap(Texture.WrapAxis.S)
               + " t:"
               + tex.getWrap(Texture.WrapAxis.T));
-      // + " r:" + tex.getWrap(Texture.WrapAxis.R));
       log.info(indent + "magFilter:" + tex.getMagFilter());
       log.info(indent + "minFilter:" + tex.getMinFilter());
       log.info(indent + "name:" + tex.getName());
@@ -321,17 +301,12 @@ public class LocalViewState extends BaseAppState {
   @Override
   protected void onEnable() {
     ((Main) getApplication()).getRootNode().attachChild(viewRoot);
-    // ((Main)getApplication()).getGuiNode().attachChild(maskDebug);
-    // ((Main)getApplication()).getGuiNode().attachChild(maskDebugOld);
     maskDebug.setLocalTranslation(0, 0, 0);
-    // maskDebugOld.setLocalTranslation(0, 50, 0);
   }
 
   @Override
   protected void onDisable() {
     viewRoot.removeFromParent();
-    // maskDebug.removeFromParent();
-    // maskDebugOld.removeFromParent();
   }
 
   @Override
@@ -352,15 +327,8 @@ public class LocalViewState extends BaseAppState {
       Vec3d pos = posRef.get();
       updateView(pos, false);
 
-      // viewRoot.setLocalTranslation(-(float)(pos.x - centerWorld.x), -64, -(float)(pos.z -
-      // centerWorld.z));
       viewRoot.setLocalTranslation(
           -(float) (pos.x - centerWorld.x), 0, -(float) (pos.z - centerWorld.z));
-
-      // For the time being, slightly move the terrain up so that it z-fights
-      // less with the tiles.  Need to sort out how that will really done at some
-      // point.
-      // viewRoot.move(0, 0.1f, 0);
     }
 
     LeafId leafId;
@@ -404,14 +372,14 @@ public class LocalViewState extends BaseAppState {
     log.info("Refreshing local view, centerWorld:{}   pos:{}", centerWorld, pos);
 
     final Set<LeafId> toRemove = new HashSet<>(viewCache.keySet());
-    final Vec3d world = new Vec3d();
+    final Vec3d worldPos = new Vec3d();
     for (final ViewEntry e : viewArray) {
-      world.set(centerWorld).addLocal(e.worldOffset);
-      if (world.y < 0) {
-        log.info("Skipping entry below the world:{}", world);
+      worldPos.set(centerWorld).addLocal(e.worldOffset);
+      if (worldPos.y < 0) {
+        log.info("Skipping entry below the world:{}", worldPos);
         continue;
       }
-      bindOrCreateLeafView(e, world, toRemove);
+      bindOrCreateLeafView(e, worldPos, toRemove);
     }
 
     releaseStaleLeafViews(toRemove);
@@ -426,8 +394,8 @@ public class LocalViewState extends BaseAppState {
   }
 
   // Removes the resolved leafId from {@code toRemove} so the caller's cleanup pass leaves it in place.
-  private void bindOrCreateLeafView(final ViewEntry e, final Vec3d world, final Set<LeafId> toRemove) {
-    final LeafId leafId = LeafId.fromWorld(world);
+  private void bindOrCreateLeafView(final ViewEntry e, final Vec3d worldPos, final Set<LeafId> toRemove) {
+    final LeafId leafId = LeafId.fromWorld(worldPos);
     toRemove.remove(leafId);
     LeafView view = viewCache.get(leafId);
     if (view == null) {
@@ -468,9 +436,7 @@ public class LocalViewState extends BaseAppState {
   }
 
   protected void leafChanged(LeafId leafId) {
-    // log.info("leafChanged(" + leafId + ")");
     LeafView view = viewCache.get(leafId);
-    // log.info("view:" + view);
     if (view != null) {
       // At highest priority
       priorityWorkers.execute(view, -1);
@@ -532,7 +498,6 @@ public class LocalViewState extends BaseAppState {
 
       testGeom = debugCellTemplate.clone(false);
       testGeom.move(16, 16, 16);
-      // leafNode.attachChild(testGeom);
     }
 
     public boolean setSmoothLighting(boolean b) {
@@ -561,11 +526,8 @@ public class LocalViewState extends BaseAppState {
       queued = false;
 
       final LeafData leafData = world.getLeaf(leafId);
-      // log.info(String.format("Leaf change: empty cells in changed leaf: %d",
-      // leafData.getEmptyCellCount()));
 
       if (leafData == null) {
-        // log.warn("No leaf data for:" + leafId);
         return;
       }
 
@@ -578,18 +540,6 @@ public class LocalViewState extends BaseAppState {
         }
         return;
       }
-
-      // Vec3i world = leafId.getWorld(null); //getWorldOrigin();
-      // ColumnId colId = ColumnId.fromWorld(world);
-      // ColumnData column = colDb.getColumn(colId);
-      // this.lightData = column.getLightData(world.y);
-
-      // Not the most efficient way because it won't lazily load
-      // the columns but it will work for now and get us to the
-      // next steps
-      // ColumnLightData colLightData = ColumnLightData.loadNeighborhood(colDb, column, false);
-      // CellData colLightData = new ColumnNeighborhood(colDb, column).getLightingCellData();
-      // CellData lightData = new OffsetCellData(colLightData, 0, world.y, 0);
 
       // Create a new guaranteed unconnected node for our parts
       Node temp = new Node("Parts:" + leafId);
@@ -653,7 +603,6 @@ public class LocalViewState extends BaseAppState {
 
     @Override
     public double runOnUpdate() {
-      // log.info("parts(" + leafId + "):" + parts);
       if (parts != null) {
         // If we had previous parts then clear them
         parts.removeFromParent();
@@ -670,7 +619,6 @@ public class LocalViewState extends BaseAppState {
         return 0;
       }
       leafNode.attachChild(parts);
-      // parts.move(0, -0.25f, 0);
       setBoxColor(filledColor);
       return 1;
     }
@@ -681,7 +629,6 @@ public class LocalViewState extends BaseAppState {
     }
 
     public void release() {
-      // testGeom.removeFromParent();
       leafNode.removeFromParent();
     }
   }
@@ -689,8 +636,6 @@ public class LocalViewState extends BaseAppState {
   private class LeafObserver implements LeafChangeListener {
     @Override
     public void leafChanged(LeafChangeEvent event) {
-      // log.info("leafChanged(" + event + ")");
-      // long leafId = event.getLeafId();
       updatedLeafIds.add(event.getLeafId());
     }
   }

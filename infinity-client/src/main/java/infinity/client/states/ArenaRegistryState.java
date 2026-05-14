@@ -14,6 +14,7 @@ import infinity.client.ConnectionState;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -141,10 +142,8 @@ public class ArenaRegistryState extends BaseAppState {
 
   /** Returns the first arena's snapshot, or {@code null} if no arenas are yet known. */
   public ArenaSnapshot getFirstArena() {
-    for (final ArenaSnapshot snap : arenas.values()) {
-      return snap;
-    }
-    return null;
+    final Iterator<ArenaSnapshot> it = arenas.values().iterator();
+    return it.hasNext() ? it.next() : null;
   }
 
   /** Returns the snapshot for the named arena, or {@code null} if unknown locally. */

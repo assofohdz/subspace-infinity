@@ -12,6 +12,8 @@ import com.simsilica.es.EntityData;
  */
 public class ToggleTypes {
 
+    private ToggleTypes() { /* utility class */ }
+
     public static final String MULTI = "repel"; // Fast moving projectile
     public static final String ANTI = "warp"; // Fast moving projectile
     public static final String STEALTH = "portal"; // Fast moving projectile

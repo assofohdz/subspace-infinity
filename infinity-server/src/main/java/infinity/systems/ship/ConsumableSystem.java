@@ -539,11 +539,11 @@ public class ConsumableSystem extends BaseInfinitySystem
   public static final class Action {
 
     private final EntityId owner;
-    private final ConsumableTypeId action;
+    private final ConsumableTypeId actionType;
 
     public Action(final EntityId owner, final ConsumableTypeId action) {
       this.owner = owner;
-      this.action = action;
+      this.actionType = action;
     }
 
     public EntityId getOwner() {
@@ -551,7 +551,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     }
 
     public ConsumableTypeId getAction() {
-      return action;
+      return actionType;
     }
   }
 }

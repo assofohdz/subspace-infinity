@@ -94,10 +94,10 @@ public class SpeedSystem extends BaseInfinitySystem {
     if (current == null) {
       return;
     }
-    final SpeedStats stats = ed.getComponent(target, SpeedStats.class);
+    final SpeedStats targetStats = ed.getComponent(target, SpeedStats.class);
     final int proposed = current.getSpeed() + delta;
     // Bypass clamp for temporary deltas: rocket-buff RocketSpeed (e.g. 4000) exceeds SpeedStats.max (e.g. 3250).
-    final int clamped = (temporary || stats == null) ? proposed : Math.min(proposed, stats.max());
+    final int clamped = (temporary || targetStats == null) ? proposed : Math.min(proposed, targetStats.max());
     if (clamped == current.getSpeed()) {
       return;
     }

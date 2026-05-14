@@ -16,7 +16,7 @@ public class BombFireDelay implements EntityComponent {
 
     public BombFireDelay() {
         start = System.nanoTime();
-        delta = 1000000 * 10;
+        delta = 1000000L * 10;
     }
 
     public BombFireDelay(final long deltaMillis) {

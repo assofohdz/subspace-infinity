@@ -26,6 +26,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class GameSounds {
 
+  private GameSounds() { /* utility class */ }
+
   //Create a sound for the flag type
   public static void createFlagSound(
       final EntityData ed,

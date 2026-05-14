@@ -68,6 +68,8 @@ public class CameraMovementFunctions {
     public static InputMapper.Mapping JOY_X_LOOK;
     public static InputMapper.Mapping JOY_Y_LOOK;
 
+    private CameraMovementFunctions() { /* utility */ }
+
     public static void initializeDefaultMappings( InputMapper inputMapper )
     {
         // The joystick Y axes are backwards on game pads... forward

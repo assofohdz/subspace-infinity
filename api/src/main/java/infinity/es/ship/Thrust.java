@@ -7,26 +7,26 @@ import com.simsilica.es.EntityComponent;
 /** Current effective thrust rate (acceleration units/sec); clamped at {@link ThrustStats#max()}. */
 public class Thrust implements EntityComponent {
 
-    private final int thrust;
+    private final int value;
 
     public Thrust() {
         this(0);
     }
 
     public Thrust(final int thrust) {
-        this.thrust = thrust;
+        this.value = thrust;
     }
 
     public int getThrust() {
-        return thrust;
+        return value;
     }
 
     public Thrust newAdjusted(final int delta) {
-        return new Thrust(thrust + delta);
+        return new Thrust(value + delta);
     }
 
     @Override
     public String toString() {
-        return "Thrust[" + thrust + "]";
+        return "Thrust[" + value + "]";
     }
 }

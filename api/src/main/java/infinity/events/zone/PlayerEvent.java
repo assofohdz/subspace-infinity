@@ -13,7 +13,7 @@ import com.simsilica.event.PlayerEntityEvent;
  */
 public class PlayerEvent extends PlayerEntityEvent {
 
-    public static EventType<PlayerEvent> playerBanned = EventType.create("PlayerBanned", PlayerEvent.class);
+    public static final EventType<PlayerEvent> playerBanned = EventType.create("PlayerBanned", PlayerEvent.class);
 
     public PlayerEvent(final EntityId player) {
         super(player);

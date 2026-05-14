@@ -11,17 +11,17 @@ import com.simsilica.es.EntityComponent;
  */
 public class Bounty implements EntityComponent {
 
-    private final int bounty;
+    private final int value;
 
     public Bounty() {
         this(0);
     }
 
     public Bounty(final int bounty) {
-        this.bounty = bounty;
+        this.value = bounty;
     }
 
     public int getBounty() {
-        return bounty;
+        return value;
     }
 }

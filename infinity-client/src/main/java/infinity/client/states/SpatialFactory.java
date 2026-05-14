@@ -89,8 +89,6 @@ public class SpatialFactory {
         // negative CoG.
         Node cogOffset = new Node("CoG:" + id);
         node.attachChild(cogOffset);
-        //Vec3d cog = group.getMass().getCog();
-        //cogOffset.move((float)-cog.x, (float)-cog.y, (float)-cog.z);
         createPartSpatial(cogOffset, id, group, mass);
 
         // Maybe someday when we have all the time in the world and are sitting
@@ -134,11 +132,9 @@ public class SpatialFactory {
             // The position of the object is its CoG... which means
             // we need to offset our model's origin by it.  It should
             // already be scaled and everything... just need to negate it.
-            //Vector3f cogOffset = part.getMass().getCog().toVector3f().negate();
 
             // We need to sort out what the center should be.  Directly out of generateBlocks()
             // the geometry is all relative to the corner.   See cog-offset.txt
-            //parts.move(cogOffset);
 
             if( debugCoG ) {
                 node.attachChild(createBox(0.1f, ColorRGBA.Red));

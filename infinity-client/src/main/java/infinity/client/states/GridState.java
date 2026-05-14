@@ -102,7 +102,6 @@ public class GridState extends BaseAppState {
             mat.setTexture("ColorMap", texture);
             mat.getAdditionalRenderState().setBlendMode(BlendMode.Alpha);
             mat.getAdditionalRenderState().setDepthWrite(false);
-            // mat.setFloat("AlphaDiscardThreshold", 0.05f);
 
             final float xHalf = grid.getSpacing().x * 0.5f;
             final float zHalf = grid.getSpacing().z * 0.5f;
@@ -129,7 +128,7 @@ public class GridState extends BaseAppState {
 
     @Override
     protected void cleanup(final Application app) {
-        return;
+        // no-op
     }
 
     @Override

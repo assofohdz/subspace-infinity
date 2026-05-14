@@ -19,11 +19,10 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
 
     static Logger log = LoggerFactory.getLogger(InfinityBlockFactory.class);
 
-    public static boolean debug = false;
+    public static final boolean debug = false;
 
     private final PartFactory[] dirParts;
     private final PartFactory internalParts;
-    // private Collider collider;
 
     /** {@code solid == null} → all faces solid; {@code transparency == null} → fully opaque. */
     public InfinityBlockFactory(final PartFactory[] dirParts, final PartFactory internalParts, final boolean[] solid,
@@ -151,10 +150,6 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
 
         if (dirParts != null) {
             for (final Direction dir : Direction.values()) {
-
-                /*
-                 * if (yWorld == 0 && dir.compareTo(Direction.Up) != 0) { continue; }
-                 */
                 final PartFactory part = dirParts[dir.ordinal()];
                 if (part == null || (sideMask & dir.getBitMask()) == 0) {
                     continue;

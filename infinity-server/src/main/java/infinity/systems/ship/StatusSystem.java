@@ -4,7 +4,9 @@
 package infinity.systems.ship;
 
 /** Status-toggle wire-byte constants. */
-public class StatusSystem {
+public final class StatusSystem {
+
+    private StatusSystem() {}
 
     public static final byte ANTIWARP_ENABLE = 0x0;
     public static final byte ANTIWARP_DISABLE = 0x1;

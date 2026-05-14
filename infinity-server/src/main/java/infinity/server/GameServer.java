@@ -233,7 +233,6 @@ public class GameServer {
     colDb.initialize();
     LeafDb leafDb = new ColumnDbLeafDbAdapter(colDb);
 
-    // LeafDb leafDb = new LeafDbCache(new EmptyLeafDb());
     World world = new InfinityDefaultLeafWorld(leafDb, 10);
 
     systems.register(World.class, world);

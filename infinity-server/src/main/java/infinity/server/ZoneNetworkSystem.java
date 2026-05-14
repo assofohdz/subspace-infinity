@@ -90,18 +90,6 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
      */
     private class PhysicsObserver implements PhysicsListener<EntityId, S>, ObjectStatusListener<S> {
 
-        // private final Vector3f posf = new Vector3f();
-        // private final Quaternion orientf = new Quaternion();
-
-        // private final Vec3d pos = new Vec3d();
-        // private final Quatd orient = new Quatd();
-
-        // We probably won't have many zones, if we even have more than one.
-        // The physics objects do not provide any sort of accurate bounds so
-        // we'll guess at a size that is "big enough" for any particular mobile
-        // object. 2x2x2 meters should be good enough... until it isn't.
-        // private final AaBBox box = new AaBBox(1);
-
         public PhysicsObserver() {
             super();
         }

@@ -12,6 +12,8 @@ import com.simsilica.es.EntityData;
  */
 public class ActionTypes {
 
+    private ActionTypes() { /* utility class */ }
+
     public static final String REPEL = "repel"; // Fast moving projectile
     public static final String WARP = "warp"; // Fast moving projectile
     public static final String PORTAL = "portal"; // Fast moving projectile

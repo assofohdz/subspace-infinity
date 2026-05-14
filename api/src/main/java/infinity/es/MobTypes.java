@@ -6,6 +6,8 @@ import com.simsilica.es.EntityData;
 
 public class MobTypes {
 
+    private MobTypes() { /* utility class */ }
+
     public static final String MOB1 = "mob1";
 
     public static MobType mob1(final EntityData ed) {

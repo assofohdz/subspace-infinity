@@ -38,17 +38,17 @@ public class AssetLoaderService extends AbstractHostedService {
 
     @Override
     public void terminate(final HostedServiceManager serviceManager) {
-        return;
+        // no-op
     }
 
     @Override
     public void start() {
-        return;
+        // no-op
     }
 
     @Override
     public void stop() {
-        return;
+        // no-op
     }
 
     public void registerLoader(final Class<? extends AssetLoader> loaderClass, final String... extensions) {

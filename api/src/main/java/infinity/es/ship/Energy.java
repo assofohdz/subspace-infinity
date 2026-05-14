@@ -7,26 +7,26 @@ import com.simsilica.es.EntityComponent;
 /** Live energy pool; depletes on fire/damage, refills via {@link EnergyStats#rechargePerSecond()}; zero ⇒ death. Mutated by {@code EnergySystem}. */
 public class Energy implements EntityComponent {
 
-    private final int energy;
+    private final int value;
 
     public Energy() {
         this(0);
     }
 
     public Energy(final int energy) {
-        this.energy = energy;
+        this.value = energy;
     }
 
     public int getEnergy() {
-        return energy;
+        return value;
     }
 
     public Energy newAdjusted(final int delta) {
-        return new Energy(energy + delta);
+        return new Energy(value + delta);
     }
 
     @Override
     public String toString() {
-        return "Energy[" + energy + "]";
+        return "Energy[" + value + "]";
     }
 }

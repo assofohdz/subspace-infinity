@@ -3,7 +3,10 @@
 
 package infinity.map;
 
-public class MapTypes {
+public final class MapTypes {
+
+  private MapTypes() {}
+
   public static final short vieNoTile = 0;
   public static final short vieNormalStart = 1;
   public static final short vieBorder = 20; // Borders are not included in the .lvl files

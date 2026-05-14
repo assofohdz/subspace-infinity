@@ -129,7 +129,6 @@ public class GameSessionClientService extends AbstractClientService implements G
 
     @Override
     public void move(final MovementInput movementForces) {
-        // log.debug("move(" + movementForces + ")");
         getDelegate().move(movementForces);
     }
 

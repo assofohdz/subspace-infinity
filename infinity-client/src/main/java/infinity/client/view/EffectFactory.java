@@ -25,11 +25,7 @@ public class EffectFactory {
     private static final String MAT_TEXTURE_PARAM = "Texture";
     private static final String POINT_SPRITE_PARAM = "PointSprite";
 
-    // private ModelViewState state;
     private AssetManager assets;
-    // private EntityData ed;
-    // private final float time = 0;
-    // private final int state2 = 0;
     private final Node explosionEffect = new Node("explosionFX");
 
     private static final int COUNT_FACTOR = 1;
@@ -41,10 +37,7 @@ public class EffectFactory {
 
     public void setState(final ModelViewState state) {
 
-        // this.state = state;
         assets = state.getApplication().getAssetManager();
-        // ed =
-        // state.getApplication().getStateManager().getState(ConnectionState.class).getEntityData();
 
         createFlame();
         createFlash();

@@ -82,40 +82,28 @@ public class OctBytes {
   // Returns true if the octad defined by the specified parameters
   // is completely contained in the box defined by min,max
   private static boolean octadInBox(int xo, int yo, int zo, int size, Vec3i min, Vec3i max) {
-    // log.info("octadInBox(" + xo + ", " + yo + ", " + zo + ", " + size + ", " + min + ", " + max +
-    // ")");
     // Note: we use <= beceause we are also using size to define
     // the octad bounds.  Not sure if min/max will be max-inclusive yet or not.
     // So this may need to change... but it's likely that max will also be min+size.
-      // log.info("   yes");
-      return xo >= min.x
-          && yo >= min.y
-          && zo >= min.z
-          && xo + size <= max.x
-          && yo + size <= max.y
-          && zo + size <= max.z;
-    // log.info("   no");
+    return xo >= min.x
+        && yo >= min.y
+        && zo >= min.z
+        && xo + size <= max.x
+        && yo + size <= max.y
+        && zo + size <= max.z;
   }
 
   private static boolean octadOutsideBox(int xo, int yo, int zo, int size, Vec3i min, Vec3i max) {
-    // log.info("octadOutsideBox(" + xo + ", " + yo + ", " + zo + ", " + size + ", " + min + ", " +
-    // max + ")");
     if (xo + size <= min.x || yo + size <= min.y || zo + size <= min.z) {
-      // log.info("    fully below the box");
       return true;
     }
     // If max is exclusive then we need >=
-      // log.info("    fully above the box");
-      return xo >= max.x || yo >= max.y || zo >= max.z;
-    // log.info("   no");
-    // Some part overlaps
+    return xo >= max.x || yo >= max.y || zo >= max.z;
   }
 
   public void set(Vec3d min, Vec3d max, byte value) {
-    // log.info("set(" + min + ", " + max + ", " + value + ")");
     Vec3i v1 = min.mult(scale).floor();
     Vec3i v2 = max.mult(scale).floor();
-    // log.info("v1:" + v1 + " v2:" + v2);
     root.set(rootOrigin.x, rootOrigin.y, rootOrigin.z, rootSize, v1, v2, value);
   }
 
@@ -182,10 +170,7 @@ public class OctBytes {
 
     // Returns true if totally set to value, ie: no children
     public boolean set(int xo, int yo, int zo, int size, Vec3i min, Vec3i max, byte value) {
-      // log.info("fill(" + xo + ", " + yo + ", " + zo + ", " + size + ", " + min + ", " + max +
-      // ")");
       if (octadOutsideBox(xo, yo, zo, size, min, max)) {
-        // log.info("  fully outside");
         // Then don't change anything... but if we have no children
         // and match the value desired then return true.  This won't
         // help with all collapse cases but it will help with the simplest ones.
@@ -203,7 +188,6 @@ public class OctBytes {
       if (children == null) {
         // Are we completely inside the box?
         if (octadInBox(xo, yo, zo, size, min, max)) {
-          // log.info("  fully inside");
           // Fill us and we're done... no reason to split further
           this.value = value;
           return true;
@@ -281,8 +265,7 @@ public class OctBytes {
     }
 
     public Vec3d getOrigin() {
-      Vec3d result = origin.toVec3d().multLocal(invScale);
-      return result;
+      return origin.toVec3d().multLocal(invScale);
     }
 
     public double getSize() {
@@ -308,9 +291,3 @@ public class OctBytes {
     }
   }
 }
-
-// if( children != null ) {
-//    check children
-// } else {
-//    return filled;
-// }

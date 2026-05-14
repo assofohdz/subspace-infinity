@@ -16,7 +16,7 @@ public class MineFireDelay implements EntityComponent {
 
     public MineFireDelay() {
         start = System.nanoTime();
-        delta = 1000000 * 10;
+        delta = 1000000L * 10;
     }
 
     public MineFireDelay(final long deltaMillis) {

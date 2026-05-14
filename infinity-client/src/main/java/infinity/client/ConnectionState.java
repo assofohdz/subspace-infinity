@@ -285,19 +285,19 @@ public class ConnectionState extends CompositeAppState {
 
             try {
                 log.info("Creating game client for:{} {}", host, port);
-                GameClient client = new GameClient(host, port);
+                GameClient newClient = new GameClient(host, port);
                 if( closing ) {
                     return;
                 }
-                setClient(client);
-                client.getClient().addClientStateListener(connectionObserver);
-                client.getClient().addErrorListener(connectionObserver);
+                setClient(newClient);
+                newClient.getClient().addClientStateListener(connectionObserver);
+                newClient.getClient().addErrorListener(connectionObserver);
                 if( closing ) {
                     return;
                 }
 
                 log.info("Starting client...");
-                client.start();
+                newClient.start();
                 log.info("Client started.");
             } catch( IOException e ) {
                 if( closing ) {

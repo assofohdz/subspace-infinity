@@ -90,11 +90,6 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
 
   private MovementSettings settings = new MovementSettings();
 
-  // Should be configurable per mob type
-  // private double groundImpulse = 50;
-  // private double airImpulse;
-  // private double turnSpeed = TWO_PI; // 360 degrees per second
-
   // A simplified version of something that should be its own type + strategys
   private final double perceptionRadius = 2;
 
@@ -103,10 +98,6 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   // to side.
   private ProbeInfo probeInfo;
   private Probe probe;
-  // private MBlockShape probeShape;
-  // private Vec3d probeOffset;
-  // private Quatd probeOrientation;
-  // private QueryFilter probeFilter = new QueryFilter(QueryFilter.TYPE_ALL);
 
   private RigShape rigShape;
   private AnimPump animPump;
@@ -132,11 +123,6 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
       rigShape.update();
 
       log.info("rig shape:{}", rigShape);
-      // dumpShape(rigShape);
-      // rigShape.setLayerAction(null, "Idle");
-      // rigShape.setTime(null, 1);
-      // rigShape.update();
-      // dumpShape(rigShape);
     }
   }
 
@@ -169,12 +155,6 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     } else {
       this.probe = new Probe(probeInfo);
     }
-
-    // For now, hard-coded for a chicken that is 0.35 radius
-    // probe = new Probe();
-    // probeShape = MBlockShape.createGhost(0.3);
-    // probeOffset = new Vec3d(0, 0.1, 0.3); //0.56);
-    // probeOrientation = new Quatd();
   }
 
   // This makes me a little uncomfortable to have this mutually
@@ -483,7 +463,6 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     // 10 degrees instead of going all the way around. The math kernel
     // returns a value already wrapped into [0, 2π).
     facing = MobDriverLogic.shortestArcFacing(facing, targetFacing, step, settings.turnSpeed);
-    // log.info("facing:" + facing);
     orientation.fromAngles(0, facing, 0);
   }
 
@@ -494,22 +473,13 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
    * walking around simple obstacles.
    */
   private void adjustTargetFacingFromProbe() {
-    // Vec3d v = body.localToWorld(probeOffset, null);
     probe.reset();
     physics
         .getPhysicsSpace()
         .queryContacts(probe.position, probe.orientation, probe.shape, probe.filter, probe);
-    // log.info("body pos:" + body.position + "  prob pos:" + probe.position);
     if (probe.closest == null) {
       return;
     }
-    // log.info("closest:" + probe.closest);
-    // v.set(probe.closest.contactPoint).subtractLocal(body.position);
-    // Vec3d dir = body.orientation.mult(Vec3d.UNIT_Z);
-    // Vec3d left = body.orientation.mult(Vec3d.UNIT_X);
-    // log.info("******* turn:" + turn + "  fwd:" + probe.forward); // + "   offset:" + v + "   left:" +
-    // left);
-
     // When left is positive, we want to turn right and when
     // left is negative we want to turn left... but I'm pretty sure
     // the x,z plane is backwards from what one might think.
@@ -532,7 +502,6 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     // Right now, we'll treat everything as ground contact
     force.multLocal(settings.groundImpulse * (1.0 / body.getInverseMass()));
 
-    // body.addForce(force);
     body.addForceAtPoint(force, 0.1, body.position);
 
     // If our average velocity is low and we have pushback in the direction
@@ -542,7 +511,6 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     // auto-blocking when a mob is moving and already in glancing contact
     // with something.
     if (maxPushback > 0.2 && averageVelocity.lengthSq() < (0.001 * 0.001)) {
-      // log.info("blocked by:" + mostBlocked);
       log.info("***   max pushback:{}", maxPushback);
       brain.blocked(mostBlocked.contactNormal);
     }
@@ -556,7 +524,6 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     if ("Idle".equals(choice.action)) {
       log.info("actual velocity:{}  averageVelocity:{}", actualVelocity, averageVelocity);
     }
-    // log.info("setCurrentAction(" + action + ", " + animSpeed + ") speed:" + speed);
     animPump.setCurrentAction(choice.action, choice.animSpeed);
 
     animPump.update(step);
@@ -565,12 +532,6 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
 
   @Override
   public void newContact(Contact<EntityId, MBlockShape> contact) {
-    // if( contact.body2 == null ) {
-    //    log.info("newContact(world) normal:" + contact.contactNormal);
-    // } else {
-    //    log.info("newContact(" + contact + ")");
-    // }
-
     double push = -contact.contactNormal.dot(desiredVelocity);
     if (push > maxPushback) {
       mostBlocked = contact;
@@ -643,15 +604,13 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
 
       relative.set(contact.contactPoint).subtractLocal(getBody().position);
 
-      // double facing = contact.contactNormal.dot(dir);
       // 'facing' or not depends on relative position and not our
       // mob's facing dir.
-      double facing = contact.contactNormal.dot(relative);
-      if (facing > 0) {
+      double dotFacing = contact.contactNormal.dot(relative);
+      if (dotFacing > 0) {
         // If facing is positive then that means the contact normal
         // points roughly in the same direction that we're facing
         // so it's the back side of something (from our perspective).
-        // log.info("Skipping back-facing contact:" + facing + "  " + contact);
         return;
       }
 

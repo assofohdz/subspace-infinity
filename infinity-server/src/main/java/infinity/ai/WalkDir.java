@@ -123,7 +123,6 @@ log.info("******************** Aborting moveDir");
     public double getHeartbeat( SimTime time ) {
         // At most 1 second to check our status
         double delta = endTime - time.getTimeInSeconds();
-        //return Math.min(1, delta);
         if( checkTime > 0 ) {
             // If checkTime is set then make sure we check back
             // in at mostleast that amount of time.
