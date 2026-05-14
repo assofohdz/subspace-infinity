@@ -36,7 +36,7 @@ public final class MapTileSurvey {
 
   private MapTileSurvey() {}
 
-  public static void main(final String[] args) throws IOException {
+  public static void main(final String[] args) {
     final List<File> files = collectFiles(args);
     if (files.isEmpty()) {
       System.err.println("No .lvl files found.");

@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /** Pure-function eLVL REGN/rTIL RLE codec helpers split out from {@link Region}. */
 final class RegionRleCodec {
@@ -158,7 +159,7 @@ final class RegionRleCodec {
         } else {
             i--;
             final byte one = (byte) ((i >> 8) | 0xA0);
-            final byte two = (byte) ((i & 0x00FF));
+            final byte two = (byte) (i & 0x00FF);
             code.add(Byte.valueOf(one));
             code.add(Byte.valueOf(two));
         }
@@ -215,7 +216,7 @@ final class RegionRleCodec {
         } else {
             i--;
             final byte one = (byte) ((i >> 8) | 0xE0);
-            final byte two = (byte) ((i & 0x00FF));
+            final byte two = (byte) (i & 0x00FF);
             code.add(Byte.valueOf(one));
             code.add(Byte.valueOf(two));
         }
@@ -382,8 +383,9 @@ final class RegionRleCodec {
     static int getBitFragment(final byte extractFrom, final int startIndex, final int endIndex) {
         final int shift = 8 - endIndex;
         final int numBits = endIndex - startIndex + 1;
-        final byte mask = (byte) ((0x01 << numBits) - 1);
-        return (extractFrom >> shift) & mask;
+        final int mask = (0x01 << numBits) - 1;
+        // & 0xff prevents sign extension when extractFrom is negative.
+        return ((extractFrom & 0xff) >> shift) & mask;
     }
 
     // -----------------------------------------------------------------
@@ -398,9 +400,10 @@ final class RegionRleCodec {
 
     /** Returns a random Color, slightly biased away from very-dark values. */
     static Color getRandomColor() {
-        int r = (int) (Math.random() * 255);
-        int g = (int) (Math.random() * 255);
-        int b = (int) (Math.random() * 255);
+        final ThreadLocalRandom rng = ThreadLocalRandom.current();
+        int r = rng.nextInt(255);
+        int g = rng.nextInt(255);
+        int b = rng.nextInt(255);
         if (r + b + g < 40) {
             r += 20;
             g += 20;

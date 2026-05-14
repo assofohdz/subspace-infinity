@@ -56,7 +56,7 @@ public class GameSounds {
 
     ed.setComponents(
         result,
-        AudioTypes.fire_bomb(ed, level),
+        AudioTypes.fireBomb(ed, level),
         new Decay(
             createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)),
         new SpawnPosition(phys.getGrid(), pos),
@@ -114,7 +114,7 @@ public class GameSounds {
 
     ed.setComponents(
         result,
-        AudioTypes.fire_bullet(ed, level),
+        AudioTypes.fireBullet(ed, level),
         new Decay(
             createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)),
         new SpawnPosition(phys.getGrid(), pos),
@@ -133,7 +133,7 @@ public class GameSounds {
 
     ed.setComponents(
         result,
-        AudioTypes.fire_burst(ed),
+        AudioTypes.fireBurst(ed),
         new Decay(
             createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)));
     ed.setComponent(result, new Meta(createdTime));
@@ -148,7 +148,7 @@ public class GameSounds {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result,
-        AudioTypes.pickup_prize(ed),
+        AudioTypes.pickupPrize(ed),
         new Parent(parent),
         new SpawnPosition(phys.getGrid(), loc),
         new Decay(
@@ -165,7 +165,7 @@ public class GameSounds {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result,
-        AudioTypes.fire_thor(ed),
+        AudioTypes.fireThor(ed),
         new Parent(parent),
         new SpawnPosition(phys.getGrid(), loc),
         new Decay(
@@ -183,7 +183,7 @@ public class GameSounds {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result,
-        AudioTypes.fire_mine(ed, level),
+        AudioTypes.fireMine(ed, level),
         new Parent(requester),
         new SpawnPosition(phys.getGrid(), location),
         new Decay(time, time + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)));

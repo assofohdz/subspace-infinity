@@ -60,7 +60,7 @@ public final class ConfigRegistry {
   public static final ConfigRegistry EMPTY = builder().build();
 
   private final Map<Ship, ShipConfig> ships;
-  private final Map<Class<?>, Object> slots;
+  private final Map<Class<?>, Object> slotsByType;
 
   private ConfigRegistry(
       final Map<Ship, ShipConfig> shipsSource, final Map<Class<?>, Object> slotsSource) {
@@ -70,7 +70,7 @@ public final class ConfigRegistry {
 
     // LinkedHashMap preserves SLOTS iteration order.
     final Map<Class<?>, Object> slotCopy = new LinkedHashMap<>(slotsSource);
-    this.slots = Collections.unmodifiableMap(slotCopy);
+    this.slotsByType = Collections.unmodifiableMap(slotCopy);
   }
 
   /** {@code null} if not configured; callers decide whether to fall back to built-ins. */
@@ -86,7 +86,7 @@ public final class ConfigRegistry {
   /** Returns the slot's DEFAULTS sentinel when unset; throws on unregistered slot types. */
   public <T> T get(final Class<T> slotType) {
     Objects.requireNonNull(slotType, "slotType");
-    final Object value = slots.get(slotType);
+    final Object value = slotsByType.get(slotType);
     if (value == null) {
       throw new IllegalArgumentException(
           "Unknown config slot " + slotType.getName() + "; register it in ConfigRegistry.SLOTS");
@@ -137,11 +137,11 @@ public final class ConfigRegistry {
               + " is not a "
               + slotType.getName());
     }
-    if (!slots.containsKey(slotType)) {
+    if (!slotsByType.containsKey(slotType)) {
       throw new IllegalArgumentException(
           "Unknown config slot " + slotType.getName() + "; register it in ConfigRegistry.SLOTS");
     }
-    final Map<Class<?>, Object> next = new LinkedHashMap<>(slots);
+    final Map<Class<?>, Object> next = new LinkedHashMap<>(slotsByType);
     next.put(slotType, replacement);
     return new ConfigRegistry(this.ships, next);
   }

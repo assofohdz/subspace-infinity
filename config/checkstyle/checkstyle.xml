@@ -61,6 +61,16 @@
         <module name="ArrayTypeStyle"/>
         <module name="UpperEll"/>
         <module name="DefaultComesLast"/>
+        <!-- Surface TODO / FIXME comments so they're tracked, not buried. -->
+        <module name="TodoComment">
+            <property name="format" value="(TODO)|(FIXME)"/>
+        </module>
+        <!-- Local variable / parameter hides instance or static field. -->
+        <module name="HiddenField">
+            <property name="ignoreConstructorParameter" value="true"/>
+            <property name="ignoreSetter" value="true"/>
+            <property name="setterCanReturnItsClass" value="true"/>
+        </module>
 
         <!-- Let code use @SuppressWarnings("checkstyle:...") to silence rules -->
         <module name="SuppressWarningsHolder"/>

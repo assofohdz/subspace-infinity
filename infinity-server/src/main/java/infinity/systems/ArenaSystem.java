@@ -488,7 +488,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
       return "Arena " + arenaName + " is not loaded";
     }
     final ArenaLogic.SwapMapOutcome outcome = ArenaLogic.swapArenaMap(
-        rec.state, rec.config, rec.arenaIndex, arenaName, newMap,
+        rec.state, rec.config, arenaName, newMap,
         () -> requireSystem(MapSystem.class).swapMap(rec.config.mapFile(), newMap, rec.arenaIndex));
     if (outcome.config != null) {
       rec.config = outcome.config;

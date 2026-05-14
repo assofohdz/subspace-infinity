@@ -9,6 +9,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
@@ -28,7 +29,7 @@ public class GravitySystem extends BaseInfinitySystem implements ContactListener
   protected void initialize() {
     this.ed = requireSystem(EntityData.class);
 
-    final ContactSystem contactSystem = requireSystem(ContactSystem.class);
+    final ContactSystem<EntityId, MBlockShape> contactSystem = requireSystem(ContactSystem.class);
 
     contactSystem.addListener(this);
 

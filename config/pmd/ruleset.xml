@@ -33,6 +33,18 @@
   <!-- ========================================================== -->
 
   <rule ref="category/java/codestyle.xml/UnnecessaryImport"/>
+  <!-- `(a + b)` where parens add no precedence value — noise that hides
+       genuine precedence intent elsewhere. -->
+  <rule ref="category/java/codestyle.xml/UselessParentheses"/>
+  <!-- Repeated string literals are a refactoring tell — promote to a
+       private static final String constant. Threshold 4 to allow common
+       cases without false positives. -->
+  <rule ref="category/java/errorprone.xml/AvoidDuplicateLiterals">
+    <properties>
+      <property name="maxDuplicateLiterals" value="4"/>
+      <property name="skipAnnotations" value="true"/>
+    </properties>
+  </rule>
   <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
     <properties>
       <!-- Allow `catch (Foo ignored)` / `catch (Foo expected)` etc. -->
@@ -114,6 +126,12 @@
   <rule ref="category/java/design.xml/SingularField"/>
   <!-- Pairs with CyclomaticComplexity for the 1% of tangled methods CC misses. -->
   <rule ref="category/java/design.xml/NPathComplexity"/>
+  <!-- Methods with too many params → parameter object / builder. -->
+  <rule ref="category/java/design.xml/ExcessiveParameterList">
+    <properties>
+      <property name="minimum" value="8"/>
+    </properties>
+  </rule>
 
   <!-- ========================================================== -->
   <!-- Tier 1 — Security (defence-in-depth, low-cost)             -->

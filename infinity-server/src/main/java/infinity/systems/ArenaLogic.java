@@ -354,7 +354,6 @@ public final class ArenaLogic {
   public static SwapMapOutcome swapArenaMap(
       final ArenaState state,
       final infinity.config.ArenaConfig oldConfig,
-      final int arenaIndex,
       final String arenaName,
       final String newMap,
       final java.util.function.BooleanSupplier mapSwap) {

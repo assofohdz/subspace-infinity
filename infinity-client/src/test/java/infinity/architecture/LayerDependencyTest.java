@@ -83,23 +83,6 @@ public class LayerDependencyTest {
           .resideInAPackage("infinity.client..");
 
   /**
-   * Client must not reach into server/modules/ai/internal. Commands go via RMI, not direct calls.
-   * See ADR-0005 for the api-side {@code infinity.sim..} vs server-internal
-   * {@code infinity.sim.internal..} relocation that closed the CubeFactory class of leak.
-   *
-   * <p>Exceptions:
-   *
-   * <ul>
-   *   <li>{@code MobDebugState} — client-side debug overlay that intentionally reads
-   *       {@code MobSystem}/{@code MobStats} internals for debug visualization, legitimate in
-   *       co-hosted client/server.
-   *   <li>{@code HostState} — "Host a Game" state that spawns and manages a local
-   *       {@code GameServer} inside the client process. It IS the co-hosting orchestration
-   *       boundary, so a direct dependency on {@code infinity.server.GameServer} is
-   *       structural, not a layering leak.
-   * </ul>
-   */
-  /**
    * Hot-path systems must not import {@code infinity.config..} — Config-Component Projection
    * (ADR-0002) says tuning values cross into the entity world at spawn time only, and hot-path
    * code reads components. The named-allowlist regex below covers the spawn-tier exempt set:

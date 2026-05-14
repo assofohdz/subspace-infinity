@@ -41,11 +41,11 @@ public class JitterReaperSystem extends AbstractGameSystem {
 
   @Override
   public void start() {
-    return;
+    // intentionally empty
   }
 
   @Override
   public void stop() {
-    return;
+    // intentionally empty
   }
 }

@@ -19,7 +19,7 @@ final class WeaponsLogic {
 
     /** Proximity radius: additive per level (L1=base, L2=base+1, …) — REFERENCE.md ## Bomb. */
     static double proximityRadiusForLevel(final int baseTiles, final int level) {
-        return baseTiles + (level - 1);
+        return (double) baseTiles + (level - 1);
     }
 
     /** Subspace velocity × scale, clamped to ±{@code maxJmeAbs}; sign preserved for backward-firing presets. */
