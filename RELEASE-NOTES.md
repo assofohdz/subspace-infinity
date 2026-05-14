@@ -3,6 +3,68 @@
 Latest release only. Earlier history lives in git tags + commit log
 (`git log v<previous>..v<this>`).
 
+## v1.0.19 — 2026-05-14
+
+Code-quality and architectural-review release. Lint/Sonar/PMD baselines ratcheted to zero across both server and client, pre-push hook wired so `./gradlew check` runs locally before every push, JaCoCo coverage ratchets in CI, and the P1 + P2 architectural-review batches landed (~148 new test methods + P2 follow-ups). One concrete gameplay fix: the gravbomb fire path actually works now. 34 commits since v1.0.18.
+
+### For players
+
+**Gravbombs are firable.** Previously no system stamped the `GravityBombCost` component, so the gravbombs `EntitySet` was always empty and the fire path was dead code. Reshaped to inventory-style (per-ship count + cooldown) mirroring Thor: bomb-carrying ships in trench / deva / testconf start with a small gravbomb stockpile and a 2-second per-fire cooldown. Projectile level inherits the ship's current bomb level (Subspace canon: gravbombs are level-3 bombs).
+
+Otherwise no observable gameplay changes.
+
+### For authors (zones, arenas, ship presets)
+
+**New `gravBombs` DSL in `ships.groovy`** — opt in to inventory-style gravbombs per ship:
+
+```groovy
+ship(Ship.JAVELIN) {
+    bombs     start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1100, fireDelay: 75, speed: 2250, thrust: 400
+    gravBombs start: 3, max: 5, fireDelay: 200    // count + cooldown (cs); mirrors thors shape
+    // ...
+}
+```
+
+Omit the `gravBombs` block to disallow gravbombs on that ship (= the `null` disallow signal, same as other inventory blocks). The arena-wide `[Wormhole] GravityBombs` knob in `misc.groovy` is unrelated (it gates wormhole pull on bombs).
+
+No other `.groovy` file edits required.
+
+### For developers / contributors
+
+**Pre-push hook + CI gates.**
+
+- **Pre-push githook** runs `./gradlew check` on every `git push`; commit `4bf12c14`. Prevents lint/test regressions from reaching the remote. Skips with `git push --no-verify` only when intentional.
+- **JaCoCo coverage ratchet** wired into `:api:check` / `:infinity-server:check` / `:infinity-client:check` per module; ratchets land as baseline values in `gradle.properties` and only go up. CI now fails on coverage regression.
+
+**Lint baselines at zero.**
+
+- **PMD** — both `:infinity-server:pmdMain` and `:infinity-client:pmdMain` baselines cleaned to **0 violations**. New PMD rules enabled (Sonar parity). `pmdPath` task added for per-file ratchet (see [`pmd-on-touched-files.md`](.claude/rules/pmd-on-touched-files.md)).
+- **Checkstyle** — 825 fixes across the tree; ceilings ratcheted down to match.
+- **Sonar MCP** integrated for local IDE lookups. Tiers A through E3 cleared mechanically: S1192 (literal duplication), S1948 (non-serializable fields), S2178 (unsafe `&` short-circuit), S1845 (case-only name collisions), S115 (constant naming), S1452 (raw types), S2447 (Boolean return null), S1186 (empty method intent), S116 (Hungarian-notation `m_*` field rename), S1104 (encapsulation).
+
+**Architectural review batches.**
+
+- **P1 batch** — ~148 new test methods covering canonical-writer behaviour, lifecycle release, projection determinism. `architectural-review-2026-05-13.md` follow-ups closed.
+- **P2 batch** — refactors landed for the items P1 surfaced; doc sweep on `.claude/rules/*.md` to reflect the post-batch state.
+
+**Shape-interface refactor (ADR 0001 follow-up).**
+
+- `EnergyCost` interface now unifies the cost-deduction path for energy weapons (`BulletStats`, `BombStats`, `MineStats` all implement it).
+- `InventoryCount` / `InventoryCap` / `DeltaChange` interfaces unify the inventory-count writer path; `BaseInventoryCountSystem<C, D, S>` generic captures the recipe. `BurstSystem`, `BrickSystem`, `DecoySystem`, `PortalSystem`, `RepelCountSystem`, `RocketSystem`, `ThorSystem`, `GravBombSystem` are 5-line subclasses now (was ~50 lines of drain/clamp boilerplate each).
+- Status-family drain unified into `BaseEnergyDrainSystem` (subclassed by `StatusDrainSystem`; `AfterburnerDrainSystem` will be a sibling).
+
+**Concurrency fix.** `DefaultColumnDb` was unsynchronised across read/write/save. Striped locks per column path + atomic file replace (write-then-rename) so concurrent writes can't corrupt the on-disk format. Commit `8a8e419d`.
+
+**TODO/FIXME triage.** 45 in-code comments cleared: 16 deleted (stale / done), 8 reshaped into `NOTE` comments where the explanation is the point, 21 promoted to `.scratch/code-todos-backlog.md` for tracking. Commit `4ece3d21`.
+
+**Removed.**
+
+- `GravityBomb` (level marker) and `GravityBombCost` — replaced by `GravBomb` (inventory count) + `GravBombStats` (`InventoryCap`). Per-ship gravbomb level reads from `BombCurrentLevel` now.
+- `GravityBombFireDelay.copy()` — unused, deleted.
+- `.devcontainer/` — unused, deleted.
+
+**Module-author breaking changes:** none beyond `GravityBomb` / `GravityBombCost` removal (these only existed in dead code paths in the tree as of v1.0.18; no external author was using them).
+
 ## v1.0.18 — 2026-05-13
 
 Architecture-formalisation release. The single ADR (0001) the v1.0.17 release shipped now has six siblings; the operational rules that previously lived only in `.claude/rules/*.md` prose have formal ADRs behind them, and three ArchUnit guards lock in the discipline at build time. Plus three concrete bugs caught by the P0 audit (client `EntitySet` / `WatchedEntity` leaks across 7 app states; `Delay` wall-clock breaking pause / replay; per-shot `BombConfig` hot-path read in `WeaponsEligibility`). 10 commits since v1.0.17.
