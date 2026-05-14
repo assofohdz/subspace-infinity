@@ -30,6 +30,10 @@ final class ShipConfigBuilder {
   private static final String KEY_BULLETS = "bullets";
   private static final String KEY_MINES = "mines";
   private static final String KEY_STATUS = "status";
+  private static final String KEY_COST = "cost";
+  private static final String KEY_BURSTS = "bursts";
+  private static final String KEY_THORS = "thors";
+  private static final String KEY_ROCKETS = "rockets";
   private static final String ERR_SHIP_STAT_PREFIX = "Ship stat '";
 
   /**
@@ -169,7 +173,7 @@ final class ShipConfigBuilder {
         new BombStats(
             bombsArg(KEY_BOMBS, args, KEY_START),
             bombsArg(KEY_BOMBS, args, KEY_MAX),
-            intArg(KEY_BOMBS, args, "cost"),
+            intArg(KEY_BOMBS, args, KEY_COST),
             longArg(KEY_BOMBS, args, KEY_FIRE_DELAY),
             intArg(KEY_BOMBS, args, KEY_SPEED),
             intArg(KEY_BOMBS, args, "thrust"));
@@ -188,7 +192,7 @@ final class ShipConfigBuilder {
         new BulletStats(
             bulletsArg(KEY_BULLETS, args, KEY_START),
             bulletsArg(KEY_BULLETS, args, KEY_MAX),
-            intArg(KEY_BULLETS, args, "cost"),
+            intArg(KEY_BULLETS, args, KEY_COST),
             longArg(KEY_BULLETS, args, KEY_FIRE_DELAY),
             intArg(KEY_BULLETS, args, KEY_SPEED));
   }
@@ -211,7 +215,7 @@ final class ShipConfigBuilder {
         new MineStats(
             bombsArg(KEY_MINES, args, KEY_START),
             bombsArg(KEY_MINES, args, KEY_MAX),
-            intArg(KEY_MINES, args, "cost"),
+            intArg(KEY_MINES, args, KEY_COST),
             longArg(KEY_MINES, args, KEY_FIRE_DELAY),
             intArg(KEY_MINES, args, KEY_SPEED));
   }
@@ -227,18 +231,18 @@ final class ShipConfigBuilder {
   public void bursts(final Map<String, ?> args) {
     this.bursts =
         new BurstStats(
-            intArg("bursts", args, KEY_START),
-            intArg("bursts", args, KEY_MAX),
-            intArg("bursts", args, KEY_SPEED));
+            intArg(KEY_BURSTS, args, KEY_START),
+            intArg(KEY_BURSTS, args, KEY_MAX),
+            intArg(KEY_BURSTS, args, KEY_SPEED));
   }
 
   /** {@code thors start: 2, max: 2, fireDelay: 1000} */
   public void thors(final Map<String, ?> args) {
     this.thors =
         new CountWithDelayStats(
-            intArg("thors", args, KEY_START),
-            intArg("thors", args, KEY_MAX),
-            longArg("thors", args, KEY_FIRE_DELAY));
+            intArg(KEY_THORS, args, KEY_START),
+            intArg(KEY_THORS, args, KEY_MAX),
+            longArg(KEY_THORS, args, KEY_FIRE_DELAY));
   }
 
   /** {@code repels start: 10, max: 20} */
@@ -270,9 +274,9 @@ final class ShipConfigBuilder {
   public void rockets(final Map<String, ?> args) {
     this.rockets =
         new RocketStats(
-            intArg("rockets", args, KEY_START),
-            intArg("rockets", args, KEY_MAX),
-            longArg("rockets", args, "activeTimeCs"));
+            intArg(KEY_ROCKETS, args, KEY_START),
+            intArg(KEY_ROCKETS, args, KEY_MAX),
+            longArg(KEY_ROCKETS, args, "activeTimeCs"));
   }
 
   /** {@code portals start: 0, max: 2} */

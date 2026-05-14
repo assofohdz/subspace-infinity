@@ -120,7 +120,7 @@ public final class GroovyShipLoader {
   private static final class ShipClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 
-    private final ConfigRegistry.Builder registryBuilder;
+    private final transient ConfigRegistry.Builder registryBuilder;
 
     ShipClosure(final ConfigRegistry.Builder registryBuilder) {
       super(null);

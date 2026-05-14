@@ -67,7 +67,7 @@ public final class GroovyZoneLoader {
   private static final class ZoneClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 
-    private final ZoneConfigBuilder builder;
+    private final transient ZoneConfigBuilder builder;
 
     ZoneClosure(final ZoneConfigBuilder builder) {
       super(null);

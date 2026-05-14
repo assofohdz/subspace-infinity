@@ -34,6 +34,8 @@ import infinity.es.arena.ArenaId;
  */
 public class PositionHudState extends BaseAppState {
 
+  private static final String ARENA_PLACEHOLDER = "arena: -";
+
   private EntityData ed;
   private EntityId avatarEntityId;
   private ArenaRegistryState arenaRegistry;
@@ -57,7 +59,7 @@ public class PositionHudState extends BaseAppState {
     hud = new Container();
     worldLabel = hud.addChild(new Label("world: -"));
     worldLabel.setInsets(new Insets3f(2, 6, 2, 6));
-    arenaLabel = hud.addChild(new Label("arena: -"));
+    arenaLabel = hud.addChild(new Label(ARENA_PLACEHOLDER));
     arenaLabel.setInsets(new Insets3f(2, 6, 2, 6));
   }
 
@@ -110,14 +112,14 @@ public class PositionHudState extends BaseAppState {
     }
     if (posRef == null) {
       worldLabel.setText("world: (waiting for avatar)");
-      arenaLabel.setText("arena: -");
+      arenaLabel.setText(ARENA_PLACEHOLDER);
       return null;
     }
     posRef.update();
     final Vec3d world = posRef.get();
     if (world == null) {
       worldLabel.setText("world: (loading)");
-      arenaLabel.setText("arena: -");
+      arenaLabel.setText(ARENA_PLACEHOLDER);
       return null;
     }
     return world;

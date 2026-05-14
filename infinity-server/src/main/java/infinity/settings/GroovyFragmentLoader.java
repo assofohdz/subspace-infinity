@@ -172,7 +172,7 @@ public final class GroovyFragmentLoader {
   private static final class SectionClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 
-    private final Profile ini;
+    private final transient Profile ini;
     private final boolean validateAsShip;
 
     SectionClosure(final Profile ini, final boolean validateAsShip) {
@@ -195,7 +195,7 @@ public final class GroovyFragmentLoader {
   private static final class ShipSectionsClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 
-    private final Profile ini;
+    private final transient Profile ini;
 
     ShipSectionsClosure(final Profile ini) {
       super(null);
@@ -240,8 +240,8 @@ public final class GroovyFragmentLoader {
   private static final class IncludeClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 
-    private final GroovyFragmentLoader loader;
-    private final Profile ini;
+    private final transient GroovyFragmentLoader loader;
+    private final transient Profile ini;
     private final Deque<String> stack;
 
     IncludeClosure(

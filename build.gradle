@@ -1,14 +1,12 @@
 // =============================================================================
-// SonarQube / SonarCloud — local pre-push static analysis matching CI.
+// SonarQube / SonarCloud — local pre-push static analysis.
 //
 // Plugin lives at the root so it aggregates analysis across all subprojects.
 //
-// IMPORTANT: this scan targets the *preview* SonarCloud project
-// (`assofohdz_subspace-infinity-preview`), NOT the main one. The main project
-// (`assofohdz_subspace-infinity`) keeps Automatic Analysis on — running the
-// gradle scanner against it would conflict ("manual analysis while Automatic
-// Analysis is enabled"). The preview project is dedicated to local /
-// pre-push manual scans.
+// Targets the single SonarCloud project `assofohdz_subspace-infinity`.
+// Automatic Analysis must be OFF in that project's SonarCloud admin —
+// `./gradlew sonar` performs manual analysis and will collide with
+// Automatic Analysis if both are enabled.
 //
 // projectKey + organization are public identifiers (visible on the SonarCloud
 // project page) and committed here for convenience. The TOKEN is the secret
@@ -20,7 +18,7 @@
 //   systemProp.sonar.token=xxx
 //
 // `sonar` depends on compile + test; it analyses real bytecode + test
-// reports, matching what CI's automatic analysis does.
+// reports.
 // =============================================================================
 plugins {
     id 'org.sonarqube' version '6.0.1.5171'
@@ -30,9 +28,14 @@ sonar {
     properties {
         property 'sonar.host.url', System.getenv('SONAR_HOST_URL') ?: 'https://sonarcloud.io'
         property 'sonar.organization', 'assofohdz'
-        property 'sonar.projectKey', 'assofohdz_subspace-infinity-preview'
+        property 'sonar.projectKey', 'assofohdz_subspace-infinity'
         // Skip vendored maven layout + scratch dirs from analysis.
         property 'sonar.exclusions', 'libs/m2/**,.scratch/**,.claude/**,pages/**,docs/**'
+        // Local gate: block `./gradlew sonar` until SonarCloud computes the
+        // gate result, then fail the build if the gate fails. Pairs with the
+        // PMD ratchet — same `local task = pass/fail` shape.
+        property 'sonar.qualitygate.wait', 'true'
+        property 'sonar.qualitygate.timeout', '300'
     }
 }
 

@@ -89,7 +89,7 @@ public final class GroovyArenaLoader {
   private static final class ArenaClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 
-    private final ArenaConfigBuilder builder;
+    private final transient ArenaConfigBuilder builder;
 
     ArenaClosure(final ArenaConfigBuilder builder) {
       super(null);

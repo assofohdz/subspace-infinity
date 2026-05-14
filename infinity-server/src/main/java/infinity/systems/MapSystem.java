@@ -37,6 +37,10 @@ public class MapSystem extends BaseInfinitySystem {
   public static final float NOISE4J_WALL = 1f;
 
   static Logger log = LoggerFactory.getLogger(MapSystem.class);
+
+  private static final String LOG_CURRENT_MAP_LOCATION =
+      "Currentmap location is:{}, current direction is:{}";
+
   private final String mapDirectory = "Maps";
   private final Map<String, Set<Vec3d>> activeMaps = new HashMap<>();
   private final Map<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
@@ -113,20 +117,20 @@ public class MapSystem extends BaseInfinitySystem {
     final Vec3d testMapLoc = testDirection.advance(currentMapLoc);
     // First time we will land here:
     if (!mapCoordinates.containsValue(currentMapLoc)) {
-      log.info("Currentmap location is:{}, current direction is:{}", currentMapLoc, direction);
+      log.info(LOG_CURRENT_MAP_LOCATION, currentMapLoc, direction);
       return currentMapLoc;
     } else if (!mapCoordinates.containsValue(testMapLoc)) {
 
       // Test if we should go new direction
       currentMapLoc = testMapLoc;
       direction = testDirection;
-      log.info("Currentmap location is:{}, current direction is:{}", currentMapLoc, direction);
+      log.info(LOG_CURRENT_MAP_LOCATION, currentMapLoc, direction);
       return currentMapLoc;
     }
 
     // If we have to continue straight ahead in our direction:
     currentMapLoc = direction.advance(currentMapLoc);
-    log.info("Currentmap location is:{}, current direction is:{}", currentMapLoc, direction);
+    log.info(LOG_CURRENT_MAP_LOCATION, currentMapLoc, direction);
     return currentMapLoc;
   }
 

@@ -62,6 +62,10 @@ public class BrainConfigurations {
   private static final String CORN = "corn";
   private static final String LOG_GOAL_SUCCEEDED = "{} succeeded for:{}";
   private static final String LOG_GOAL_FAILED = "{} failed for:{}";
+  private static final String LOG_SELECT_GOAL_FAILED = "selectGoal() failed goals:{}";
+  private static final String LOG_CREATE_LOOP = "---------- Create loop:{}";
+  private static final String LOG_GOAL_FAILED_WITH_ACTION = "{} failed for:{}  failed action:{}";
+  private static final String LOG_BLOCKED_BY = "blocked by:{}";
 
   public static void initialize(EntityData ed) {
     configs.put("mob", createPerson(ed));
@@ -90,7 +94,7 @@ public class BrainConfigurations {
     config.setGoalSelector(
         (brain) -> {
           if (log.isInfoEnabled()) {
-            log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
+            log.info(LOG_SELECT_GOAL_FAILED, brain.getFailedGoals());
           }
           Actor actor = brain.getActor();
           Goal eat = pickNearestCornGoal(brain, actor);
@@ -194,7 +198,7 @@ public class BrainConfigurations {
         Wander.class,
         new Strategy<TimedGoal>(
                 (brain, goal) -> {
-                  log.info("---------- Create loop:{}", goal);
+                  log.info(LOG_CREATE_LOOP, goal);
                   return new LoopAction<>(
                       goal,
                       (b, g) -> {
@@ -247,7 +251,7 @@ public class BrainConfigurations {
                 })
             .onFailed((brain, goal) -> {
                   if (log.isInfoEnabled()) {
-                    log.info("{} failed for:{}  failed action:{}",
+                    log.info(LOG_GOAL_FAILED_WITH_ACTION,
                         goal, brain, goal.getFailedAction());
                   }
                   return new Say("*BACAW*", 1);
@@ -318,7 +322,7 @@ public class BrainConfigurations {
   /** Shared trigger: when an active goal is blocked, log + fail + halt the actor. */
   @SuppressWarnings("PMD.UnusedPrivateMethod") // referenced via BrainConfigurations::stopOnBlocked
   private static boolean stopOnBlocked(final Brain brain, final Object blocker) {
-    log.info("blocked by:{}", blocker);
+    log.info(LOG_BLOCKED_BY, blocker);
     brain.goalFailed();
     // Stop moving... really would be nice to be able to abort actions
     brain.getActor().move(new Vec3d());
@@ -333,7 +337,7 @@ public class BrainConfigurations {
     config.setGoalSelector(
         (brain) -> {
           if (log.isInfoEnabled()) {
-            log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
+            log.info(LOG_SELECT_GOAL_FAILED, brain.getFailedGoals());
           }
           Goal goHome = pickGoHomeGoal(brain, brain.getActor(), 10.0, 5.0);
           return goHome != null ? goHome : new Wander(10);
@@ -367,7 +371,7 @@ public class BrainConfigurations {
         Wander.class,
         new Strategy<TimedGoal>(
                 (brain, goal) -> {
-                  log.info("---------- Create loop:{}", goal);
+                  log.info(LOG_CREATE_LOOP, goal);
                   LoopAction<TimedGoal> result =
                       new LoopAction<>(
                           goal,
@@ -397,7 +401,7 @@ public class BrainConfigurations {
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:{}", blocker);
+                  log.info(LOG_BLOCKED_BY, blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());
@@ -458,7 +462,7 @@ public class BrainConfigurations {
                 })
             .onFailed((brain, goal) -> {
                   if (log.isInfoEnabled()) {
-                    log.info("{} failed for:{}  failed action:{}",
+                    log.info(LOG_GOAL_FAILED_WITH_ACTION,
                         goal, brain, goal.getFailedAction());
                   }
                   return new Say("*grr*", 1);
@@ -474,7 +478,7 @@ public class BrainConfigurations {
     config.setGoalSelector(
         (brain) -> {
           if (log.isInfoEnabled()) {
-            log.info("selectGoal() failed goals:{}", brain.getFailedGoals());
+            log.info(LOG_SELECT_GOAL_FAILED, brain.getFailedGoals());
           }
           Goal goHome = pickGoHomeGoal(brain, brain.getActor(), 15.0, 5.0);
           return goHome != null ? goHome : new Wander(10);
@@ -508,7 +512,7 @@ public class BrainConfigurations {
         Wander.class,
         new Strategy<TimedGoal>(
                 (brain, goal) -> {
-                  log.info("---------- Create loop:{}", goal);
+                  log.info(LOG_CREATE_LOOP, goal);
                   LoopAction<TimedGoal> result =
                       new LoopAction<>(
                           goal,
@@ -538,7 +542,7 @@ public class BrainConfigurations {
                 })
             .onBlocked(
                 (brain, blocker) -> {
-                  log.info("blocked by:{}", blocker);
+                  log.info(LOG_BLOCKED_BY, blocker);
                   brain.goalFailed();
                   // Stop moving... really would be nice to be able to abort actions
                   brain.getActor().move(new Vec3d());
@@ -599,7 +603,7 @@ public class BrainConfigurations {
                 })
             .onFailed((brain, goal) -> {
                   if (log.isInfoEnabled()) {
-                    log.info("{} failed for:{}  failed action:{}",
+                    log.info(LOG_GOAL_FAILED_WITH_ACTION,
                         goal, brain, goal.getFailedAction());
                   }
                   return new Say("Ugh!", 1);

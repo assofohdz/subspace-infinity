@@ -39,6 +39,8 @@ import javax.annotation.Nullable;
  */
 public final class ConfigRegistry {
 
+  private static final String SLOT_TYPE = "slotType";
+
   // Declared BEFORE EMPTY: EMPTY = builder().build() iterates SLOTS at <clinit>.
   public static final List<Slot<?>> SLOTS =
       List.of(
@@ -85,7 +87,7 @@ public final class ConfigRegistry {
 
   /** Returns the slot's DEFAULTS sentinel when unset; throws on unregistered slot types. */
   public <T> T get(final Class<T> slotType) {
-    Objects.requireNonNull(slotType, "slotType");
+    Objects.requireNonNull(slotType, SLOT_TYPE);
     final Object value = slotsByType.get(slotType);
     if (value == null) {
       throw new IllegalArgumentException(
@@ -128,7 +130,7 @@ public final class ConfigRegistry {
 
   /** Returns a copy with {@code slotType} replaced. */
   public <T> ConfigRegistry with(final Class<T> slotType, final T replacement) {
-    Objects.requireNonNull(slotType, "slotType");
+    Objects.requireNonNull(slotType, SLOT_TYPE);
     Objects.requireNonNull(replacement, "replacement");
     if (!slotType.isInstance(replacement)) {
       throw new ClassCastException(
@@ -189,7 +191,7 @@ public final class ConfigRegistry {
     }
 
     public <T> Builder with(final Class<T> slotType, final T value) {
-      Objects.requireNonNull(slotType, "slotType");
+      Objects.requireNonNull(slotType, SLOT_TYPE);
       Objects.requireNonNull(value, "value");
       if (!slotType.isInstance(value)) {
         throw new ClassCastException(

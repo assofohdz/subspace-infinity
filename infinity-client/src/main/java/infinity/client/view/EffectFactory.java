@@ -23,6 +23,7 @@ public class EffectFactory {
 
     private static final String PARTICLE_MATDEF = "Common/MatDefs/Misc/Particle.j3md";
     private static final String MAT_TEXTURE_PARAM = "Texture";
+    private static final String POINT_SPRITE_PARAM = "PointSprite";
 
     // private ModelViewState state;
     private AssetManager assets;
@@ -75,7 +76,7 @@ public class EffectFactory {
         flame.setImagesY(2);
         final Material mat = new Material(assets, PARTICLE_MATDEF);
         mat.setTexture(MAT_TEXTURE_PARAM, assets.loadTexture("Effects/Explosion/flame.png"));
-        mat.setBoolean("PointSprite", POINT_SPRITE);
+        mat.setBoolean(POINT_SPRITE_PARAM, POINT_SPRITE);
         flame.setMaterial(mat);
         explosionEffect.attachChild(flame);
     }
@@ -98,7 +99,7 @@ public class EffectFactory {
         flash.setImagesY(2);
         final Material mat = new Material(assets, PARTICLE_MATDEF);
         mat.setTexture(MAT_TEXTURE_PARAM, assets.loadTexture("Effects/Explosion/flash.png"));
-        mat.setBoolean("PointSprite", POINT_SPRITE);
+        mat.setBoolean(POINT_SPRITE_PARAM, POINT_SPRITE);
         flash.setMaterial(mat);
         explosionEffect.attachChild(flash);
     }
@@ -120,7 +121,7 @@ public class EffectFactory {
         roundspark.setImagesY(1);
         final Material mat = new Material(assets, PARTICLE_MATDEF);
         mat.setTexture(MAT_TEXTURE_PARAM, assets.loadTexture("Effects/Explosion/roundspark.png"));
-        mat.setBoolean("PointSprite", POINT_SPRITE);
+        mat.setBoolean(POINT_SPRITE_PARAM, POINT_SPRITE);
         roundspark.setMaterial(mat);
         explosionEffect.attachChild(roundspark);
     }

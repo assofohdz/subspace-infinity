@@ -61,7 +61,7 @@ public class AvatarMovementFunctions {
   public static final FunctionId F_CLOAK = new FunctionId(G_TOGGLE, ToggleTypes.CLOAK);
   public static final FunctionId F_XRADAR = new FunctionId(G_TOGGLE, ToggleTypes.XRADAR);
   // Tower defense
-  public static final FunctionId F_TOWER = new FunctionId(G_TOWER, "Tower");
+  public static final FunctionId F_TOWER = new FunctionId(G_TOWER, G_TOWER);
   // Ships
   public static final FunctionId F_WARBIRD =
       new FunctionId(G_SHIPSELECTION, ShapeNames.SHIP_WARBIRD);

@@ -67,6 +67,7 @@ public class RadarState extends BaseAppState {
     private static final float RADAR_CAM_NEAR = 1f;
     private static final float RADAR_CAM_FAR = 5000f;
     private static final double DEFAULT_RANGE_WORLD_UNITS = 256.0;
+    private static final String COLOR_PARAM = "Color";
 
     private final RadarTheme theme = RadarTheme.DEFAULT;
 
@@ -406,7 +407,7 @@ public class RadarState extends BaseAppState {
     }
 
     private void applyColor(final Blip blip) {
-        blip.geom.getMaterial().setColor("Color", colorFor(blip.id, blip.freq));
+        blip.geom.getMaterial().setColor(COLOR_PARAM, colorFor(blip.id, blip.freq));
     }
 
     private void recolorAllBlips() {
@@ -620,9 +621,9 @@ public class RadarState extends BaseAppState {
                 continue;
             }
             final boolean isCurrent = f == current;
-            f.fillMat.setColor("Color",
+            f.fillMat.setColor(COLOR_PARAM,
                     isCurrent ? theme.arenaTintColor() : theme.arenaTintColorMuted());
-            f.outlineMat.setColor("Color",
+            f.outlineMat.setColor(COLOR_PARAM,
                     isCurrent ? theme.arenaOutlineColor() : theme.arenaOutlineColorMuted());
         }
     }

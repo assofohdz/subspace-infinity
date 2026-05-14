@@ -216,7 +216,7 @@ public class BlockGeometryIndex {
   }
 
   private void registerLightEmitterBlockType() {
-    BlockName name = new BlockName("lantern", "light_emitter");
+    BlockName name = new BlockName(LANTERN_MATERIAL_NAME, "light_emitter");
     // sun=0, r=15, g=13, b=8 → warm amber torch-glow at near-max strength.
     // Flood fill attenuates each channel by 1 per cell, so pools reach ~14
     // cells for the red channel (full-saturation core), ~12 for green, ~7

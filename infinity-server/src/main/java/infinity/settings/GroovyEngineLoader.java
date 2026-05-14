@@ -65,7 +65,7 @@ public class GroovyEngineLoader {
   private static final class EngineClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
 
-    private final EngineConfigBuilder builder;
+    private final transient EngineConfigBuilder builder;
 
     EngineClosure(final EngineConfigBuilder builder) {
       super(null);

@@ -76,6 +76,8 @@ public class ChecksShipsSystem extends AbstractGameSystem {
 
   static final Logger log = LoggerFactory.getLogger(ChecksShipsSystem.class);
 
+  private static final String COST_PREFIX = "(cost=";
+
   private final Pattern checkShipsCommand = Pattern.compile("\\~checkships");
   /** {@code ~ship} = your avatar; {@code ~ship 17} = ship by EntityId. */
   private final Pattern checkShipCommand = Pattern.compile("\\~ship(?:\\s+(\\d+))?");
@@ -342,7 +344,7 @@ public class ChecksShipsSystem extends AbstractGameSystem {
         .append('/')
         .append(stats == null || stats.max() == null ? "?" : stats.max().name());
     if (stats != null) {
-      sb.append("(cost=").append(stats.fireCostEnergy()).append(')');
+      sb.append(COST_PREFIX).append(stats.fireCostEnergy()).append(')');
     }
   }
 
@@ -358,7 +360,7 @@ public class ChecksShipsSystem extends AbstractGameSystem {
         .append('/')
         .append(stats == null || stats.max() == null ? "?" : stats.max().name());
     if (stats != null) {
-      sb.append("(cost=").append(stats.fireCostEnergy()).append(')');
+      sb.append(COST_PREFIX).append(stats.fireCostEnergy()).append(')');
     }
   }
 
@@ -374,7 +376,7 @@ public class ChecksShipsSystem extends AbstractGameSystem {
         .append('/')
         .append(stats == null || stats.max() == null ? "?" : stats.max().name());
     if (stats != null) {
-      sb.append("(cost=").append(stats.dropCostEnergy()).append(')');
+      sb.append(COST_PREFIX).append(stats.dropCostEnergy()).append(')');
     }
   }
 

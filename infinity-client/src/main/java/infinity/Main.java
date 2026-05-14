@@ -48,6 +48,7 @@ import infinity.client.view.ToolFunctions;
 public class Main extends SimpleApplication {
 
   private static final String GLASS_STYLE = "glass";
+  private static final String BACKGROUND_ATTR = "background";
 
   static Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -174,17 +175,17 @@ public class Main extends SimpleApplication {
     final Styles styles = globals.getStyles();
 
     Attributes attrs = styles.getSelector(DebugHudState.CONTAINER_ID, GLASS_STYLE);
-    attrs.set("background", null);
+    attrs.set(BACKGROUND_ATTR, null);
 
     attrs = styles.getSelector(DebugHudState.NAME_ID, GLASS_STYLE);
     attrs.set("color", ColorRGBA.White);
-    attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
+    attrs.set(BACKGROUND_ATTR, new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
     attrs.set("textHAlignment", HAlignment.Right);
     attrs.set("insets", new Insets3f(0, 0, 0, 0));
 
     attrs = styles.getSelector(DebugHudState.VALUE_ID, GLASS_STYLE);
     attrs.set("color", ColorRGBA.White);
-    attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
+    attrs.set(BACKGROUND_ATTR, new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
     attrs.set("insets", new Insets3f(0, 0, 0, 0));
 
     // SkyState sky = stateManager.getState(SkyState.class);

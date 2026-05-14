@@ -44,6 +44,7 @@ public class LightingTunerState extends BaseAppState {
     private static final String POOL_GAIN_PARAM = "PoolGain";
     private static final String SUN_SCALE_PARAM = "SunScale";
     private static final String EXPOSURE_PARAM = "Exposure";
+    private static final String TEXTURE_GAMMA_PARAM = "TextureGamma";
     private static final String FORMAT_TWO_DECIMALS = "%.2f";
 
     public static final FunctionId F_LIGHTING_TUNER = new FunctionId("Lighting Tuner");
@@ -181,7 +182,7 @@ public class LightingTunerState extends BaseAppState {
                 : BlockGeometryIndex.DEFAULT_SUN_SCALE;
         final float ex = mat != null ? readFloatParam(mat, EXPOSURE_PARAM, BlockGeometryIndex.DEFAULT_EXPOSURE)
                 : BlockGeometryIndex.DEFAULT_EXPOSURE;
-        final float tg = mat != null ? readFloatParam(mat, "TextureGamma", BlockGeometryIndex.DEFAULT_TEXTURE_GAMMA)
+        final float tg = mat != null ? readFloatParam(mat, TEXTURE_GAMMA_PARAM, BlockGeometryIndex.DEFAULT_TEXTURE_GAMMA)
                 : BlockGeometryIndex.DEFAULT_TEXTURE_GAMMA;
         poolGainSlider.getModel().setValue(pg);
         sunScaleSlider.getModel().setValue(ss);
@@ -214,14 +215,18 @@ public class LightingTunerState extends BaseAppState {
             mat.setFloat(POOL_GAIN_PARAM, BlockGeometryIndex.DEFAULT_POOL_GAIN);
             mat.setFloat(SUN_SCALE_PARAM, BlockGeometryIndex.DEFAULT_SUN_SCALE);
             mat.setFloat(EXPOSURE_PARAM, BlockGeometryIndex.DEFAULT_EXPOSURE);
-            mat.setFloat("TextureGamma", BlockGeometryIndex.DEFAULT_TEXTURE_GAMMA);
+            mat.setFloat(TEXTURE_GAMMA_PARAM, BlockGeometryIndex.DEFAULT_TEXTURE_GAMMA);
         }
         syncSlidersFromState();
     }
 
     @Override
     public void update(final float tpf) {
-        final boolean ambientChanged = rRef.update() | gRef.update() | bRef.update();
+        // Force all three slider refs to poll this tick (avoid short-circuit dropping side effects).
+        final boolean rChanged = rRef.update();
+        final boolean gChanged = gRef.update();
+        final boolean bChanged = bRef.update();
+        final boolean ambientChanged = rChanged || gChanged || bChanged;
         if (ambientChanged) {
             final AmbientLightState als = getState(AmbientLightState.class);
             final ColorRGBA c = als.getAmbient();
@@ -235,8 +240,13 @@ public class LightingTunerState extends BaseAppState {
             log.info("ambient = ({}, {}, {})", next.r, next.g, next.b);
         }
 
-        final boolean shaderChanged = poolGainRef.update() | sunScaleRef.update()
-                | exposureRef.update() | textureGammaRef.update();
+        // Force all four shader-knob refs to poll this tick (avoid short-circuit dropping side effects).
+        final boolean poolGainChanged = poolGainRef.update();
+        final boolean sunScaleChanged = sunScaleRef.update();
+        final boolean exposureChanged = exposureRef.update();
+        final boolean textureGammaChanged = textureGammaRef.update();
+        final boolean shaderChanged =
+                poolGainChanged || sunScaleChanged || exposureChanged || textureGammaChanged;
         if (shaderChanged) {
             final Material mat = getTileMaterial();
             if (mat == null) {
@@ -249,7 +259,7 @@ public class LightingTunerState extends BaseAppState {
             mat.setFloat(POOL_GAIN_PARAM, pg);
             mat.setFloat(SUN_SCALE_PARAM, ss);
             mat.setFloat(EXPOSURE_PARAM, ex);
-            mat.setFloat("TextureGamma", tg);
+            mat.setFloat(TEXTURE_GAMMA_PARAM, tg);
             updateShaderLabels(pg, ss, ex, tg);
             log.info("tile shader: PoolGain={}, SunScale={}, Exposure={}, TextureGamma={}", pg, ss, ex, tg);
         }

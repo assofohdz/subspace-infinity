@@ -52,6 +52,8 @@ import infinity.client.view.BlockGeometryIndex;
 /** Convenience factory for creating Spatials from {@link MBlockShape} parts. */
 public class SpatialFactory {
 
+    private static final String OBJECT_NODE_PREFIX = "Object:";
+
     private BlockGeometryIndex geomIndex;
 
     // technically origin and not CoG anymore
@@ -77,7 +79,7 @@ public class SpatialFactory {
     }
 
     protected Spatial createPartSpatial( EntityId id, Group group, Mass mass ) {
-        Node node = new Node("Object:" + id);
+        Node node = new Node(OBJECT_NODE_PREFIX + id);
         if( debugCoG ) {
             node.attachChild(createBox(0.1f, ColorRGBA.Orange));
         }
@@ -120,7 +122,7 @@ public class SpatialFactory {
             return createSphere(id, (float)part.getMass().getRadius(), mass);
         }
 
-        Node node = new Node("Object:" + id);
+        Node node = new Node(OBJECT_NODE_PREFIX + id);
         Node parts = new Node("Parts:" + id);
         node.attachChild(parts);
 
@@ -156,7 +158,7 @@ public class SpatialFactory {
         Sphere mesh = new Sphere(24, 24, radius);
         mesh.setTextureMode(Sphere.TextureMode.Projected);
         mesh.scaleTextureCoordinates(new Vector2f(4, 2));
-        Geometry geom = new Geometry("Object:" + id, mesh);
+        Geometry geom = new Geometry(OBJECT_NODE_PREFIX + id, mesh);
 
         if( mass != null && mass.getMass() != 0 ) {
             geom.setMaterial(GuiGlobals.getInstance().createMaterial(new ColorRGBA(0, 0.6f, 0.6f, 1), true).getMaterial());
