@@ -51,10 +51,13 @@
 
 ### F. Test coverage + CI signal
 
-- **~206 tests** (was 58 at audit time): 12 api, ~178 server, ~13 client. Most growth from P1-f (27 prize-applier tests) + P1-g (13 adapter tests) + P1-i (lifecycle harness) + P1-e (spawn-projection slices 2 + 4).
+- **~210 tests** (was 58 at audit time): 12 api, ~178 server, ~17 client. Most growth from P1-f (27 prize-applier tests) + P1-g (13 adapter tests) + P1-i (lifecycle harness + 7 sample tests) + P1-e (spawn-projection slices 2 + 4).
 - ArchUnit guards live: component immutability (P1-b), `LayerDependencyTest` Rules 1/3, `CanonicalWriterTest` 32-type registry, hot-path `infinity.config` import guard (P1-d).
 - Spawn-projection harness PRD: slices 1, 1b, 1c, 1d, 2, 3, 4 ✅. Slice 5×N (Pattern-4 cluster carbon-copies) remains as new CCP migrations land.
-- CI signal still thin — one `./gradlew build` job. PMD ratchet 0/0/0/0 across modules; Checkstyle ratchets dropped sharply post-sweep (api 12→2, server-main 79→55, client-main 27→21).
+- Client-lifecycle harness: `BaseAppStateLifecycleHarness` + `SyntheticApplication` + `RecordingEntityFixtures` + `GuiGlobalsTestFixture` covers all 7 leak-fixed `BaseAppState` classes (`InfinityCameraState`, `MobDebugState`, `AudioState`, `HudLabelState`, `MapState`, `SpeechViewState`, `PlayerListState`).
+- **JaCoCo coverage gate wired** (commit `01cae8f3`): line + branch ratchet in `gradle.properties` per module; `./gradlew check` blocks regression. SonarCloud coverage panel now populated (was 0% — no reports were being generated).
+- Baselines as of 2026-05-14: api 16.59% line / 22.50% branch; infinity-server 31.20% / 26.05%; infinity-client 5.82% / 2.65% (post-P1-i finish).
+- PMD ratchet 0/0/0/0 across modules; Checkstyle ratchets dropped sharply post-sweep (api 12→2, server-main 79→55, client-main 27→21).
 
 ---
 
@@ -64,7 +67,6 @@
 |---|---|---|
 | **P1-h** — Gameplay-interface contracts in api/ (`GameMode`, `ScoringRule`, `RespawnPolicy`, `RoundLifecycle`, `KillFeed`) | **Deferred** | Per `create-module` skill: module loader is paused; no live consumer for the API yet. Design when first module ships. |
 | **Spawn-projection harness Slice 5×N** | Open | One slice per Pattern-4 CCP migration as those land. PRD ready. |
-| **`GuiGlobals` test fixture** | Open | Unlocks lifecycle tests for `MobDebugState`, `HudLabelState`, `PlayerListState`, `SpeechViewState` (the 4 leak-fixed states that need a GuiGlobals stub before they can be tested). |
 
 ---
 
