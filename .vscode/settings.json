@@ -13,6 +13,8 @@
             "default": true
         }
     ],
+    "jdk.jdkhome": "/usr/lib/jvm/java-21-openjdk-amd64",
+    "jdk.project.jdkhome": "/usr/lib/jvm/java-21-openjdk-amd64",
     "sonarlint.connectedMode.project": {
         "connectionId": "assofohdz",
         "projectKey": "assofohdz_subspace-infinity"

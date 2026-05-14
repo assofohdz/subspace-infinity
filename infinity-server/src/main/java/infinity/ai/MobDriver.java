@@ -91,7 +91,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   private MovementSettings settings = new MovementSettings();
 
   // A simplified version of something that should be its own type + strategys
-  private static final double perceptionRadius = 2;
+  private static final double PERCEPTION_RADIUS = 2;
 
   // A probe we will use to query the world to see if we are about
   // to bump into something and then potentially steer a bit side
@@ -218,7 +218,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
 
     // Eventually we will want to know look direction, etc.
     // For now just use a simple radius check
-    double radius = perceptionRadius; // chickens are near-sighted in this demo
+    double radius = PERCEPTION_RADIUS; // chickens are near-sighted in this demo
 
     // Could be a few cases here:
     // 1) rigid body (because radius is going to be relatively small, it should
@@ -289,7 +289,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   public SeenObject look(EntityId id) {
     // Same cases as above and we'll still only deal with (1) and (2) for
     // the moment.
-    double radius = perceptionRadius; // chickens are near-sighted in this demo
+    double radius = PERCEPTION_RADIUS; // chickens are near-sighted in this demo
     RigidBody<EntityId, MBlockShape> rb = physics.getPhysicsSpace().getBinIndex().getRigidBody(id);
     if (rb != null) {
       // for now, dumb distance that ignores object size
@@ -325,7 +325,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   public SeenObject look2(EntityId id) {
     // Same cases as above and we'll still only deal with (1) and (2) for
     // the moment.
-    double radius = perceptionRadius; // chickens are near-sighted in this demo
+    double radius = PERCEPTION_RADIUS; // chickens are near-sighted in this demo
     RigidBody<EntityId, MBlockShape> rb = physics.getPhysicsSpace().getBinIndex().getRigidBody(id);
     if (rb != null) {
       // Well, we don't ignore it completeley anymore but it is just

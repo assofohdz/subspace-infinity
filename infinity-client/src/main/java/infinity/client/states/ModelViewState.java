@@ -143,7 +143,7 @@ public class ModelViewState extends BaseAppState {
   // Center cell
   Vec3i centerWorld = new Vec3i();
   EntityData ed;
-  private SISpatialFactory SImodelFactory;
+  private SISpatialFactory siModelFactory;
   // The root node to which all managed objects will be added
   private Node viewRoot;
   TimeSource timeSource;
@@ -224,7 +224,7 @@ public class ModelViewState extends BaseAppState {
     // a light on viewRoot wouldn't reach the world tiles at all.
     final EffectSpatialFactory effectFactory =
         new EffectSpatialFactory(app.getAssetManager(), this.getApplication().getTimer());
-    this.SImodelFactory =
+    this.siModelFactory =
         new SISpatialFactory(
             app.getAssetManager(),
             this.getApplication().getTimer(),
@@ -411,7 +411,7 @@ public class ModelViewState extends BaseAppState {
 
   void updateSingleFlagMaterial(int shipFrequency, Entity flagEntity) {
     Frequency flagfrequency = flags.getEntity(flagEntity.getId()).get(Frequency.class);
-    SImodelFactory.setFlagMaterialVariables(
+    siModelFactory.setFlagMaterialVariables(
         getModelSpatial(flagEntity.getId(), true),
         flagfrequency.getFrequency() == shipFrequency ? Flag.FLAG_OURS : Flag.FLAG_THEIRS);
   }
@@ -502,7 +502,7 @@ public class ModelViewState extends BaseAppState {
 
   protected Spatial createModel(EntityId id, ShapeInfo shapeInfo, Mass mass) {
     final String shapeName = shapeInfo.getShapeName(ed);
-    return SImodelFactory.createModel(id, shapeName, mass, shapeInfo.getScale());
+    return siModelFactory.createModel(id, shapeName, mass, shapeInfo.getScale());
   }
 
   protected Model getModel(EntityId entityId, boolean create) {

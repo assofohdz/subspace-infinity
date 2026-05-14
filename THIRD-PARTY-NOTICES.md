@@ -130,6 +130,23 @@ under explicit consent for open-source redistribution.
 
 ---
 
+## RandomSelector (Apache 2.0)
+
+**Paths:**
+
+- `api/src/main/java/infinity/util/RandomSelector.java`
+
+**Origin:** Authored by Olivier Grégoire (2015), based on Efraimidis &
+Spirakis' weighted random sampling algorithm.
+
+**License:** [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+
+**Attribution:** "Copyright 2015 Olivier Grégoire. Licensed under the
+Apache License, Version 2.0." Preserve this attribution when
+redistributing the file or substantial portions of its source.
+
+---
+
 ## Bundled `.j3o` files of uncertain origin
 
 **Paths:**
