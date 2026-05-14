@@ -28,6 +28,21 @@ For complete setup instructions including all dependencies:
 | `./gradlew clean` | Clean build artifacts |
 | `./gradlew dependencyUpdates` | Check for dependency updates |
 
+## Test Coverage (JaCoCo)
+
+`./gradlew test` generates coverage reports at
+`<module>/build/reports/jacoco/test/` — `html/index.html` for humans,
+`jacocoTestReport.xml` for SonarCloud.
+
+`./gradlew check` runs `jacocoTestCoverageVerification` per module and fails
+if line OR branch coverage drops below the floor in `gradle.properties`
+(`min<Module>LineCoverage` / `min<Module>BranchCoverage`). The pre-push
+hook (`.githooks/pre-push`) inherits this gate.
+
+To ratchet up after raising coverage: re-read the report-level LINE/BRANCH
+counters from the XML, raise the matching property, commit. Same shape as
+the PMD/Checkstyle ceiling ratchet, inverted (minimums not maximums).
+
 ## Live-Reload Behaviour (Operator Note)
 
 Editing the Groovy fragment files (`zone/conf/<preset>/*.groovy`,

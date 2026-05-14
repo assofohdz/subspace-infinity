@@ -7,6 +7,7 @@ plugins {
     id 'groovy'
     id 'checkstyle'
     id 'pmd'
+    id 'jacoco'
     id 'com.diffplug.spotless'
     id 'net.ltgt.errorprone'
     id 'com.github.ben-manes.versions'
@@ -221,6 +222,69 @@ tasks.withType(Pmd).configureEach { task ->
                 "lower the ceiling.")
         }
     }
+}
+
+// =============================================================================
+// JaCoCo — test-coverage reporting + per-module ratchet floors.
+//
+// Same shape as PMD/Checkstyle ceilings above, inverted: PMD/Checkstyle count
+// violations and gate on "AT or BELOW the captured baseline"; JaCoCo measures
+// coverage ratio and gates on "AT or ABOVE the captured baseline". `test` runs
+// without coverage failure; the verifier task is what gates `check`.
+//
+// Property naming: `min<ProjectName>LineCoverage` / `min<ProjectName>BranchCoverage`
+// in `gradle.properties`. Default 0.0 (no gate) so new modules don't break
+// the build before the property is captured.
+//
+// Reports: HTML (humans) + XML (SonarCloud) at
+// `<module>/build/reports/jacoco/test/`.
+// =============================================================================
+jacocoTestReport {
+    dependsOn tasks.named('test')
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+// Always produce a report after `test` so HTML/XML are available without an
+// explicit `jacocoTestReport` invocation.
+tasks.named('test').configure {
+    finalizedBy tasks.named('jacocoTestReport')
+}
+
+jacocoTestCoverageVerification {
+    dependsOn tasks.named('test')
+    def lineFloorKey = "min${project.name.capitalize()}LineCoverage"
+    def branchFloorKey = "min${project.name.capitalize()}BranchCoverage"
+    def lineFloor = (project.findProperty(lineFloorKey) ?: '0.0').toString().toBigDecimal()
+    def branchFloor = (project.findProperty(branchFloorKey) ?: '0.0').toString().toBigDecimal()
+
+    inputs.property("floor.${lineFloorKey}", lineFloor.toString())
+    inputs.property("floor.${branchFloorKey}", branchFloor.toString())
+
+    violationRules {
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = lineFloor
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'BRANCH'
+                value = 'COVEREDRATIO'
+                minimum = branchFloor
+            }
+        }
+    }
+}
+
+tasks.named('check').configure {
+    dependsOn tasks.named('jacocoTestCoverageVerification')
 }
 
 // =============================================================================
