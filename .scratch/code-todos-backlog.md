@@ -48,6 +48,16 @@ Each row: actionable item + source file:line + brief context.
   slots).`). May fold into the `.scratch/squadrons/` PRD if that lands
   first.
 
+### Test coverage gaps
+
+- [ ] **`WeaponsEligibility.bombSafetyClear` + `effectiveBombSafetyRadius` are
+  untested** (~35 LOC, ~30 branches in `WeaponsEligibility`). They require a
+  `PhysicsSpace<EntityId, MBlockShape>` fixture (mphys integration). Closing
+  this would ratchet `minInfinity-serverLineCoverage` / `minInfinity-serverBranchCoverage`
+  back from 0.30/0.25 → 0.31/0.26 (pre-refactor baseline). Owner: future
+  test-fixture slice. Reference: 2026-05-14 shape-interface consolidation
+  recaptured the ratchet at the post-refactor floor.
+
 ### Performance / threading
 
 - [ ] **`InfinityDefaultLeafWorld.setWorldCell` recalculates side masks
