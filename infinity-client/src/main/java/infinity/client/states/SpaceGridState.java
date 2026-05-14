@@ -148,6 +148,8 @@ public class SpaceGridState extends BaseAppState {
     return value;
   }
 
+  // Inner triple-loop helper — params reflect the per-cell geometry algorithm; a record per call would allocate per cell.
+  @SuppressWarnings("PMD.ExcessiveParameterList")
   private void emitNeighborSegments(
       List<Segment> segs, int j, int i, int k,
       float x, float y, float z, float value,
@@ -164,6 +166,8 @@ public class SpaceGridState extends BaseAppState {
   }
 
   /** Add a span segment between two cells iff both endpoints have non-negative falloff. */
+  @SuppressWarnings("PMD.ExcessiveParameterList")
+  // Inner-loop helper — params are the two endpoints' coords + their falloff values; a record wrapper would only shift verbosity.
   private void maybeAddSpan(
       List<Segment> segs,
       float value, float neighbor,

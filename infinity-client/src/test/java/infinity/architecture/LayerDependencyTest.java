@@ -40,6 +40,14 @@ import org.junit.runner.RunWith;
     importOptions = ImportOption.DoNotIncludeTests.class)
 public class LayerDependencyTest {
 
+  private static final String PKG_SYSTEMS = "infinity.systems..";
+  private static final String PKG_SERVER = "infinity.server..";
+  private static final String PKG_CLIENT = "infinity.client..";
+  private static final String PKG_MODULES = "infinity.modules..";
+  private static final String PKG_AI = "infinity.ai..";
+  private static final String PKG_SETTINGS = "infinity.settings..";
+  private static final String PKG_CONFIG = "infinity.config..";
+
   /**
    * api/ (components + events + sim factories + config records) must not leak into
    * server/client/modules/ai/settings.
@@ -64,23 +72,22 @@ public class LayerDependencyTest {
           .should()
           .dependOnClassesThat()
           .resideInAnyPackage(
-              "infinity.systems..",
-              "infinity.server..",
-              "infinity.client..",
-              "infinity.modules..",
-              "infinity.ai..",
-              "infinity.settings..");
+              PKG_SYSTEMS,
+              PKG_SERVER,
+              PKG_CLIENT,
+              PKG_MODULES,
+              PKG_AI,
+              PKG_SETTINGS);
 
   /** Server, modules, and AI must not reach into client code. */
   @ArchTest
   static final ArchRule server_modules_ai_must_not_depend_on_client =
       noClasses()
           .that()
-          .resideInAnyPackage(
-              "infinity.systems..", "infinity.server..", "infinity.modules..", "infinity.ai..")
+          .resideInAnyPackage(PKG_SYSTEMS, PKG_SERVER, PKG_MODULES, PKG_AI)
           .should()
           .dependOnClassesThat()
-          .resideInAPackage("infinity.client..");
+          .resideInAPackage(PKG_CLIENT);
 
   /**
    * Hot-path systems must not import {@code infinity.config..} — Config-Component Projection
@@ -99,7 +106,7 @@ public class LayerDependencyTest {
   static final ArchRule hot_path_systems_must_not_depend_on_infinity_config =
       noClasses()
           .that()
-          .resideInAPackage("infinity.systems..")
+          .resideInAPackage(PKG_SYSTEMS)
           .and()
           .haveNameNotMatching(
               "infinity\\.systems\\.("
@@ -124,13 +131,13 @@ public class LayerDependencyTest {
                   + ")")
           .should()
           .dependOnClassesThat()
-          .resideInAPackage("infinity.config..");
+          .resideInAPackage(PKG_CONFIG);
 
   @ArchTest
   static final ArchRule client_must_not_depend_on_server_modules_or_ai =
       noClasses()
           .that()
-          .resideInAPackage("infinity.client..")
+          .resideInAPackage(PKG_CLIENT)
           .and()
           .doNotHaveFullyQualifiedName("infinity.client.states.MobDebugState")
           .and()
@@ -138,9 +145,9 @@ public class LayerDependencyTest {
           .should()
           .dependOnClassesThat()
           .resideInAnyPackage(
-              "infinity.systems..",
-              "infinity.server..",
-              "infinity.modules..",
-              "infinity.ai..",
+              PKG_SYSTEMS,
+              PKG_SERVER,
+              PKG_MODULES,
+              PKG_AI,
               "infinity.sim.internal..");
 }

@@ -69,10 +69,10 @@ public final class RadarLeafSilhouetteIndex {
                 positions.put(cx + 1f).put(0f).put(cz + 1f);
                 positions.put(cx).put(0f).put(cz + 1f);
 
-                indices.put((short) (vertexBase));
+                indices.put((short) vertexBase);
                 indices.put((short) (vertexBase + 1));
                 indices.put((short) (vertexBase + 2));
-                indices.put((short) (vertexBase));
+                indices.put((short) vertexBase);
                 indices.put((short) (vertexBase + 2));
                 indices.put((short) (vertexBase + 3));
                 vertexBase += 4;

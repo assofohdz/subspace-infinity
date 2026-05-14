@@ -377,7 +377,7 @@ public class BlockGeometryIndex {
   }
 
   private static int clamp(final int v, final int lo, final int hi) {
-    return v < lo ? lo : (v > hi ? hi : v);
+    return v < lo ? lo : v > hi ? hi : v;
   }
 
   // The per-tile w/h arithmetic in {@link #buildPaddedTilesetTexture} relies on exact integer division.

@@ -127,6 +127,8 @@ public class FlatTileBlockFactory implements BlockFactory {
     return part;
   }
 
+  // Signature fixed by Moss BlockFactory interface.
+  @SuppressWarnings("PMD.ExcessiveParameterList")
   @Override
   public int addGeometryToBuffer(
       final GeomPartBuffer buffer,

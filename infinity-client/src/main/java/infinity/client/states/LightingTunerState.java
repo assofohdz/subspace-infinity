@@ -41,6 +41,11 @@ public class LightingTunerState extends BaseAppState {
 
     private static final Logger log = LoggerFactory.getLogger(LightingTunerState.class);
 
+    private static final String POOL_GAIN_PARAM = "PoolGain";
+    private static final String SUN_SCALE_PARAM = "SunScale";
+    private static final String EXPOSURE_PARAM = "Exposure";
+    private static final String FORMAT_TWO_DECIMALS = "%.2f";
+
     public static final FunctionId F_LIGHTING_TUNER = new FunctionId("Lighting Tuner");
 
     private Container panel;
@@ -115,9 +120,9 @@ public class LightingTunerState extends BaseAppState {
         sunScaleValue = new Label("");
         exposureValue = new Label("");
         textureGammaValue = new Label("");
-        addSliderRow(shaderRows, "PoolGain", poolGainSlider, poolGainValue, 0, 15);
-        addSliderRow(shaderRows, "SunScale", sunScaleSlider, sunScaleValue, 0, 2);
-        addSliderRow(shaderRows, "Exposure", exposureSlider, exposureValue, 0.1, 5);
+        addSliderRow(shaderRows, POOL_GAIN_PARAM, poolGainSlider, poolGainValue, 0, 15);
+        addSliderRow(shaderRows, SUN_SCALE_PARAM, sunScaleSlider, sunScaleValue, 0, 2);
+        addSliderRow(shaderRows, EXPOSURE_PARAM, exposureSlider, exposureValue, 0.1, 5);
         addSliderRow(shaderRows, "TexGamma", textureGammaSlider, textureGammaValue, 0.3, 1.5);
 
         panel.addChild(new ActionButton(new CallMethodAction("Reset", this, "resetAll")))
@@ -170,11 +175,11 @@ public class LightingTunerState extends BaseAppState {
         updateAmbientLabels(c);
 
         final Material mat = getTileMaterial();
-        final float pg = mat != null ? readFloatParam(mat, "PoolGain", BlockGeometryIndex.DEFAULT_POOL_GAIN)
+        final float pg = mat != null ? readFloatParam(mat, POOL_GAIN_PARAM, BlockGeometryIndex.DEFAULT_POOL_GAIN)
                 : BlockGeometryIndex.DEFAULT_POOL_GAIN;
-        final float ss = mat != null ? readFloatParam(mat, "SunScale", BlockGeometryIndex.DEFAULT_SUN_SCALE)
+        final float ss = mat != null ? readFloatParam(mat, SUN_SCALE_PARAM, BlockGeometryIndex.DEFAULT_SUN_SCALE)
                 : BlockGeometryIndex.DEFAULT_SUN_SCALE;
-        final float ex = mat != null ? readFloatParam(mat, "Exposure", BlockGeometryIndex.DEFAULT_EXPOSURE)
+        final float ex = mat != null ? readFloatParam(mat, EXPOSURE_PARAM, BlockGeometryIndex.DEFAULT_EXPOSURE)
                 : BlockGeometryIndex.DEFAULT_EXPOSURE;
         final float tg = mat != null ? readFloatParam(mat, "TextureGamma", BlockGeometryIndex.DEFAULT_TEXTURE_GAMMA)
                 : BlockGeometryIndex.DEFAULT_TEXTURE_GAMMA;
@@ -196,19 +201,19 @@ public class LightingTunerState extends BaseAppState {
     }
 
     private void updateShaderLabels(final float pg, final float ss, final float ex, final float tg) {
-        poolGainValue.setText(String.format("%.2f", pg));
-        sunScaleValue.setText(String.format("%.2f", ss));
-        exposureValue.setText(String.format("%.2f", ex));
-        textureGammaValue.setText(String.format("%.2f", tg));
+        poolGainValue.setText(String.format(FORMAT_TWO_DECIMALS, pg));
+        sunScaleValue.setText(String.format(FORMAT_TWO_DECIMALS, ss));
+        exposureValue.setText(String.format(FORMAT_TWO_DECIMALS, ex));
+        textureGammaValue.setText(String.format(FORMAT_TWO_DECIMALS, tg));
     }
 
     protected void resetAll() {
         getState(AmbientLightState.class).setAmbient(AmbientLightState.DEFAULT_AMBIENT);
         final Material mat = getTileMaterial();
         if (mat != null) {
-            mat.setFloat("PoolGain", BlockGeometryIndex.DEFAULT_POOL_GAIN);
-            mat.setFloat("SunScale", BlockGeometryIndex.DEFAULT_SUN_SCALE);
-            mat.setFloat("Exposure", BlockGeometryIndex.DEFAULT_EXPOSURE);
+            mat.setFloat(POOL_GAIN_PARAM, BlockGeometryIndex.DEFAULT_POOL_GAIN);
+            mat.setFloat(SUN_SCALE_PARAM, BlockGeometryIndex.DEFAULT_SUN_SCALE);
+            mat.setFloat(EXPOSURE_PARAM, BlockGeometryIndex.DEFAULT_EXPOSURE);
             mat.setFloat("TextureGamma", BlockGeometryIndex.DEFAULT_TEXTURE_GAMMA);
         }
         syncSlidersFromState();
@@ -241,9 +246,9 @@ public class LightingTunerState extends BaseAppState {
             final float ss = (float) sunScaleSlider.getModel().getValue();
             final float ex = (float) exposureSlider.getModel().getValue();
             final float tg = (float) textureGammaSlider.getModel().getValue();
-            mat.setFloat("PoolGain", pg);
-            mat.setFloat("SunScale", ss);
-            mat.setFloat("Exposure", ex);
+            mat.setFloat(POOL_GAIN_PARAM, pg);
+            mat.setFloat(SUN_SCALE_PARAM, ss);
+            mat.setFloat(EXPOSURE_PARAM, ex);
             mat.setFloat("TextureGamma", tg);
             updateShaderLabels(pg, ss, ex, tg);
             log.info("tile shader: PoolGain={}, SunScale={}, Exposure={}, TextureGamma={}", pg, ss, ex, tg);

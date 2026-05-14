@@ -138,6 +138,8 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
         return dirParts;
     }
 
+    // Mirrors the Moss BlockFactory.addGeometryToBuffer shape (lightMask in place of CellData) — kept for API symmetry.
+    @SuppressWarnings("PMD.ExcessiveParameterList")
     public int addGeometryToBuffer(final GeomPartBuffer buffer, final int i, final int j, final int k, final int xWorld,
             final int yWorld, final int zWorld, final int sideMask, final int lightMask, final BlockType type) {
 

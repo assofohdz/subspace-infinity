@@ -53,6 +53,8 @@ import com.simsilica.lemur.style.ElementId;
 /** F12 settings panel; presents a tabbed window of in-game tunables. */
 public class SettingsState extends BaseAppState {
 
+    private static final String GLASS_STYLE = "glass";
+
     public static final FunctionId F_SETTINGS = new FunctionId("Show Settings");
 
     private Container mainWindow;
@@ -81,16 +83,16 @@ public class SettingsState extends BaseAppState {
     protected void initialize(final Application app) {
         GuiGlobals.getInstance().getInputMapper().addDelegate(F_SETTINGS, this, "toggleEnabled");
 
-        mainWindow = new Container(new BorderLayout(), new ElementId("window"), "glass");
-        mainWindow.addChild(new Label("Settings", mainWindow.getElementId().child("title.label"), "glass"),
+        mainWindow = new Container(new BorderLayout(), new ElementId("window"), GLASS_STYLE);
+        mainWindow.addChild(new Label("Settings", mainWindow.getElementId().child("title.label"), GLASS_STYLE),
                 BorderLayout.Position.North);
         mainWindow.setLocalTranslation(10, app.getCamera().getHeight() - 10, 0);
 
         final Container mainContents = mainWindow.addChild(
-                new Container(mainWindow.getElementId().child("contents.container"), "glass"),
+                new Container(mainWindow.getElementId().child("contents.container"), GLASS_STYLE),
                 BorderLayout.Position.Center);
 
-        tabs = new TabbedPanel("glass");
+        tabs = new TabbedPanel(GLASS_STYLE);
         mainContents.addChild(tabs);
 
         /*

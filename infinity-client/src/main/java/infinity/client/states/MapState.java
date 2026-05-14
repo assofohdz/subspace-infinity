@@ -233,8 +233,8 @@ public class MapState extends BaseAppState {
     private BitmapData sliceTile(final BitmapData tileset, final short tileIndex) {
         final int t = tileIndex - 1; // disk uses 1-based indexing
         return tileset.subRegion(
-                (t % TILES_PER_ROW) * TILE_SIZE,
-                (t / TILES_PER_ROW) * TILE_SIZE,
+                t % TILES_PER_ROW * TILE_SIZE,
+                t / TILES_PER_ROW * TILE_SIZE,
                 TILE_SIZE,
                 TILE_SIZE);
     }

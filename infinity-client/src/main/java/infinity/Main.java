@@ -47,6 +47,8 @@ import infinity.client.view.ToolFunctions;
  */
 public class Main extends SimpleApplication {
 
+  private static final String GLASS_STYLE = "glass";
+
   static Logger log = LoggerFactory.getLogger(Main.class);
 
   public Main() {
@@ -166,21 +168,21 @@ public class Main extends SimpleApplication {
     AvatarMovementFunctions.initializeDefaultMappings(globals.getInputMapper());
 
     BaseStyles.loadGlassStyle();
-    globals.getStyles().setDefaultStyle("glass");
+    globals.getStyles().setDefaultStyle(GLASS_STYLE);
 
     // Some manual styling for the debug HUD
     final Styles styles = globals.getStyles();
 
-    Attributes attrs = styles.getSelector(DebugHudState.CONTAINER_ID, "glass");
+    Attributes attrs = styles.getSelector(DebugHudState.CONTAINER_ID, GLASS_STYLE);
     attrs.set("background", null);
 
-    attrs = styles.getSelector(DebugHudState.NAME_ID, "glass");
+    attrs = styles.getSelector(DebugHudState.NAME_ID, GLASS_STYLE);
     attrs.set("color", ColorRGBA.White);
     attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
     attrs.set("textHAlignment", HAlignment.Right);
     attrs.set("insets", new Insets3f(0, 0, 0, 0));
 
-    attrs = styles.getSelector(DebugHudState.VALUE_ID, "glass");
+    attrs = styles.getSelector(DebugHudState.VALUE_ID, GLASS_STYLE);
     attrs.set("color", ColorRGBA.White);
     attrs.set("background", new QuadBackgroundComponent(new ColorRGBA(0, 0, 0, 0.5f)));
     attrs.set("insets", new Insets3f(0, 0, 0, 0));

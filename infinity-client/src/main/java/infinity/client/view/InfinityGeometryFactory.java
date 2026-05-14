@@ -248,6 +248,8 @@ public class InfinityGeometryFactory {
     }
 
     interface LightGradient {
+        // Per-vertex light sampler; param shape mirrors the call site in BlockMeshBuilder.emitVertices.
+        @SuppressWarnings("PMD.ExcessiveParameterList")
         void appendLight( CellData lights, int i, int j, int k, float x, float y, float z, Direction dir, FloatBuffer colors );
     }
 
@@ -255,6 +257,8 @@ public class InfinityGeometryFactory {
 
         NoLightGradient() {}
 
+        // Signature fixed by LightGradient interface.
+        @SuppressWarnings("PMD.ExcessiveParameterList")
         @Override
         public void appendLight( CellData lights, final int i, final int j, final int k, float x, float y, float z, Direction dir, FloatBuffer colors ) {
             // If the vertex sits on the border facing outward (most common case),
@@ -269,7 +273,7 @@ public class InfinityGeometryFactory {
             int s = (l >> 12) & 0xf;
             int r = (l >> 8) & 0xf;
             int g = (l >> 4) & 0xf;
-            int b = (l) & 0xf;
+            int b = l & 0xf;
 
             colors.put(r/15f).put(g/15f).put(b/15f).put(s/15f);
         }
@@ -292,6 +296,8 @@ public class InfinityGeometryFactory {
             return interp(y, n, s);
         }
 
+        // Math kernel — 11 params are the sample point + 8 corner lights; record-wrapping just shifts verbosity to call sites.
+        @SuppressWarnings("PMD.ExcessiveParameterList")
         private static float trilinearInterp( float x, float y, float z,
                                        float dnw, float dne, float dse, float dsw,
                                        float unw, float une, float use, float usw ) {
@@ -320,6 +326,8 @@ public class InfinityGeometryFactory {
             return accumToFloat(LightUtils.sun(spread));
         }
 
+        // Signature fixed by LightGradient interface.
+        @SuppressWarnings("PMD.ExcessiveParameterList")
         @Override
         public void appendLight( CellData lights, int i, int j, int k, float x, float y, float z, Direction dir, FloatBuffer colors ) {
             int dnw = corners.getCell(i, j, k);

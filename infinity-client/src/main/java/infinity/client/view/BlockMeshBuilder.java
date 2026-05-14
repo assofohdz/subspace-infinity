@@ -181,6 +181,8 @@ final class BlockMeshBuilder {
         return baseIndex + size;
     }
 
+    // Inner-loop helper — param shape mirrors per-PartEntry geometry; wrapping in a record would only shift verbosity to the call site.
+    @SuppressWarnings("PMD.ExcessiveParameterList")
     static void emitVertices(
             final MeshBuffers buffers,
             final int i, final int j, final int k,

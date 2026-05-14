@@ -32,6 +32,8 @@ public class InvisibleBlockFactory implements BlockFactory {
     return INSTANCE;
   }
 
+  // Signature fixed by Moss BlockFactory interface.
+  @SuppressWarnings("PMD.ExcessiveParameterList")
   @Override
   public int addGeometryToBuffer(
       final GeomPartBuffer buffer,
