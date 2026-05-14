@@ -12,5 +12,9 @@
             "path": "/usr/lib/jvm/java-21-openjdk-amd64",
             "default": true
         }
-    ]
+    ],
+    "sonarlint.connectedMode.project": {
+        "connectionId": "assofohdz",
+        "projectKey": "assofohdz_subspace-infinity"
+    }
 }
