@@ -207,6 +207,7 @@ public class HelpState extends BaseAppState {
         }
     }
 
+    @SuppressWarnings("PMD.GuardLogStatement") // already guarded by early-return at top
     private static void dumpMapping(final Mapping m) {
         if (!log.isInfoEnabled()) {
             return;
