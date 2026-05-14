@@ -161,6 +161,7 @@ public class MobSystem extends AbstractGameSystem {
 
     @Override
     protected void terminate() {
+        // no-op: BrainContainer/DriverContainer are released in stop(); no resources owned by initialize().
     }
 
     @Override
@@ -329,7 +330,8 @@ public class MobSystem extends AbstractGameSystem {
         }
 
         @Override
-        protected void updateObject( Brain driver, Entity e ) {
+        protected void updateObject( final Brain driver, final Entity e ) {
+            // no-op: Brain instances react to component changes via their own EntitySet; container only tracks add/remove.
         }
 
         @Override
@@ -386,7 +388,8 @@ log.info("existing body:{}", body);
         }
 
         @Override
-        protected void updateObject( MobDriver driver, Entity e ) {
+        protected void updateObject( final MobDriver driver, final Entity e ) {
+            // no-op: MobDriver tracks state via its own component reads; container only tracks add/remove.
         }
 
         @Override

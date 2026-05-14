@@ -49,6 +49,7 @@ public class ClientEvent {
     public static final EventType<ClientEvent> clientDisconnected = EventType.create("ClientDisconnected", ClientEvent.class);
 
     public ClientEvent() {
+        // no-op: marker payload; identity is the EventType, not instance state
     }
 
     @Override

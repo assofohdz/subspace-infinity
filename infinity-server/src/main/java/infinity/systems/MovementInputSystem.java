@@ -67,6 +67,7 @@ public class MovementInputSystem extends BaseInfinitySystem {
   private EngineConfigSystem engineConfigSystem;
 
   public MovementInputSystem() {
+    // no-arg ctor — wiring happens in initialize()
   }
 
   public PlayerDriver getDriver(EntityId id) {
@@ -87,6 +88,7 @@ public class MovementInputSystem extends BaseInfinitySystem {
 
   @Override
   protected void terminate() {
+    // no-op: no EntitySets held; PlayerContainer/MobContainer lifecycle is in start()/stop()
   }
 
   @Override

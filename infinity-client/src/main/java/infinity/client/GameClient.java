@@ -136,7 +136,9 @@ public class GameClient {
     Logger debugLog = LoggerFactory.getLogger("diagnostics.MessageDebugger");
     private boolean objectStateStarted = false;
 
-    public MessageDebugger() {}
+    public MessageDebugger() {
+      // no-op: stateless diagnostic listener; logging only
+    }
 
     @Override
     public void messageReceived(final Client source, final Message m) {

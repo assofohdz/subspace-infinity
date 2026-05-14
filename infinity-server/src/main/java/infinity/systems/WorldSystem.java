@@ -22,6 +22,7 @@ public class WorldSystem extends BaseInfinitySystem {
   private World world;
 
   public WorldSystem() {
+    // no-arg ctor — wiring happens in initialize()
   }
 
   public ColumnDb getColumnDb() {
@@ -30,14 +31,17 @@ public class WorldSystem extends BaseInfinitySystem {
 
   @Override
   public void start() {
+    // no-op: lifecycle hook unused; chat command registration happens in initialize()
   }
 
   @Override
   public void update(SimTime time) {
+    // no-op: world cells edited reactively via chat command, not per-tick
   }
 
   @Override
   public void stop() {
+    // no-op: lifecycle hook unused; cleanup happens in terminate()
   }
 
   @Override
@@ -80,5 +84,6 @@ public class WorldSystem extends BaseInfinitySystem {
 
   @Override
   protected void terminate() {
+    // no-op: no EntitySets held; chat command registrations live on the chat service
   }
 }

@@ -89,6 +89,7 @@ public class LoginState extends BaseAppState {
 
   @Override
   protected void cleanup( Application app ) {
+    // no-op: panels are attached/detached in onEnable/onDisable; no other resources to release
   }
 
   @Override

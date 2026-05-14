@@ -59,7 +59,8 @@ public class EmptyLeafDb implements LeafDb {
     }
 
     @Override
-    public void storeLeaf( LeafData leaf ) {
+    public void storeLeaf( final LeafData leaf ) {
+        // no-op: stub LeafDb discards writes; loadLeaf always returns a fresh empty leaf.
     }
 
 }

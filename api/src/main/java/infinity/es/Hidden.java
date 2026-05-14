@@ -8,5 +8,7 @@ import com.simsilica.es.EntityComponent;
 /** Marker — client suppresses rendering; server-side state (collision, pickup, decay) unaffected. */
 public class Hidden implements EntityComponent {
 
-  public Hidden() {}
+  public Hidden() {
+    // no-op: Zay-ES requires a public no-arg constructor for deserialization.
+  }
 }

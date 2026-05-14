@@ -110,10 +110,14 @@ public class WarpSystem extends BaseInfinitySystem
   }
 
   @Override
-  public void start() {}
+  public void start() {
+    // no-op: lifecycle hook unused; EntitySet wiring happens in initialize()
+  }
 
   @Override
-  public void stop() {}
+  public void stop() {
+    // no-op: lifecycle hook unused; cleanup happens in terminate()
+  }
 
   @Override
   public void update(SimTime tpf) {

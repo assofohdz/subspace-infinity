@@ -52,7 +52,9 @@ public class MapSystem extends BaseInfinitySystem {
   private LegacyMapProjector projector;
   private MapSystemLogic.Direction direction = MapSystemLogic.Direction.S;
 
-  public MapSystem() {}
+  public MapSystem() {
+    // no-arg ctor — wiring happens in initialize()
+  }
 
   protected MPhysSystem<MBlockShape> getPhysicsSystem() {
     final MPhysSystem<?> s = getSystem(MPhysSystem.class);
@@ -343,8 +345,12 @@ public class MapSystem extends BaseInfinitySystem {
   }
 
   @Override
-  public void start() {}
+  public void start() {
+    // no-op: lifecycle hook unused; entity wiring happens in initialize()
+  }
 
   @Override
-  public void stop() {}
+  public void stop() {
+    // no-op: lifecycle hook unused; cleanup happens in terminate()
+  }
 }

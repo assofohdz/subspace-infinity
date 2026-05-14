@@ -138,10 +138,12 @@ public class ConnectionState extends CompositeAppState {
 
     @Override
     protected void onEnable() {
+        // no-op: BaseAppState lifecycle slot; connect lifecycle drives this state, not enable/disable
     }
 
     @Override
     protected void onDisable() {
+        // no-op: BaseAppState lifecycle slot; disconnect lifecycle drives this state, not enable/disable
     }
 
     @SuppressWarnings("PMD.CompareObjectsWithEquals") // canonical Thread identity check
@@ -279,6 +281,7 @@ public class ConnectionState extends CompositeAppState {
     private class Connector extends Thread {
 
         public Connector() {
+            // no-op: thread fields are set by enclosing connect() before start()
         }
 
         public void run() {

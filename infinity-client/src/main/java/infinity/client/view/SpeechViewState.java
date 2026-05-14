@@ -83,6 +83,7 @@ public class SpeechViewState extends BaseAppState {
     private ListMultimap<EntityId, SpeechBubble> activeBubbles;
 
     public SpeechViewState() {
+        // no-op: default ctor; state is wired in initialize()
     }
 
     protected Node getRoot() {
@@ -174,6 +175,7 @@ public class SpeechViewState extends BaseAppState {
         }
 
         protected void update( Speech speech ) {
+            // no-op: Speech text is rendered at construction and never updates in-place; bubble decays via Decay
         }
 
         public void update( long time ) {

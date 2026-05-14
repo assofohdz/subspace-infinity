@@ -621,10 +621,12 @@ public class GameServer {
 
     @Override
     protected void onInitialize(final HostedServiceManager serviceManager) {
+      // no-op: DelayService only reacts on connectionAdded; no init-time wiring needed.
     }
 
     @Override
     public void start() {
+      // no-op: DelayService is purely event-driven via connectionAdded; nothing to start.
     }
 
     @Override

@@ -71,7 +71,9 @@ public class LightState extends BaseAppState {
   }
 
   @Override
-  protected void onDisable() {}
+  protected void onDisable() {
+    // no-op: BaseAppState lifecycle slot; EntitySets are released in cleanup() per entity-sets.md
+  }
 
   @Override
   public void update(final float tpf) {

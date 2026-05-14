@@ -249,6 +249,7 @@ public class MobDebugState extends BaseAppState {
         }
 
         protected void updateObject( Probe object, Entity e ) {
+            // no-op: Probe data (ProbeInfo) is set at addObject; nothing to refresh on entity change
         }
 
         protected void removeObject( Probe object, Entity e ) {

@@ -45,7 +45,9 @@ public class EnergySystem extends BaseInfinitySystem {
 
   private record TrackedApply(EntityId target, int delta) {}
 
-  public EnergySystem() {}
+  public EnergySystem() {
+    // no-arg ctor — wiring happens in initialize()
+  }
 
   @Override
   protected void initialize() {

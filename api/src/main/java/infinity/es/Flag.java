@@ -15,6 +15,7 @@ public class Flag implements EntityComponent {
     public static final int FLAG_OURS = 0;
 
     public Flag() {
+        // no-op: Zay-ES requires a public no-arg constructor for deserialization.
     }
 
 }

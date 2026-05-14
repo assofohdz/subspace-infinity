@@ -73,10 +73,12 @@ public class ResourceSystem extends AbstractGameSystem {
 
     @Override
     public void start() {
+        // no-op: lifecycle hook unused; EntitySet wiring happens in initialize()
     }
 
     @Override
     public void stop() {
+        // no-op: lifecycle hook unused; cleanup happens in terminate()
     }
 
     /**

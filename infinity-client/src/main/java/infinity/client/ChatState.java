@@ -62,6 +62,7 @@ public class ChatState extends BaseAppState {
     private CommandEntry originalCommandEntry;
 
     public ChatState() {
+        // no-op: default ctor; state is wired in initialize()
     }
 
     @Override

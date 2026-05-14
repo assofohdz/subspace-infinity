@@ -89,7 +89,8 @@ public class Wait implements Action {
     }
 
     @Override
-    public void abort( Brain brain ) {
+    public void abort( final Brain brain ) {
+        // no-op: Wait holds no external resources; nothing to release on abort.
     }
 
     @Override

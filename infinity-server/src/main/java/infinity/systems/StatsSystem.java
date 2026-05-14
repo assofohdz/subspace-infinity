@@ -47,10 +47,12 @@ public class StatsSystem extends AbstractGameSystem {
 
     @Override
     public void start() {
+        // no-op: lifecycle hook unused; Timer scheduled in initialize()
     }
 
     @Override
     public void stop() {
+        // no-op: lifecycle hook unused; Timer cancelled in terminate()
     }
 
     class Task extends TimerTask {

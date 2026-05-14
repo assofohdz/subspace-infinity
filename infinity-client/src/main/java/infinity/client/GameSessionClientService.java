@@ -66,6 +66,7 @@ public class GameSessionClientService extends AbstractClientService implements G
     private final List<GameSessionListener> listeners = new CopyOnWriteArrayList<>();
 
     public GameSessionClientService() {
+        // no-op: default ctor; RMI delegate is wired in start()
     }
 
     @Override

@@ -64,6 +64,7 @@ public class BrainScheduler {
     private Set<Brain> reschedule = new HashSet<>();
 
     public BrainScheduler() {
+        // no-op: default constructor; fields are initialized at declaration.
     }
 
     /**

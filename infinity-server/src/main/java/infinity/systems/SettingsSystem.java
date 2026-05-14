@@ -25,22 +25,27 @@ public class SettingsSystem extends AbstractGameSystem {
 
   @Override
   protected void initialize() {
+    // no-op: no EntitySets to wire; per-arena profiles populated lazily via loadFragments()
   }
 
   @Override
   protected void terminate() {
+    // no-op: no resources held; map references are GC'd with the system instance
   }
 
   @Override
   public void update(final SimTime tpf) {
+    // no-op: settings reads are pull-only; no per-tick work
   }
 
   @Override
   public void start() {
+    // no-op: lifecycle hook unused
   }
 
   @Override
   public void stop() {
+    // no-op: lifecycle hook unused
   }
 
   /** Merges fragments under {@code arenaName}; later fragments win on key conflict (matches {@code include} semantics). */

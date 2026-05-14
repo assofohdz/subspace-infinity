@@ -41,6 +41,7 @@ public class MainMenuState extends BaseAppState {
     private HostState host;
 
     public MainMenuState() {
+        // no-op: default ctor; UI is built in initialize()
     }
 
     public Node getMenuRoot() {

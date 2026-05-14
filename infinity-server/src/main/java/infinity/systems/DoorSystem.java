@@ -21,6 +21,7 @@ public class DoorSystem extends AbstractGameSystem {
   private World world;
 
   public DoorSystem() {
+    // no-arg ctor — wiring happens in initialize()
   }
 
   @Override
@@ -39,6 +40,7 @@ public class DoorSystem extends AbstractGameSystem {
 
   @Override
   public void start() {
+    // no-op: lifecycle hook unused; EntitySet wiring happens in initialize()
   }
 
   @Override
@@ -56,6 +58,7 @@ public class DoorSystem extends AbstractGameSystem {
 
   @Override
   public void stop() {
+    // no-op: lifecycle hook unused; cleanup happens in terminate()
   }
 
   private void openOrCloseDoor(EntityId entityId, Door door, SpawnPosition pos) {

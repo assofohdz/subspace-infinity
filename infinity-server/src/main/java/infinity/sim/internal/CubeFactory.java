@@ -14,6 +14,7 @@ public class CubeFactory implements ShapeFactory<MBlockShape> {
   static Logger log = LoggerFactory.getLogger(CubeFactory.class);
 
   public CubeFactory() {
+    // no-op: default constructor; CubeFactory is stateless.
   }
 
   @Override

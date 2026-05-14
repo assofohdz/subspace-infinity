@@ -49,6 +49,7 @@ public class AvatarSystem extends BaseInfinitySystem {
   private EntitySet captains;
 
   public AvatarSystem() {
+    // no-arg ctor — wiring happens in initialize()
   }
 
   @Override
@@ -111,10 +112,12 @@ public class AvatarSystem extends BaseInfinitySystem {
 
   @Override
   public void start() {
+    // no-op: lifecycle hook unused; entity wiring happens in initialize()
   }
 
   @Override
   public void stop() {
+    // no-op: lifecycle hook unused; cleanup happens in terminate()
   }
 
   public void requestShipChange(final EntityId shipEntity, final byte shipType) {

@@ -36,9 +36,11 @@ public class InfinityTimeSystem extends AbstractGameSystem implements TimeManage
 
     @Override
     protected void initialize() {
+        // no-op: no EntitySets or services to wire; time is read from SimTime in update()
     }
 
     @Override
     protected void terminate() {
+        // no-op: no resources held
     }
 }

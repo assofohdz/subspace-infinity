@@ -32,6 +32,7 @@ public class AccountClientService extends AbstractClientService
   private List<AccountSessionListener> listeners = new CopyOnWriteArrayList<>();
 
   public AccountClientService() {
+    // no-op: default ctor; state is wired in onInitialize/start
   }
 
   @Override

@@ -19,7 +19,9 @@ import com.simsilica.es.EntityComponent;
  */
 public class RocketActive implements EntityComponent {
 
-  public RocketActive() {}
+  public RocketActive() {
+    // no-op: Zay-ES requires a public no-arg constructor for deserialization.
+  }
 
   @Override
   public String toString() {

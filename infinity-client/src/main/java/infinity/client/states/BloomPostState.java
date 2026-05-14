@@ -33,10 +33,14 @@ public class BloomPostState extends BaseAppState {
   }
 
   @Override
-  protected void onEnable() {}
+  protected void onEnable() {
+    // no-op: BaseAppState lifecycle slot; FilterPostProcessor attaches in initialize()
+  }
 
   @Override
-  protected void onDisable() {}
+  protected void onDisable() {
+    // no-op: BaseAppState lifecycle slot; FilterPostProcessor detaches in cleanup()
+  }
 
   public BloomFilter getBloom() {
     return bloom;

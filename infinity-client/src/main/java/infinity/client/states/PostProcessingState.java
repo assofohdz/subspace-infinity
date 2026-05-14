@@ -52,6 +52,7 @@ public class PostProcessingState extends BaseAppState {
     private float shadowStrength = 0.7f;
 
     public PostProcessingState() {
+        // no-op: default ctor; FilterPostProcessor is built in initialize()
     }
 
     public void setEnableShadows(final boolean b) {

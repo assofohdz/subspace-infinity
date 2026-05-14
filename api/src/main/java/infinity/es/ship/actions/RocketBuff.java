@@ -8,7 +8,9 @@ import com.simsilica.es.EntityComponent;
 /** Marker on the rocket-buff entity (parented to ship); pairs with {@link RocketSnapshot}. {@code Decay} owns lifetime; {@code RocketBuffSystem} reverts on removal. */
 public class RocketBuff implements EntityComponent {
 
-  public RocketBuff() {}
+  public RocketBuff() {
+    // no-op: Zay-ES requires a public no-arg constructor for deserialization.
+  }
 
   @Override
   public String toString() {

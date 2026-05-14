@@ -127,10 +127,12 @@ public class ChecksShipsSystem extends AbstractGameSystem {
 
   @Override
   public void start() {
+    // no-op: lifecycle hook unused; command registration happens in initialize()
   }
 
   @Override
   public void stop() {
+    // no-op: lifecycle hook unused; cleanup happens in terminate()
   }
 
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
