@@ -19,7 +19,6 @@ public class LevelLoader implements AssetLoader {
     private static final Logger log = LoggerFactory.getLogger(LevelLoader.class);
 
     private AssetManager am;
-    public LevelFile lvlFile;
 
     @Override
     public LevelFile load(final AssetInfo assetInfo) throws IOException {
@@ -29,6 +28,7 @@ public class LevelLoader implements AssetLoader {
 
         String errorWithELVL;
         BitMap bmp;
+        LevelFile lvlFile;
 
         try (InputStream is = assetInfo.openStream(); BufferedInputStream bis = new BufferedInputStream(is)) {
             bmp = new BitMap(bis);
@@ -36,10 +36,10 @@ public class LevelLoader implements AssetLoader {
         }
         try (InputStream is = assetInfo.openStream(); BufferedInputStream bis = new BufferedInputStream(is)) {
             if (bmp.isBitMap()) {
-                lvlFile = new LevelFile(bis, bmp, true, bmp.hasELVL, file);
+                lvlFile = new LevelFile(bis, bmp, true, bmp.hasELVL(), file);
             } else {
                 bmp = loadDefaultTileset();
-                lvlFile = new LevelFile(bis, bmp, false, bmp.hasELVL, file);
+                lvlFile = new LevelFile(bis, bmp, false, bmp.hasELVL(), file);
             }
             errorWithELVL = lvlFile.readLevel();
 

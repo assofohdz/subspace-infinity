@@ -73,9 +73,9 @@ public final class MapAnalyzer {
     try (InputStream is = Files.newInputStream(file.toPath());
          BufferedInputStream bis = new BufferedInputStream(is)) {
       if (bmp.isBitMap()) {
-        lvl = new LevelFile(bis, bmp, true, bmp.hasELVL, file.getName());
+        lvl = new LevelFile(bis, bmp, true, bmp.hasELVL(), file.getName());
       } else {
-        lvl = new LevelFile(bis, bmp, false, bmp.hasELVL, file.getName());
+        lvl = new LevelFile(bis, bmp, false, bmp.hasELVL(), file.getName());
       }
       String err = lvl.readLevel();
       if (err != null) {

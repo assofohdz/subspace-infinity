@@ -64,13 +64,13 @@ public class CameraMovementFunctions {
 
     // Captured so sensitivity / flip can be applied later via InputMapper; reassigned in initializeDefaultMappings, so cannot be final.
     @SuppressWarnings("java:S1444")
-    public static InputMapper.Mapping MOUSE_X_LOOK;
+    public static InputMapper.Mapping mouseXLook;
     @SuppressWarnings("java:S1444")
-    public static InputMapper.Mapping MOUSE_Y_LOOK;
+    public static InputMapper.Mapping mouseYLook;
     @SuppressWarnings("java:S1444")
-    public static InputMapper.Mapping JOY_X_LOOK;
+    public static InputMapper.Mapping joyXLook;
     @SuppressWarnings("java:S1444")
-    public static InputMapper.Mapping JOY_Y_LOOK;
+    public static InputMapper.Mapping joyYLook;
 
     private CameraMovementFunctions() { /* utility */ }
 
@@ -101,13 +101,13 @@ public class CameraMovementFunctions {
         // is better than trying to do it in the function handler because it's
         // quite often input specific.  The user may want to flip the joystick
         // but not the mouse or adjust sensitivity on one and not the other.
-        MOUSE_X_LOOK = inputMapper.map( F_X_LOOK, Axis.MOUSE_X );
-        JOY_X_LOOK = inputMapper.map( F_X_LOOK, Axis.JOYSTICK_RIGHT_X );
+        mouseXLook = inputMapper.map( F_X_LOOK, Axis.MOUSE_X );
+        joyXLook = inputMapper.map( F_X_LOOK, Axis.JOYSTICK_RIGHT_X );
         inputMapper.map( F_X_LOOK, KeyInput.KEY_RIGHT );
         inputMapper.map( F_X_LOOK, InputState.Negative, KeyInput.KEY_LEFT );
 
-        MOUSE_Y_LOOK = inputMapper.map( F_Y_LOOK, Axis.MOUSE_Y );
-        JOY_Y_LOOK = inputMapper.map( F_Y_LOOK, Axis.JOYSTICK_RIGHT_Y );
+        mouseYLook = inputMapper.map( F_Y_LOOK, Axis.MOUSE_Y );
+        joyYLook = inputMapper.map( F_Y_LOOK, Axis.JOYSTICK_RIGHT_Y );
         inputMapper.map( F_Y_LOOK, KeyInput.KEY_UP );
         inputMapper.map( F_Y_LOOK, InputState.Negative, KeyInput.KEY_DOWN );
 

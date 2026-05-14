@@ -78,11 +78,11 @@ public final class MapSystemLogic {
       final Logger log, final int lingering, final int total) {
     if (lingering > 0) {
       if (log.isWarnEnabled()) {
-        log.warn("Post-clear verify: " + lingering + " / " + total + " cells still non-zero");
+        log.warn("Post-clear verify: {} / {} cells still non-zero", lingering, total);
       }
     } else {
       if (log.isInfoEnabled()) {
-        log.info("Post-clear verify: all " + total + " cells are zero");
+        log.info("Post-clear verify: all {} cells are zero", total);
       }
     }
   }
@@ -93,6 +93,7 @@ public final class MapSystemLogic {
    * stays under PMD's class threshold; logger passed so messages keep the host
    * class's logger name.
    */
+  @SuppressWarnings("PMD.GuardLogStatement") // already guarded by outer if (log.isInfoEnabled()) at L98
   public static void logMapBuildSummary(
       final Logger log, final LevelFile map, final Vec3d arenaOffset, final MapBuildStats stats) {
     if (log.isInfoEnabled()) {
@@ -100,54 +101,92 @@ public final class MapSystemLogic {
           "createBlocksFromLegacyMap: map={} offset={} nonZero={} (visibleCells={} invisibleCells={} leafFailures={})",
           map.getMapName(),
           arenaOffset,
-          stats.totalNonZero,
-          stats.cellsVisible,
-          stats.cellsInvisible,
-          stats.cellsFailedLeaf);
+          stats.getTotalNonZero(),
+          stats.getCellsVisible(),
+          stats.getCellsInvisible(),
+          stats.getCellsFailedLeaf());
       log.info(
           "  entities: turfFlags={} asteroidsSmall={} asteroidsMedium={} over5={} doors={} wormholes={}",
-          stats.turfFlags,
-          stats.asteroidsSmall,
-          stats.asteroidsMedium,
-          stats.over5,
-          stats.doors,
-          stats.wormholes);
-      if (stats.firstWritten != null) {
+          stats.getTurfFlags(),
+          stats.getAsteroidsSmall(),
+          stats.getAsteroidsMedium(),
+          stats.getOver5(),
+          stats.getDoors(),
+          stats.getWormholes());
+      if (stats.getFirstWritten() != null) {
         log.info("  first-written cell: {}    last-written cell: {}",
-            stats.firstWritten, stats.lastWritten);
+            stats.getFirstWritten(), stats.getLastWritten());
       }
     }
-    if (stats.cellsFailedLeaf > 0 && log.isWarnEnabled()) {
+    if (stats.getCellsFailedLeaf() > 0 && log.isWarnEnabled()) {
       log.warn(
           "  {}/{} cells silently dropped by setWorldCell (leaf==null). "
               + "Usually means the arena offset targets a world region whose leaves are not paged in.",
-          stats.cellsFailedLeaf,
-          stats.cellsVisible + stats.cellsInvisible + stats.cellsFailedLeaf);
+          stats.getCellsFailedLeaf(),
+          stats.getCellsVisible() + stats.getCellsInvisible() + stats.getCellsFailedLeaf());
     }
     if (log.isInfoEnabled()) {
-      log.info(formatTileIdHistogram(stats.idHistogram));
+      log.info(formatTileIdHistogram(stats.getIdHistogram()));
     }
   }
 
   /**
    * Mutable accumulator for {@code LegacyMapProjector.project} disposition
-   * counters + diagnostic state. Package-private mutable fields because the
-   * build pipeline writes them per-tile from inside the projector.
+   * counters + diagnostic state. Counters mutate via {@code increment*}
+   * helpers; first/last-written cells via setters. Read via getters.
    */
   public static final class MapBuildStats {
-    public int totalNonZero;
-    public int turfFlags;
-    public int asteroidsSmall;
-    public int asteroidsMedium;
-    public int over5;
-    public int doors;
-    public int wormholes;
-    public int cellsVisible;
-    public int cellsInvisible;
-    public int cellsFailedLeaf;
-    public final SortedMap<Integer, Integer> idHistogram = new TreeMap<>();
-    public Vec3d firstWritten;
-    public Vec3d lastWritten;
+    private int totalNonZero;
+    private int turfFlags;
+    private int asteroidsSmall;
+    private int asteroidsMedium;
+    private int over5;
+    private int doors;
+    private int wormholes;
+    private int cellsVisible;
+    private int cellsInvisible;
+    private int cellsFailedLeaf;
+    private final SortedMap<Integer, Integer> idHistogram = new TreeMap<>();
+    private Vec3d firstWritten;
+    private Vec3d lastWritten;
+
+    public int getTotalNonZero() { return totalNonZero; }
+    public void incrementTotalNonZero() { totalNonZero++; }
+
+    public int getTurfFlags() { return turfFlags; }
+    public void incrementTurfFlags() { turfFlags++; }
+
+    public int getAsteroidsSmall() { return asteroidsSmall; }
+    public void incrementAsteroidsSmall() { asteroidsSmall++; }
+
+    public int getAsteroidsMedium() { return asteroidsMedium; }
+    public void incrementAsteroidsMedium() { asteroidsMedium++; }
+
+    public int getOver5() { return over5; }
+    public void incrementOver5() { over5++; }
+
+    public int getDoors() { return doors; }
+    public void incrementDoors() { doors++; }
+
+    public int getWormholes() { return wormholes; }
+    public void incrementWormholes() { wormholes++; }
+
+    public int getCellsVisible() { return cellsVisible; }
+    public void incrementCellsVisible() { cellsVisible++; }
+
+    public int getCellsInvisible() { return cellsInvisible; }
+    public void incrementCellsInvisible() { cellsInvisible++; }
+
+    public int getCellsFailedLeaf() { return cellsFailedLeaf; }
+    public void incrementCellsFailedLeaf() { cellsFailedLeaf++; }
+
+    public SortedMap<Integer, Integer> getIdHistogram() { return idHistogram; }
+
+    public Vec3d getFirstWritten() { return firstWritten; }
+    public void setFirstWritten(final Vec3d firstWritten) { this.firstWritten = firstWritten; }
+
+    public Vec3d getLastWritten() { return lastWritten; }
+    public void setLastWritten(final Vec3d lastWritten) { this.lastWritten = lastWritten; }
   }
 
   /**

@@ -190,7 +190,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
 
   @Override
   public void move(Vec3d move) {
-    this.move.set(move).multLocal(settings.movementSpeed);
+    this.move.set(move).multLocal(settings.getMovementSpeed());
   }
 
   @Override
@@ -462,7 +462,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     // and targetFacing is 355 degrees.  Need to know to just turn
     // 10 degrees instead of going all the way around. The math kernel
     // returns a value already wrapped into [0, 2π).
-    facing = MobDriverLogic.shortestArcFacing(facing, targetFacing, step, settings.turnSpeed);
+    facing = MobDriverLogic.shortestArcFacing(facing, targetFacing, step, settings.getTurnSpeed());
     orientation.fromAngles(0, facing, 0);
   }
 
@@ -500,7 +500,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     // We could kill vertical velocity here based on contacts, in water, etc.
 
     // Right now, we'll treat everything as ground contact
-    force.multLocal(settings.groundImpulse * (1.0 / body.getInverseMass()));
+    force.multLocal(settings.getGroundImpulse() * (1.0 / body.getInverseMass()));
 
     body.addForceAtPoint(force, 0.1, body.position);
 

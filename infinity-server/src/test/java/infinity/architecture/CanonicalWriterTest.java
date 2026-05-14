@@ -10,6 +10,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import org.junit.Assert;
 import org.junit.Test;
 
 /**
@@ -131,7 +132,7 @@ public class CanonicalWriterTest {
     }
 
     if (problems.length() > 0) {
-      throw new AssertionError(
+      Assert.fail(
           "Replacement-as-Mutation violation(s) — see .claude/rules/replacement-as-mutation.md:\n"
               + problems
               + "\nFix by routing the extra writers through the canonical writer via a "

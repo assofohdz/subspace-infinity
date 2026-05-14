@@ -324,13 +324,8 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
     public void close() {
       log.debug("Closing game session for:{}", conn);
-      // Remove our physics body
-      //// physics.removeBody(shipEntity);
-      // Physics body is now removed as a side-effect of the entity
-      // going away.
-
-      // Remove the ship we created
-      // ed.removeEntity(shipEntity);
+      // Physics body and ship entity are removed as a side-effect of the
+      // owning entity going away — explicit cleanup not needed.
     }
 
     @Override

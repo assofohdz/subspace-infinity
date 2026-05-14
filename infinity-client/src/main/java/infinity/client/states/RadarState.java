@@ -593,6 +593,24 @@ public class RadarState extends BaseAppState {
             // ArenaFootprint vertices are immutable; no-op.
         }
 
+        /** Thin delegate to {@link RadarStateLogic#buildFootprintFill}. */
+        private Geometry buildFootprintFill(final Vec3d[] verts) {
+            return RadarStateLogic.buildFootprintFill(
+                verts,
+                THEME.arenaTintColor(),
+                getApplication().getAssetManager(),
+                FILL_Y);
+        }
+
+        /** Thin delegate to {@link RadarStateLogic#buildFootprintOutline}. */
+        private Geometry buildFootprintOutline(final Vec3d[] verts) {
+            return RadarStateLogic.buildFootprintOutline(
+                verts,
+                THEME.arenaOutlineColor(),
+                getApplication().getAssetManager(),
+                OUTLINE_Y);
+        }
+
         @Override
         protected void removeObject(final Footprint footprint, final Entity e) {
             footprint.node.removeFromParent();
@@ -626,24 +644,6 @@ public class RadarState extends BaseAppState {
             f.outlineMat.setColor(COLOR_PARAM,
                     isCurrent ? THEME.arenaOutlineColor() : THEME.arenaOutlineColorMuted());
         }
-    }
-
-    /** Thin delegate to {@link RadarStateLogic#buildFootprintFill}. */
-    private Geometry buildFootprintFill(final Vec3d[] verts) {
-        return RadarStateLogic.buildFootprintFill(
-            verts,
-            THEME.arenaTintColor(),
-            getApplication().getAssetManager(),
-            ArenaFootprintContainer.FILL_Y);
-    }
-
-    /** Thin delegate to {@link RadarStateLogic#buildFootprintOutline}. */
-    private Geometry buildFootprintOutline(final Vec3d[] verts) {
-        return RadarStateLogic.buildFootprintOutline(
-            verts,
-            THEME.arenaOutlineColor(),
-            getApplication().getAssetManager(),
-            ArenaFootprintContainer.OUTLINE_Y);
     }
 
     // RadarLeafView, RadarLeafObserver, RadarViewEntry moved to RadarLeafPager.

@@ -126,7 +126,7 @@ public final class MapTileSurvey {
     final LevelFile lvl;
     try (InputStream is = Files.newInputStream(file.toPath());
         BufferedInputStream bis = new BufferedInputStream(is)) {
-      lvl = new LevelFile(bis, bmp, bmp.isBitMap(), bmp.hasELVL, file.getName());
+      lvl = new LevelFile(bis, bmp, bmp.isBitMap(), bmp.hasELVL(), file.getName());
       final String err = lvl.readLevel();
       if (err != null) {
         throw new IllegalStateException("readLevel failed: " + err);

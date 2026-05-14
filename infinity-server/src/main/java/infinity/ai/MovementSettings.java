@@ -44,13 +44,45 @@ import com.google.common.base.MoreObjects;
  * @author Paul Speed
  */
 public class MovementSettings {
-  public double groundImpulse = 25;
-  public double airImpulse = 1; // by default things can barely move in the air
-  public double movementSpeed = 1.0;
-  public double turnSpeed = Math.PI * 2.0;
+  private double groundImpulse = 25;
+  private double airImpulse = 1; // by default things can barely move in the air
+  private double movementSpeed = 1.0;
+  private double turnSpeed = Math.PI * 2.0;
 
   public MovementSettings() {
       // nothing to do
+  }
+
+  public double getGroundImpulse() {
+    return groundImpulse;
+  }
+
+  public void setGroundImpulse(final double groundImpulse) {
+    this.groundImpulse = groundImpulse;
+  }
+
+  public double getAirImpulse() {
+    return airImpulse;
+  }
+
+  public void setAirImpulse(final double airImpulse) {
+    this.airImpulse = airImpulse;
+  }
+
+  public double getMovementSpeed() {
+    return movementSpeed;
+  }
+
+  public void setMovementSpeed(final double movementSpeed) {
+    this.movementSpeed = movementSpeed;
+  }
+
+  public double getTurnSpeed() {
+    return turnSpeed;
+  }
+
+  public void setTurnSpeed(final double turnSpeed) {
+    this.turnSpeed = turnSpeed;
   }
 
   @Override

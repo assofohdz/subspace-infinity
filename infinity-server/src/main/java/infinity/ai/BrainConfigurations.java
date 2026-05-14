@@ -185,13 +185,11 @@ public final class BrainConfigurations {
       return false;
     }
     double speed = obj.getVelocity().lengthSq();
-    if (speed > 1) {
-      // If we are already fleeing then we're in a panic and wouldn't
-      // notice a new danger... at least for now.
-      if (!(brain.getCurrentGoal() instanceof Flee)) {
-        brain.newGoal(new Flee(obj.getId()));
-        return true;
-      }
+    // If we are already fleeing then we're in a panic and wouldn't
+    // notice a new danger... at least for now.
+    if (speed > 1 && !(brain.getCurrentGoal() instanceof Flee)) {
+      brain.newGoal(new Flee(obj.getId()));
+      return true;
     }
     return false;
   }

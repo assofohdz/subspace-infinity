@@ -23,9 +23,9 @@ public class BitMap {
     private int[] image;
 
     private boolean validBmp = false;
-    public boolean hasELVL = false; // since ELVL headers are so interlocked with the bitmap, this is
-    // the appropriate place
-    public int eLvlOffset = -1;
+    // ELVL headers are so interlocked with the bitmap, this is the appropriate place.
+    private boolean hasELVL;
+    private int eLvlOffset = -1;
 
     public BitMap(final BufferedInputStream stream) {
         this.stream = stream;
@@ -284,5 +284,13 @@ public class BitMap {
 
     public int[] getImageData() {
         return image;
+    }
+
+    public boolean hasELVL() {
+        return hasELVL;
+    }
+
+    public int getELvlOffset() {
+        return eLvlOffset;
     }
 }

@@ -15,12 +15,16 @@ public class LevelFile {
 
     private static final Logger log = LoggerFactory.getLogger(LevelFile.class);
 
-    public String file;
+    private final String file;
     private final BitMap bitmap;
     private BufferedInputStream stream;
     private boolean containsBm;
     private boolean hasELVLData;
     private String mapName;
+
+    public String getFile() {
+        return file;
+    }
 
     public String getMapName() {
         return mapName;
@@ -31,14 +35,26 @@ public class LevelFile {
     }
 
     // eLVL ATTR tags... vector of vector of Strings
-    public List<List<String>> eLvlAttrs = new ArrayList<>();
+    private final List<List<String>> eLvlAttrs = new ArrayList<>();
     public static final int DEFAULT_TAG_COUNT = 6;
 
     // Vector of loaded regions
-    public List<Region> loadedRegions;
+    private List<Region> loadedRegions;
 
     // unknown ELVL chunks read in on load
-    public List<Byte> unknownELVLData = new ArrayList<>();
+    private final List<Byte> unknownELVLData = new ArrayList<>();
+
+    public List<List<String>> getELvlAttrs() {
+        return eLvlAttrs;
+    }
+
+    public List<Region> getLoadedRegions() {
+        return loadedRegions;
+    }
+
+    public List<Byte> getUnknownELVLData() {
+        return unknownELVLData;
+    }
 
     private final short[][] level = new short[1024][1024];
 
@@ -70,6 +86,7 @@ public class LevelFile {
      */
     public LevelFile(final BitMap b) {
         bitmap = b;
+        this.file = null;
     }
 
     /**
@@ -202,7 +219,7 @@ public class LevelFile {
      */
     public String readLevel() throws IOException {
         if (hasELVLData) {
-            readIn(bitmap.eLvlOffset);
+            readIn(bitmap.getELvlOffset());
         } else if (containsBm) {
             readIn(bitmap.getFileSize());
         }

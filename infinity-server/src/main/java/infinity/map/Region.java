@@ -2,7 +2,6 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.map;
 
-import java.awt.Color;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,31 +9,25 @@ import java.util.List;
 /** eLVL region: rNam name, rBSE/rNFL/rNWP/rNAW flags, rAWP autoWarp (x, y, arena ≤15 chars), rTIL rectangles. Codec primitives in {@link RegionRleCodec}. */
 public class Region {
 
-    public Color color;
-    public String name;
+    private String name;
 
-    public boolean isBase;
-    public boolean isNoFlags;
-    public boolean isNoWeps;
-    public boolean isNoAnti;
-    public boolean isAutoWarp;
+    private boolean isBase;
+    private boolean isNoFlags;
+    private boolean isNoWeps;
+    private boolean isNoAnti;
+    private boolean isAutoWarp;
 
     // autowarp
-    public int x = 512;
-    public int y = 512;
-    public String arena = "";
+    private int x = 512;
+    private int y = 512;
+    private String arena = "";
 
-    public List<Rectangle> rects = new ArrayList<>();
-    public List<Byte> unknownBytes = new ArrayList<>(); // region bytes loaded... but unknown or unused by the program
+    private final List<Rectangle> rects = new ArrayList<>();
+    // region bytes loaded... but unknown or unused by the program
+    private final List<Byte> unknownBytes = new ArrayList<>();
 
     public Region() {
         name = "@THIS_IS_A_BUG->ERROR"; // the user should never see this
-        color = RegionRleCodec.getRandomColor();
-    }
-
-    public Region(final String newName, final Color newColor) {
-        name = newName;
-        color = newColor;
     }
 
     /**

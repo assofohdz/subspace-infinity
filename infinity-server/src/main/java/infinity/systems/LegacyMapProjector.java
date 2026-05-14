@@ -74,8 +74,8 @@ public final class LegacyMapProjector {
         if (s == 0) {
           continue;
         }
-        stats.totalNonZero++;
-        stats.idHistogram.merge(Short.toUnsignedInt(s), 1, Integer::sum);
+        stats.incrementTotalNonZero();
+        stats.getIdHistogram().merge(Short.toUnsignedInt(s), 1, Integer::sum);
         final Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
         coordinates.add(location);
         if (!spawnTileEntity(s, location, createdTime, stats)) {
@@ -101,7 +101,7 @@ public final class LegacyMapProjector {
           ed,
           new infinity.sim.specs.TurfStationaryFlagSpec(
               EntityId.NULL_ID, physicsSpace, createdTime, location, engineCfg.flagRadius()));
-      stats.turfFlags++;
+      stats.incrementTurfFlags();
       return true;
     }
     if (s == MapTypes.VIE_ASTEROID_SMALL) {
@@ -109,7 +109,7 @@ public final class LegacyMapProjector {
           ed,
           new infinity.sim.specs.AsteroidSpec(
               null, physicsSpace, createdTime, location, 0, engineCfg.over1Radius()));
-      stats.asteroidsSmall++;
+      stats.incrementAsteroidsSmall();
       return true;
     }
     if (s == MapTypes.VIE_ASTEROID_MEDIUM) {
@@ -117,7 +117,7 @@ public final class LegacyMapProjector {
           ed,
           new infinity.sim.specs.AsteroidSpec(
               null, physicsSpace, createdTime, location, 0, engineCfg.over2Radius()));
-      stats.asteroidsMedium++;
+      stats.incrementAsteroidsMedium();
       return true;
     }
     if (s == MapTypes.VIE_ASTEROID_END) {
@@ -125,14 +125,14 @@ public final class LegacyMapProjector {
           ed,
           new infinity.sim.specs.Over5Spec(
               null, physicsSpace, createdTime, location, engineCfg.over5Radius()));
-      stats.over5++;
+      stats.incrementOver5();
       return true;
     }
     if (s >= MapTypes.VIE_V_DOOR_START && s <= MapTypes.VIE_H_DOOR_END) {
       MapFactory.createDoor(
           ed,
           new infinity.sim.specs.DoorSpec(null, physicsSpace, createdTime, 5000, location));
-      stats.doors++;
+      stats.incrementDoors();
       return true;
     }
     if (s == MapTypes.VIE_WORMHOLE) {
@@ -147,7 +147,7 @@ public final class LegacyMapProjector {
               GravityWell.PULL,
               new Vec3d(0, 0, 0),
               1));
-      stats.wormholes++;
+      stats.incrementWormholes();
       return true;
     }
     return false;
@@ -165,15 +165,15 @@ public final class LegacyMapProjector {
         : InfinityConstants.INVISIBLE_BLOCK_TYPE;
     final int result = world.setWorldCell(location, blockType);
     if (result == -1) {
-      stats.cellsFailedLeaf++;
+      stats.incrementCellsFailedLeaf();
     } else if (blockType == InfinityConstants.INVISIBLE_BLOCK_TYPE) {
-      stats.cellsInvisible++;
+      stats.incrementCellsInvisible();
     } else {
-      stats.cellsVisible++;
+      stats.incrementCellsVisible();
     }
-    if (stats.firstWritten == null) {
-      stats.firstWritten = location;
+    if (stats.getFirstWritten() == null) {
+      stats.setFirstWritten(location);
     }
-    stats.lastWritten = location;
+    stats.setLastWritten(location);
   }
 }

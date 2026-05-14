@@ -79,28 +79,6 @@ public class OctBytes {
     this.root = new Octad();
   }
 
-  // Returns true if the octad defined by the specified parameters
-  // is completely contained in the box defined by min,max
-  private static boolean octadInBox(int xo, int yo, int zo, int size, Vec3i min, Vec3i max) {
-    // Note: we use <= beceause we are also using size to define
-    // the octad bounds.  Not sure if min/max will be max-inclusive yet or not.
-    // So this may need to change... but it's likely that max will also be min+size.
-    return xo >= min.x
-        && yo >= min.y
-        && zo >= min.z
-        && xo + size <= max.x
-        && yo + size <= max.y
-        && zo + size <= max.z;
-  }
-
-  private static boolean octadOutsideBox(int xo, int yo, int zo, int size, Vec3i min, Vec3i max) {
-    if (xo + size <= min.x || yo + size <= min.y || zo + size <= min.z) {
-      return true;
-    }
-    // If max is exclusive then we need >=
-    return xo >= max.x || yo >= max.y || zo >= max.z;
-  }
-
   public void set(Vec3d min, Vec3d max, byte value) {
     Vec3i v1 = min.mult(scale).floor();
     Vec3i v2 = max.mult(scale).floor();
@@ -140,11 +118,33 @@ public class OctBytes {
   }
 
   private static class Octad {
-    public byte value;
-    public Octad[] children;
+    private byte value;
+    private Octad[] children;
 
     public Octad() {
       // Nothing to do here
+    }
+
+    // Returns true if the octad defined by the specified parameters
+    // is completely contained in the box defined by min,max
+    private static boolean octadInBox(int xo, int yo, int zo, int size, Vec3i min, Vec3i max) {
+      // Note: we use <= beceause we are also using size to define
+      // the octad bounds.  Not sure if min/max will be max-inclusive yet or not.
+      // So this may need to change... but it's likely that max will also be min+size.
+      return xo >= min.x
+          && yo >= min.y
+          && zo >= min.z
+          && xo + size <= max.x
+          && yo + size <= max.y
+          && zo + size <= max.z;
+    }
+
+    private static boolean octadOutsideBox(int xo, int yo, int zo, int size, Vec3i min, Vec3i max) {
+      if (xo + size <= min.x || yo + size <= min.y || zo + size <= min.z) {
+        return true;
+      }
+      // If max is exclusive then we need >=
+      return xo >= max.x || yo >= max.y || zo >= max.z;
     }
 
     public void dump(String indent, String label, PrintWriter out) {

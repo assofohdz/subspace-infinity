@@ -96,7 +96,7 @@ public class InfinityGeometryFactory {
 
         long end = System.nanoTime();
         if( log.isTraceEnabled() ) {
-            log.trace("Generated in:" + ((end - start)/1000000.0) + " ms");
+            log.trace("Generated in:{} ms", (end - start) / 1000000.0);
         }
         return result;
     }
@@ -120,7 +120,7 @@ public class InfinityGeometryFactory {
 
         long end = System.nanoTime();
         if( log.isTraceEnabled() ) {
-            log.trace("Generated in:" + ((end - start)/1000000.0) + " ms");
+            log.trace("Generated in:{} ms", (end - start) / 1000000.0);
         }
         return result;
     }

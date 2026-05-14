@@ -107,10 +107,10 @@ public final class ArenaLogic {
       log.debug("Stat failed for {} (arena {}); skipping reload tick", w.onDisk, w.arenaName);
       return;
     }
-    if (mtime.equals(w.lastModified)) {
+    if (mtime.equals(w.getLastModified())) {
       return;
     }
-    w.lastModified = mtime;
+    w.setLastModified(mtime);
     try {
       w.onChanged.run();
     } catch (final RuntimeException e) {
@@ -418,7 +418,7 @@ public final class ArenaLogic {
     public final String arenaName;
     public final String classpathPath;
     public final Path onDisk;
-    public FileTime lastModified;
+    private FileTime lastModified;
     public final Runnable onChanged;
 
     public WatchedFile(
@@ -432,6 +432,14 @@ public final class ArenaLogic {
       this.onDisk = onDisk;
       this.lastModified = lastModified;
       this.onChanged = onChanged;
+    }
+
+    public FileTime getLastModified() {
+      return lastModified;
+    }
+
+    public void setLastModified(final FileTime lastModified) {
+      this.lastModified = lastModified;
     }
   }
 }

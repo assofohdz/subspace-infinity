@@ -120,13 +120,13 @@ public class MobSystem extends AbstractGameSystem {
         BrainConfigurations.initialize(ed);
 
         MovementSettings dog = new MovementSettings();
-        dog.groundImpulse = 40;
-        dog.movementSpeed = 2; // the base movement speed, ie: walking.
+        dog.setGroundImpulse(40);
+        dog.setMovementSpeed(2); // the base movement speed, ie: walking.
         settingsIndex.put("dog", dog);
 
         MovementSettings chicken = new MovementSettings();
-        chicken.groundImpulse = 25;
-        chicken.airImpulse = 25;
+        chicken.setGroundImpulse(25);
+        chicken.setAirImpulse(25);
         settingsIndex.put("chicken", chicken);
 
         if (log.isInfoEnabled()) {

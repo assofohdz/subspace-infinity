@@ -41,11 +41,19 @@ import com.simsilica.mathd.Vec3d;
 
 /** Entity-id + pick location returned from a scene-graph pick. */
 public class PickedObject {
-    public EntityId entityId;
-    public Vec3d location;
+    private final EntityId entityId;
+    private final Vec3d location;
 
     public PickedObject(final EntityId entityId, final Vec3d location) {
         this.entityId = entityId;
         this.location = location;
+    }
+
+    public EntityId getEntityId() {
+        return entityId;
+    }
+
+    public Vec3d getLocation() {
+        return location;
     }
 }

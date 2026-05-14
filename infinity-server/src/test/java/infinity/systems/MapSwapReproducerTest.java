@@ -323,7 +323,7 @@ public class MapSwapReproducerTest {
     }
     try (InputStream is = Files.newInputStream(file.toPath());
          BufferedInputStream bis = new BufferedInputStream(is)) {
-      LevelFile lvl = new LevelFile(bis, bmp, bmp.isBitMap(), bmp.hasELVL, file.getName());
+      LevelFile lvl = new LevelFile(bis, bmp, bmp.isBitMap(), bmp.hasELVL(), file.getName());
       String err = lvl.readLevel();
       if (err != null) {
         throw new IllegalStateException("readLevel failed: " + err);

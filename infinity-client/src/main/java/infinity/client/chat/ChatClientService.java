@@ -125,7 +125,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
         @Override
         public void playerJoined(final int clientId, final String name) {
             if (log.isTraceEnabled()) {
-                log.trace("playerJoined(" + clientId + ", " + name + ")");
+                log.trace("playerJoined({}, {})", clientId, name);
             }
             for (final ChatSessionListener l : listeners) {
                 l.playerJoined(clientId, name);
@@ -135,7 +135,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
         @Override
         public void newMessage(final int clientId, final String name, final String message) {
             if (log.isTraceEnabled()) {
-                log.trace("newMessage(" + clientId + ", " + name + ", " + message + ")");
+                log.trace("newMessage({}, {}, {})", clientId, name, message);
             }
             for (final ChatSessionListener l : listeners) {
                 l.newMessage(clientId, name, message);
@@ -145,7 +145,7 @@ public class ChatClientService extends AbstractClientService implements ChatSess
         @Override
         public void playerLeft(final int clientId, final String name) {
             if (log.isTraceEnabled()) {
-                log.trace("playerLeft(" + clientId + ", " + name + ")");
+                log.trace("playerLeft({}, {})", clientId, name);
             }
             for (final ChatSessionListener l : listeners) {
                 l.playerLeft(clientId, name);
