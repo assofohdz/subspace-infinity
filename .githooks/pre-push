@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Pre-push gate — runs the same static-analysis ceilings CI runs
+# (Checkstyle + PMD + Spotless + ArchUnit) so violations don't leave
+# the laptop.
+#
+# Activate (one-time, per clone):
+#   git config core.hooksPath .githooks
+#
+# Bypass (emergencies only):
+#   git push --no-verify
+#
+# Reads from stdin per the git pre-push contract but does not parse
+# refs — the gate runs against the working tree as-is.
+
+set -eu
+
+repo_root=$(git rev-parse --show-toplevel)
+cd "$repo_root"
+
+# Drain stdin so git doesn't see a broken pipe.
+cat >/dev/null || true
+
+echo "[pre-push] ./gradlew check"
+if ! ./gradlew check; then
+    echo
+    echo "[pre-push] FAILED — fix the violations above, or re-push with"
+    echo "[pre-push] 'git push --no-verify' if you really must skip the gate."
+    exit 1
+fi
