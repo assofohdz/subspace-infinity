@@ -44,6 +44,8 @@ import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.concurrent.locks.Lock;
 import java.util.function.Function;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -54,6 +56,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.Striped;
 
 import com.simsilica.mworld.ColumnData;
 import com.simsilica.mworld.ColumnId;
@@ -70,10 +73,14 @@ public class DefaultColumnDb extends AbstractColumnDb {
 
   private SpoolingObjectDb<ColumnId, ColumnData> storage;
 
-  // Class-wide write lock — serializes writeColumn calls. Locking on the `data` parameter
-  // (S2445) was unsafe: callers could hold an external monitor on the same ColumnData and
-  // deadlock with the spool thread. Per-column locks would scale better; see backlog.
-  private final Object writeLock = new Object();
+  // Per-column write locks (Guava Striped: fixed bucket pool, same ColumnId always
+  // maps to the same Lock; unrelated ColumnIds usually hash to different buckets).
+  // Replaces the prior class-wide writeLock that serialized every writeColumn across
+  // all columns — under heavy multi-arena load that was the bottleneck. 64 stripes
+  // is well above the number of columns a typical zone holds active at once, so
+  // collisions are rare.
+  private static final int LOCK_STRIPES = 64;
+  private final Striped<Lock> columnLocks = Striped.lock(LOCK_STRIPES);
 
   public DefaultColumnDb( final File root) {
     // Use ParentIdFileFunction which handles the directory structure properly
@@ -93,8 +100,12 @@ public class DefaultColumnDb extends AbstractColumnDb {
       }
 
       protected void storeObject( final ColumnId id, final ColumnData data ) {
-        synchronized(writeLock) {
+        final Lock lock = columnLocks.get(id);
+        lock.lock();
+        try {
           writeColumn(data);
+        } finally {
+          lock.unlock();
         }
       }
     };
@@ -144,12 +155,28 @@ public class DefaultColumnDb extends AbstractColumnDb {
   }
 
   protected void writeColumn( final ColumnData col ) {
-    File f = fileFunc.apply(col.getColumnId());
+    final File f = fileFunc.apply(col.getColumnId());
+    final File tmp = new File(f.getAbsolutePath() + ".tmp");
 
-    // Reset the version first so that we write the new version value
-    // to the file.
+    // Write to a temp file, then atomic-rename onto the target. Two effects:
+    //   (1) A reader that opens `f` mid-write can never observe a partial /
+    //       truncated GZIP stream — the rename is atomic at the filesystem
+    //       level, so the file is always either fully-old or fully-new.
+    //   (2) resetChanged() (which sets loadVersion = version, i.e. "marks
+    //       in-memory as persisted at this version") runs AFTER the rename
+    //       succeeds. The prior order (reset BEFORE write) gave readers a
+    //       false isChanged()=false window while the file was still
+    //       in-flight — the previously-flagged DataVersion
+    //       read-after-write race in the Mythruna-derived persistence layer.
+    writeColumn(tmp, col);
+    try {
+      Files.move(tmp.toPath(), f.toPath(),
+          StandardCopyOption.REPLACE_EXISTING,
+          StandardCopyOption.ATOMIC_MOVE);
+    } catch (final IOException e) {
+      throw new IllegalStateException("Error publishing column file: " + tmp + " -> " + f, e);
+    }
     col.resetChanged(System.currentTimeMillis());
-    writeColumn(f, col);
   }
 
   protected void writeColumn( final File f, final ColumnData col ) {

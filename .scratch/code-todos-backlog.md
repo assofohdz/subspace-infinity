@@ -47,18 +47,6 @@ Each row: actionable item + source file:line + brief context.
   recalc for a batch.** Source:
   `infinity-server/src/main/java/infinity/sim/internal/InfinityDefaultLeafWorld.java:139`.
   Hot during bulk map load / live edit.
-- [ ] **`DefaultColumnDb.storeObject` uses a single hard `synchronized
-  (writeLock)` for all column writes — replace with per-column locks so
-  unrelated columns can persist concurrently.** Source:
-  `infinity-server/src/main/java/infinity/server/DefaultColumnDb.java:96`
-  (formerly `// FIXME: column locks instead of hard sync`).
-- [ ] **`DefaultColumnDb.writeColumn` resets the version counter before
-  the file write — race window if a second writer mutates the column
-  mid-flight. Pattern is common to all `DataVersion` use-cases in the
-  Mythruna-derived persistence layer.** Source:
-  `infinity-server/src/main/java/infinity/server/DefaultColumnDb.java:152`
-  (formerly `// FIXME: fix the thread sync issue here that is pretty
-  common with all DataVerison use-cases.`).
 
 ### AI behaviour
 
