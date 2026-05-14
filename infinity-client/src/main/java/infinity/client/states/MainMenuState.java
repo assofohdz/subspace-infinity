@@ -109,12 +109,7 @@ public class MainMenuState extends BaseAppState {
 
         log.info("onClientConnected({})", event);
 
-        // getStateManager().attach(new ChatState());
         getStateManager().attach(new GameSessionState());
-
-        // Can we get a leaf?
-        // com.simsilica.mworld.net.client.WorldClientService world =
-
     }
 
     protected void onClientDisconnected(@SuppressWarnings("unused") final ClientEvent event) {

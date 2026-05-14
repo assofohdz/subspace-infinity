@@ -396,10 +396,8 @@ public class GameServer {
     systems.register(FrequencySystem.class, new FrequencySystem());
 
     systems.register(WorldSystem.class, new WorldSystem());
-    // systems.register(DoorSystem.class, new DoorSystem());
 
     systems.register(BasicEnvironment.class, new BasicEnvironment());
-    // <--
 
     // Add a system that will forward physics changes to the Ethereal
     // zone manager

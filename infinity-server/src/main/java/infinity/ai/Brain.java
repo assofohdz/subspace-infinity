@@ -144,10 +144,8 @@ public class Brain {
   }
 
   public boolean objectMoved(SeenObject obj) {
-    if (currentStrategy != null) {
-      if (currentStrategy.objectMoved(this, obj)) {
-        return true;
-      }
+    if (currentStrategy != null && currentStrategy.objectMoved(this, obj)) {
+      return true;
     }
     // Else try the default
     if (config.getDefaultStrategy() != null) {
@@ -160,10 +158,8 @@ public class Brain {
   // doesn't really have it... We'll pretend we do for now with
   // an Object.
   public boolean blocked(Object blocker) {
-    if (currentStrategy != null) {
-      if (currentStrategy.blocked(this, blocker)) {
-        return true;
-      }
+    if (currentStrategy != null && currentStrategy.blocked(this, blocker)) {
+      return true;
     }
     // Else try the default
     if (config.getDefaultStrategy() != null) {
@@ -173,10 +169,8 @@ public class Brain {
   }
 
   public boolean isInterestingTouch(String type) {
-    if (currentStrategy != null) {
-      if (currentStrategy.isInterestingTouch(type)) {
-        return true;
-      }
+    if (currentStrategy != null && currentStrategy.isInterestingTouch(type)) {
+      return true;
     }
     // Check the defaults
     if (config.getDefaultStrategy() != null) {

@@ -41,9 +41,11 @@ import com.simsilica.lemur.input.FunctionId;
 import com.simsilica.lemur.input.InputMapper;
 
 /** In-game tool function ids + default mouse mappings. */
-public class ToolFunctions {
+public final class ToolFunctions {
 
     public static final String IN_GAME = "In Game";
+
+    private ToolFunctions() { /* utility */ }
 
     public static final FunctionId F_MAIN_TOOL = new FunctionId(IN_GAME, "Main Tool");
     public static final FunctionId F_ALT_TOOL = new FunctionId(IN_GAME, "Alt. Tool");

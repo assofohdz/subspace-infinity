@@ -69,8 +69,8 @@ final class RadarLeafPager {
         }
     }
 
-    /** Drain queued leaf-change events; requeue affected leaves at top priority. */
-    @SuppressWarnings("PMD.AssignmentInOperand") // canonical `while ((leafId = poll()) != null)` drain
+    /** Drain queued leaf-change events; requeue affected leaves at top priority (canonical poll-drain idiom). */
+    @SuppressWarnings("PMD.AssignmentInOperand")
     void drainLeafUpdates() {
         LeafId leafId;
         while ((leafId = radarUpdatedLeafIds.poll()) != null) {

@@ -7,10 +7,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 public class BitMap {
-    public final static int BI_RGB = 0; // No compression
-    public final static int BI_RLE8 = 1; // RLE 8-bit / pixel
-    public final static int BI_RLE4 = 2; // RLE 4-bit / pixel
-    public final static int BI_BITFIELDS = 3; // Bitfields
+    public static final int BI_RGB = 0; // No compression
+    public static final int BI_RLE8 = 1; // RLE 8-bit / pixel
+    public static final int BI_RLE4 = 2; // RLE 4-bit / pixel
+    public static final int BI_BITFIELDS = 3; // Bitfields
 
     private final BufferedInputStream m_stream;
 

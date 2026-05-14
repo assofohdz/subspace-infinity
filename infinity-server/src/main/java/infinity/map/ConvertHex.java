@@ -3,7 +3,9 @@
 package infinity.map;
 
 /** Byte ↔ hex string helpers. */
-public class ConvertHex {
+public final class ConvertHex {
+
+    private ConvertHex() { /* utility */ }
 
     public static String byteToHex(final byte b) {
         final String result;

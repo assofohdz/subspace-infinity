@@ -62,10 +62,14 @@ public class CameraMovementFunctions {
 
     public static final FunctionId F_RUN = new FunctionId(GROUP_MOVEMENT, "Run");
 
-    // Captured so sensitivity / flip can be applied later via InputMapper.
+    // Captured so sensitivity / flip can be applied later via InputMapper; reassigned in initializeDefaultMappings, so cannot be final.
+    @SuppressWarnings("java:S1444")
     public static InputMapper.Mapping MOUSE_X_LOOK;
+    @SuppressWarnings("java:S1444")
     public static InputMapper.Mapping MOUSE_Y_LOOK;
+    @SuppressWarnings("java:S1444")
     public static InputMapper.Mapping JOY_X_LOOK;
+    @SuppressWarnings("java:S1444")
     public static InputMapper.Mapping JOY_Y_LOOK;
 
     private CameraMovementFunctions() { /* utility */ }

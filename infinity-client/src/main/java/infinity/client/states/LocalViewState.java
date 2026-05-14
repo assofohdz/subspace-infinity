@@ -109,7 +109,7 @@ public class LocalViewState extends BaseAppState {
   static Logger log = LoggerFactory.getLogger(LocalViewState.class);
   private Application app;
   private final java.util.Set<Integer> registeredArenaTilesets = new java.util.HashSet<>();
-  private final Grid leafGrid = WorldGrids.LEAF_GRID;
+  private static final Grid LEAF_GRID = WorldGrids.LEAF_GRID;
   private final Vec3i viewRadius = new Vec3i(2, 0, 2);
   private final Vec3i centerCell =
       new Vec3i(0, 100, 0); // set it to something that will never match
@@ -121,7 +121,7 @@ public class LocalViewState extends BaseAppState {
   // Anyway, no reason to grab those but also no reason to give up leaf data we
   // could already see on the other end.  So we'll clamp the 'view center' such
   // that we will never query above/below 'the world'.
-  private final int maxBuildHeight = 10;
+  private static final int MAX_BUILD_HEIGHT = 10;
   private final ColorRGBA loadingColor = new ColorRGBA(0.5f, 0.5f, 0.5f, 0.5f);
   private final ColorRGBA emptyColor = new ColorRGBA(0.2f, 0.4f, 0.6f, 0.1f);
   private final ColorRGBA filledColor = new ColorRGBA(1, 1, 0, 0.5f);
@@ -190,7 +190,7 @@ public class LocalViewState extends BaseAppState {
     }
     viewRadius.set(r, r * 4 / 3, r);
     yMin = viewRadius.y * 32;
-    yMax = maxBuildHeight - (viewRadius.y * 32) - 32; // -32 because cells grow up
+    yMax = MAX_BUILD_HEIGHT - (viewRadius.y * 32) - 32; // -32 because cells grow up
 
     if (viewArray != null) {
       resetViewArray();
@@ -310,7 +310,7 @@ public class LocalViewState extends BaseAppState {
   }
 
   @Override
-  @SuppressWarnings("PMD.AssignmentInOperand") // canonical `while ((leafId = poll()) != null)` drain
+  @SuppressWarnings("PMD.AssignmentInOperand")
   public void update(float tpf) {
     final ArenaRegistryState registry = getState(ArenaRegistryState.class);
     if (registry != null) {
@@ -361,12 +361,12 @@ public class LocalViewState extends BaseAppState {
       realWorld.y = yMax;
     }
 
-    final Vec3i newCenter = leafGrid.worldToCell(realWorld);
+    final Vec3i newCenter = LEAF_GRID.worldToCell(realWorld);
     if (!forceUpdate && newCenter.equals(centerCell)) {
       return;
     }
     centerCell.set(newCenter);
-    centerWorld = leafGrid.cellToWorld(centerCell);
+    centerWorld = LEAF_GRID.cellToWorld(centerCell);
     viewMask.setCenterWorld(centerWorld);
 
     log.info("Refreshing local view, centerWorld:{}   pos:{}", centerWorld, pos);
@@ -513,7 +513,6 @@ public class LocalViewState extends BaseAppState {
 
       leafNode.setLocalTranslation(
           (float) worldOffset.x, (float) (centerWorld.y + worldOffset.y), (float) worldOffset.z);
-      // testGeom.move(16, 16, 16); // for our wire box extents
     }
 
     @Override

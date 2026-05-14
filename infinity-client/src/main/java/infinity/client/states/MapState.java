@@ -354,10 +354,7 @@ public class MapState extends BaseAppState {
             if (tileIndex != other.tileIndex) {
                 return false;
             }
-            if (!Objects.equals(tileSet, other.tileSet)) {
-                return false;
-            }
-            return true;
+            return Objects.equals(tileSet, other.tileSet);
         }
 
     }

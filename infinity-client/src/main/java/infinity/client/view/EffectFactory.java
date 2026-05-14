@@ -147,7 +147,6 @@ public class EffectFactory {
         smoketrail.setStartSize(.2f);
         smoketrail.setEndSize(1f);
 
-//        smoketrail.setShape(new EmitterSphereShape(Vector3f.ZERO, 1f));
         smoketrail.setFacingVelocity(true);
         smoketrail.setParticlesPerSec(0);
         smoketrail.setGravity(0, 1, 0);
@@ -173,7 +172,6 @@ public class EffectFactory {
         debris.setStartSize(.2f);
         debris.setEndSize(.2f);
 
-//        debris.setShape(new EmitterSphereShape(Vector3f.ZERO, .05f));
         debris.setParticlesPerSec(0);
         debris.setGravity(0, 12f, 0);
         debris.setLowLife(1.4f);
@@ -190,7 +188,6 @@ public class EffectFactory {
 
     private void createShockwave() {
         final ParticleEmitter shockwave = new ParticleEmitter("Shockwave", ParticleMesh.Type.Triangle, 1 * COUNT_FACTOR);
-//        shockwave.setRandomAngle(true);
         shockwave.setFaceNormal(Vector3f.UNIT_Y);
         shockwave.setStartColor(new ColorRGBA(.48f, 0.17f, 0.01f, .8f / COUNT_FACTOR_F));
         shockwave.setEndColor(new ColorRGBA(.48f, 0.17f, 0.01f, 0f));
@@ -215,36 +212,4 @@ public class EffectFactory {
     public Spatial createExplosion() {
         return explosionEffect.deepClone();
     }
-
-//    @Override
-//    public void simpleUpdate(float tpf) {
-//        time += tpf / speed;
-//        if (time > 1f && state2 == 0) {
-//            flash.emitAllParticles();
-//            spark.emitAllParticles();
-//            smoketrail.emitAllParticles();
-//            debris.emitAllParticles();
-//            shockwave.emitAllParticles();
-//            state2++;
-//        }
-//        if (time > 1f + .05f / speed && state2 == 1) {
-//            flame.emitAllParticles();
-//            roundspark.emitAllParticles();
-//            state2++;
-//        }
-//
-//        // rewind the effect
-//        if (time > 5 / speed && state2 == 2) {
-//            state2 = 0;
-//            time = 0;
-//
-//            flash.killAllParticles();
-//            spark.killAllParticles();
-//            smoketrail.killAllParticles();
-//            debris.killAllParticles();
-//            flame.killAllParticles();
-//            roundspark.killAllParticles();
-//            shockwave.killAllParticles();
-//        }
-//    }
 }

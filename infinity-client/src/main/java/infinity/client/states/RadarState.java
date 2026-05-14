@@ -69,7 +69,7 @@ public class RadarState extends BaseAppState {
     private static final double DEFAULT_RANGE_WORLD_UNITS = 256.0;
     private static final String COLOR_PARAM = "Color";
 
-    private final RadarTheme theme = RadarTheme.DEFAULT;
+    private static final RadarTheme THEME = RadarTheme.DEFAULT;
 
     private Node radarRoot;
     private Node radarEntityRoot;
@@ -119,9 +119,9 @@ public class RadarState extends BaseAppState {
         ed = getState(ConnectionState.class).getEntityData();
         timeSource = getState(ConnectionState.class).getRemoteTimeSource();
         guiNode = ((SimpleApplication) app).getGuiNode();
-        blipFactory = new RadarBlipFactory(app.getAssetManager(), theme);
+        blipFactory = new RadarBlipFactory(app.getAssetManager(), THEME);
         final RadarLeafSilhouetteIndex silhouetteIndex =
-                new RadarLeafSilhouetteIndex(app.getAssetManager(), theme);
+                new RadarLeafSilhouetteIndex(app.getAssetManager(), THEME);
 
         // World + worker pools — same lookups LocalViewState uses; the radar
         // shares the existing job-state services (and their thread budgets)
@@ -149,7 +149,7 @@ public class RadarState extends BaseAppState {
         footprints = new ArenaFootprintContainer(ed);
         frequencies = ed.getEntities(RadarShapeInfo.class, Frequency.class);
 
-        radarCam = new Camera(theme.pixelSize(), theme.pixelSize());
+        radarCam = new Camera(THEME.pixelSize(), THEME.pixelSize());
         radarCam.setParallelProjection(true);
         // Frustum is sized from RadarRange in update(); seed with the default so the
         // first off-screen pass before the watch resolves still has a sane projection.
@@ -161,19 +161,19 @@ public class RadarState extends BaseAppState {
 
         radarViewport = app.getRenderManager().createPreView("RadarOffscreen", radarCam);
         radarViewport.setClearFlags(true, true, true);
-        radarViewport.setBackgroundColor(theme.voidTintColor());
+        radarViewport.setBackgroundColor(THEME.voidTintColor());
         radarViewport.attachScene(radarRoot);
 
-        final Texture2D radarTex = new Texture2D(theme.pixelSize(), theme.pixelSize(), Image.Format.RGBA8);
+        final Texture2D radarTex = new Texture2D(THEME.pixelSize(), THEME.pixelSize(), Image.Format.RGBA8);
         radarTex.setMinFilter(Texture.MinFilter.Trilinear);
         radarTex.setMagFilter(Texture.MagFilter.Bilinear);
 
-        final FrameBuffer radarFrameBuffer = new FrameBuffer(theme.pixelSize(), theme.pixelSize(), 1);
+        final FrameBuffer radarFrameBuffer = new FrameBuffer(THEME.pixelSize(), THEME.pixelSize(), 1);
         radarFrameBuffer.setDepthTarget(FrameBuffer.FrameBufferTarget.newTarget(Image.Format.Depth));
         radarFrameBuffer.addColorTarget(FrameBuffer.FrameBufferTarget.newTarget(radarTex));
         radarViewport.setOutputFrameBuffer(radarFrameBuffer);
 
-        radarQuad = new Geometry("Radar", new Quad(theme.pixelSize(), theme.pixelSize()));
+        radarQuad = new Geometry("Radar", new Quad(THEME.pixelSize(), THEME.pixelSize()));
         final Material mat = new Material(app.getAssetManager(), "MatDefs/MiniMap/MiniMap.j3md");
         mat.setTexture("ColorMap", radarTex);
         mat.setTexture("Mask", app.getAssetManager().loadTexture("Textures/MiniMap/circle-mask.png"));
@@ -182,7 +182,7 @@ public class RadarState extends BaseAppState {
         radarQuad.setMaterial(mat);
         // Bottom-right, flush against right + bottom screen edges.
         radarQuad.setLocalTranslation(
-                app.getCamera().getWidth() - theme.pixelSize(),
+                app.getCamera().getWidth() - THEME.pixelSize(),
                 0f,
                 1f);
     }
@@ -258,7 +258,7 @@ public class RadarState extends BaseAppState {
             // Once the avatar id resolves, the local-player-vs-everyone-else colour
             // partition shifts: the blip already attached for our own ship was painted
             // with its own-frequency colour. Repaint everything now so the self blip
-            // flips to theme.selfColor().
+            // flips to THEME.selfColor().
             recolorAllBlips();
         }
         if (avatarWatch == null) {
@@ -393,7 +393,7 @@ public class RadarState extends BaseAppState {
         // scaling each blip's world size proportional to the range cancels the
         // change in camera frustum, so the blip stays the same fraction of the
         // radar circle no matter how far we're zoomed out.
-        final float newScale = (float) (rangeWorldUnits / theme.canonicalRangeWorldUnits());
+        final float newScale = (float) (rangeWorldUnits / THEME.canonicalRangeWorldUnits());
         if (newScale != blipScale) {
             blipScale = newScale;
             for (final Blip blip : blipsById.values()) {
@@ -403,7 +403,7 @@ public class RadarState extends BaseAppState {
     }
 
     private ColorRGBA colorFor(final EntityId id, final Integer entityFreq) {
-        return RadarStateLogic.colorFor(id, entityFreq, avatarEntityId, currentAvatarFreq, theme);
+        return RadarStateLogic.colorFor(id, entityFreq, avatarEntityId, currentAvatarFreq, THEME);
     }
 
     private void applyColor(final Blip blip) {
@@ -421,7 +421,7 @@ public class RadarState extends BaseAppState {
         Blip blip = blipsById.get(e.getId());
         if (blip == null) {
             final RadarShapeInfo info = e.get(RadarShapeInfo.class);
-            final Geometry geom = blipFactory.create(info.getShapeName(ed), theme.neutralColor());
+            final Geometry geom = blipFactory.create(info.getShapeName(ed), THEME.neutralColor());
             geom.setLocalScale(blipScale);
             blip = new Blip(e.getId(), geom);
             // Seed colour from the freq set if it already knows about this entity —
@@ -622,9 +622,9 @@ public class RadarState extends BaseAppState {
             }
             final boolean isCurrent = f == current;
             f.fillMat.setColor(COLOR_PARAM,
-                    isCurrent ? theme.arenaTintColor() : theme.arenaTintColorMuted());
+                    isCurrent ? THEME.arenaTintColor() : THEME.arenaTintColorMuted());
             f.outlineMat.setColor(COLOR_PARAM,
-                    isCurrent ? theme.arenaOutlineColor() : theme.arenaOutlineColorMuted());
+                    isCurrent ? THEME.arenaOutlineColor() : THEME.arenaOutlineColorMuted());
         }
     }
 
@@ -632,7 +632,7 @@ public class RadarState extends BaseAppState {
     private Geometry buildFootprintFill(final Vec3d[] verts) {
         return RadarStateLogic.buildFootprintFill(
             verts,
-            theme.arenaTintColor(),
+            THEME.arenaTintColor(),
             getApplication().getAssetManager(),
             ArenaFootprintContainer.FILL_Y);
     }
@@ -641,7 +641,7 @@ public class RadarState extends BaseAppState {
     private Geometry buildFootprintOutline(final Vec3d[] verts) {
         return RadarStateLogic.buildFootprintOutline(
             verts,
-            theme.arenaOutlineColor(),
+            THEME.arenaOutlineColor(),
             getApplication().getAssetManager(),
             ArenaFootprintContainer.OUTLINE_Y);
     }

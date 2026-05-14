@@ -350,7 +350,6 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
     @Override
     public void setView(final Quatd rotation, final Vec3d location) {
-      // log.info("setView(" + rotation + ", " + location + ")");
       if (!spawned) {
         spawned = true;
       }

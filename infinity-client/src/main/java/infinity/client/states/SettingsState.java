@@ -92,10 +92,6 @@ public class SettingsState extends BaseAppState {
 
         tabs = new TabbedPanel(GLASS_STYLE);
         mainContents.addChild(tabs);
-
-        // SkySettingsState skySettings = getState(SkySettingsState.class);
-        // getParameterTabs().addTab("Sky", skySettings.getSettings());
-
     }
 
     @Override
@@ -106,18 +102,12 @@ public class SettingsState extends BaseAppState {
     @Override
     protected void onEnable() {
         ((SimpleApplication) getApplication()).getGuiNode().attachChild(mainWindow);
-        // getState(CameraMovementState.class).setEnabled(false);
         getState(InfinityCameraState.class).setEnabled(false);
-        // getState(ShootState.class).setEnabled(false);
-        // getState(ObjectInfoState.class).setEnabled(true);
     }
 
     @Override
     protected void onDisable() {
         mainWindow.removeFromParent();
-        // getState(CameraMovementState.class).setEnabled(true);
         getState(InfinityCameraState.class).setEnabled(true);
-        // getState(ShootState.class).setEnabled(true);
-        // getState(ObjectInfoState.class).setEnabled(false);
     }
 }

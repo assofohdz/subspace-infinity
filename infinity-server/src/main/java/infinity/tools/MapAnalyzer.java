@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 /** Standalone .lvl inspector — tile counts + two-map diff. Run via {@code :infinity:analyzeMaps}. */
+@SuppressWarnings("java:S106") // CLI tool: System.out/err is the user-facing report channel, not a logger
 public final class MapAnalyzer {
 
   private static final int SIZE = 1024;

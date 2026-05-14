@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /** Batch tile-ID survey across {@code .lvl} files. Run via {@code :infinity:surveyMaps}; no args → recursively scans {@code infinity/assets/Maps/}. */
+@SuppressWarnings("java:S106") // CLI tool: System.out/err is the user-facing report channel, not a logger
 public final class MapTileSurvey {
 
   private static final int SIZE = 1024;

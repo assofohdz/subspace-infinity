@@ -271,10 +271,8 @@ public class AvatarMovementState extends BaseAppState
       speed = b ? 2 : 1;
     }
 
-    if (value == InputState.Positive) {
-      if (func == AvatarMovementFunctions.F_SHIFT) {
-        this.shiftPressed = true;
-      }
+    if (value == InputState.Positive && func == AvatarMovementFunctions.F_SHIFT) {
+      this.shiftPressed = true;
     }
 
     if (value == InputState.Off) {

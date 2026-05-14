@@ -89,7 +89,6 @@ public class PostProcessingState extends BaseAppState {
 
         shadows = new DropShadowFilter();
         shadows.setEnabled(true);
-        // shadows.setShowBox(true);
         fpp.addFilter(shadows);
 
         resetShadowStrength();

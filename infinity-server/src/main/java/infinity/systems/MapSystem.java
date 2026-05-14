@@ -42,7 +42,7 @@ public class MapSystem extends BaseInfinitySystem {
   private static final String LOG_CURRENT_MAP_LOCATION =
       "Currentmap location is:{}, current direction is:{}";
 
-  private final String mapDirectory = "Maps";
+  private static final String MAP_DIRECTORY = "Maps";
   private final Map<String, Set<Vec3d>> activeMaps = new HashMap<>();
   private final Map<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
   private Vec3d currentMapLoc = new Vec3d(-1, 0, -1);
@@ -178,7 +178,7 @@ public class MapSystem extends BaseInfinitySystem {
     final Vec3i corner = tile.getWorld(null);
     final Vec3d worldOffset = new Vec3d(corner.x, corner.y, corner.z);
 
-    final String fileName = mapDirectory + "/" + mapName;
+    final String fileName = MAP_DIRECTORY + "/" + mapName;
     final LevelFile res = (LevelFile) assetLoader.loadAsset(fileName);
 
     final int tileBase = InfinityConstants.arenaTileBase(arenaIndex);
@@ -282,7 +282,7 @@ public class MapSystem extends BaseInfinitySystem {
     mapCoordinates.remove(oldMapName);
     mapCoordinates.put(newMapName, offset);
 
-    final LevelFile res = (LevelFile) assetLoader.loadAsset(mapDirectory + "/" + newMapName);
+    final LevelFile res = (LevelFile) assetLoader.loadAsset(MAP_DIRECTORY + "/" + newMapName);
     res.setMapName(newMapName);
     log.info("Swapping {} -> {} at {}", oldMapName, newMapName, tile);
 

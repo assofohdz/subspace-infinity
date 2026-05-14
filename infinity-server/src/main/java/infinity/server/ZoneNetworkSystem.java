@@ -70,7 +70,6 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
 
     @Override
     protected void initialize() {
-        // getSystem(PhysicsSpace.class, true).addPhysicsListener(physicsObserver);
         final MPhysSystem<S> system = getPhysicsSystem();
         system.addPhysicsListener(physicsObserver);
         system.getBinEntityManager().addObjectStatusListener(physicsObserver);
@@ -78,7 +77,6 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
 
     @Override
     protected void terminate() {
-        // getSystem(PhysicsSpace.class, true).removePhysicsListener(physicsObserver);
         final MPhysSystem<S> system = getPhysicsSystem();
         system.addPhysicsListener(physicsObserver);
         system.getBinEntityManager().addObjectStatusListener(physicsObserver);
@@ -110,10 +108,6 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
                 log.trace("update(" + body.id + ", " + body.isSleepy() + ")");
             }
             final boolean active = !body.isSleepy();
-//log.info("update body:" + body.id + "  bounds:" + body.getWorldBounds()
-//        + "  cog:" + body.shape.getMass().getCog()
-//        + "  shape info:" + body.shape.getCenter() + "  radius:" + body.shape.getRadius()
-//        + "  cog bounds:" + body.shape.getCogBounds());
             zones.updateEntity(Long.valueOf(body.id.getId()), active, body.position, body.orientation,
                     body.getWorldBounds());
         }

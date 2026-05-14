@@ -28,10 +28,9 @@ public class ResourceSystem extends AbstractGameSystem {
     private EntitySet ships;
     private double time_since_last_update;
     private final Map<EntityId, Integer> goldMap = new HashMap<>();
-    // private final HostedServiceManager serviceManager;
 
     public ResourceSystem(@SuppressWarnings("unused") final HostedServiceManager serviceManager) {
-        // this.serviceManager = serviceManager;
+        // serviceManager param retained for HostedService wiring; reactivate when tower/gold economy unships.
     }
 
     @Override

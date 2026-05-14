@@ -43,9 +43,11 @@ import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.ext.mphys.debug.BinStatusState;
 
 /** In-game debug-toggle function ids + default F3/F4 chord mappings. */
-public class DebugFunctions {
+public final class DebugFunctions {
 
     public static final String IN_GAME = "In Game";
+
+    private DebugFunctions() { /* utility */ }
 
     public static final FunctionId F_BIN_DEBUG = new FunctionId(IN_GAME, "Bin Status Toggle");
     public static final FunctionId F_BODY_DEBUG = new FunctionId(IN_GAME, "Body Debug Toggle");

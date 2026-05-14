@@ -128,17 +128,13 @@ public class SpatialFactory {
 
         // If we are the root level then we'll need a cog shift
         // to match with the rigid body
-        if( isRoot ) {
-            // The position of the object is its CoG... which means
-            // we need to offset our model's origin by it.  It should
-            // already be scaled and everything... just need to negate it.
-
-            // We need to sort out what the center should be.  Directly out of generateBlocks()
-            // the geometry is all relative to the corner.   See cog-offset.txt
-
-            if( debugCoG ) {
-                node.attachChild(createBox(0.1f, ColorRGBA.Red));
-            }
+        // The position of the object is its CoG... which means
+        // we need to offset our model's origin by it.  It should
+        // already be scaled and everything... just need to negate it.
+        // We need to sort out what the center should be.  Directly out of generateBlocks()
+        // the geometry is all relative to the corner.   See cog-offset.txt
+        if( isRoot && debugCoG ) {
+            node.attachChild(createBox(0.1f, ColorRGBA.Red));
         }
 
         parts.setLocalScale((float)part.getScale());

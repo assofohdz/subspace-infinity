@@ -11,7 +11,7 @@ public class MessageTypes {
 
     private MessageTypes() { /* utility class */ }
 
-    public final static int MESSAGE = 1;
-    public final static int WARNING = 2;
-    public final static int ERROR = 3;
+    public static final int MESSAGE = 1;
+    public static final int WARNING = 2;
+    public static final int ERROR = 3;
 }

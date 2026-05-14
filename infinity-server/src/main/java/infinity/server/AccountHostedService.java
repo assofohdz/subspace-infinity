@@ -229,8 +229,6 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
                 }
             }
         }
-
-        // autoAssign.clear();
     }
 
     /**
@@ -485,7 +483,7 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
 
     public boolean isSysopExact(final EntityId id) {
 
-        return getAccessLevel(id) == AccessLevel.SYSOP_LEVEL; // || sysops.contains(id)) {
+        return getAccessLevel(id) == AccessLevel.SYSOP_LEVEL;
     }
 
     /**

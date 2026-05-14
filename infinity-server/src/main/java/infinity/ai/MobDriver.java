@@ -91,7 +91,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   private MovementSettings settings = new MovementSettings();
 
   // A simplified version of something that should be its own type + strategys
-  private final double perceptionRadius = 2;
+  private static final double perceptionRadius = 2;
 
   // A probe we will use to query the world to see if we are about
   // to bump into something and then potentially steer a bit side

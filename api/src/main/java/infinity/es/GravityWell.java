@@ -11,8 +11,8 @@ import com.simsilica.es.EntityComponent;
  */
 public class GravityWell implements EntityComponent {
 
-    public final static String PULL = "pull";
-    public final static String PUSH = "push";
+    public static final String PULL = "pull";
+    public static final String PUSH = "push";
 
     private final double distance;
     private final double force;
