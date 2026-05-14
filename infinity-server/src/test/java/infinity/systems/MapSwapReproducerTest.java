@@ -17,10 +17,12 @@ import infinity.sim.internal.InfinityDefaultLeafWorld;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -67,7 +69,7 @@ public class MapSwapReproducerTest {
     InfinityDefaultLeafWorld world = new InfinityDefaultLeafWorld(leafDb, 10);
 
     Vec3d arenaOffset = new Vec3d(0, 0, 0);
-    HashSet<Vec3d> tracked = writeMapCells(world, map, arenaOffset);
+    Set<Vec3d> tracked = writeMapCells(world, map, arenaOffset);
 
     System.out.println("[" + label + "] tracked cells written: " + tracked.size());
 
@@ -230,9 +232,11 @@ public class MapSwapReproducerTest {
    * tiles (turfFlag, asteroids, wormholes, doors) do not produce world-cells
    * and are skipped. Border tile short-circuit is preserved.
    */
-  private HashSet<Vec3d> writeMapCells(
+  // reproducer test enumerates all cell layouts
+  @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
+  private Set<Vec3d> writeMapCells(
       InfinityDefaultLeafWorld world, LevelFile map, Vec3d arenaOffset) {
-    HashSet<Vec3d> coordinates = new HashSet<>();
+    Set<Vec3d> coordinates = new HashSet<>();
     short[][] tiles = map.getMap();
 
     for (int xpos = 0; xpos < SIZE; xpos++) {
@@ -310,14 +314,14 @@ public class MapSwapReproducerTest {
         "Cannot locate " + name + " (cwd=" + System.getProperty("user.dir") + ")");
   }
 
-  private static LevelFile loadLvl(File file) throws Exception {
+  private static LevelFile loadLvl(File file) throws IOException {
     BitMap bmp;
-    try (InputStream is = new FileInputStream(file);
+    try (InputStream is = Files.newInputStream(file.toPath());
          BufferedInputStream bis = new BufferedInputStream(is)) {
       bmp = new BitMap(bis);
       bmp.readBitMap(false);
     }
-    try (InputStream is = new FileInputStream(file);
+    try (InputStream is = Files.newInputStream(file.toPath());
          BufferedInputStream bis = new BufferedInputStream(is)) {
       LevelFile lvl = new LevelFile(bis, bmp, bmp.isBitMap(), bmp.hasELVL, file.getName());
       String err = lvl.readLevel();

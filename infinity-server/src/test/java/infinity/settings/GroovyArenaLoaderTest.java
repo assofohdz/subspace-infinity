@@ -25,6 +25,9 @@ import org.junit.Test;
  */
 public class GroovyArenaLoaderTest {
 
+  private static final String ARENA_OPEN = "arena {\n";
+  private static final String BLOCK_CLOSE = "}\n";
+
   @Test
   public void builder_capturesAllDirectives() {
     final ArenaConfigBuilder builder = new ArenaConfigBuilder();
@@ -97,13 +100,13 @@ public class GroovyArenaLoaderTest {
   @Test
   public void evaluate_validDsl_capturesAllDirectives() {
     final String source =
-        "arena {\n"
+        ARENA_OPEN
             + "  map '04-2026-trench/pub2025.lvl'\n"
             + "  shipsScript '/conf/trench-04-2026/ships.groovy'\n"
             + "  spawn 1000, 20\n"
             + "  wallFriction 0.5\n"
             + "  includeFragment '/conf/trench-04-2026/trench.conf'\n"
-            + "}\n";
+            + BLOCK_CLOSE;
 
     final ArenaConfig cfg = new GroovyArenaLoader().evaluateSourceForTest(source, "trench.groovy");
 
@@ -139,12 +142,12 @@ public class GroovyArenaLoaderTest {
     // change because the new fields collapse to no-op defaults
     // (countPerPlayer=0, radiusPerPlayer=0, regenBatch=1, hidden=false).
     final String source =
-        "arena {\n"
+        ARENA_OPEN
             + "  map 'foo.lvl'\n"
             + "  spawners {\n"
             + "    spawn x: 512, z: 512, radius: 100, maxCount: 5, intervalMs: 2000\n"
             + "  }\n"
-            + "}\n";
+            + BLOCK_CLOSE;
 
     final ArenaConfig cfg = new GroovyArenaLoader().evaluateSourceForTest(source, "t.groovy");
 
@@ -159,13 +162,13 @@ public class GroovyArenaLoaderTest {
   @Test
   public void evaluate_spawnersBlock_explicitNewFields_passThrough() {
     final String source =
-        "arena {\n"
+        ARENA_OPEN
             + "  map 'foo.lvl'\n"
             + "  spawners {\n"
             + "    spawn x: 512, z: 512, radius: 400, maxCount: 5, intervalMs: 1500,\n"
             + "          countPerPlayer: 2, radiusPerPlayer: 50, regenBatch: 3, hidden: true\n"
             + "  }\n"
-            + "}\n";
+            + BLOCK_CLOSE;
 
     final ArenaConfig cfg = new GroovyArenaLoader().evaluateSourceForTest(source, "t.groovy");
 
@@ -223,10 +226,10 @@ public class GroovyArenaLoaderTest {
   @Test
   public void evaluate_friendlyFireDirective_capturedInConfig() {
     final String source =
-        "arena {\n"
+        ARENA_OPEN
             + "  map 'foo.lvl'\n"
             + "  friendlyFire 1\n"
-            + "}\n";
+            + BLOCK_CLOSE;
 
     final ArenaConfig cfg = new GroovyArenaLoader().evaluateSourceForTest(source, "t.groovy");
 

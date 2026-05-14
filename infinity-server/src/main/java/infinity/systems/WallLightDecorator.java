@@ -28,6 +28,12 @@ public final class WallLightDecorator {
   private WallLightDecorator() {
   }
 
+  /** Shared scan/emit context threaded through the private wall-run helpers. */
+  private record RunContext(
+      int minRun, int spacing, int lightY,
+      Vec3d arenaOffset, World world, Set<Vec3d> coordinates) {
+  }
+
   /** Writes emitter cells; populates {@code coordinates} with every touched location for unload. */
   public static void decorate(
       final short[][] tiles,
@@ -42,14 +48,13 @@ public final class WallLightDecorator {
     final int minRun = CoreViewConstants.WALL_LIGHT_MIN_RUN;
     final int spacing = Math.max(1, CoreViewConstants.WALL_LIGHT_SPACING);
     final int lightY = (int) Math.round(CoreViewConstants.WALL_LIGHT_PLANE_Y);
+    final RunContext ctx = new RunContext(minRun, spacing, lightY, arenaOffset, world, coordinates);
 
-    final int[] horizontalCounters = scanWallRunsAxis(
-        wall, sx, sz, true, minRun, spacing, lightY, arenaOffset, world, coordinates);
+    final int[] horizontalCounters = scanWallRunsAxis(wall, sx, sz, true, ctx);
     final int horizontalLights = horizontalCounters[0];
     final int longestHorizontal = horizontalCounters[1];
 
-    final int[] verticalCounters = scanWallRunsAxis(
-        wall, sx, sz, false, minRun, spacing, lightY, arenaOffset, world, coordinates);
+    final int[] verticalCounters = scanWallRunsAxis(wall, sx, sz, false, ctx);
     final int verticalLights = verticalCounters[0];
     final int longestVertical = verticalCounters[1];
 
@@ -89,8 +94,7 @@ public final class WallLightDecorator {
   /** @return {@code [lightCount, longestRunLength]}. */
   private static int[] scanWallRunsAxis(
       final boolean[][] wall, final int sx, final int sz, final boolean horizontal,
-      final int minRun, final int spacing, final int lightY,
-      final Vec3d arenaOffset, final World world, final Set<Vec3d> coordinates) {
+      final RunContext ctx) {
     // [0] = longestRun, [1] = lightsEmitted; remapped to {lights, longestRun} on return.
     final int[] runStats = {0, 0};
     final int outerLimit = horizontal ? sz : sx;
@@ -98,8 +102,7 @@ public final class WallLightDecorator {
     for (int outer = 0; outer < outerLimit; outer++) {
       int inner = 0;
       while (inner < innerLimit) {
-        inner = processRunAt(wall, horizontal, outer, inner, innerLimit,
-            minRun, spacing, lightY, arenaOffset, world, coordinates, runStats);
+        inner = processRunAt(wall, horizontal, outer, inner, innerLimit, ctx, runStats);
       }
     }
     return new int[] {runStats[1], runStats[0]};
@@ -108,9 +111,7 @@ public final class WallLightDecorator {
   private static int processRunAt(
       final boolean[][] wall, final boolean horizontal,
       final int outer, final int inner, final int innerLimit,
-      final int minRun, final int spacing, final int lightY,
-      final Vec3d arenaOffset, final World world, final Set<Vec3d> coordinates,
-      final int[] runStats) {
+      final RunContext ctx, final int[] runStats) {
     if (!MapSystemLogic.isRunStart(wall, horizontal, outer, inner)) {
       return inner + 1;
     }
@@ -118,25 +119,23 @@ public final class WallLightDecorator {
     if (len > runStats[0]) {
       runStats[0] = len;
     }
-    if (len >= minRun) {
-      runStats[1] += emitLightsAlongRun(
-          horizontal, outer, inner, len, spacing, lightY, arenaOffset, world, coordinates);
+    if (len >= ctx.minRun()) {
+      runStats[1] += emitLightsAlongRun(horizontal, outer, inner, len, ctx);
     }
     return inner + Math.max(len, 1);
   }
 
   private static int emitLightsAlongRun(
       final boolean horizontal, final int outer, final int inner, final int len,
-      final int spacing, final int lightY,
-      final Vec3d arenaOffset, final World world, final Set<Vec3d> coordinates) {
-    final int count = Math.max(1, (int) Math.round((double) len / spacing));
+      final RunContext ctx) {
+    final int count = Math.max(1, (int) Math.round((double) len / ctx.spacing()));
     for (int i = 0; i < count; i++) {
       final int along = inner + (int) Math.floor((i + 0.5) * len / count);
       final Vec3d pos = horizontal
-          ? new Vec3d(along, lightY, outer).add(arenaOffset)
-          : new Vec3d(outer, lightY, along).add(arenaOffset);
-      world.setWorldCell(pos, InfinityConstants.LIGHT_EMITTER_BLOCK_TYPE);
-      coordinates.add(pos);
+          ? new Vec3d(along, ctx.lightY(), outer).add(ctx.arenaOffset())
+          : new Vec3d(outer, ctx.lightY(), along).add(ctx.arenaOffset());
+      ctx.world().setWorldCell(pos, InfinityConstants.LIGHT_EMITTER_BLOCK_TYPE);
+      ctx.coordinates().add(pos);
     }
     return count;
   }

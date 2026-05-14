@@ -32,13 +32,15 @@ import org.junit.Test;
  */
 public class AccountHostedServiceAccessLevelTest {
 
+  private static final String TEST_SERVER_NAME = "test-server";
+
   private static EntityId id(final long raw) {
     return new EntityId(raw);
   }
 
   @Test
   public void getAccessLevel_unknownId_returnsPlayerLevel() {
-    final AccountHostedService svc = new AccountHostedService("test-server");
+    final AccountHostedService svc = new AccountHostedService(TEST_SERVER_NAME);
 
     assertEquals(
         "unknown ids default to PLAYER_LEVEL",
@@ -48,7 +50,7 @@ public class AccountHostedServiceAccessLevelTest {
 
   @Test
   public void getAccessLevel_nullId_returnsPlayerLevel() {
-    final AccountHostedService svc = new AccountHostedService("test-server");
+    final AccountHostedService svc = new AccountHostedService(TEST_SERVER_NAME);
 
     // Null is reachable from chat-command parsing paths where the source id
     // hasn't been resolved yet; the contract is "default to least privilege."
@@ -57,7 +59,7 @@ public class AccountHostedServiceAccessLevelTest {
 
   @Test
   public void addOperator_storesLevel_andTierPredicatesReflectIt() {
-    final AccountHostedService svc = new AccountHostedService("test-server");
+    final AccountHostedService svc = new AccountHostedService(TEST_SERVER_NAME);
     final EntityId moderator = id(7L);
 
     svc.addOperator(moderator, AccessLevel.MODERATOR_LEVEL);
@@ -77,7 +79,7 @@ public class AccountHostedServiceAccessLevelTest {
     // redundant (default) but should still be tracked rather than silently
     // dropped — the level boundary in addOperator() is `< PLAYER_LEVEL`,
     // so PLAYER_LEVEL itself is allowed.
-    final AccountHostedService svc = new AccountHostedService("test-server");
+    final AccountHostedService svc = new AccountHostedService(TEST_SERVER_NAME);
     final EntityId target = id(11L);
 
     svc.addOperator(target, AccessLevel.PLAYER_LEVEL);
@@ -86,7 +88,7 @@ public class AccountHostedServiceAccessLevelTest {
 
   @Test
   public void exactPredicates_distinguishExactTier() {
-    final AccountHostedService svc = new AccountHostedService("test-server");
+    final AccountHostedService svc = new AccountHostedService(TEST_SERVER_NAME);
     final EntityId zh = id(101L);
     final EntityId smod = id(102L);
 
@@ -102,7 +104,7 @@ public class AccountHostedServiceAccessLevelTest {
 
   @Test
   public void getAllOfAccessLevel_returnsOnlyMatching() {
-    final AccountHostedService svc = new AccountHostedService("test-server");
+    final AccountHostedService svc = new AccountHostedService(TEST_SERVER_NAME);
     final EntityId zh1 = id(1L);
     final EntityId zh2 = id(2L);
     final EntityId mod = id(3L);
@@ -121,7 +123,7 @@ public class AccountHostedServiceAccessLevelTest {
 
   @Test
   public void getHostedConnection_unknownId_returnsNull() {
-    final AccountHostedService svc = new AccountHostedService("test-server");
+    final AccountHostedService svc = new AccountHostedService(TEST_SERVER_NAME);
 
     // We don't drive any real connection through the service; the lookup
     // must safely return null rather than throw on miss.
@@ -130,7 +132,7 @@ public class AccountHostedServiceAccessLevelTest {
 
   @Test
   public void clear_preservesBotLevelEntries() {
-    final AccountHostedService svc = new AccountHostedService("test-server");
+    final AccountHostedService svc = new AccountHostedService(TEST_SERVER_NAME);
     final EntityId bot = id(50L);
     final EntityId mod = id(51L);
 

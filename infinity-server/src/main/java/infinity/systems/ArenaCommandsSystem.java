@@ -27,6 +27,8 @@ public class ArenaCommandsSystem extends BaseInfinitySystem {
 
   static final Logger log = LoggerFactory.getLogger(ArenaCommandsSystem.class);
 
+  private static final String ARENA_PREFIX = "Arena ";
+
   private final Pattern loadMap = Pattern.compile("\\~loadMap\\s(\\w+.(?:lvl|lvz))");
   private final Pattern unloadMap = Pattern.compile("\\~unloadMap\\s(\\w+.(?:lvl|lvz))");
   private final Pattern swapMap =
@@ -178,21 +180,21 @@ public class ArenaCommandsSystem extends BaseInfinitySystem {
   private String describe(final String arenaName) {
     final ArenaSystem.ArenaState state = arenaSystem.getArenaState(arenaName);
     if (state == null) {
-      return "Arena " + arenaName + " not in registry";
+      return ARENA_PREFIX + arenaName + " not in registry";
     }
     switch (state) {
       case LOADED:
-        return "Arena " + arenaName + " loaded";
+        return ARENA_PREFIX + arenaName + " loaded";
       case LOADING:
-        return "Arena " + arenaName + " loading";
+        return ARENA_PREFIX + arenaName + " loading";
       case UNLOADING:
-        return "Arena " + arenaName + " unloading";
+        return ARENA_PREFIX + arenaName + " unloading";
       case NOT_LOADED:
-        return "Arena " + arenaName + " not loaded";
+        return ARENA_PREFIX + arenaName + " not loaded";
       case FAILED:
-        return "Arena " + arenaName + " failed: " + arenaSystem.getArenaError(arenaName);
+        return ARENA_PREFIX + arenaName + " failed: " + arenaSystem.getArenaError(arenaName);
       default:
-        return "Arena " + arenaName + " state=" + state;
+        return ARENA_PREFIX + arenaName + " state=" + state;
     }
   }
 

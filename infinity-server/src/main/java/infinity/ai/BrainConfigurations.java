@@ -58,6 +58,11 @@ public class BrainConfigurations {
   private static final Map<String, BrainConfiguration> configs = new HashMap<>();
   private static BrainConfiguration defaultConfig;
 
+  private static final String HOME = "home";
+  private static final String CORN = "corn";
+  private static final String LOG_GOAL_SUCCEEDED = "{} succeeded for:{}";
+  private static final String LOG_GOAL_FAILED = "{} failed for:{}";
+
   public static void initialize(EntityData ed) {
     configs.put("mob", createPerson(ed));
     defaultConfig = createDummy(ed);
@@ -70,7 +75,7 @@ public class BrainConfigurations {
 
   public static BrainConfiguration createChicken(final EntityData ed) {
     BrainConfiguration config = new BrainConfiguration();
-    config.setProperty("home", new Vec3d(-12.6, 64, 13.5));
+    config.setProperty(HOME, new Vec3d(-12.6, 64, 13.5));
     wireChickenGoalSelector(config);
     wireChickenDefaultStrategy(config);
     wireChickenWander(config);
@@ -106,7 +111,7 @@ public class BrainConfigurations {
   private static Goal pickNearestCornGoal(final Brain brain, final Actor actor) {
     double min = Double.POSITIVE_INFINITY;
     SeenObject nearest = null;
-    for (SeenObject obj : actor.search("corn")) {
+    for (SeenObject obj : actor.search(CORN)) {
       // If it's too far above us then it doesn't matter
       if (obj.getPosition().y > actor.getPosition().y + 1) {
         continue;
@@ -133,7 +138,7 @@ public class BrainConfigurations {
    */
   private static Goal pickGoHomeGoal(
       final Brain brain, final Actor actor, final double triggerDistance, final double arrivalRange) {
-    Vec3d home = brain.getProperty("home", null);
+    Vec3d home = brain.getProperty(HOME, null);
     if (home == null) {
       return null;
     }
@@ -167,7 +172,7 @@ public class BrainConfigurations {
     if ("chicken".equals(obj.getType())) {
       return false;
     }
-    if ("corn".equals(obj.getType())) {
+    if (CORN.equals(obj.getType())) {
       // TBD
       return false;
     }
@@ -201,14 +206,14 @@ public class BrainConfigurations {
                       });
                 })
             .onDone((brain, goal) -> {
-                  log.info("{} succeeded for:{}", goal, brain);
+                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
                   return null;
                 })
             .onFailed((brain, goal) -> {
-                  log.info("{} failed for:{}", goal, brain);
+                  log.info(LOG_GOAL_FAILED, goal, brain);
                   return new Say("*bawk*", 1);
                 })
-            .onTouch(Collections.singletonList("corn"),
+            .onTouch(Collections.singletonList(CORN),
                 BrainConfigurations::onCornTouchedPromoteToEat)
             .onBlocked(BrainConfigurations::stopOnBlocked));
   }
@@ -237,7 +242,7 @@ public class BrainConfigurations {
                   return new Sequence(walk, wait, say);
                 })
             .onDone((brain, goal) -> {
-                  log.info("{} succeeded for:{}", goal, brain);
+                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
                   return null;
                 })
             .onFailed((brain, goal) -> {
@@ -261,14 +266,14 @@ public class BrainConfigurations {
                   return new Sequence(say, walk);
                 })
             .onDone((brain, goal) -> {
-                  log.info("{} succeeded for:{}", goal, brain);
+                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
                   return null;
                 })
             .onFailed((brain, goal) -> {
-                  log.info("{} failed for:{}", goal, brain);
+                  log.info(LOG_GOAL_FAILED, goal, brain);
                   return new Say("??", 1);
                 })
-            .onTouch(Collections.singletonList("corn"),
+            .onTouch(Collections.singletonList(CORN),
                 BrainConfigurations::onCornTouchedPromoteToEat)
             .onBlocked(BrainConfigurations::stopOnBlocked));
   }
@@ -323,7 +328,7 @@ public class BrainConfigurations {
   public static BrainConfiguration createDog(final EntityData ed) {
     BrainConfiguration config = new BrainConfiguration();
 
-    config.setProperty("home", new Vec3d(-17, 64, 19));
+    config.setProperty(HOME, new Vec3d(-17, 64, 19));
 
     config.setGoalSelector(
         (brain) -> {
@@ -349,7 +354,7 @@ public class BrainConfigurations {
                   // log.info("objectMoved(" + obj + ")  velocity:" + obj.getVelocity() + "  speed:"
                   // + obj.getVelocity().length());
 
-                  if ("corn".equals(obj.getType())) {
+                  if (CORN.equals(obj.getType())) {
                     // We don't care about moving corn
                     return false;
                   }
@@ -382,12 +387,12 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info("{} succeeded for:{}", goal, brain);
+                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
                   return null;
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info("{} failed for:{}", goal, brain);
+                  log.info(LOG_GOAL_FAILED, goal, brain);
                   return new Say("*ruff*", 1);
                 })
             .onBlocked(
@@ -411,12 +416,12 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info("{} succeeded for:{}", goal, brain);
+                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
                   return null;
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info("{} failed for:{}", goal, brain);
+                  log.info(LOG_GOAL_FAILED, goal, brain);
                   return new Say("??", 1);
                 })
             .onBlocked(BrainConfigurations::stopOnBlocked));
@@ -448,7 +453,7 @@ public class BrainConfigurations {
                   return new Sequence(walk, wait, say);
                 })
             .onDone((brain, goal) -> {
-                  log.info("{} succeeded for:{}", goal, brain);
+                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
                   return null;
                 })
             .onFailed((brain, goal) -> {
@@ -464,7 +469,7 @@ public class BrainConfigurations {
   public static BrainConfiguration createPerson(final EntityData ed) {
     BrainConfiguration config = new BrainConfiguration();
 
-    config.setProperty("home", new Vec3d(-15, 64, 26));
+    config.setProperty(HOME, new Vec3d(-15, 64, 26));
 
     config.setGoalSelector(
         (brain) -> {
@@ -490,7 +495,7 @@ public class BrainConfigurations {
                   // log.info("objectMoved(" + obj + ")  velocity:" + obj.getVelocity() + "  speed:"
                   // + obj.getVelocity().length());
 
-                  if ("corn".equals(obj.getType())) {
+                  if (CORN.equals(obj.getType())) {
                     // We don't care about moving corn
                     return false;
                   }
@@ -523,12 +528,12 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info("{} succeeded for:{}", goal, brain);
+                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
                   return null;
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info("{} failed for:{}", goal, brain);
+                  log.info(LOG_GOAL_FAILED, goal, brain);
                   return new Say("Hmph!", 1);
                 })
             .onBlocked(
@@ -552,12 +557,12 @@ public class BrainConfigurations {
                 })
             .onDone(
                 (brain, goal) -> {
-                  log.info("{} succeeded for:{}", goal, brain);
+                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
                   return null;
                 })
             .onFailed(
                 (brain, goal) -> {
-                  log.info("{} failed for:{}", goal, brain);
+                  log.info(LOG_GOAL_FAILED, goal, brain);
                   return new Say("??", 1);
                 })
             .onBlocked(BrainConfigurations::stopOnBlocked));
@@ -589,7 +594,7 @@ public class BrainConfigurations {
                   return new Sequence(walk, wait, say);
                 })
             .onDone((brain, goal) -> {
-                  log.info("{} succeeded for:{}", goal, brain);
+                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
                   return null;
                 })
             .onFailed((brain, goal) -> {

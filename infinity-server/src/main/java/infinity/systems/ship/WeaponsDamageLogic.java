@@ -54,6 +54,8 @@ final class WeaponsDamageLogic {
     }
 
     /** Splash damage via {@code physicsSpace.queryBounds} pre-filter + strict distance check; splash FF uses mode≥1. */
+    // Splash-damage payload: ed + physics + arena + cr + energy + intent (damage/splash/point/now); orchestrator-held refs, not a domain object.
+    @SuppressWarnings("PMD.ExcessiveParameterList")
     static void applySplashDamage(
             final EntityData ed,
             final EntitySet energyEntities,

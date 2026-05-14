@@ -24,6 +24,8 @@ import org.junit.Test;
  */
 public class PrizeSystemScalingTest {
 
+  private static final String ZONE_TRENCH = "trench";
+
   // ──────────────────────────────────────────────────────────────────────
   // computeEffectiveMaxCount — additive Slice 8d cap
   // ──────────────────────────────────────────────────────────────────────
@@ -116,7 +118,7 @@ public class PrizeSystemScalingTest {
     // Legacy spawner without an ArenaId tag → no scaling, no count.
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId trench1 = ed.createEntity();
-    ed.setComponent(trench1, new ArenaId("trench", EntityId.NULL_ID));
+    ed.setComponent(trench1, new ArenaId(ZONE_TRENCH, EntityId.NULL_ID));
 
     assertEquals(0, PrizeSystem.countPlayersInArena(ed, List.of(trench1), null));
   }
@@ -127,7 +129,7 @@ public class PrizeSystemScalingTest {
     assertEquals(
         0,
         PrizeSystem.countPlayersInArena(
-            ed, List.of(), new ArenaId("trench", EntityId.NULL_ID)));
+            ed, List.of(), new ArenaId(ZONE_TRENCH, EntityId.NULL_ID)));
   }
 
   @Test
@@ -141,15 +143,15 @@ public class PrizeSystemScalingTest {
     final EntityId trench2 = ed.createEntity();
     final EntityId deva1 = ed.createEntity();
     final EntityId noArena = ed.createEntity();
-    ed.setComponent(trench1, new ArenaId("trench", EntityId.NULL_ID));
-    ed.setComponent(trench2, new ArenaId("trench", EntityId.NULL_ID));
+    ed.setComponent(trench1, new ArenaId(ZONE_TRENCH, EntityId.NULL_ID));
+    ed.setComponent(trench2, new ArenaId(ZONE_TRENCH, EntityId.NULL_ID));
     ed.setComponent(deva1, new ArenaId("deva", EntityId.NULL_ID));
     // noArena: no ArenaId → must not count anywhere.
 
     final List<EntityId> all = List.of(trench1, trench2, deva1, noArena);
 
     assertEquals(
-        2, PrizeSystem.countPlayersInArena(ed, all, new ArenaId("trench", EntityId.NULL_ID)));
+        2, PrizeSystem.countPlayersInArena(ed, all, new ArenaId(ZONE_TRENCH, EntityId.NULL_ID)));
     assertEquals(
         1, PrizeSystem.countPlayersInArena(ed, all, new ArenaId("deva", EntityId.NULL_ID)));
     // Arena that no ship is in: zero, even though ships exist.
@@ -166,12 +168,12 @@ public class PrizeSystemScalingTest {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId ship1 = ed.createEntity();
     final EntityId ship2 = ed.createEntity();
-    ed.setComponent(ship1, new ArenaId("trench", new EntityId(42)));
-    ed.setComponent(ship2, new ArenaId("trench", new EntityId(99)));
+    ed.setComponent(ship1, new ArenaId(ZONE_TRENCH, new EntityId(42)));
+    ed.setComponent(ship2, new ArenaId(ZONE_TRENCH, new EntityId(99)));
 
     assertEquals(
         2,
         PrizeSystem.countPlayersInArena(
-            ed, List.of(ship1, ship2), new ArenaId("trench", new EntityId(7))));
+            ed, List.of(ship1, ship2), new ArenaId(ZONE_TRENCH, new EntityId(7))));
   }
 }

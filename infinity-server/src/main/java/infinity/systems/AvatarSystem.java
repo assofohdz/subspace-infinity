@@ -308,7 +308,7 @@ public class AvatarSystem extends BaseInfinitySystem {
    * @return true if the player is a team captain, false otherwise
    */
   public boolean isCaptain(final EntityId entityId) {
-    return (captains.containsId(entityId));
+    return captains.containsId(entityId);
   }
 
   /**
@@ -337,7 +337,7 @@ public class AvatarSystem extends BaseInfinitySystem {
     try {
       // Sum up the entities with the right type
       return freq.stream()
-          .filter(e -> (e.get(ShapeInfo.class).getShapeName(ed).equals(type.getShapeName(ed))))
+          .filter(e -> e.get(ShapeInfo.class).getShapeName(ed).equals(type.getShapeName(ed)))
           .map(_item -> Integer.valueOf(1))
           .reduce(Integer.valueOf(0), Integer::sum)
           .intValue();

@@ -298,7 +298,7 @@ public class WeaponsFireSystem extends BaseInfinitySystem {
 
     final ConfigRegistry cfg = weaponsFor(requesterEntity.getId());
     final long burstCount = cfg.burst().projectileCount();
-    final double angle = (360d / burstCount) * FastMath.DEG_TO_RAD;
+    final double angle = 360d / burstCount * FastMath.DEG_TO_RAD;
 
     final AttackPosition infoOrig = getAttackInfo(requesterEntity, WeaponType.BURST);
     for (int i = 0; i < burstCount; i++) {

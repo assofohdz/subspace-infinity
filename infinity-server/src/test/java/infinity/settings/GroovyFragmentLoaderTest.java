@@ -20,13 +20,17 @@ import org.junit.Test;
  */
 public class GroovyFragmentLoaderTest {
 
+  private static final String BLOCK_CLOSE = "}\n";
+  private static final String SHIP_WARBIRD = "Warbird";
+  private static final String SECTION_PRIZE_WEIGHT = "PrizeWeight";
+
   @Test
   public void section_storesEachKeyAsString() {
     final String src =
         "section('Bomb') {\n"
             + "    BombDamageLevel 750\n"
             + "    BombAliveTime 6000\n"
-            + "}\n";
+            + BLOCK_CLOSE;
 
     final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:section_storesEachKeyAsString");
 
@@ -47,7 +51,7 @@ public class GroovyFragmentLoaderTest {
             + "    \"Team0-Radius\"(96)\n"
             + "    \"Team0-X\"(416)\n"
             + "    \"Team0-Y\"(-480)\n"
-            + "}\n";
+            + BLOCK_CLOSE;
 
     final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:hyphenatedKeys");
 
@@ -77,12 +81,12 @@ public class GroovyFragmentLoaderTest {
         "shipSection('Warbird') {\n"
             + "    SuperTime 6000\n"
             + "    BulletFireEnergy 20\n"
-            + "}\n";
+            + BLOCK_CLOSE;
 
     final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:shipSection_valid");
 
-    assertEquals("6000", ini.get("Warbird").get("SuperTime"));
-    assertEquals("20", ini.get("Warbird").get("BulletFireEnergy"));
+    assertEquals("6000", ini.get(SHIP_WARBIRD).get("SuperTime"));
+    assertEquals("20", ini.get(SHIP_WARBIRD).get("BulletFireEnergy"));
   }
 
   @Test
@@ -110,11 +114,11 @@ public class GroovyFragmentLoaderTest {
         "shipSections('Warbird', 'Javelin', 'Spider') {\n"
             + "    InitialBurst 1\n"
             + "    InitialDecoy 2\n"
-            + "}\n";
+            + BLOCK_CLOSE;
 
     final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:shipSections_splat");
 
-    for (final String name : new String[] {"Warbird", "Javelin", "Spider"}) {
+    for (final String name : new String[] {SHIP_WARBIRD, "Javelin", "Spider"}) {
       final Section sec = ini.get(name);
       assertNotNull("Expected " + name + " section", sec);
       assertEquals(name + " should carry InitialBurst", "1", sec.get("InitialBurst"));
@@ -130,7 +134,7 @@ public class GroovyFragmentLoaderTest {
     final String src =
         "shipSections('Warbird', 'Javelin', 'Lancater') {\n"
             + "    InitialBurst 1\n"
-            + "}\n";
+            + BLOCK_CLOSE;
 
     try {
       new GroovyFragmentLoader().evaluate(src, "test:shipSections_typo");
@@ -163,7 +167,7 @@ public class GroovyFragmentLoaderTest {
     final Profile ini = new GroovyFragmentLoader().load("/conf/svs/prizeweights.groovy");
 
     assertNotNull("prizeweights.groovy should load from the classpath", ini);
-    final Section pw = ini.get("PrizeWeight");
+    final Section pw = ini.get(SECTION_PRIZE_WEIGHT);
     assertNotNull("PrizeWeight section must exist", pw);
     assertEquals("80", pw.get("QuickCharge"));
     assertEquals("110", pw.get("Energy"));
@@ -189,8 +193,8 @@ public class GroovyFragmentLoaderTest {
     final Profile ini = new GroovyFragmentLoader().evaluate(src, "test:include_basic");
 
     // Included file contributes [PrizeWeight]
-    assertNotNull("PrizeWeight section from included file", ini.get("PrizeWeight"));
-    assertEquals("80", ini.get("PrizeWeight").get("QuickCharge"));
+    assertNotNull("PrizeWeight section from included file", ini.get(SECTION_PRIZE_WEIGHT));
+    assertEquals("80", ini.get(SECTION_PRIZE_WEIGHT).get("QuickCharge"));
     // Including script contributes [Bomb]
     assertNotNull("Bomb section from outer script", ini.get("Bomb"));
     assertEquals("1234", ini.get("Bomb").get("BombDamageLevel"));
@@ -209,7 +213,7 @@ public class GroovyFragmentLoaderTest {
     assertEquals(
         "Outer's later write should win over the included file's earlier 80",
         "999",
-        ini.get("PrizeWeight").get("QuickCharge"));
+        ini.get(SECTION_PRIZE_WEIGHT).get("QuickCharge"));
   }
 
   @Test
@@ -229,13 +233,13 @@ public class GroovyFragmentLoaderTest {
     // all of B1.
     assertEquals("2000", ini.get("Brick").get("BrickTime"));
     // From prizeweights.groovy (included)
-    assertEquals("25", ini.get("PrizeWeight").get("BouncingBullets"));
+    assertEquals("25", ini.get(SECTION_PRIZE_WEIGHT).get("BouncingBullets"));
     // From ship-warbird.groovy (included)
-    assertNotNull("Warbird section should exist", ini.get("Warbird"));
+    assertNotNull("Warbird section should exist", ini.get(SHIP_WARBIRD));
     // shipSections league baseline splatted across every ship
     for (final String name :
         new String[] {
-          "Warbird", "Javelin", "Spider", "Leviathan", "Terrier", "Weasel", "Lancaster", "Shark"
+          SHIP_WARBIRD, "Javelin", "Spider", "Leviathan", "Terrier", "Weasel", "Lancaster", "Shark"
         }) {
       assertEquals(name + " should carry league RepelMax=2", "2", ini.get(name).get("RepelMax"));
       assertEquals(name + " should carry league InitialBurst=0", "0", ini.get(name).get("InitialBurst"));
@@ -260,7 +264,7 @@ public class GroovyFragmentLoaderTest {
     assertNotNull("svs-pb/ships.groovy should load", ini);
     for (final String name :
         new String[] {
-          "Warbird", "Javelin", "Spider", "Leviathan", "Terrier", "Weasel", "Lancaster", "Shark"
+          SHIP_WARBIRD, "Javelin", "Spider", "Leviathan", "Terrier", "Weasel", "Lancaster", "Shark"
         }) {
       assertEquals(name + " MaximumSpeed", "3250", ini.get(name).get("MaximumSpeed"));
       assertEquals(name + " InitialBounty", "100", ini.get(name).get("InitialBounty"));
@@ -284,6 +288,8 @@ public class GroovyFragmentLoaderTest {
     }
   }
 
+  // Identity check on Throwable refs: self-causing cause is the JVM-canonical loop sentinel.
+  @SuppressWarnings("PMD.CompareObjectsWithEquals")
   private static boolean anyMessageContains(final Throwable t, final String needle) {
     for (Throwable cur = t; cur != null && cur != cur.getCause(); cur = cur.getCause()) {
       if (cur.getMessage() != null && cur.getMessage().contains(needle)) {
@@ -296,6 +302,8 @@ public class GroovyFragmentLoaderTest {
     return false;
   }
 
+  // Identity check on Throwable refs: self-causing cause is the JVM-canonical loop sentinel.
+  @SuppressWarnings("PMD.CompareObjectsWithEquals")
   private static String chainMessages(final Throwable t) {
     final StringBuilder sb = new StringBuilder();
     for (Throwable cur = t; cur != null; cur = cur.getCause()) {

@@ -20,24 +20,27 @@ import org.junit.Test;
  */
 public class GroovyZoneLoaderTest {
 
+  private static final String ZONE_TRENCH = "trench";
+  private static final String ZONE_DEVA = "deva";
+
   @Test
   public void builder_autoLoad_capturesEachName() {
     final ZoneConfigBuilder builder = new ZoneConfigBuilder();
-    builder.autoLoad("trench", "deva");
+    builder.autoLoad(ZONE_TRENCH, ZONE_DEVA);
 
     final ZoneConfig cfg = build(builder);
 
-    assertEquals(List.of("trench", "deva"), cfg.autoLoadArenas());
+    assertEquals(List.of(ZONE_TRENCH, ZONE_DEVA), cfg.autoLoadArenas());
   }
 
   @Test
   public void builder_autoLoad_blanksAndNullsAreSkipped() {
     final ZoneConfigBuilder builder = new ZoneConfigBuilder();
-    builder.autoLoad("trench", "  ", null, "deva");
+    builder.autoLoad(ZONE_TRENCH, "  ", null, ZONE_DEVA);
 
     final ZoneConfig cfg = build(builder);
 
-    assertEquals(List.of("trench", "deva"), cfg.autoLoadArenas());
+    assertEquals(List.of(ZONE_TRENCH, ZONE_DEVA), cfg.autoLoadArenas());
   }
 
   @Test
@@ -47,7 +50,7 @@ public class GroovyZoneLoaderTest {
 
     final ZoneConfig cfg = build(builder);
 
-    assertEquals("trench", cfg.enterSpawnArena());
+    assertEquals(ZONE_TRENCH, cfg.enterSpawnArena());
   }
 
   @Test

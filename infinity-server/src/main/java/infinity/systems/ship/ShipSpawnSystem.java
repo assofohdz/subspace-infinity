@@ -38,7 +38,7 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
   private static final Logger log = LoggerFactory.getLogger(ShipSpawnSystem.class);
 
   // Subspace: MaximumRotation=400 = one full rotation/sec.
-  private static final double ROTATION_UNITS_TO_RAD_SEC = (2.0 * Math.PI) / 400.0;
+  private static final double ROTATION_UNITS_TO_RAD_SEC = 2.0 * Math.PI / 400.0;
 
   // Subspace: MaximumRecharge is "energy recharge in 10 seconds" → divide by 10 for per-sec.
   private static final double RECHARGE_UNITS_TO_PER_SEC = 1.0 / 10.0;

@@ -65,7 +65,7 @@ public class ShipSpawnSystemTest {
   // Subspace conventions copied from ShipSpawnSystem so the assertions remain
   // local — they break loudly if either the source-of-truth constant or the
   // projection arithmetic drifts.
-  private static final double ROTATION_UNITS_TO_RAD_SEC = (2.0 * Math.PI) / 400.0;
+  private static final double ROTATION_UNITS_TO_RAD_SEC = 2.0 * Math.PI / 400.0;
   private static final double RECHARGE_UNITS_TO_PER_SEC = 1.0 / 10.0;
 
   @Test

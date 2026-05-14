@@ -202,6 +202,9 @@ public final class GroovyArenaLoader {
    */
   public static final class SpawnersBlock {
 
+    private static final String SPAWN_PREFIX = "spawners.spawn '";
+    private static final String MUST_BE_NUMERIC = "' must be numeric (got ";
+
     private final List<SpawnerSpec> entries;
 
     SpawnersBlock(final List<SpawnerSpec> entries) {
@@ -261,7 +264,7 @@ public final class GroovyArenaLoader {
         return n.intValue();
       }
       throw new IllegalArgumentException(
-          "spawners.spawn '" + key + "' must be numeric (got " + v + ")");
+          SPAWN_PREFIX + key + MUST_BE_NUMERIC + v + ")");
     }
 
     private static double doubleArg(final Map<String, ?> args, final String key) {
@@ -283,7 +286,7 @@ public final class GroovyArenaLoader {
         return n.doubleValue();
       }
       throw new IllegalArgumentException(
-          "spawners.spawn '" + key + "' must be numeric (got " + v + ")");
+          SPAWN_PREFIX + key + MUST_BE_NUMERIC + v + ")");
     }
 
     private static long longArg(final Map<String, ?> args, final String key, final long fallback) {
@@ -295,7 +298,7 @@ public final class GroovyArenaLoader {
         return n.longValue();
       }
       throw new IllegalArgumentException(
-          "spawners.spawn '" + key + "' must be numeric (got " + v + ")");
+          SPAWN_PREFIX + key + MUST_BE_NUMERIC + v + ")");
     }
 
     private static boolean boolArg(
@@ -308,7 +311,7 @@ public final class GroovyArenaLoader {
         return b;
       }
       throw new IllegalArgumentException(
-          "spawners.spawn '" + key + "' must be a boolean (got " + v + ")");
+          SPAWN_PREFIX + key + "' must be a boolean (got " + v + ")");
     }
 
     /**
@@ -324,21 +327,21 @@ public final class GroovyArenaLoader {
       }
       if (!(v instanceof Map<?, ?> raw)) {
         throw new IllegalArgumentException(
-            "spawners.spawn '" + key + "' must be a [String: int] map (got " + v + ")");
+            SPAWN_PREFIX + key + "' must be a [String: int] map (got " + v + ")");
       }
       final java.util.Map<String, Integer> out = new java.util.HashMap<>();
       for (final Map.Entry<?, ?> e : raw.entrySet()) {
         if (!(e.getKey() instanceof String k)) {
           throw new IllegalArgumentException(
-              "spawners.spawn '" + key + "' has non-String key: " + e.getKey());
+              SPAWN_PREFIX + key + "' has non-String key: " + e.getKey());
         }
         if (!(e.getValue() instanceof Number n)) {
           throw new IllegalArgumentException(
-              "spawners.spawn '"
+              SPAWN_PREFIX
                   + key
                   + "' value for '"
                   + k
-                  + "' must be numeric (got "
+                  + MUST_BE_NUMERIC
                   + e.getValue()
                   + ")");
         }

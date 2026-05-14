@@ -73,7 +73,7 @@ final class MobDriverLogic {
         if (facing > targetFacing) {
             return Math.min(targetFacing + TWO_PI, facing + maxStep);
         }
-        return Math.max(targetFacing, (facing + TWO_PI) - maxStep);
+        return Math.max(targetFacing, facing + TWO_PI - maxStep);
     }
 
     /** Wrap an angle into {@code [0, 2π)}; assumes the input is at most one rotation off. */

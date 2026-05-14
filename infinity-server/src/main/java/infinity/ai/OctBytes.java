@@ -167,8 +167,8 @@ public class OctBytes {
       out.println(indent + label + ":");
       for (int i = 0; i < 8; i++) {
         int x = i % 2;
-        int y = (i / 2) % 2;
-        int z = (i / 4) % 2;
+        int y = i / 2 % 2;
+        int z = i / 4 % 2;
         children[i].dump(indent + "  ", "[" + x + "][" + y + "][" + z + "]", out);
       }
     }

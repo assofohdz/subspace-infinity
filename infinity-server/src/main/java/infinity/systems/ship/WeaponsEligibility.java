@@ -32,6 +32,8 @@ final class WeaponsEligibility {
 
     private WeaponsEligibility() {}
 
+    // Eligibility-check payload: ed + physics + energy + 5 per-weapon EntitySets + requester + weaponType; orchestrator dispatch shape.
+    @SuppressWarnings("PMD.ExcessiveParameterList")
     static boolean canAttack(
             final EntityData ed,
             final PhysicsSpace<EntityId, MBlockShape> physicsSpace,
@@ -286,6 +288,8 @@ final class WeaponsEligibility {
     }
 
     /** Debits per-weapon cost via attributed {@link EnergySystem#damage(EntityId,int,EntityId,byte)}; burst has no cost yet. */
+    // Cost-deduction payload: ed + energy + 5 per-weapon EntitySets + requester + flag; orchestrator dispatch shape.
+    @SuppressWarnings("PMD.ExcessiveParameterList")
     static boolean deductCostOfAttack(
             final EntityData ed,
             final EnergySystem energy,

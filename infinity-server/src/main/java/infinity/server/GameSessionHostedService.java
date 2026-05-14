@@ -411,6 +411,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
     }
 
     @Override
+    @SuppressWarnings("PMD.CyclomaticComplexity") // CC=10 from action-code switch dispatch; flattening would just hide the table
     public void action(final byte actionInput) {
       final ConsumableTypeId action = ConsumableTypeId.fromWireId(actionInput);
       switch (action) {

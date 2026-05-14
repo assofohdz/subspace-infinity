@@ -82,6 +82,8 @@ public class GroovyEngineLoader {
   }
 
   /** Delegate for {@code engine{…}}. */
+  // CC=98 from per-key parser methods; intentional fan-out
+  @SuppressWarnings("PMD.CyclomaticComplexity")
   public static final class EngineConfigBuilder {
 
     private double subspaceVelocityScale = EngineConfig.DEFAULTS.subspaceVelocityScale();

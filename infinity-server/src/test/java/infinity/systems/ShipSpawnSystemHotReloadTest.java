@@ -75,6 +75,7 @@ import org.junit.Test;
  */
 public class ShipSpawnSystemHotReloadTest {
 
+  private static final String TEST_ARENA_NAME = "test";
   private static final double EPSILON = 1e-9;
   // Mirrors ShipSpawnSystem's private constant so assertion math stays local.
   private static final double RECHARGE_UNITS_TO_PER_SEC = 1.0 / 10.0;
@@ -95,7 +96,7 @@ public class ShipSpawnSystemHotReloadTest {
   public void replaceSnapshot_thenReprojectAll_pushesNewCapabilityStatsOntoLiveShips() {
     final Fixture f = newFixture();
     try {
-      final ArenaId arenaId = new ArenaId("test", EntityId.NULL_ID);
+      final ArenaId arenaId = new ArenaId(TEST_ARENA_NAME, EntityId.NULL_ID);
       f.registry.replace(arenaId, snapshotWith(warbird(/* thrust */ 16, /* speed */ 2000)));
 
       final EntityId ship = f.ed.createEntity();
@@ -148,7 +149,7 @@ public class ShipSpawnSystemHotReloadTest {
   public void replaceSnapshot_thenReprojectAll_preservesLivePoolsOnDamagedShip() {
     final Fixture f = newFixture();
     try {
-      final ArenaId arenaId = new ArenaId("test", EntityId.NULL_ID);
+      final ArenaId arenaId = new ArenaId(TEST_ARENA_NAME, EntityId.NULL_ID);
       f.registry.replace(
           arenaId, snapshotWith(warbird(/* thrust */ 16, /* speed */ 2000)));
 
@@ -211,7 +212,7 @@ public class ShipSpawnSystemHotReloadTest {
   public void reprojectAll_surfacesChangedEntityToObserverEntitySet() {
     final Fixture f = newFixture();
     try {
-      final ArenaId arenaId = new ArenaId("test", EntityId.NULL_ID);
+      final ArenaId arenaId = new ArenaId(TEST_ARENA_NAME, EntityId.NULL_ID);
       f.registry.replace(arenaId, snapshotWith(warbird(/* thrust */ 16, /* speed */ 2000)));
 
       final EntityId ship = f.ed.createEntity();
@@ -333,7 +334,7 @@ public class ShipSpawnSystemHotReloadTest {
   public void reprojectAll_appliesUnitConversionsForRechargeStats() {
     final Fixture f = newFixture();
     try {
-      final ArenaId arenaId = new ArenaId("test", EntityId.NULL_ID);
+      final ArenaId arenaId = new ArenaId(TEST_ARENA_NAME, EntityId.NULL_ID);
       f.registry.replace(arenaId, snapshotWith(warbird(/* thrust */ 16, /* speed */ 2000)));
 
       final EntityId ship = f.ed.createEntity();
@@ -371,7 +372,7 @@ public class ShipSpawnSystemHotReloadTest {
   public void reprojectAll_withNoLiveShips_isNoOp() {
     final Fixture f = newFixture();
     try {
-      final ArenaId arenaId = new ArenaId("test", EntityId.NULL_ID);
+      final ArenaId arenaId = new ArenaId(TEST_ARENA_NAME, EntityId.NULL_ID);
       f.registry.replace(arenaId, snapshotWith(warbird(/* thrust */ 16, /* speed */ 2000)));
 
       final int reprojected = f.spawnSystem.reprojectAll();
@@ -392,7 +393,7 @@ public class ShipSpawnSystemHotReloadTest {
   public void afterReproject_nextSpawnPicksUpNewSnapshot() {
     final Fixture f = newFixture();
     try {
-      final ArenaId arenaId = new ArenaId("test", EntityId.NULL_ID);
+      final ArenaId arenaId = new ArenaId(TEST_ARENA_NAME, EntityId.NULL_ID);
       f.registry.replace(arenaId, snapshotWith(warbird(/* thrust */ 16, /* speed */ 2000)));
 
       final EntityId firstShip = f.ed.createEntity();

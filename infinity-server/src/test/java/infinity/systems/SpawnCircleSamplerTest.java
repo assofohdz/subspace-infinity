@@ -103,7 +103,7 @@ public class SpawnCircleSamplerTest {
       final double r = Math.sqrt(s[0] * s[0] + s[1] * s[1]);
       // Map r ∈ [0, R] → ring index k where outer-radius is R*sqrt((k+1)/rings).
       // Equivalently, ring = floor((r/R)² * rings), clamped to [0, rings-1].
-      final double normSq = (r / radius) * (r / radius);
+      final double normSq = r / radius * r / radius;
       final int ring = Math.min(rings - 1, (int) Math.floor(normSq * rings));
       counts[ring]++;
     }

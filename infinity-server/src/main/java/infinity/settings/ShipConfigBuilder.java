@@ -21,6 +21,17 @@ import java.util.Map;
 /** Delegate for {@code ship(Ship.X){…}} in {@code ships.groovy}. Unset stats stay at {@code (0,0,0)}; unset inventory/status remain {@code null} (= disallowed). */
 final class ShipConfigBuilder {
 
+  private static final String KEY_SPEED = "speed";
+  private static final String KEY_ENERGY = "energy";
+  private static final String KEY_BOMBS = "bombs";
+  private static final String KEY_START = "start";
+  private static final String KEY_MAX = "max";
+  private static final String KEY_FIRE_DELAY = "fireDelay";
+  private static final String KEY_BULLETS = "bullets";
+  private static final String KEY_MINES = "mines";
+  private static final String KEY_STATUS = "status";
+  private static final String ERR_SHIP_STAT_PREFIX = "Ship stat '";
+
   /**
    * Default per-second linear-damping coefficient used when a ship script
    * omits {@code linearDamping}. {@code 0.99} = 1% velocity loss per second
@@ -106,7 +117,7 @@ final class ShipConfigBuilder {
   }
 
   public void speed(final Map<String, ?> args) {
-    this.speed = toStat("speed", args);
+    this.speed = toStat(KEY_SPEED, args);
   }
 
   public void recharge(final Map<String, ?> args) {
@@ -114,7 +125,7 @@ final class ShipConfigBuilder {
   }
 
   public void energy(final Map<String, ?> args) {
-    this.energy = toStat("energy", args);
+    this.energy = toStat(KEY_ENERGY, args);
   }
 
   public void linearDamping(final Number value) {
@@ -156,12 +167,12 @@ final class ShipConfigBuilder {
   public void bombs(final Map<String, ?> args) {
     this.bombs =
         new BombStats(
-            bombsArg("bombs", args, "start"),
-            bombsArg("bombs", args, "max"),
-            intArg("bombs", args, "cost"),
-            longArg("bombs", args, "fireDelay"),
-            intArg("bombs", args, "speed"),
-            intArg("bombs", args, "thrust"));
+            bombsArg(KEY_BOMBS, args, KEY_START),
+            bombsArg(KEY_BOMBS, args, KEY_MAX),
+            intArg(KEY_BOMBS, args, "cost"),
+            longArg(KEY_BOMBS, args, KEY_FIRE_DELAY),
+            intArg(KEY_BOMBS, args, KEY_SPEED),
+            intArg(KEY_BOMBS, args, "thrust"));
   }
 
   /**
@@ -175,11 +186,11 @@ final class ShipConfigBuilder {
   public void bullets(final Map<String, ?> args) {
     this.bullets =
         new BulletStats(
-            bulletsArg("bullets", args, "start"),
-            bulletsArg("bullets", args, "max"),
-            intArg("bullets", args, "cost"),
-            longArg("bullets", args, "fireDelay"),
-            intArg("bullets", args, "speed"));
+            bulletsArg(KEY_BULLETS, args, KEY_START),
+            bulletsArg(KEY_BULLETS, args, KEY_MAX),
+            intArg(KEY_BULLETS, args, "cost"),
+            longArg(KEY_BULLETS, args, KEY_FIRE_DELAY),
+            intArg(KEY_BULLETS, args, KEY_SPEED));
   }
 
   /**
@@ -198,11 +209,11 @@ final class ShipConfigBuilder {
   public void mines(final Map<String, ?> args) {
     this.mines =
         new MineStats(
-            bombsArg("mines", args, "start"),
-            bombsArg("mines", args, "max"),
-            intArg("mines", args, "cost"),
-            longArg("mines", args, "fireDelay"),
-            intArg("mines", args, "speed"));
+            bombsArg(KEY_MINES, args, KEY_START),
+            bombsArg(KEY_MINES, args, KEY_MAX),
+            intArg(KEY_MINES, args, "cost"),
+            longArg(KEY_MINES, args, KEY_FIRE_DELAY),
+            intArg(KEY_MINES, args, KEY_SPEED));
   }
 
   /**
@@ -216,36 +227,36 @@ final class ShipConfigBuilder {
   public void bursts(final Map<String, ?> args) {
     this.bursts =
         new BurstStats(
-            intArg("bursts", args, "start"),
-            intArg("bursts", args, "max"),
-            intArg("bursts", args, "speed"));
+            intArg("bursts", args, KEY_START),
+            intArg("bursts", args, KEY_MAX),
+            intArg("bursts", args, KEY_SPEED));
   }
 
   /** {@code thors start: 2, max: 2, fireDelay: 1000} */
   public void thors(final Map<String, ?> args) {
     this.thors =
         new CountWithDelayStats(
-            intArg("thors", args, "start"),
-            intArg("thors", args, "max"),
-            longArg("thors", args, "fireDelay"));
+            intArg("thors", args, KEY_START),
+            intArg("thors", args, KEY_MAX),
+            longArg("thors", args, KEY_FIRE_DELAY));
   }
 
   /** {@code repels start: 10, max: 20} */
   public void repels(final Map<String, ?> args) {
     this.repels =
-        new CountStats(intArg("repels", args, "start"), intArg("repels", args, "max"));
+        new CountStats(intArg("repels", args, KEY_START), intArg("repels", args, KEY_MAX));
   }
 
   /** {@code decoys start: 0, max: 1} */
   public void decoys(final Map<String, ?> args) {
     this.decoys =
-        new CountStats(intArg("decoys", args, "start"), intArg("decoys", args, "max"));
+        new CountStats(intArg("decoys", args, KEY_START), intArg("decoys", args, KEY_MAX));
   }
 
   /** {@code bricks start: 0, max: 1} */
   public void bricks(final Map<String, ?> args) {
     this.bricks =
-        new CountStats(intArg("bricks", args, "start"), intArg("bricks", args, "max"));
+        new CountStats(intArg("bricks", args, KEY_START), intArg("bricks", args, KEY_MAX));
   }
 
   /**
@@ -259,15 +270,15 @@ final class ShipConfigBuilder {
   public void rockets(final Map<String, ?> args) {
     this.rockets =
         new RocketStats(
-            intArg("rockets", args, "start"),
-            intArg("rockets", args, "max"),
+            intArg("rockets", args, KEY_START),
+            intArg("rockets", args, KEY_MAX),
             longArg("rockets", args, "activeTimeCs"));
   }
 
   /** {@code portals start: 0, max: 2} */
   public void portals(final Map<String, ?> args) {
     this.portals =
-        new CountStats(intArg("portals", args, "start"), intArg("portals", args, "max"));
+        new CountStats(intArg("portals", args, KEY_START), intArg("portals", args, KEY_MAX));
   }
 
   /**
@@ -284,7 +295,7 @@ final class ShipConfigBuilder {
   public void cloak(final Map<String, ?> args) {
     this.cloak =
         new StatusStats(
-            intArg("cloak", args, "status"), intArg("cloak", args, "energy"));
+            intArg("cloak", args, KEY_STATUS), intArg("cloak", args, KEY_ENERGY));
   }
 
   /**
@@ -297,7 +308,7 @@ final class ShipConfigBuilder {
   public void stealth(final Map<String, ?> args) {
     this.stealth =
         new StatusStats(
-            intArg("stealth", args, "status"), intArg("stealth", args, "energy"));
+            intArg("stealth", args, KEY_STATUS), intArg("stealth", args, KEY_ENERGY));
   }
 
   /**
@@ -310,7 +321,7 @@ final class ShipConfigBuilder {
   public void xradar(final Map<String, ?> args) {
     this.xradar =
         new StatusStats(
-            intArg("xradar", args, "status"), intArg("xradar", args, "energy"));
+            intArg("xradar", args, KEY_STATUS), intArg("xradar", args, KEY_ENERGY));
   }
 
   /**
@@ -328,13 +339,13 @@ final class ShipConfigBuilder {
   public void antiwarp(final Map<String, ?> args) {
     this.antiwarp =
         new StatusStats(
-            intArg("antiwarp", args, "status"), intArg("antiwarp", args, "energy"));
+            intArg("antiwarp", args, KEY_STATUS), intArg("antiwarp", args, KEY_ENERGY));
   }
 
   private static ShipStat toStat(final String statName, final Map<String, ?> args) {
     return new ShipStat(
         intArg(statName, args, "initial"),
-        intArg(statName, args, "max"),
+        intArg(statName, args, KEY_MAX),
         intArg(statName, args, "upgrade"));
   }
 
@@ -345,7 +356,7 @@ final class ShipConfigBuilder {
       return n.intValue();
     }
     throw new IllegalArgumentException(
-        "Ship stat '" + statName + "' is missing numeric '" + key + "' (got " + v + ")");
+        ERR_SHIP_STAT_PREFIX + statName + "' is missing numeric '" + key + "' (got " + v + ")");
   }
 
   private static long longArg(
@@ -355,7 +366,7 @@ final class ShipConfigBuilder {
       return n.longValue();
     }
     throw new IllegalArgumentException(
-        "Ship stat '" + statName + "' is missing numeric '" + key + "' (got " + v + ")");
+        ERR_SHIP_STAT_PREFIX + statName + "' is missing numeric '" + key + "' (got " + v + ")");
   }
 
   private static BombLevel bombsArg(
@@ -365,7 +376,7 @@ final class ShipConfigBuilder {
       return b;
     }
     throw new IllegalArgumentException(
-        "Ship stat '" + statName + "' '" + key + "' must be a BombLevel enum value (got " + v + ")");
+        ERR_SHIP_STAT_PREFIX + statName + "' '" + key + "' must be a BombLevel enum value (got " + v + ")");
   }
 
   private static BulletLevel bulletsArg(
@@ -375,7 +386,7 @@ final class ShipConfigBuilder {
       return g;
     }
     throw new IllegalArgumentException(
-        "Ship stat '" + statName + "' '" + key + "' must be a BulletLevel enum value (got " + v + ")");
+        ERR_SHIP_STAT_PREFIX + statName + "' '" + key + "' must be a BulletLevel enum value (got " + v + ")");
   }
 
   private static double doubleArg(final String fieldName, final Number value) {

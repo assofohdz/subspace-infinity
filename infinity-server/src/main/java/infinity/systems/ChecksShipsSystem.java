@@ -71,6 +71,7 @@ import org.slf4j.LoggerFactory;
  *       agrees with the {@link Captain} EntitySet.
  * </ul>
  */
+@SuppressWarnings("PMD.CyclomaticComplexity") // dispatcher with many small per-check methods; flattening would just hide the table
 public class ChecksShipsSystem extends AbstractGameSystem {
 
   static final Logger log = LoggerFactory.getLogger(ChecksShipsSystem.class);

@@ -33,6 +33,8 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
 
   private static final Logger log = LoggerFactory.getLogger(ConfigRegistrySystem.class);
 
+  private static final String ARENA_ID = "arenaId";
+
   private final ConcurrentMap<String, ConfigRegistry> byArena = new ConcurrentHashMap<>();
 
   private SettingsSystem settings;
@@ -114,13 +116,13 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
 
   /** {@link ConfigRegistry#EMPTY} for unknown arenas — never null. */
   public ConfigRegistry forArena(final ArenaId arenaId) {
-    Objects.requireNonNull(arenaId, "arenaId");
+    Objects.requireNonNull(arenaId, ARENA_ID);
     return byArena.getOrDefault(arenaId.getArena(), ConfigRegistry.EMPTY);
   }
 
   /** Atomic swap; readers see either the old or new snapshot. */
   public void replace(final ArenaId arenaId, final ConfigRegistry snapshot) {
-    Objects.requireNonNull(arenaId, "arenaId");
+    Objects.requireNonNull(arenaId, ARENA_ID);
     Objects.requireNonNull(snapshot, "snapshot");
     final ConfigRegistry previous = byArena.put(arenaId.getArena(), snapshot);
     if (log.isDebugEnabled()) {
@@ -133,13 +135,13 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
   }
 
   public void remove(final ArenaId arenaId) {
-    Objects.requireNonNull(arenaId, "arenaId");
+    Objects.requireNonNull(arenaId, ARENA_ID);
     byArena.remove(arenaId.getArena());
   }
 
   /** Three-phase: legacy INI fragments → typed ships → typed per-fragment adapters. Atomic per call. */
   public void load(final ArenaId arenaId, final ArenaConfig arenaConfig) {
-    Objects.requireNonNull(arenaId, "arenaId");
+    Objects.requireNonNull(arenaId, ARENA_ID);
     Objects.requireNonNull(arenaConfig, "arenaConfig");
     final String arenaName = arenaId.getArena();
 

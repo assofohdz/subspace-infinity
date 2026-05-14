@@ -158,7 +158,7 @@ public class RepelSystem extends BaseInfinitySystem {
       return null;
     }
     final double dist = Math.sqrt(distSq);
-    return new Vec3d((dx / dist) * magnitudeJme, 0.0, (dz / dist) * magnitudeJme);
+    return new Vec3d(dx / dist * magnitudeJme, 0.0, dz / dist * magnitudeJme);
   }
 
   private Integer freqValue(final EntityId id) {

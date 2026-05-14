@@ -42,6 +42,8 @@ import org.slf4j.Logger;
 /** Stateless helpers for {@link ArenaSystem}; logger passed explicitly so log lines keep the host name. */
 public final class ArenaLogic {
 
+  private static final String ARENA_PREFIX = "Arena ";
+
   private ArenaLogic() {
   }
 
@@ -236,21 +238,21 @@ public final class ArenaLogic {
   public static String describeArena(
       final ArenaState state, final String arenaName, final java.util.function.Supplier<String> failedError) {
     if (state == null) {
-      return "Arena " + arenaName + " not in registry";
+      return ARENA_PREFIX + arenaName + " not in registry";
     }
     switch (state) {
       case LOADED:
-        return "Arena " + arenaName + " loaded";
+        return ARENA_PREFIX + arenaName + " loaded";
       case LOADING:
-        return "Arena " + arenaName + " loading";
+        return ARENA_PREFIX + arenaName + " loading";
       case UNLOADING:
-        return "Arena " + arenaName + " unloading";
+        return ARENA_PREFIX + arenaName + " unloading";
       case NOT_LOADED:
-        return "Arena " + arenaName + " not loaded";
+        return ARENA_PREFIX + arenaName + " not loaded";
       case FAILED:
-        return "Arena " + arenaName + " failed: " + failedError.get();
+        return ARENA_PREFIX + arenaName + " failed: " + failedError.get();
       default:
-        return "Arena " + arenaName + " state=" + state;
+        return ARENA_PREFIX + arenaName + " state=" + state;
     }
   }
 
@@ -358,11 +360,11 @@ public final class ArenaLogic {
       final String newMap,
       final java.util.function.BooleanSupplier mapSwap) {
     if (state != ArenaState.LOADED) {
-      return SwapMapOutcome.error("Arena " + arenaName + " is not loaded");
+      return SwapMapOutcome.error(ARENA_PREFIX + arenaName + " is not loaded");
     }
     final String oldMap = oldConfig.mapFile();
     if (oldMap.equals(newMap)) {
-      return SwapMapOutcome.error("Arena " + arenaName + " already uses map " + newMap);
+      return SwapMapOutcome.error(ARENA_PREFIX + arenaName + " already uses map " + newMap);
     }
     if (!mapSwap.getAsBoolean()) {
       return SwapMapOutcome.error(
@@ -379,7 +381,7 @@ public final class ArenaLogic {
         oldConfig.friendlyFire());
     return SwapMapOutcome.success(
         nextConfig,
-        "Arena " + arenaName + " map swapped from " + oldMap + " to " + newMap);
+        ARENA_PREFIX + arenaName + " map swapped from " + oldMap + " to " + newMap);
   }
 
   /**
