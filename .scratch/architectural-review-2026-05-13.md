@@ -74,13 +74,7 @@
 
 Items surfaced during P1/P2 execution, not part of the original audit:
 
-- **Asymmetric `ContactSystem` listener lifecycle (latent leak).** `WarpSystem` + `GravitySystem` call `addListener` but never `removeListener` in `terminate()` — risk if `ContactSystem` outlives them or the systems are re-registered. Other five contact-listener systems handle this correctly. *Source: Delta sweep, ContactSystem doc agent.*
-
 - **Kill-credit attribution gap.** `EnergySystem` death-edge emits `ChangeTarget.self(target)` (matching legacy behaviour) — the `source` slot for killer attribution is unset. Could be threaded by inspecting `EnergyChange` siblings carrying a `DamageSource`. *Source: Alpha PrizeSystem-split agent.*
-
-- **Three inconsistent `ContactSystem` lookup idioms** across the seven listener-registering systems: `getSystem(ContactSystem.class)`, `getSystem(ContactSystem.class, true)`, `requireSystem(ContactSystem.class)`. Cosmetic but worth unifying. *Source: Delta.*
-
-- **`PlayerEvent` class is empty** after P2-j retired `playerBanned`. Class file kept; decide whether to delete entirely or wait for a new player event. *Source: Epsilon event-audit agent.*
 
 - **`DefaultColumnDb` real concurrency bugs** (not just style TODOs): hard-sync write bottleneck (every `writeColumn` serialises through a class-wide lock) + DataVersion read-after-write race. Promoted to `.scratch/code-todos-backlog.md` with full context. *Source: TODO triage agent.*
 
