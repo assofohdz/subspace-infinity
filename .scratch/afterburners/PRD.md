@@ -9,4 +9,8 @@ Afterburner makes the ship go faster, but depletes health. Get settings for how 
 From Wikipedia:
 > Players achieve their ship's top speed by maintaining thrust. Each ship is also equipped with afterburners (Shift+Up/Down) which allow the ship to exceed its typical top speed; however, this gradually drains the ship's energy. When afterburners are disengaged, the ship's inertia returns to its normal top speed, not its speed with afterburners.
 
+## Implementation note
+
+`BaseEnergyDrainSystem` (landed 2026-05-14) is the extension point for energy-drain mechanics. Wire an `AfterburnerDrainSystem extends BaseEnergyDrainSystem` and implement `registerDrainEntries()` — `StatusDrainSystem` is the canonical reference subclass.
+
 ## Comments

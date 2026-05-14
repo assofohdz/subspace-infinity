@@ -199,7 +199,13 @@ component types. Keep them that way.
 ### Snapshot grew 2026-05-11 (audit-grade enumeration)
 
 The four bullets above are the historical seed list. The rows below
-are the full enumeration produced by the C4 audit. Audit recipe:
+are the full enumeration produced by the C4 audit. Three generic base
+systems were extracted in a follow-up refactor (2026-05-14):
+`BaseToggleSystem` (status-family toggle writers), `BaseWeaponLevelSystem`
+(Bomb/Bullet/Mine level writers), `BaseEnergyDrainSystem` (status drain —
+`StatusDrainSystem` is its one current subclass; `AfterburnerDrainSystem`
+will be a sibling when the afterburner feature lands). Writer identity
+and canonical-writer ownership are unchanged. Audit recipe:
 
 ```bash
 grep -rEn "setComponent\(.*new [A-Z]\w+\(|\.set\(new [A-Z]\w+\(" \
