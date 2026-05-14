@@ -171,6 +171,7 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     ShipWeaponsProjector.projectBombs(ed, shipId, cfg.bombs(), resetLivePool);
     ShipWeaponsProjector.projectBombSafety(ed, shipId, bombConfig);
     ShipWeaponsProjector.projectBombJitter(ed, shipId, bombConfig);
+    ShipWeaponsProjector.projectGravBombs(ed, shipId, cfg.gravBombs(), resetLivePool);
     ShipWeaponsProjector.projectBullets(ed, shipId, cfg.bullets(), resetLivePool);
     ShipWeaponsProjector.projectMines(ed, shipId, cfg.mines(), resetLivePool);
     ShipWeaponsProjector.projectBursts(ed, shipId, cfg.bursts(), resetLivePool);

@@ -24,7 +24,8 @@ import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletFireDelay;
 import infinity.es.ship.weapons.BulletStats;
-import infinity.es.ship.weapons.GravityBombCost;
+import infinity.es.ship.weapons.GravBomb;
+import infinity.es.ship.weapons.GravBombStats;
 import infinity.es.ship.weapons.GravityBombFireDelay;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineStats;
@@ -343,7 +344,7 @@ public class WeaponsEligibilityTest {
       // Build the 5 EntitySets canAttack() expects.
       final EntitySet bullets = f.ed.getEntities(BulletFireDelay.class);
       final EntitySet bombs = f.ed.getEntities(infinity.es.ship.weapons.BombFireDelay.class);
-      final EntitySet gravs = f.ed.getEntities(infinity.es.ship.weapons.GravityBombFireDelay.class);
+      final EntitySet gravs = f.ed.getEntities(GravBomb.class);
       final EntitySet mines = f.ed.getEntities(infinity.es.ship.weapons.MineFireDelay.class);
       final EntitySet bursts = f.ed.getEntities(Burst.class);
       final EntitySet energyEntities = f.ed.getEntities(Energy.class);
@@ -378,21 +379,20 @@ public class WeaponsEligibilityTest {
     }
   }
 
-  // ===== setCoolDownGravityBomb (special case — refreshes existing delay) =====
+  // ===== canAttackInventoryWeaponWithDelay (gravbomb shape) =====
 
   @Test
-  public void setCoolDownGravityBomb_refreshesExistingDelay() {
+  public void canAttackInventoryWeaponWithDelay_zeroCount_false() {
     final Fixture f = newFixture();
     try {
       final EntityId ship = f.ed.createEntity();
-      f.ed.setComponent(ship, new GravityBombFireDelay(500L));
-      final EntitySet gravs = f.ed.getEntities(GravityBombFireDelay.class);
+      f.ed.setComponent(ship, new GravBomb(0));
+      f.ed.setComponent(ship, new GravityBombFireDelay(0L));
+      final EntitySet gravs = f.ed.getEntities(GravBomb.class);
       gravs.applyChanges();
-      assertTrue(
-          WeaponsEligibility.setCoolDownGravityBomb(f.ed, gravs, f.ed.getEntity(ship)));
-      assertTrue(
-          "refreshed delay reads as not-ready",
-          f.ed.getComponent(ship, GravityBombFireDelay.class).getPercent() < 1.0);
+      assertFalse(
+          WeaponsEligibility.canAttackInventoryWeaponWithDelay(
+              f.ed, gravs, f.ed.getEntity(ship), GravBomb.class, GravityBombFireDelay.class));
       gravs.release();
     } finally {
       f.shutdown();
@@ -400,14 +400,35 @@ public class WeaponsEligibilityTest {
   }
 
   @Test
-  public void setCoolDownGravityBomb_notInSet_false() {
+  public void canAttackInventoryWeaponWithDelay_delayNotReady_false() {
     final Fixture f = newFixture();
     try {
       final EntityId ship = f.ed.createEntity();
-      final EntitySet gravs = f.ed.getEntities(GravityBombFireDelay.class);
+      f.ed.setComponent(ship, new GravBomb(3));
+      f.ed.setComponent(ship, new GravityBombFireDelay(60_000L));
+      final EntitySet gravs = f.ed.getEntities(GravBomb.class);
       gravs.applyChanges();
       assertFalse(
-          WeaponsEligibility.setCoolDownGravityBomb(f.ed, gravs, f.ed.getEntity(ship)));
+          WeaponsEligibility.canAttackInventoryWeaponWithDelay(
+              f.ed, gravs, f.ed.getEntity(ship), GravBomb.class, GravityBombFireDelay.class));
+      gravs.release();
+    } finally {
+      f.shutdown();
+    }
+  }
+
+  @Test
+  public void canAttackInventoryWeaponWithDelay_eligible_true() {
+    final Fixture f = newFixture();
+    try {
+      final EntityId ship = f.ed.createEntity();
+      f.ed.setComponent(ship, new GravBomb(3));
+      f.ed.setComponent(ship, new GravityBombFireDelay(0L));
+      final EntitySet gravs = f.ed.getEntities(GravBomb.class);
+      gravs.applyChanges();
+      assertTrue(
+          WeaponsEligibility.canAttackInventoryWeaponWithDelay(
+              f.ed, gravs, f.ed.getEntity(ship), GravBomb.class, GravityBombFireDelay.class));
       gravs.release();
     } finally {
       f.shutdown();
@@ -421,7 +442,7 @@ public class WeaponsEligibilityTest {
     final EntitySet[] sets = {
         ed.getEntities(BulletFireDelay.class),
         ed.getEntities(BombFireDelay.class),
-        ed.getEntities(GravityBombFireDelay.class),
+        ed.getEntities(GravBomb.class),
         ed.getEntities(MineFireDelay.class),
         ed.getEntities(Burst.class),
         ed.getEntities(Energy.class),
@@ -481,8 +502,9 @@ public class WeaponsEligibilityTest {
     final Fixture f = newFixture();
     try {
       final EntityId ship = energyShip(f.ed, 1000);
+      f.ed.setComponent(ship, new GravBomb(3));
+      f.ed.setComponent(ship, new GravBombStats(5, 100L));
       f.ed.setComponent(ship, new GravityBombFireDelay(0L));
-      f.ed.setComponent(ship, new GravityBombCost(10));
       final EntitySet[] sets = allWeaponSets(f.ed);
       f.systems.update();
       assertTrue(
@@ -504,7 +526,9 @@ public class WeaponsEligibilityTest {
       f.ed.setComponent(ship, new BulletStats(BulletLevel.LEVEL_1, 10, 250L, 50));
       f.ed.setComponent(ship, new BombFireDelay(0L));
       f.ed.setComponent(ship, new BombStats(BombLevel.BOMB_1, 10, 250L, 50, 0));
-      f.ed.setComponent(ship, new GravityBombFireDelay(250L));
+      f.ed.setComponent(ship, new GravBomb(3));
+      f.ed.setComponent(ship, new GravBombStats(5, 250L));
+      f.ed.setComponent(ship, new GravityBombFireDelay(0L));
       f.ed.setComponent(ship, new MineFireDelay(0L));
       f.ed.setComponent(ship, new MineStats(BombLevel.BOMB_1, 10, 250L, 50));
       f.ed.setComponent(ship, new Burst(2));
@@ -548,8 +572,9 @@ public class WeaponsEligibilityTest {
       f.ed.setComponent(ship, new BulletStats(BulletLevel.LEVEL_1, 10, 100L, 50));
       f.ed.setComponent(ship, new BombFireDelay(0L));
       f.ed.setComponent(ship, new BombStats(BombLevel.BOMB_1, 15, 100L, 50, 0));
+      f.ed.setComponent(ship, new GravBomb(3));
+      f.ed.setComponent(ship, new GravBombStats(5, 100L));
       f.ed.setComponent(ship, new GravityBombFireDelay(0L));
-      f.ed.setComponent(ship, new GravityBombCost(20));
       f.ed.setComponent(ship, new MineFireDelay(0L));
       f.ed.setComponent(ship, new MineStats(BombLevel.BOMB_1, 25, 100L, 50));
       f.ed.setComponent(ship, new Burst(3));

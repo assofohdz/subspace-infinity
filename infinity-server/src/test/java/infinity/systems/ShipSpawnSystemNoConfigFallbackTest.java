@@ -185,6 +185,7 @@ public class ShipSpawnSystemNoConfigFallbackTest {
         1.0,                                                              // bounceRestitution
         250.0,                                                            // radarRange
         new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 10, 25L, 2000, 400),
+        null,                                                             // gravBombs
         new BulletStats(BulletLevel.LEVEL_1, BulletLevel.LEVEL_4, 10, 25L, 2000),
         new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 50, 500L, 0),
         null, null, null, null, null, null, null, null, null, null, null,

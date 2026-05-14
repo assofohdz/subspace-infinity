@@ -91,6 +91,7 @@ final class ShipConfigBuilder {
   // FALLBACK (the snapshot installed when ships.groovy is missing or fails
   // to parse).
   private BombStats bombs;
+  private CountWithDelayStats gravBombs;
   private BulletStats bullets;
   private MineStats mines;
   private BurstStats bursts;
@@ -177,6 +178,22 @@ final class ShipConfigBuilder {
             longArg(KEY_BOMBS, args, KEY_FIRE_DELAY),
             intArg(KEY_BOMBS, args, KEY_SPEED),
             intArg(KEY_BOMBS, args, "thrust"));
+  }
+
+  /**
+   * {@code gravBombs start: 0, max: 5, fireDelay: 200}
+   *
+   * <p>Inventory-style gravbomb (Infinity extension — no canonical
+   * {@code [GravBomb]} section). Subspace canon ties gravbomb level to
+   * the ship's current bomb level (level-3 bombs); damage/decay/recoil
+   * share {@link BombStats}.
+   */
+  public void gravBombs(final Map<String, ?> args) {
+    this.gravBombs =
+        new CountWithDelayStats(
+            intArg("gravBombs", args, KEY_START),
+            intArg("gravBombs", args, KEY_MAX),
+            longArg("gravBombs", args, KEY_FIRE_DELAY));
   }
 
   /**
@@ -414,6 +431,7 @@ final class ShipConfigBuilder {
         bounceRestitution,
         radarRange,
         bombs,
+        gravBombs,
         bullets,
         mines,
         bursts,

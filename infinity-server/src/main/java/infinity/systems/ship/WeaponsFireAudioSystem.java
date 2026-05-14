@@ -15,7 +15,6 @@ import infinity.es.ChangeTarget;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BulletCurrentLevel;
 import infinity.es.ship.weapons.FireRequest;
-import infinity.es.ship.weapons.GravityBomb;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.WeaponType;
 import infinity.sim.GameSounds;
@@ -71,9 +70,11 @@ public class WeaponsFireAudioSystem extends BaseInfinitySystem {
             ed, attacker, physicsSpace, now, req.location(), bombLevel.getLevel());
         break;
       case WeaponType.GRAVBOMB:
-        final GravityBomb gravBomb = ed.getComponent(attacker, GravityBomb.class);
+        // Gravbomb audio inherits the ship's current bomb level (Subspace
+        // canon: gravbombs are level-3 bombs).
+        final BombCurrentLevel gravBombLevel = ed.getComponent(attacker, BombCurrentLevel.class);
         GameSounds.createBombSound(
-            ed, attacker, physicsSpace, now, req.location(), gravBomb.getLevel());
+            ed, attacker, physicsSpace, now, req.location(), gravBombLevel.getLevel());
         break;
       case WeaponType.MINE:
         final MineCurrentLevel mineLevel = ed.getComponent(attacker, MineCurrentLevel.class);

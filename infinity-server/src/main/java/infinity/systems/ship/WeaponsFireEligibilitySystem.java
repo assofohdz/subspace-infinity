@@ -26,8 +26,8 @@ import infinity.es.ship.weapons.BulletCurrentLevel;
 import infinity.es.ship.weapons.BulletFireDelay;
 import infinity.es.ship.weapons.BulletStats;
 import infinity.es.ship.weapons.FireRequest;
-import infinity.es.ship.weapons.GravityBomb;
-import infinity.es.ship.weapons.GravityBombCost;
+import infinity.es.ship.weapons.GravBomb;
+import infinity.es.ship.weapons.GravBombStats;
 import infinity.es.ship.weapons.GravityBombFireDelay;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineFireDelay;
@@ -78,7 +78,7 @@ public class WeaponsFireEligibilitySystem extends BaseInfinitySystem {
     bombs = ed.getEntities(BombCurrentLevel.class, BombFireDelay.class, BombStats.class);
     bursts = ed.getEntities(Burst.class);
     gravityBombs =
-        ed.getEntities(GravityBomb.class, GravityBombFireDelay.class, GravityBombCost.class);
+        ed.getEntities(GravBomb.class, GravityBombFireDelay.class, GravBombStats.class);
     mines = ed.getEntities(MineCurrentLevel.class, MineFireDelay.class, MineStats.class);
     energyEntities = ed.getEntities(infinity.es.ship.Energy.class);
   }

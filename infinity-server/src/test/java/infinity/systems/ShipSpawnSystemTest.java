@@ -83,6 +83,7 @@ public class ShipSpawnSystemTest {
             1.0,                            // bounceRestitution
             250.0,                          // radarRange
             new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 10, 25L, /* speed */ 2000, /* thrust */ 400),
+            null,                                       // gravBombs (disallow)
             new BulletStats(BulletLevel.LEVEL_1, BulletLevel.LEVEL_4, 10, 25L, /* speed */ 2000),
             new MineStats(BombLevel.BOMB_1, BombLevel.BOMB_4, 50, 500L, /* speed */ 0),
             new BurstStats(/* start */ 5, /* max */ 5, /* speed */ 3000),
@@ -277,6 +278,7 @@ public class ShipSpawnSystemTest {
             0.3,
             50.0,
             null,                                       // bombs (no bombs)
+            null,                                       // gravBombs (no gravbombs)
             new BulletStats(BulletLevel.LEVEL_3, BulletLevel.LEVEL_3, 450, 100L, 5000),
             null,                                       // mines
             null, null, null, null, null, null, null, null, null, null, null,
@@ -296,6 +298,7 @@ public class ShipSpawnSystemTest {
             0.3,
             50.0,
             new BombStats(BombLevel.BOMB_1, BombLevel.BOMB_1, 1100, 75L, 2250, 400),
+            null,                                       // gravBombs (no gravbombs)
             new BulletStats(BulletLevel.LEVEL_1, BulletLevel.LEVEL_1, 300, 60L, -900),
             null,                                       // mines
             null, null, null, null, null, null, null, null, null, null, null,

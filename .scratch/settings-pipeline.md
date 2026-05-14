@@ -500,6 +500,7 @@ is the macro view.
 | ✅ | `InitialBrick` / `BrickMax` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.bricks` (or similar) | `Brick`/`BrickMax` | `BrickPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
 | ✅ | `InitialRocket` / `RocketMax` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.rockets` | `Rocket`/`RocketMax` | `RocketPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
 | ✅ | `InitialThor` / `ThorMax` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.thors` | `Thor`/`ThorCurrentCount`/`ThorMaxCount` | `ThorPrizeApplier` ✅ | `ConsumableSystem.actOut` (FIRETHOR) | ❌ |
+| ✅ | `gravBombs` (Infinity inventory; no canonical Subspace key) | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.gravBombs` (`CountWithDelayStats`) | `GravBomb`/`GravBombStats`/`GravityBombFireDelay` | — | `WeaponsFireEligibilitySystem` (GRAVBOMB arm: inventory + delay; level inherits `BombCurrentLevel`) → `WeaponsProjectileSpawnSystem.createProjectileGravBomb` | ❌ |
 | ✅ | `InitialDecoy` / `DecoyMax` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.decoys` | `Decoy`/`DecoyMax` | `DecoyPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
 | ✅ | `InitialPortal` / `PortalMax` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.portals` | `Portal`/`PortalMax` | `PortalPrizeApplier` ✅ | `ConsumableSystem.actOut` | ❌ |
 | ✅ | `InitialGuns` / `MaxGuns` | ✅ ships.groovy | `GroovyShipLoader` | `ShipConfig.bullets` (`BulletStats`) | `BulletCurrentLevel`/`BulletMaxLevel` | `GunPrizeApplier` ✅ | `WeaponsSystem.createProjectileBullet` | ❌ |

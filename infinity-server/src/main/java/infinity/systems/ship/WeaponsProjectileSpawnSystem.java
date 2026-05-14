@@ -23,7 +23,6 @@ import infinity.es.arena.ArenaId;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BulletCurrentLevel;
 import infinity.es.ship.weapons.FireRequest;
-import infinity.es.ship.weapons.GravityBomb;
 import infinity.es.ship.weapons.MineCurrentLevel;
 import infinity.es.ship.weapons.MineStats;
 import infinity.es.ship.weapons.WeaponType;
@@ -192,7 +191,11 @@ public class WeaponsProjectileSpawnSystem extends BaseInfinitySystem {
 
   private void createProjectileGravBomb(
       final EntityId attacker, final long now, final FireRequest req) {
-    final GravityBomb gravityBomb = ed.getComponent(attacker, GravityBomb.class);
+    // Gravbomb shape inherits the ship's current bomb level (Subspace canon:
+    // gravbombs are level-3 bombs; Infinity ties it to BombCurrentLevel so
+    // bomb upgrades scale gravbomb shape identically).
+    final BombCurrentLevel bombLevel = ed.getComponent(attacker, BombCurrentLevel.class);
+    final int level = bombLevel == null ? 1 : bombLevel.getLevel().level;
 
     final ConfigRegistry cfg = weaponsFor(attacker);
     final Set<EntityComponent> delayedComponents = new HashSet<>();
@@ -211,7 +214,7 @@ public class WeaponsProjectileSpawnSystem extends BaseInfinitySystem {
                 cfg.bomb().decayMs(),
                 cfg.gravBomb().delayMs(),
                 delayedComponents,
-                BOMB_LEVEL_PREFIX + gravityBomb.getLevel(),
+                BOMB_LEVEL_PREFIX + level,
                 engineConfigSystem.get().bombRadius()));
 
     ed.setComponent(

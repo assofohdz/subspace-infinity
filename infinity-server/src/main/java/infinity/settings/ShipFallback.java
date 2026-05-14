@@ -47,6 +47,8 @@ final class ShipFallback {
   static final BurstStats DEFAULT_BURSTS =
       new BurstStats(/* start */ 5, /* max */ 5, /* speed */ 3000); // SVS canon BurstSpeed=3000
 
+  static final CountWithDelayStats DEFAULT_GRAVBOMBS = null;
+
   static final CountWithDelayStats DEFAULT_THORS =
       new CountWithDelayStats(/* start */ 2, /* max */ 2, /* fireDelayCs */ 1000);
 
@@ -143,6 +145,7 @@ final class ShipFallback {
         ShipConfigBuilder.DEFAULT_BOUNCE_RESTITUTION,
         ShipConfigBuilder.DEFAULT_RADAR_RANGE,
         DEFAULT_BOMBS,
+        DEFAULT_GRAVBOMBS,
         DEFAULT_GUNS,
         DEFAULT_MINES,
         DEFAULT_BURSTS,

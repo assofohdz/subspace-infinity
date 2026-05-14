@@ -2,11 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.weapons;
 
-/**
- * Component holding the cooldown timer between gravity-bomb shots.
- *
- * @author Asser
- */
+/** Cooldown timer between gravbomb shots; ms since stamp / configured duration. */
 public class GravityBombFireDelay implements FireDelay {
 
     private final long start;
@@ -26,15 +22,6 @@ public class GravityBombFireDelay implements FireDelay {
     public double getPercent() {
         final long time = System.nanoTime();
         return (double) (time - start) / delta;
-    }
-
-    /**
-     * Create a new copy of this class witht the same delay
-     *
-     * @return new BombFireDelay instance
-     */
-    public GravityBombFireDelay copy() {
-        return new GravityBombFireDelay(delta / 1000000);
     }
 
     @Override

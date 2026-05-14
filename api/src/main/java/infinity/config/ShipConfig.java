@@ -28,6 +28,7 @@ public record ShipConfig(
     double bounceRestitution,
     double radarRange,
     @Nullable BombStats bombs,
+    @Nullable CountWithDelayStats gravBombs,
     @Nullable BulletStats bullets,
     @Nullable MineStats mines,
     @Nullable BurstStats bursts,

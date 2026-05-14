@@ -28,7 +28,9 @@ import infinity.es.ship.weapons.BulletFireDelay;
 import infinity.es.ship.weapons.BulletStats;
 import infinity.es.ship.weapons.EnergyCost;
 import infinity.es.ship.weapons.FireDelay;
-import infinity.es.ship.weapons.GravityBombCost;
+import infinity.es.ship.weapons.GravBomb;
+import infinity.es.ship.weapons.GravBombChange;
+import infinity.es.ship.weapons.GravBombStats;
 import infinity.es.ship.weapons.GravityBombFireDelay;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineStats;
@@ -66,8 +68,8 @@ final class WeaponsEligibility {
                                 BombFireDelay.class, BombStats.class)
                         && bombSafetyClear(ed, physicsSpace, bombs, energyEntities, requester.getId());
             case WeaponType.GRAVBOMB:
-                return canAttackEnergyWeapon(ed, energy, gravityBombs, requester,
-                        GravityBombFireDelay.class, GravityBombCost.class);
+                return canAttackInventoryWeaponWithDelay(ed, gravityBombs, requester,
+                        GravBomb.class, GravityBombFireDelay.class);
             case WeaponType.MINE:
                 return canAttackEnergyWeapon(ed, energy, mines, requester,
                         MineFireDelay.class, MineStats.class);
@@ -109,6 +111,25 @@ final class WeaponsEligibility {
         }
         final InventoryCount inv = ed.getComponent(requester.getId(), inventoryClass);
         return inv != null && inv.count() > 0;
+    }
+
+    /** Inventory + cooldown eligibility (Infinity gravbomb shape): membership + inventory count &gt; 0 + cooldown ready. */
+    static boolean canAttackInventoryWeaponWithDelay(
+            final EntityData ed,
+            final EntitySet set,
+            final Entity requester,
+            final Class<? extends InventoryCount> inventoryClass,
+            final Class<? extends FireDelay> delayClass) {
+        if (!set.contains(requester)) {
+            return false;
+        }
+        final EntityId id = requester.getId();
+        final InventoryCount inv = ed.getComponent(id, inventoryClass);
+        if (inv == null || inv.count() <= 0) {
+            return false;
+        }
+        final FireDelay delay = ed.getComponent(id, delayClass);
+        return delay != null && delay.getPercent() >= 1;
     }
 
     /** Rejects bomb fire when an enemy sits inside proximity-arm radius; no-op when arena's BombSafety is off. */
@@ -192,7 +213,8 @@ final class WeaponsEligibility {
                     BombStats.class, s -> new BombFireDelay(s.fireDelayMillis()));
         }
         if (flag == WeaponType.GRAVBOMB) {
-            return setCoolDownGravityBomb(ed, gravityBombs, requester);
+            return setCoolDownEnergyWeapon(ed, gravityBombs, requester,
+                    GravBombStats.class, s -> new GravityBombFireDelay(s.fireDelayMillis()));
         }
         if (flag == WeaponType.MINE) {
             return setCoolDownEnergyWeapon(ed, mines, requester,
@@ -223,18 +245,6 @@ final class WeaponsEligibility {
         return true;
     }
 
-    /** GravBomb refreshes the existing FireDelay (preserves its configured delta) rather than rebuilding from stats. */
-    static boolean setCoolDownGravityBomb(
-            final EntityData ed, final EntitySet gravityBombs, final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!gravityBombs.contains(requester)) {
-            return false;
-        }
-        final GravityBombFireDelay bfd = ed.getComponent(requesterId, GravityBombFireDelay.class);
-        ed.setComponent(requesterId, bfd.copy());
-        return true;
-    }
-
     /** Debits per-weapon cost: energy weapons via {@link EnergySystem#damage(EntityId,int,EntityId,byte)}; inventory weapons via a {@code *Change(-1)} Change holder drained by the per-type canonical writer. */
     // Cost-deduction payload: ed + energy + 5 per-weapon EntitySets + requester + flag; orchestrator dispatch shape.
     @SuppressWarnings("PMD.ExcessiveParameterList")
@@ -260,8 +270,7 @@ final class WeaponsEligibility {
                     BombStats.class, WeaponType.BOMB);
         }
         if (flag == WeaponType.GRAVBOMB) {
-            return deductEnergyCost(ed, energy, gravityBombs, requester,
-                    GravityBombCost.class, WeaponType.GRAVBOMB);
+            return deductInventoryWeapon(ed, gravityBombs, requester, new GravBombChange(-1));
         }
         if (flag == WeaponType.MINE) {
             return deductEnergyCost(ed, energy, mines, requester,

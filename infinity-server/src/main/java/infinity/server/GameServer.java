@@ -297,6 +297,7 @@ public class GameServer {
     systems.register(infinity.systems.ship.RepelCountSystem.class, new infinity.systems.ship.RepelCountSystem());
     systems.register(infinity.systems.ship.RocketSystem.class, new infinity.systems.ship.RocketSystem());
     systems.register(infinity.systems.ship.ThorSystem.class, new infinity.systems.ship.ThorSystem());
+    systems.register(infinity.systems.ship.GravBombSystem.class, new infinity.systems.ship.GravBombSystem());
 
     // DecaySystem registers AFTER the ADR 0001 writers above (see ordering comment).
     systems.addSystem(new DecaySystem());

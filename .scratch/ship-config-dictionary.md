@@ -66,6 +66,7 @@ Added during CCP follow-up #4. Defaults match the historical Java globals so exi
 | `turnResponsiveness` | `turnResponsiveness()` | `TurnResponsiveness` | `PlayerDriver.update()` | `8.0` | Angular-velocity ease rate (1/sec). Continuum has no equivalent. |
 | `bounceRestitution` | `bounceRestitution()` | `BounceRestitution` | `ContactSystem.newContact()` | `1.0` | Wall-bounce energy retention. Continuum walls are perfectly elastic by construction. |
 | `radarRange` | `radarRange()` | `RadarRange` | `RadarState` | `250.0` | World-unit radius the client radar viewport displays around the ship. Spawn also projects `RadarShapeInfo` (server-side, not from a `ShipConfig` field) — the blip name is derived from `cfg.type().getName() + "_blip"`. |
+| `gravBombs start: …, max: …, fireDelay: …` | `gravBombs()` (`CountWithDelayStats`) | `GravBomb` (count) + `GravBombStats` (cap + delay) + `GravityBombFireDelay` (cooldown) | `WeaponsFireEligibilitySystem` (GRAVBOMB arm — inventory + delay); `WeaponsProjectileSpawnSystem.createProjectileGravBomb` (level inherits `BombCurrentLevel`) | `null` (disallowed) | Inventory-style gravbomb; Infinity extension — no canonical Subspace `[GravBomb]` section. Mirrors `thors` shape. Damage/decay/recoil share `BombStats`. |
 
 ---
 

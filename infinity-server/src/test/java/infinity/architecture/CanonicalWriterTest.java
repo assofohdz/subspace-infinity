@@ -33,6 +33,8 @@ public class CanonicalWriterTest {
    */
   private static final Map<String, String> CANONICAL_WRITER = new LinkedHashMap<>();
 
+  private static final String WEAPONS_ELIGIBILITY = "infinity.systems.ship.WeaponsEligibility";
+
   static {
     // ship-state aspects
     put("infinity.es.ship.Energy", "infinity.systems.ship.EnergySystem");
@@ -60,13 +62,15 @@ public class CanonicalWriterTest {
     put("infinity.es.ship.actions.Repel", "infinity.systems.ship.RepelCountSystem");
     put("infinity.es.ship.actions.Rocket", "infinity.systems.ship.RocketSystem");
     put("infinity.es.ship.actions.ThorCurrentCount", "infinity.systems.ship.ThorSystem");
+    put("infinity.es.ship.weapons.GravBomb", "infinity.systems.ship.GravBombSystem");
     // weapon cooldown timers — hybrid per-instance Continuous; not the standard Change recipe
     // (cooldown reset is value-replacement, not additive delta), but still one canonical post-
     // spawn writer. WeaponsEligibility re-stamps on each fire; ShipWeaponsProjector seeds at
     // spawn (spawn-tier exempt).
-    put("infinity.es.ship.weapons.BombFireDelay", "infinity.systems.ship.WeaponsEligibility");
-    put("infinity.es.ship.weapons.BulletFireDelay", "infinity.systems.ship.WeaponsEligibility");
-    put("infinity.es.ship.weapons.MineFireDelay", "infinity.systems.ship.WeaponsEligibility");
+    put("infinity.es.ship.weapons.BombFireDelay", WEAPONS_ELIGIBILITY);
+    put("infinity.es.ship.weapons.BulletFireDelay", WEAPONS_ELIGIBILITY);
+    put("infinity.es.ship.weapons.MineFireDelay", WEAPONS_ELIGIBILITY);
+    put("infinity.es.ship.weapons.GravityBombFireDelay", WEAPONS_ELIGIBILITY);
     // Per-projectile / per-effect single-writer markers.
     put("infinity.es.ProximityArmed", "infinity.systems.ship.ProximityFuseSystem");
     put("infinity.es.ship.actions.RocketActive", "infinity.systems.ship.RocketBuffSystem");

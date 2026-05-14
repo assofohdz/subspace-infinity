@@ -469,6 +469,7 @@ public class ShipSpawnSystemHotReloadTest {
         1.0,                                         // bounceRestitution
         250.0,                                       // radarRange
         null,                                        // bombs
+        null,                                        // gravBombs
         new BulletStats(BulletLevel.LEVEL_1, BulletLevel.LEVEL_4, 10, 25L, /* speed */ 2000),
         null,                                        // mines
         null,                                        // bursts

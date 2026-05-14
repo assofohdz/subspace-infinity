@@ -4,7 +4,7 @@ package infinity.es.ship.weapons;
 
 import com.simsilica.es.EntityComponent;
 
-/** Shape contract for components/stats that carry a per-fire energy cost (BulletStats, BombStats, MineStats — and future GravBombStats once gravbomb drift is closed). */
+/** Shape contract for components/stats that carry a per-fire energy cost (BulletStats, BombStats, MineStats). */
 public interface EnergyCost extends EntityComponent {
 
   int energyCost();

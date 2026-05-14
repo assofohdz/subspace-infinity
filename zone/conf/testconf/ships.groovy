@@ -80,7 +80,8 @@ ship(Ship.JAVELIN) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1100, fireDelay: 75, speed: 2000, thrust: 400
+    bombs     start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1100, fireDelay: 75, speed: 2000, thrust: 400
+    gravBombs start: 3, max: 5, fireDelay: 200
     bullets start: BulletLevel.LEVEL_1, max: BulletLevel.LEVEL_1, cost: 300,  fireDelay: 60, speed: 2000
     thors   start: 0, max: 3, fireDelay: 1000
     decoys  start: 0, max: 1
@@ -114,7 +115,8 @@ ship(Ship.LEVIATHAN) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 1100, fireDelay: 75, speed: 2000, thrust: 400
+    bombs     start: BombLevel.BOMB_3, max: BombLevel.BOMB_3, cost: 1100, fireDelay: 75, speed: 2000, thrust: 400
+    gravBombs start: 5, max: 8, fireDelay: 200
     bullets start: BulletLevel.LEVEL_2, max: BulletLevel.LEVEL_2, cost: 400,  fireDelay: 60, speed: 2000
     // mines uses default BombLevel start/max; per-ship MaxMines (count cap)
     // not yet represented in typed pipeline — tracked in ship-<name>.groovy.
@@ -189,7 +191,8 @@ ship(Ship.SHARK) {
     turnResponsiveness  2.0
     bounceRestitution   0.3
     radarRange          50
-    bombs   start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1150, fireDelay: 45, speed: 2000, thrust: 400
+    bombs     start: BombLevel.BOMB_1, max: BombLevel.BOMB_1, cost: 1150, fireDelay: 45, speed: 2000, thrust: 400
+    gravBombs start: 2, max: 4, fireDelay: 200
     // shark has no bullets (MaxGuns 0 in trench/ship-shark.groovy)
     mines   start: BombLevel.BOMB_1, max: BombLevel.BOMB_4, cost: 200, fireDelay: 10, speed: 0
     thors   start: 0, max: 3, fireDelay: 1000

@@ -28,6 +28,9 @@ import infinity.es.ship.weapons.BombJitterTime;
 import infinity.es.ship.weapons.BombSafetyRadius;
 import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletCurrentLevel;
+import infinity.es.ship.weapons.GravBomb;
+import infinity.es.ship.weapons.GravBombStats;
+import infinity.es.ship.weapons.GravityBombFireDelay;
 import infinity.es.ship.weapons.BulletFireDelay;
 import infinity.es.ship.weapons.BulletStats;
 import infinity.es.ship.weapons.MineCurrentLevel;
@@ -144,6 +147,23 @@ final class ShipWeaponsProjector {
     final long fireDelayMillis = thors.fireDelayCs() * 10L;
     ed.setComponent(shipId, new ThorStats(thors.max(), fireDelayMillis));
     ed.setComponent(shipId, new ThorFireDelay(fireDelayMillis));
+  }
+
+  /** Inventory-style gravbomb projection — count + cap + cooldown. Mirrors {@link #projectThors}. */
+  static void projectGravBombs(
+      final EntityData ed,
+      final EntityId shipId,
+      @Nullable final CountWithDelayStats gravBombs,
+      final boolean resetLivePool) {
+    if (gravBombs == null) {
+      return;
+    }
+    if (resetLivePool) {
+      ed.setComponent(shipId, new GravBomb(gravBombs.start()));
+    }
+    final long fireDelayMillis = gravBombs.fireDelayCs() * 10L;
+    ed.setComponent(shipId, new GravBombStats(gravBombs.max(), fireDelayMillis));
+    ed.setComponent(shipId, new GravityBombFireDelay(fireDelayMillis));
   }
 
   static void projectRepels(

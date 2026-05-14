@@ -268,6 +268,7 @@ public class ShipSpawnSystemTuningProjectionTest {
         1.0,                                                             // bounceRestitution
         250.0,                                                           // radarRange
         new BombStats(BombLevel.BOMB_1, bombMax, 10, 25L, 2000, 400),
+        null,                                                            // gravBombs
         new BulletStats(BulletLevel.LEVEL_1, bulletMax, 10, 25L, 2000),
         new MineStats(BombLevel.BOMB_1, mineMax, 50, 500L, 0),
         new infinity.config.BurstStats(/* start */ 5, burstMax, /* speed */ 3000),

@@ -9,22 +9,6 @@ Each row: actionable item + source file:line + brief context.
 
 ### Settings pipeline / gameplay knobs
 
-- [ ] **GravBomb energy-cost drift — no writer of `GravityBombCost`.** `GravityBombCost`
-  is read by `WeaponsEligibility` (cost extractor) and used as an `ed.getEntities`
-  filter key in `WeaponsFireEligibilitySystem` (gravbomb eligibility), but
-  **zero `new GravityBombCost(...)` calls exist in the tree**. No spawn projector,
-  no factory, no system stamps it — so no ship ever enters the gravityBombs
-  EntitySet and firing a gravbomb is impossible. Also no `GravBombStats` record
-  exists (Bullet/Bomb/Mine all have one); `GravBombConfig` only carries
-  `delayMs` + `wormholeForce`, no cost field. Fix shape: add
-  `GravBombStats(BombLevel max, int fireCostEnergy, long fireDelayMillis, int speed, int thrust)`
-  mirroring `BombStats`, extend `GravBombConfig` with the corresponding fields,
-  add `ShipWeaponsProjector.projectGravBomb` (mirror of `projectBomb`), switch
-  `WeaponsEligibility` GRAVBOMB arm from `GravityBombCost::getCost` to
-  `GravBombStats::fireCostEnergy`, delete `GravityBombCost`. Pair with a
-  Subspace-canon gravbomb tuning sweep (per `[Bomb]` shares with bombs; gravbomb
-  has no dedicated section in Subspace canon — Infinity extension).
-
 - [ ] **Wire Thor projectile launch velocity / radius offset to typed
   settings (move literal `50` z-thrust and `thorRadius` lookup behind
   a typed `ThorStats`/`ConsumableConfig` field).** Source:
