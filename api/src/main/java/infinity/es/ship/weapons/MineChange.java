@@ -2,10 +2,10 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.weapons;
 
-import com.simsilica.es.EntityComponent;
+import infinity.es.DeltaChange;
 
 /** Additive ordinal delta to live {@link MineCurrentLevel}; pairs with {@link infinity.es.ChangeTarget}. Drained by {@code MineSystem}. See ADR 0001. */
-public record MineChange(int delta) implements EntityComponent {
+public record MineChange(int delta) implements DeltaChange {
 
   public MineChange() {
     this(0);

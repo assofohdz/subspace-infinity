@@ -4,6 +4,7 @@
 package infinity.systems.ship;
 
 import com.simsilica.es.Entity;
+import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -11,24 +12,28 @@ import com.simsilica.es.common.Decay;
 import com.simsilica.sim.SimTime;
 import infinity.es.ChangeTarget;
 import infinity.es.DeltaChange;
-import infinity.es.ship.actions.InventoryCap;
-import infinity.es.ship.actions.InventoryCount;
 import infinity.systems.BaseInfinitySystem;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.IntFunction;
+import java.util.function.Function;
 
-/** Generic canonical writer for inventory-count components (Burst, Brick, Decoy, Portal, Repel, Rocket, ThorCurrentCount). Drains a {@link DeltaChange} stream, clamps at {@link InventoryCap#max()} above and {@code 0} below. The concrete subclass supplies the three {@code Class} keys + a {@code count -> new XXX(count)} lambda so the {@code new XXX(...)} constructor call remains visible to {@code CanonicalWriterTest}. See ADR 0001. */
-public abstract class BaseInventoryCountSystem<
-        C extends InventoryCount, D extends DeltaChange, S extends InventoryCap>
+/** Generic canonical writer for weapon-level components (BombCurrentLevel/BulletCurrentLevel/MineCurrentLevel). Drains a {@link DeltaChange} stream as additive ordinal delta on the level enum, clamping at the stats record's per-ship cap level above and {@code 0} below. A {@code null} {@code currentLevel} means "ship not allowed this weapon" — skip. The concrete subclass supplies the three {@code Class} keys + the enum {@code values()} array + accessor lambdas + a {@code level -> new XCurrentLevel(level)} lambda so the {@code new XCurrentLevel(...)} constructor call remains visible to {@code CanonicalWriterTest}. See ADR 0001. */
+public abstract class BaseWeaponLevelSystem<
+        C extends EntityComponent,
+        D extends DeltaChange,
+        S extends EntityComponent,
+        L extends Enum<L>>
         extends BaseInfinitySystem {
 
-    private final Class<C> countClass;
+    private final Class<C> currentClass;
     private final Class<D> changeClass;
     private final Class<S> statsClass;
-    private final IntFunction<C> countCtor;
+    private final L[] values;
+    private final Function<C, L> currentLevelFn;
+    private final Function<S, L> capLevelFn;
+    private final Function<L, C> ctor;
 
     private EntityData ed;
     private EntitySet changes;
@@ -37,15 +42,23 @@ public abstract class BaseInventoryCountSystem<
 
     private record TrackedApply(EntityId target, int delta) {}
 
-    protected BaseInventoryCountSystem(
-            final Class<C> countClass,
+    // 8 params: 3 Class refs + values array + 3 accessor lambdas + ctor lambda. Each is irreducible domain info.
+    @SuppressWarnings("PMD.ExcessiveParameterList")
+    protected BaseWeaponLevelSystem(
+            final Class<C> currentClass,
             final Class<D> changeClass,
             final Class<S> statsClass,
-            final IntFunction<C> countCtor) {
-        this.countClass = countClass;
+            final L[] values,
+            final Function<C, L> currentLevelFn,
+            final Function<S, L> capLevelFn,
+            final Function<L, C> ctor) {
+        this.currentClass = currentClass;
         this.changeClass = changeClass;
         this.statsClass = statsClass;
-        this.countCtor = countCtor;
+        this.values = values.clone();
+        this.currentLevelFn = currentLevelFn;
+        this.capLevelFn = capLevelFn;
+        this.ctor = ctor;
     }
 
     @Override
@@ -79,7 +92,6 @@ public abstract class BaseInventoryCountSystem<
                 trackedApplied.put(added.getId(), new TrackedApply(ct.target(), delta));
             }
         }
-
         for (final Map.Entry<EntityId, Integer> e : deltaByTarget.entrySet()) {
             applyDelta(e.getKey(), e.getValue());
         }
@@ -96,17 +108,19 @@ public abstract class BaseInventoryCountSystem<
     }
 
     private void applyDelta(final EntityId target, final int delta) {
+        final C current = ed.getComponent(target, currentClass);
+        if (current == null || currentLevelFn.apply(current) == null) {
+            return;
+        }
         final S stats = ed.getComponent(target, statsClass);
-        if (stats == null || stats.max() <= 0) {
+        final int currentOrdinal = currentLevelFn.apply(current).ordinal();
+        final int proposed = currentOrdinal + delta;
+        final L capLevel = stats == null ? null : capLevelFn.apply(stats);
+        final int capOrdinal = capLevel == null ? values.length - 1 : capLevel.ordinal();
+        final int clamped = Math.max(0, Math.min(proposed, capOrdinal));
+        if (clamped == currentOrdinal) {
             return;
         }
-        final C current = ed.getComponent(target, countClass);
-        final int currentCount = current == null ? 0 : current.count();
-        final int proposed = currentCount + delta;
-        final int clamped = Math.max(0, Math.min(proposed, stats.max()));
-        if (clamped == currentCount) {
-            return;
-        }
-        ed.setComponent(target, countCtor.apply(clamped));
+        ed.setComponent(target, ctor.apply(values[clamped]));
     }
 }

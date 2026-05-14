@@ -2,10 +2,10 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.toggles;
 
-import com.simsilica.es.EntityComponent;
+import infinity.es.ActiveToggle;
 
 /** Live stealth on/off toggle; flipped by {@link StealthActiveChange}. See ADR 0001 + REFERENCE.md {@code ## Stealth}. */
-public class StealthActive implements EntityComponent {
+public class StealthActive implements ActiveToggle {
 
   private final boolean active;
 
@@ -17,6 +17,7 @@ public class StealthActive implements EntityComponent {
     this.active = active;
   }
 
+  @Override
   public boolean isActive() {
     return active;
   }

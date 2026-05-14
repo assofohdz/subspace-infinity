@@ -3,14 +3,14 @@
 
 package infinity.es.ship.actions;
 
-import com.simsilica.es.EntityComponent;
+import infinity.es.ship.weapons.FireDelay;
 
 /**
  * Component holding the cooldown timer between Thor weapon shots.
  *
  * @author Asser
  */
-public class ThorFireDelay implements EntityComponent {
+public class ThorFireDelay implements FireDelay {
 
   private final long start;
   private final long delta;
@@ -25,6 +25,7 @@ public class ThorFireDelay implements EntityComponent {
     delta = deltaMillis * 1000000;
   }
 
+  @Override
   public double getPercent() {
     final long time = System.nanoTime();
     return (double) (time - start) / delta;

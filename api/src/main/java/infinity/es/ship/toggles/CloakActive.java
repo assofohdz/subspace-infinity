@@ -2,10 +2,10 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.toggles;
 
-import com.simsilica.es.EntityComponent;
+import infinity.es.ActiveToggle;
 
 /** Live cloak on/off toggle; flipped by {@link CloakActiveChange}. See ADR 0001 + REFERENCE.md {@code ## Cloak}. */
-public class CloakActive implements EntityComponent {
+public class CloakActive implements ActiveToggle {
 
   private final boolean active;
 
@@ -17,6 +17,7 @@ public class CloakActive implements EntityComponent {
     this.active = active;
   }
 
+  @Override
   public boolean isActive() {
     return active;
   }

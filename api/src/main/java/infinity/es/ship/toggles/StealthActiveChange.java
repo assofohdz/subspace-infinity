@@ -2,10 +2,10 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.toggles;
 
-import com.simsilica.es.EntityComponent;
+import infinity.es.ToggleChange;
 
 /** Value-replacement payload for {@link StealthActive}; drained by {@code StealthSystem}. See ADR 0001. */
-public record StealthActiveChange(boolean newValue) implements EntityComponent {
+public record StealthActiveChange(boolean newValue) implements ToggleChange {
 
   public StealthActiveChange() {
     this(false);
