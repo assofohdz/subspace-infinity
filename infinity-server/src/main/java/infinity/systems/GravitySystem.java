@@ -52,12 +52,12 @@ public class GravitySystem extends BaseInfinitySystem implements ContactListener
   }
 
   @Override
-  public void update(SimTime tpf) {
+  public void update(final SimTime tpf) {
     time = tpf;
   }
 
   @Override
-  public void newContact(Contact contact) {
+  public void newContact(final Contact contact) {
 
     RigidBody body1 = contact.body1;
     AbstractBody body2 = contact.body2;

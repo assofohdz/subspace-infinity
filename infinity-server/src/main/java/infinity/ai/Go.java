@@ -49,7 +49,7 @@ public class Go extends AbstractGoal implements Goal {
   private final Vec3d target;
   private final double range;
 
-  public Go(Vec3d target, double range) {
+  public Go(final Vec3d target, final double range) {
     this.target = target;
     this.range = range;
   }
@@ -68,7 +68,7 @@ public class Go extends AbstractGoal implements Goal {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     if (o == this) {
       return true;
     }

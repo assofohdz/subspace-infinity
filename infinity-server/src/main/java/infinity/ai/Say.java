@@ -36,7 +36,8 @@
 
 package infinity.ai;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.simsilica.sim.SimTime;
 
@@ -52,18 +53,18 @@ public class Say extends Wait {
   private final String text;
   private final double messageDuration;
 
-  public Say(String text, double duration) {
+  public Say(final String text, final double duration) {
     this(text, duration, duration);
   }
 
-  public Say(String text, double messageDuration, double actionDuration) {
+  public Say(final String text, final double messageDuration, final double actionDuration) {
     super(actionDuration);
     this.text = text;
     this.messageDuration = messageDuration;
   }
 
   @Override
-  protected boolean onStart(SimTime time, Brain brain) {
+  protected boolean onStart(final SimTime time, final Brain brain) {
     log.info("Say.onStart({}, {})", text, messageDuration);
     Actor actor = brain.getActor();
     actor.say(time.getTime(), time.getFutureTime(messageDuration), text);

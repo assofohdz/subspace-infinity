@@ -48,7 +48,7 @@ import com.simsilica.es.EntityId;
 public class Eat extends AbstractGoal implements Goal {
   private final EntityId target;
 
-  public Eat(EntityId target) {
+  public Eat(final EntityId target) {
     this.target = target;
   }
 
@@ -62,7 +62,7 @@ public class Eat extends AbstractGoal implements Goal {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     if (o == this) {
       return true;
     }

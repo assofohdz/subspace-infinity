@@ -71,12 +71,12 @@ public final class BrainConfigurations {
   private static final String LOG_GOAL_FAILED_WITH_ACTION = "{} failed for:{}  failed action:{}";
   private static final String LOG_BLOCKED_BY = "blocked by:{}";
 
-  public static void initialize(EntityData ed) {
+  public static void initialize(final EntityData ed) {
     configs.put("mob", createPerson(ed));
     defaultConfig = createDummy(ed);
   }
 
-  public static BrainConfiguration getConfig(String name) {
+  public static BrainConfiguration getConfig(final String name) {
     BrainConfiguration config = configs.get(name);
     return config != null ? config : defaultConfig;
   }
@@ -119,7 +119,7 @@ public final class BrainConfigurations {
   private static Goal pickNearestCornGoal(final Brain brain, final Actor actor) {
     double min = Double.POSITIVE_INFINITY;
     SeenObject nearest = null;
-    for (SeenObject obj : actor.search(CORN)) {
+    for (final SeenObject obj : actor.search(CORN)) {
       // If it's too far above us then it doesn't matter
       if (obj.getPosition().y > actor.getPosition().y + 1) {
         continue;

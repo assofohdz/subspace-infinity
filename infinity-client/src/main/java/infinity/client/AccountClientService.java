@@ -12,7 +12,8 @@ import infinity.net.AccountSessionListener;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.network.service.AbstractClientService;
 import com.jme3.network.service.ClientServiceManager;
@@ -41,21 +42,21 @@ public class AccountClientService extends AbstractClientService
   }
 
   @Override
-  public void login( String playerName ) {
+  public void login( final String playerName ) {
     delegate.login(playerName);
   }
 
   // Called on the networking thread; not safe for visualization mutations.
-  public void addAccountSessionListener( AccountSessionListener l ) {
+  public void addAccountSessionListener( final AccountSessionListener l ) {
     listeners.add(l);
   }
 
-  public void removeAccountSessionListener( AccountSessionListener l ) {
+  public void removeAccountSessionListener( final AccountSessionListener l ) {
     listeners.remove(l);
   }
 
   @Override
-  protected void onInitialize( ClientServiceManager s ) {
+  protected void onInitialize( final ClientServiceManager s ) {
     log.debug("onInitialize({})", s);
     this.rmiService = getService(RmiClientService.class);
     if( rmiService == null ) {
@@ -80,9 +81,9 @@ public class AccountClientService extends AbstractClientService
   private class AccountSessionCallback implements AccountSessionListener {
 
     @Override
-    public void notifyLoginStatus( boolean loggedIn ) {
+    public void notifyLoginStatus( final boolean loggedIn ) {
       log.trace("notifyLoginStatus({})", loggedIn);
-      for( AccountSessionListener l : listeners ) {
+      for( final AccountSessionListener l : listeners ) {
         l.notifyLoginStatus(loggedIn);
       }
     }

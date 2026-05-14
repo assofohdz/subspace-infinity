@@ -36,9 +36,10 @@
 
 package infinity.ai;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.SimTime;
 
 
@@ -61,14 +62,14 @@ public class WalkTo implements Action {
     private double lastTime;
     private Vec3d lastPosition = null;
 
-    public WalkTo( Vec3d target, double speed, double range, double checkTime ) {
+    public WalkTo( final Vec3d target, final double speed, final double range, final double checkTime ) {
         this.target.set(target);
         this.speed = speed;
         this.range = range;
         this.checkTime = checkTime;
     }
 
-    public static double getFacing( Vec3d dir ) {
+    public static double getFacing( final Vec3d dir ) {
         // Figure out which direction we need to go
         // Note: because 'z' is our default look dir we treat
         // z as cosine and x as sine.
@@ -84,7 +85,7 @@ public class WalkTo implements Action {
     }
 
     @Override
-    public ActionStatus run( SimTime time, Brain brain ) {
+    public ActionStatus run( final SimTime time, final Brain brain ) {
         Actor actor = brain.getActor();
         Vec3d pos = actor.getPosition();
 
@@ -152,14 +153,14 @@ log.info("******************** Aborting WalkTo");
     }
 
     @Override
-    public void abort( Brain brain ) {
+    public void abort( final Brain brain ) {
         Actor actor = brain.getActor();
         actor.turnTo(actor.getFacing());
         actor.move(new Vec3d());
     }
 
     @Override
-    public double getHeartbeat( SimTime time ) {
+    public double getHeartbeat( final SimTime time ) {
         return heartBeat;
     }
 

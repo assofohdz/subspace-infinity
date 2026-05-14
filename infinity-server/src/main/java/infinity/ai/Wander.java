@@ -36,7 +36,8 @@
 
 package infinity.ai;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
@@ -54,7 +55,7 @@ public class Wander extends AbstractGoal implements TimedGoal {
     private double endTime;
     private double timeRemaining;
 
-    public Wander( double duration ) {
+    public Wander( final double duration ) {
         this.duration = duration;
     }
 
@@ -63,7 +64,7 @@ public class Wander extends AbstractGoal implements TimedGoal {
     }
 
     @Override
-    public void updateTime( SimTime time ) {
+    public void updateTime( final SimTime time ) {
         if( endTime == 0 ) {
             endTime = time.getTimeInSeconds() + duration;
         }

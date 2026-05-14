@@ -160,7 +160,7 @@ public class LocalViewState extends BaseAppState {
   }
 
   /** Toggle per-vertex (smooth) vs per-cell lighting. Forces a rebuild on change. */
-  public void setSmoothLighting(boolean b) {
+  public void setSmoothLighting(final boolean b) {
     if (this.smoothLighting == b) {
       return;
     }
@@ -207,7 +207,7 @@ public class LocalViewState extends BaseAppState {
   }
 
   @Override
-  protected void initialize(Application app) {
+  protected void initialize(final Application app) {
 
     world = getState(ConnectionState.class).getService(WorldClientService.class);
 
@@ -260,7 +260,7 @@ public class LocalViewState extends BaseAppState {
     maskDebug = debug;
   }
 
-  protected void logInfo(String indent, Texture tex) {
+  protected void logInfo(final String indent, final Texture tex) {
     if (log.isInfoEnabled()) {
       log.info(indent + "key:" + tex.getKey());
       log.info(indent + "type:" + tex.getType());
@@ -280,7 +280,7 @@ public class LocalViewState extends BaseAppState {
     }
   }
 
-  protected void logInfo(String indent, Image img) {
+  protected void logInfo(final String indent, final Image img) {
     if (log.isInfoEnabled()) {
       log.info(indent + "format:" + img.getFormat());
       log.info(indent + "size:" + img.getWidth() + ", " + img.getHeight() + "  x " + img.getDepth());
@@ -292,7 +292,7 @@ public class LocalViewState extends BaseAppState {
   }
 
   @Override
-  protected void cleanup(Application app) {
+  protected void cleanup(final Application app) {
     if (world != null) {
       world.removeLeafChangeListener(leafObserver);
     }
@@ -311,7 +311,7 @@ public class LocalViewState extends BaseAppState {
 
   @Override
   @SuppressWarnings("PMD.AssignmentInOperand")
-  public void update(float tpf) {
+  public void update(final float tpf) {
     final ArenaRegistryState registry = getState(ArenaRegistryState.class);
     if (registry != null) {
       for (final ArenaRegistryState.ArenaSnapshot snap : registry.getArenas().values()) {
@@ -353,7 +353,7 @@ public class LocalViewState extends BaseAppState {
     }
   }
 
-  protected void updateView(Vec3d pos, boolean forceUpdate) {
+  protected void updateView(final Vec3d pos, final boolean forceUpdate) {
     final Vec3d realWorld = pos.add(0, 0, 0);
     if (realWorld.y < yMin) {
       realWorld.y = yMin;
@@ -435,7 +435,7 @@ public class LocalViewState extends BaseAppState {
     }
   }
 
-  protected void leafChanged(LeafId leafId) {
+  protected void leafChanged(final LeafId leafId) {
     LeafView view = viewCache.get(leafId);
     if (view != null) {
       // At highest priority
@@ -443,8 +443,8 @@ public class LocalViewState extends BaseAppState {
     }
   }
 
-  protected void updateViewMask(LeafId leafId) {
-    for (ViewEntry e : viewArray) {
+  protected void updateViewMask(final LeafId leafId) {
+    for (final ViewEntry e : viewArray) {
       if (e.leafView == null) {
         continue;
       }
@@ -467,7 +467,7 @@ public class LocalViewState extends BaseAppState {
     Vec3d worldOffset;
     LeafView leafView;
 
-    public ViewEntry(int x, int y, int z) {
+    public ViewEntry(final int x, final int y, final int z) {
       this.viewLoc = new Vec3i(x, y, z);
       this.priority = (x * x) + (y * y) + (z * z);
       this.worldOffset = new Vec3d(x * 32, y * 32, z * 32);
@@ -490,7 +490,7 @@ public class LocalViewState extends BaseAppState {
 
     private boolean smoothLighting = false;
 
-    public LeafView(LeafId leafId) {
+    public LeafView(final LeafId leafId) {
       this.leafId = leafId;
 
       this.leafNode = new Node("leafNode:" + leafId);
@@ -500,7 +500,7 @@ public class LocalViewState extends BaseAppState {
       testGeom.move(16, 16, 16);
     }
 
-    public boolean setSmoothLighting(boolean b) {
+    public boolean setSmoothLighting(final boolean b) {
       if (smoothLighting == b) {
         return false;
       }
@@ -509,7 +509,7 @@ public class LocalViewState extends BaseAppState {
       return true;
     }
 
-    public void updateOffset(Vec3d worldOffset) {
+    public void updateOffset(final Vec3d worldOffset) {
 
       leafNode.setLocalTranslation(
           (float) worldOffset.x, (float) (centerWorld.y + worldOffset.y), (float) worldOffset.z);
@@ -622,7 +622,7 @@ public class LocalViewState extends BaseAppState {
       return 1;
     }
 
-    protected void setBoxColor(ColorRGBA color) {
+    protected void setBoxColor(final ColorRGBA color) {
       MatParamOverride override = new MatParamOverride(VarType.Vector4, "Color", color);
       leafNode.addMatParamOverride(override);
     }
@@ -634,7 +634,7 @@ public class LocalViewState extends BaseAppState {
 
   private class LeafObserver implements LeafChangeListener {
     @Override
-    public void leafChanged(LeafChangeEvent event) {
+    public void leafChanged(final LeafChangeEvent event) {
       updatedLeafIds.add(event.getLeafId());
     }
   }

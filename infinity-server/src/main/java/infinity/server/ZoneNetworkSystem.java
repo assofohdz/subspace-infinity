@@ -129,13 +129,13 @@ public class ZoneNetworkSystem<S extends AbstractShape> extends AbstractGameSyst
         }
 
         @Override
-        public void staticObjectLoaded(EntityId entity, StaticBody<EntityId, S> body) {
+        public void staticObjectLoaded(final EntityId entity, final StaticBody<EntityId, S> body) {
             // TODO Auto-generated method stub
 
         }
 
         @Override
-        public void staticObjectUnloaded(EntityId entity, StaticBody<EntityId, S> body) {
+        public void staticObjectUnloaded(final EntityId entity, final StaticBody<EntityId, S> body) {
             // TODO Auto-generated method stub
 
         }

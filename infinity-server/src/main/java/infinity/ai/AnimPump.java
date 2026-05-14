@@ -38,9 +38,10 @@ package infinity.ai;
 
 import java.util.Objects;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.simsilica.crig.*;
+import com.simsilica.crig.CharacterRig;
 
 /**
  * Pumps animation time information to a character rig.
@@ -57,12 +58,12 @@ public class AnimPump {
   private double speed;
   private double length;
 
-  public AnimPump(CharacterRig rig, String layer) {
+  public AnimPump(final CharacterRig rig, final String layer) {
     this.rig = rig;
     this.layer = layer;
   }
 
-  public void setCurrentAction(String action, double speed) {
+  public void setCurrentAction(final String action, final double speed) {
     this.speed = speed;
     if (Objects.equals(this.action, action)) {
       return;
@@ -84,11 +85,11 @@ public class AnimPump {
     return time;
   }
 
-  public void setSpeed(double speed) {
+  public void setSpeed(final double speed) {
     this.speed = speed;
   }
 
-  public void update(double tpf) {
+  public void update(final double tpf) {
     if (action == null) {
       return;
     }

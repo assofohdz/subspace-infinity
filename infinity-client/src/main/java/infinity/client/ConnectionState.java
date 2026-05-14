@@ -49,7 +49,7 @@ public class ConnectionState extends CompositeAppState {
 
     private volatile boolean closing;
 
-    public ConnectionState( AppState parent, String host, int port ) {
+    public ConnectionState( final AppState parent, final String host, final int port ) {
         this.parent = parent;
         this.host = host;
         this.port = port;
@@ -67,7 +67,7 @@ public class ConnectionState extends CompositeAppState {
         return getService(EntityDataClientService.class).getEntityData();
     }
 
-    public <T extends ClientService> T getService( Class<T> type ) {
+    public <T extends ClientService> T getService( final Class<T> type ) {
         return client.getService(type);
     }
 
@@ -99,13 +99,13 @@ public class ConnectionState extends CompositeAppState {
         return true;
     }
 
-    protected void onLoggedOn( boolean loggedIn ) {
+    protected void onLoggedOn( final boolean loggedIn ) {
         // No error path yet — login currently can't fail server-side.
         addChild(new GameSessionState(), true);
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize( final Application app ) {
 
         connectingPanel = new OptionPanel("Connecting...", new ExitAction("Cancel", true));
         getState(OptionPanelState.class).show(connectingPanel);
@@ -116,7 +116,7 @@ public class ConnectionState extends CompositeAppState {
     }
 
     @Override
-    protected void cleanup( Application app ) {
+    protected void cleanup( final Application app ) {
         closing = true;
         if( client != null ) {
             client.close();
@@ -207,7 +207,7 @@ public class ConnectionState extends CompositeAppState {
         getStateManager().attach(new LoginState(serverInfo));
     }
 
-    protected void onDisconnected( DisconnectInfo info ) {
+    protected void onDisconnected( final DisconnectInfo info ) {
         log.info("onDisconnected({})", info);
         closeConnectingPanel();
         if( closing ) {
@@ -223,16 +223,16 @@ public class ConnectionState extends CompositeAppState {
     private class ExitAction extends Action {
         private boolean close;
 
-        public ExitAction( boolean close ) {
+        public ExitAction( final boolean close ) {
             this("Ok", close);
         }
 
-        public ExitAction( String name, boolean close ) {
+        public ExitAction( final String name, final boolean close ) {
             super(name);
             this.close = close;
         }
 
-        public void execute( Button source ) {
+        public void execute( final Button source ) {
             if( close ) {
                 disconnect();
             }
@@ -260,7 +260,7 @@ public class ConnectionState extends CompositeAppState {
             });
         }
 
-        public void handleError( Client source, Throwable t ) {
+        public void handleError( final Client source, final Throwable t ) {
             log.error("Connection error", t);
             showError("Connection Error", t, true);
         }
@@ -302,7 +302,7 @@ public class ConnectionState extends CompositeAppState {
                 log.info("Starting client...");
                 newClient.start();
                 log.info("Client started.");
-            } catch( IOException e ) {
+            } catch( final IOException e ) {
                 if( closing ) {
                     return;
                 }

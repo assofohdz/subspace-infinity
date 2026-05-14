@@ -6,9 +6,10 @@ package infinity.client.states;
 import com.simsilica.sim.GameSystemManager;
 import infinity.client.ConnectionState;
 import infinity.server.GameServer;
-import java.io.*;
+import java.io.IOException;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
@@ -17,7 +18,13 @@ import com.jme3.network.HostedConnection;
 import com.jme3.network.Server;
 import com.jme3.scene.Node;
 
-import com.simsilica.lemur.*;
+import com.simsilica.lemur.ActionButton;
+import com.simsilica.lemur.CallMethodAction;
+import com.simsilica.lemur.Container;
+import com.simsilica.lemur.EmptyAction;
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.Label;
+import com.simsilica.lemur.OptionPanelState;
 import com.simsilica.lemur.core.VersionedHolder;
 import com.simsilica.lemur.style.ElementId;
 import com.simsilica.state.DebugHudState;

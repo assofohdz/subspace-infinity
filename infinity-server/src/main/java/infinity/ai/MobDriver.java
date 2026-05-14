@@ -36,23 +36,39 @@
 
 package infinity.ai;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 import com.simsilica.crig.RigShape;
 import infinity.es.ProbeInfo;
 import infinity.es.Speech;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 
-import com.simsilica.es.*;
-import com.simsilica.es.common.*;
-import com.simsilica.mathd.*;
-import com.simsilica.mblock.phys.*;
-import com.simsilica.mphys.*;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.common.Decay;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mblock.phys.Group;
+import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mblock.phys.Part;
+import com.simsilica.mphys.AbstractControlDriver;
+import com.simsilica.mphys.Contact;
+import com.simsilica.mphys.ContactListener;
+import com.simsilica.mphys.QueryFilter;
+import com.simsilica.mphys.RigidBody;
+import com.simsilica.mphys.StaticBody;
 
-import com.simsilica.ext.mphys.*;
+import com.simsilica.ext.mphys.MPhysSystem;
+import com.simsilica.ext.mphys.Mass;
+import com.simsilica.ext.mphys.ShapeInfo;
+import com.simsilica.ext.mphys.SpawnPosition;
 
 /**
  * When an AI Mob is a phyics rigid body, it will be controlled by a MobDriver. This converts more
@@ -104,14 +120,14 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   private Contact mostBlocked = null;
   private double maxPushback = 0;
 
-  public MobDriver(MPhysSystem<MBlockShape> physics, EntityId mob) {
+  public MobDriver(final MPhysSystem<MBlockShape> physics, final EntityId mob) {
     this.physics = physics;
     this.ed = physics.getEntityData();
     this.mob = mob;
   }
 
   @Override
-  public void initialize(RigidBody<EntityId, MBlockShape> body) {
+  public void initialize(final RigidBody<EntityId, MBlockShape> body) {
     super.initialize(body);
     log.info("initialize({})", body);
     if (body.shape instanceof RigShape) {
@@ -126,14 +142,14 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     }
   }
 
-  protected void dumpShape(MBlockShape shape) {
+  protected void dumpShape(final MBlockShape shape) {
     if (!log.isInfoEnabled()) {
       return;
     }
     log.info("dumpShape({})", shape);
     Part root = shape.getPart();
     if (root instanceof Group) {
-      for (Part child : ((Group) root).getChildren()) {
+      for (final Part child : ((Group) root).getChildren()) {
         if (log.isInfoEnabled()) {
           log.info("   {}:{}", child.getName(), child.getShapeRelativePosition());
         }
@@ -145,7 +161,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     }
   }
 
-  public void setProbeInfo(ProbeInfo probeInfo) {
+  public void setProbeInfo(final ProbeInfo probeInfo) {
     if (this.probeInfo == probeInfo) {
       return;
     }
@@ -160,7 +176,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   // This makes me a little uncomfortable to have this mutually
   // dependent relationship.  Probably there is a listener missing
   // but this is convenient for event callbacks.
-  public void setBrain(Brain brain) {
+  public void setBrain(final Brain brain) {
     this.brain = brain;
   }
 
@@ -168,7 +184,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     return settings;
   }
 
-  public void setMovementSettings(MovementSettings settings) {
+  public void setMovementSettings(final MovementSettings settings) {
     this.settings = settings;
   }
 
@@ -184,12 +200,12 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   @Override
-  public void turnTo(double facing) {
+  public void turnTo(final double facing) {
     this.targetFacing = facing;
   }
 
   @Override
-  public void move(Vec3d move) {
+  public void move(final Vec3d move) {
     this.move.set(move).multLocal(settings.getMovementSpeed());
   }
 
@@ -199,16 +215,16 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   @Override
-  public Iterable<SeenObject> search(String... types) {
+  public Iterable<SeenObject> search(final String... types) {
     return search(Arrays.asList(types));
   }
 
   @Override
-  public Iterable<SeenObject> search(Collection<String> types) {
+  public Iterable<SeenObject> search(final Collection<String> types) {
     return search(Predicates.in(types));
   }
 
-  public Iterable<SeenObject> search(Predicate<? super String> filter) {
+  public Iterable<SeenObject> search(final Predicate<? super String> filter) {
 
     // For now the inefficient way  FIXME: use positional grid searches and
     // split queries for static/dynamic
@@ -232,7 +248,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     // system most likely.
 
     List<SeenObject> results = new ArrayList<>();
-    for (EntityId id : ed.findEntities(null, SpawnPosition.class, ShapeInfo.class, Mass.class)) {
+    for (final EntityId id : ed.findEntities(null, SpawnPosition.class, ShapeInfo.class, Mass.class)) {
       if (id.equals(mob)) {
         // We don't see ourselves
         continue;
@@ -249,7 +265,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     return results;
   }
 
-  private SeenObject trySeeRigidBody(EntityId id, double radius, Predicate<? super String> filter) {
+  private SeenObject trySeeRigidBody(final EntityId id, final double radius, final Predicate<? super String> filter) {
     RigidBody<EntityId, MBlockShape> rb =
         physics.getPhysicsSpace().getBinIndex().getRigidBody(id);
     if (rb == null) {
@@ -268,7 +284,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
         id, rb.position, rb.orientation, rb.getLinearVelocity(), rb.shape, type, dist);
   }
 
-  private SeenObject trySeeStaticBody(EntityId id, double radius, Predicate<? super String> filter) {
+  private SeenObject trySeeStaticBody(final EntityId id, final double radius, final Predicate<? super String> filter) {
     StaticBody<EntityId, MBlockShape> sb =
         physics.getPhysicsSpace().getBinIndex().getStaticBody(id);
     if (sb == null) {
@@ -286,7 +302,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   @Override
-  public SeenObject look(EntityId id) {
+  public SeenObject look(final EntityId id) {
     // Same cases as above and we'll still only deal with (1) and (2) for
     // the moment.
     double radius = PERCEPTION_RADIUS; // chickens are near-sighted in this demo
@@ -322,7 +338,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   @Override
-  public SeenObject look2(EntityId id) {
+  public SeenObject look2(final EntityId id) {
     // Same cases as above and we'll still only deal with (1) and (2) for
     // the moment.
     double radius = PERCEPTION_RADIUS; // chickens are near-sighted in this demo
@@ -360,7 +376,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   @Override
-  public void say(long startTime, long endTime, String text) {
+  public void say(final long startTime, final long endTime, final String text) {
     EntityId entity = ed.createEntity();
     ed.setComponents(entity, new Speech(mob, text), new Decay(startTime, endTime));
   }
@@ -374,7 +390,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     }
   }
 
-  protected void killVerticalRotation(RigidBody<EntityId, MBlockShape> body) {
+  protected void killVerticalRotation(final RigidBody<EntityId, MBlockShape> body) {
 
     // Kill any non-yaw orientation
     body.orientation.toAngles(angles);
@@ -398,7 +414,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   @Override
-  public void update(long frameTime, double step) {
+  public void update(final long frameTime, final double step) {
     RigidBody<EntityId, MBlockShape> body = getBody();
     if (log.isTraceEnabled()) {
       log.trace("update(" + step + ")  temperature:" + body.getTemperature());
@@ -457,7 +473,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   /** Move {@code facing} towards {@code targetFacing} by one step's worth, taking the short way around. */
-  private void stepFacingTowardsTarget(double step) {
+  private void stepFacingTowardsTarget(final double step) {
     // Need to deal with the cases where facing is like 5 degrees
     // and targetFacing is 355 degrees.  Need to know to just turn
     // 10 degrees instead of going all the way around. The math kernel
@@ -487,7 +503,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   /** Convert {@link #desiredVelocity} into a body force, and notify {@link #brain} on hard pushback. */
-  private void applyDesiredVelocityForce(RigidBody<EntityId, MBlockShape> body) {
+  private void applyDesiredVelocityForce(final RigidBody<EntityId, MBlockShape> body) {
     // Calculate how much our velocity has to change to reach
     // the desired velocity
     force.set(desiredVelocity).subtractLocal(body.getLinearVelocity());
@@ -517,7 +533,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   /** Pick Idle vs Walk anim and tick the rig. Caller must guarantee {@code animPump != null && step > 0}. */
-  private void updateAnimation(double step) {
+  private void updateAnimation(final double step) {
     // See which animation we should be using.
     final double speed = averageVelocity.length() / step;
     final MobDriverLogic.AnimChoice choice = MobDriverLogic.pickAnimAction(speed);
@@ -531,7 +547,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   @Override
-  public void newContact(Contact<EntityId, MBlockShape> contact) {
+  public void newContact(final Contact<EntityId, MBlockShape> contact) {
     double push = -contact.contactNormal.dot(desiredVelocity);
     if (push > maxPushback) {
       mostBlocked = contact;
@@ -580,7 +596,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     private final Vec3d left = new Vec3d();
     private double turn;
 
-    public Probe(ProbeInfo info) {
+    public Probe(final ProbeInfo info) {
       this.shape = MBlockShape.createGhost(info.getRadius());
       this.offset = info.getOffset();
     }
@@ -594,7 +610,7 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
       this.turn = 0;
     }
 
-    public void newContact(Contact<EntityId, MBlockShape> contact) {
+    public void newContact(final Contact<EntityId, MBlockShape> contact) {
       // See if it's a contact that we're even interested in
 
       if (contact.body1 == getBody() || contact.body2 == getBody()) {

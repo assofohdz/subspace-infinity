@@ -36,9 +36,11 @@
 
 package infinity.ai;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  *  Holds the configuration about how a brain decides what
@@ -62,11 +64,11 @@ public class BrainConfiguration implements GoalSelector {
      *  Create a brain configuration that will delegate to the
      *  specified parent for anything not defined locally.
      */
-    public BrainConfiguration( BrainConfiguration parent ) {
+    public BrainConfiguration( final BrainConfiguration parent ) {
         this.parent = parent;
     }
 
-    public void setParent( BrainConfiguration parent ) {
+    public void setParent( final BrainConfiguration parent ) {
         this.parent = parent;
     }
 
@@ -74,11 +76,11 @@ public class BrainConfiguration implements GoalSelector {
         return parent;
     }
 
-    public void setProperty( String name, Object value ) {
+    public void setProperty( final String name, final Object value ) {
         properties.put(name, value);
     }
 
-    public <T> T getProperty( String name, T defaultValue ) {
+    public <T> T getProperty( final String name, final T defaultValue ) {
         @SuppressWarnings("unchecked")
         T result = (T) properties.get(name);
         if( result == null && parent != null ) {
@@ -87,7 +89,7 @@ public class BrainConfiguration implements GoalSelector {
         return result == null ? defaultValue : result;
     }
 
-    public void setGoalSelector( GoalSelector goalSelector ) {
+    public void setGoalSelector( final GoalSelector goalSelector ) {
         this.goalSelector = goalSelector;
     }
 
@@ -95,11 +97,11 @@ public class BrainConfiguration implements GoalSelector {
         return goalSelector;
     }
 
-    public <G extends Goal> void setStrategy( Class<G> type, Strategy<? super G> strategy ) {
+    public <G extends Goal> void setStrategy( final Class<G> type, final Strategy<? super G> strategy ) {
         strategies.put(type, strategy);
     }
 
-    public <G extends Goal> Strategy<G> getStrategy( Class<G> type ) {
+    public <G extends Goal> Strategy<G> getStrategy( final Class<G> type ) {
         // Safe by setStrategy's contract: stored Strategy<? super G> is keyed on Class<G>.
         @SuppressWarnings("unchecked")
         Strategy<G> result = (Strategy<G>) strategies.get(type);
@@ -112,7 +114,7 @@ public class BrainConfiguration implements GoalSelector {
         return null;
     }
 
-    public void setDefaultStrategy( Strategy<Goal> strategy ) {
+    public void setDefaultStrategy( final Strategy<Goal> strategy ) {
         this.defaultStrategy = strategy;
     }
 
@@ -124,7 +126,7 @@ public class BrainConfiguration implements GoalSelector {
     // can inherit from the parent config but it also means we
     // could have a chop-chain of selectors someday if we wanted.
     @Override
-    public Goal selectGoal( Brain brain ) {
+    public Goal selectGoal( final Brain brain ) {
         Goal result = goalSelector.selectGoal(brain);
         if( result != null ) {
             return result;

@@ -512,7 +512,7 @@ public class GameServer {
     }
   }
 
-  private void registerShapeFactories(ShapeFactoryRegistry<MBlockShape> shapeFactory) {
+  private void registerShapeFactories(final ShapeFactoryRegistry<MBlockShape> shapeFactory) {
     // Need a shape factory to turn ShapeInfo components into
 
     SphereFactory sphereFactory = new SphereFactory();

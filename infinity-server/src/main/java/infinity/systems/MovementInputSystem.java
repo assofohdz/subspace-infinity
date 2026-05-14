@@ -70,7 +70,7 @@ public class MovementInputSystem extends BaseInfinitySystem {
     // no-arg ctor — wiring happens in initialize()
   }
 
-  public PlayerDriver getDriver(EntityId id) {
+  public PlayerDriver getDriver(final EntityId id) {
     return players.getObject(id);
   }
 
@@ -100,7 +100,7 @@ public class MovementInputSystem extends BaseInfinitySystem {
   }
 
   @Override
-  public void update(SimTime time) {
+  public void update(final SimTime time) {
     players.update();
     mobs.update();
   }
@@ -115,7 +115,7 @@ public class MovementInputSystem extends BaseInfinitySystem {
 
   private class PlayerContainer extends EntityContainer<PlayerDriver> {
 
-    public PlayerContainer(EntityData ed) {
+    public PlayerContainer(final EntityData ed) {
       super(ed, MovementInput.class);
     }
 
@@ -125,7 +125,7 @@ public class MovementInputSystem extends BaseInfinitySystem {
     }
 
     @Override
-    protected PlayerDriver addObject(Entity e) {
+    protected PlayerDriver addObject(final Entity e) {
       log.info("addObject({})", e);
 
       PlayerDriver result = new PlayerDriver(e.getId(), ed, engineConfigSystem);
@@ -141,7 +141,7 @@ public class MovementInputSystem extends BaseInfinitySystem {
     }
 
     @Override
-    protected void updateObject(PlayerDriver driver, Entity e) {
+    protected void updateObject(final PlayerDriver driver, final Entity e) {
       if (log.isTraceEnabled()) {
         log.trace("updateObject(" + e + ")");
       }
@@ -150,7 +150,7 @@ public class MovementInputSystem extends BaseInfinitySystem {
     }
 
     @Override
-    protected void removeObject(PlayerDriver driver, Entity e) {
+    protected void removeObject(final PlayerDriver driver, final Entity e) {
       log.info("removeObject({})", e);
       driver.release();
     }
@@ -158,7 +158,7 @@ public class MovementInputSystem extends BaseInfinitySystem {
 
   private class MobContainer extends EntityContainer<UprightDriver<EntityId, MBlockShape>> {
 
-    public MobContainer(EntityData ed) {
+    public MobContainer(final EntityData ed) {
       super(ed, CharacterInput.class);
     }
 
@@ -168,7 +168,7 @@ public class MovementInputSystem extends BaseInfinitySystem {
     }
 
     @Override
-    protected UprightDriver addObject(Entity e) {
+    protected UprightDriver addObject(final Entity e) {
 
       UprightDriver<EntityId, MBlockShape> result = new UprightDriver<>();
 
@@ -183,21 +183,21 @@ public class MovementInputSystem extends BaseInfinitySystem {
     }
 
     @Override
-    protected void updateObject(UprightDriver driver, Entity e) {
+    protected void updateObject(final UprightDriver driver, final Entity e) {
       if (log.isTraceEnabled()) {
         log.trace("updateObject(" + e + ")");
       }
     }
 
     @Override
-    protected void removeObject(UprightDriver driver, Entity e) {
+    protected void removeObject(final UprightDriver driver, final Entity e) {
       log.info("removeObject({})", e);
     }
   }
 
   private class MovementBodyInitializer
       implements Function<RigidBody<EntityId, MBlockShape>, Void> {
-    public Void apply(RigidBody<EntityId, MBlockShape> body) {
+    public Void apply(final RigidBody<EntityId, MBlockShape> body) {
       // See if this is one of the ones we need to add a player driver to
       PlayerDriver driver = players.getObject(body.id);
 
@@ -207,7 +207,9 @@ public class MovementInputSystem extends BaseInfinitySystem {
 
       // or a character driver
       UprightDriver<EntityId, MBlockShape> charDriver = mobs.getObject(body.id);
-      if (charDriver != null) body.setControlDriver(charDriver);
+      if (charDriver != null) {
+        body.setControlDriver(charDriver);
+      }
 
       return null;
     }

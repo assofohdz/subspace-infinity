@@ -76,7 +76,7 @@ public class ContactSystem<K, S extends AbstractShape> extends BaseInfinitySyste
   private ArenaSystem arenaSystem;
 
   @Override
-  public void newContact(Contact contact) {
+  public void newContact(final Contact contact) {
     final RigidBody<EntityId, MBlockShape> bodyOne = contact.body1;
     final AbstractBody<EntityId, MBlockShape> bodyTwo = contact.body2;
 
@@ -99,7 +99,7 @@ public class ContactSystem<K, S extends AbstractShape> extends BaseInfinitySyste
 
     // Now that we have filtered the basics, lets send it to the various systems listening for
     // contacts
-    for (ContactListener l : listeners) {
+    for (final ContactListener l : listeners) {
       l.newContact(contact);
     }
   }
@@ -235,7 +235,7 @@ public class ContactSystem<K, S extends AbstractShape> extends BaseInfinitySyste
    * @param two The second entity
    * @return false if the filters disallow the collision, true otherwise
    */
-  private boolean categoryFilterAllowsContact(EntityId one, EntityId two) {
+  private boolean categoryFilterAllowsContact(final EntityId one, final EntityId two) {
     if (categoryFilters.containsId(two) && categoryFilters.containsId(one)) {
       final CategoryFilter filterOne =
           categoryFilters.getEntity(one).get(CollisionCategory.class).getFilter();
@@ -258,7 +258,7 @@ public class ContactSystem<K, S extends AbstractShape> extends BaseInfinitySyste
    * @param two The second entity
    * @return true if the entities are parent and child of each other, false otherwise
    */
-  private boolean parentChildContact(EntityId one, EntityId two) {
+  private boolean parentChildContact(final EntityId one, final EntityId two) {
     boolean res = false;
     final Parent parentOfOne = ed.getComponent(one, Parent.class);
     if (parentOfOne != null && parentOfOne.getParentEntityId().compareTo(two) == 0) {
@@ -299,11 +299,11 @@ public class ContactSystem<K, S extends AbstractShape> extends BaseInfinitySyste
     categoryFilters = null;
   }
 
-  public void addListener(ContactListener listener) {
+  public void addListener(final ContactListener listener) {
     this.listeners.add(listener);
   }
 
-  public void removeListener(ContactListener listener) {
+  public void removeListener(final ContactListener listener) {
     this.listeners.remove(listener);
   }
 }

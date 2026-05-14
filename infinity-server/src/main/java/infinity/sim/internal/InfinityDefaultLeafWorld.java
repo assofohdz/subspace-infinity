@@ -79,40 +79,40 @@ public class InfinityDefaultLeafWorld implements World {
 
   private final List<ColumnChangeListener> columnListeners = new ArrayList<>();
 
-  public InfinityDefaultLeafWorld(LeafDb leafDb, int yMax) {
+  public InfinityDefaultLeafWorld(final LeafDb leafDb, final int yMax) {
     this.leafDb = leafDb;
     this.yMax = yMax;
   }
 
   @Override
-  public void addCellChangeListener(CellChangeListener l) {
+  public void addCellChangeListener(final CellChangeListener l) {
     cellListeners.add(l);
     cellListenerArray = null;
   }
 
   @Override
-  public void removeCellChangeListener(CellChangeListener l) {
+  public void removeCellChangeListener(final CellChangeListener l) {
     cellListeners.remove(l);
     cellListenerArray = null;
   }
 
   @Override
-  public void addLeafChangeListener(LeafChangeListener l) {
+  public void addLeafChangeListener(final LeafChangeListener l) {
     leafListeners.add(l);
   }
 
   @Override
-  public void removeLeafChangeListener(LeafChangeListener l) {
+  public void removeLeafChangeListener(final LeafChangeListener l) {
     leafListeners.remove(l);
   }
 
   @Override
-  public void addColumnChangeListener(ColumnChangeListener l) {
+  public void addColumnChangeListener(final ColumnChangeListener l) {
     columnListeners.add(l);
   }
 
   @Override
-  public void removeColumnChangeListener(ColumnChangeListener l) {
+  public void removeColumnChangeListener(final ColumnChangeListener l) {
     columnListeners.remove(l);
   }
 
@@ -128,14 +128,14 @@ public class InfinityDefaultLeafWorld implements World {
     return cellListenerArray;
   }
 
-  protected void fireCellChanged(CellChangeEvent event) {
-    for (CellChangeListener l : getCellListenerArray()) {
+  protected void fireCellChanged(final CellChangeEvent event) {
+    for (final CellChangeListener l : getCellListenerArray()) {
       l.cellChanged(event);
     }
   }
 
   @Override
-  public int setWorldCell(Vec3d world, int type) {
+  public int setWorldCell(final Vec3d world, final int type) {
     //TODO: Implement some kind of batching here so that we don't
     // have to do a full recalculation for every cell change. Maybe
     // a 'setWorldCells' that takes a list of cells to change and
@@ -160,16 +160,16 @@ public class InfinityDefaultLeafWorld implements World {
     int value = data.getCell(x, y, z);
 
     // Push the changes back to the DB
-    for (LeafData mod : data.getModified()) {
+    for (final LeafData mod : data.getModified()) {
       leafDb.storeLeaf(mod);
     }
 
     // Notify the listeners
-    for (LeafData mod : data.getModified()) {
+    for (final LeafData mod : data.getModified()) {
       leafListeners.fireLeafChanged(mod.getInfo().leafId, mod.getInfo().version.getVersion(), false);
     }
 
-    for (CellChangeEvent event : data.getChanges()) {
+    for (final CellChangeEvent event : data.getChanges()) {
       fireCellChanged(event);
     }
 
@@ -177,7 +177,7 @@ public class InfinityDefaultLeafWorld implements World {
   }
 
   @Override
-  public int getWorldCell(Vec3d world) {
+  public int getWorldCell(final Vec3d world) {
     LeafId id = LeafId.fromWorld(world);
     LeafData leaf = getLeaf(id);
     if (leaf == null) {
@@ -190,47 +190,47 @@ public class InfinityDefaultLeafWorld implements World {
   }
 
   @Override
-  public LeafData getWorldLeaf(Vec3d worldLocation) {
+  public LeafData getWorldLeaf(final Vec3d worldLocation) {
     return getLeaf(LeafId.fromWorld(worldLocation));
   }
 
   @Override
-  public LeafData getLeaf(LeafId leafId) {
+  public LeafData getLeaf(final LeafId leafId) {
     return leafDb.loadLeaf(leafId);
   }
 
   @Override
-  public LightData getLight(LeafId leafId) {
+  public LightData getLight(final LeafId leafId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public FluidData getFluid(LeafId leafId) {
+  public FluidData getFluid(final LeafId leafId) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public TerrainImage getTerrainImage(TileId id, TerrainImageType type, Resolution res) {
+  public TerrainImage getTerrainImage(final TileId id, final TerrainImageType type, final Resolution res) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public TreeLayer getTrees(TileId id, Resolution res) {
+  public TreeLayer getTrees(final TileId id, final Resolution res) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public PointCloudLayer getPointCloudLayer(TileId id, Resolution res) {
+  public PointCloudLayer getPointCloudLayer(final TileId id, final Resolution res) {
     throw new UnsupportedOperationException();
   }
 
   @Override
-  public void addTileListener(TileListener l) {
+  public void addTileListener(final TileListener l) {
     log.debug("addTileListener() not implemented - tile changes not tracked");
   }
 
   @Override
-  public void removeTileListener(TileListener l) {
+  public void removeTileListener(final TileListener l) {
     log.debug("removeTileListener() not implemented - tile changes not tracked");
   }
 }

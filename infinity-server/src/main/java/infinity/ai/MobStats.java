@@ -36,10 +36,10 @@
 
 package infinity.ai;
 
-import java.util.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.simsilica.mathd.filter.*;
+import com.simsilica.mathd.filter.Filterd;
 
 
 /**
@@ -60,7 +60,7 @@ public class MobStats {
         stats.put(STAT_ACTIVE_MOB_COUNT, 0);
     }
 
-    public Number get( String name ) {
+    public Number get( final String name ) {
         Number num = stats.get(name);
         if( num == null ) {
             throw new IllegalArgumentException("No such stat:" + name);
@@ -68,20 +68,20 @@ public class MobStats {
         return num;
     }
 
-    public double getDouble( String name ) {
+    public double getDouble( final String name ) {
         return get(name).doubleValue();
     }
 
-    public long getLong( String name ) {
+    public long getLong( final String name ) {
         return get(name).longValue();
     }
 
     // local methods available to mob system for setting the values
-    protected Stat getStat( String name ) {
+    protected Stat getStat( final String name ) {
         return new Stat(name, null);
     }
 
-    protected Stat getStat( String name, Filterd filter ) {
+    protected Stat getStat( final String name, final Filterd filter ) {
         return new Stat(name, filter);
     }
 
@@ -89,12 +89,12 @@ public class MobStats {
         private String target;
         private Filterd filter;
 
-        public Stat( String target, Filterd filter ) {
+        public Stat( final String target, final Filterd filter ) {
             this.target = target;
             this.filter = filter;
         }
 
-        public void updateValue( double d ) {
+        public void updateValue( final double d ) {
             if( filter != null ) {
                 filter.addValue(d);
                 stats.put(target, filter.getFilteredValue());

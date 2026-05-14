@@ -36,7 +36,7 @@ public class InfinityEntityBodyFactory
   }
 
   // A method to allow other systems to get the body of an entity
-  public RigidBody<EntityId, MBlockShape> getBody(EntityId id) {
+  public RigidBody<EntityId, MBlockShape> getBody(final EntityId id) {
     return bodies.get(id);
   }
 

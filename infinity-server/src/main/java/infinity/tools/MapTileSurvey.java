@@ -27,7 +27,9 @@ public final class MapTileSurvey {
   private static final boolean[] HANDLED = new boolean[MAX_TILE_ID];
 
   static {
-    for (int i = 1; i <= 190; i++) HANDLED[i] = true; // visible tiles (incl. doors/flags/fly*)
+    for (int i = 1; i <= 190; i++) {
+      HANDLED[i] = true; // visible tiles (incl. doors/flags/fly*)
+    }
     HANDLED[216] = true; // asteroidSmall
     HANDLED[217] = true; // asteroidMedium
     HANDLED[218] = true; // asteroidEnd / over5
@@ -138,7 +140,9 @@ public final class MapTileSurvey {
     for (int x = 0; x < SIZE; x++) {
       for (int z = 0; z < SIZE; z++) {
         final short s = tiles[SIZE - x - 1][SIZE - z - 1];
-        if (s == 0) continue;
+        if (s == 0) {
+          continue;
+        }
         stats.total++;
         stats.idCounts.merge((int) s, 1, Integer::sum);
       }
@@ -199,7 +203,9 @@ public final class MapTileSurvey {
     System.out.println("=== Gap analysis — IDs not handled by LegacyMapProjector.project ===");
     final List<Map.Entry<Integer, Long>> gaps = new ArrayList<>();
     for (final Map.Entry<Integer, Long> e : s.globalCounts.entrySet()) {
-      if (!HANDLED[e.getKey()]) gaps.add(e);
+      if (!HANDLED[e.getKey()]) {
+        gaps.add(e);
+      }
     }
     if (gaps.isEmpty()) {
       System.out.println("  (none — every ID in these maps is handled)");
@@ -208,8 +214,12 @@ public final class MapTileSurvey {
     gaps.sort((a, b) -> Long.compare(b.getValue(), a.getValue()));
     long totalGap = 0;
     long totalTiles = 0;
-    for (final MapStats m : s.perMap) totalTiles += m.total;
-    for (final Map.Entry<Integer, Long> e : gaps) totalGap += e.getValue();
+    for (final MapStats m : s.perMap) {
+      totalTiles += m.total;
+    }
+    for (final Map.Entry<Integer, Long> e : gaps) {
+      totalGap += e.getValue();
+    }
     System.out.printf(
         "  %d unhandled IDs account for %d/%d tiles (%.1f%% of all surveyed)%n",
         gaps.size(), totalGap, totalTiles, totalTiles == 0 ? 0 : 100.0 * totalGap / totalTiles);
@@ -253,10 +263,15 @@ public final class MapTileSurvey {
 
   private static void collectLvls(final File dir, final List<File> out) {
     final File[] kids = dir.listFiles();
-    if (kids == null) return;
+    if (kids == null) {
+      return;
+    }
     for (final File f : kids) {
-      if (f.isDirectory()) collectLvls(f, out);
-      else if (f.getName().toLowerCase(Locale.ROOT).endsWith(".lvl")) out.add(f);
+      if (f.isDirectory()) {
+        collectLvls(f, out);
+      } else if (f.getName().toLowerCase(Locale.ROOT).endsWith(".lvl")) {
+        out.add(f);
+      }
     }
   }
 
@@ -269,7 +284,9 @@ public final class MapTileSurvey {
     };
     for (final String c : candidates) {
       final File f = new File(c);
-      if (f.exists()) return f;
+      if (f.exists()) {
+        return f;
+      }
     }
     return null;
   }
@@ -278,7 +295,9 @@ public final class MapTileSurvey {
     final String[] candidates = new String[] {rel, "../" + rel, "../../" + rel};
     for (final String c : candidates) {
       final File f = new File(c);
-      if (f.isDirectory()) return f;
+      if (f.isDirectory()) {
+        return f;
+      }
     }
     return null;
   }

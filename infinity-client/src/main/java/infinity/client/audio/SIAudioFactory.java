@@ -79,7 +79,7 @@ public class SIAudioFactory implements AudioFactory {
         return factory.apply(this);
     }
 
-    private AudioNode placeMine(int i) {
+    private AudioNode placeMine(final int i) {
         String sound = "";
         switch (i) {
         case 1:
@@ -115,7 +115,7 @@ public class SIAudioFactory implements AudioFactory {
         an.setVolume(1);
     }
 
-    private AudioNode fireBomb(int bombLevel) {
+    private AudioNode fireBomb(final int bombLevel) {
         String sound = "";
         switch (bombLevel) {
         case 1:
@@ -138,7 +138,7 @@ public class SIAudioFactory implements AudioFactory {
         return an;
     }
 
-    private AudioNode fireBullet(int gunLevel) {
+    private AudioNode fireBullet(final int gunLevel) {
         String sound = "";
         switch (gunLevel) {
         case 1:

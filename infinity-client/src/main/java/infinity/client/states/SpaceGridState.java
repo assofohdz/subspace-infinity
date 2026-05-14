@@ -69,14 +69,14 @@ public class SpaceGridState extends BaseAppState {
   private VersionedReference<Vec3d> posRef;
   private final Vec3i center = new Vec3i(0, 100, 0); // set it to something that will never match
 
-  public SpaceGridState(int cellSize, int gridRadius, ColorRGBA gridColor) {
+  public SpaceGridState(final int cellSize, final int gridRadius, final ColorRGBA gridColor) {
     this.cellSize = cellSize;
     this.gridRadius = gridRadius;
     this.gridColor = gridColor;
   }
 
   @Override
-  protected void initialize(Application app) {
+  protected void initialize(final Application app) {
     posRef = getState(AvatarMovementState.class).createPositionReference();
 
     // I have in mind a grid where the lines fade out
@@ -136,7 +136,7 @@ public class SpaceGridState extends BaseAppState {
 
   /** Inverse-cube falloff weight at {@code (x,y,z)} relative to the cell centre. */
   private static float falloffAt(
-      float x, float y, float z, float xCenter, float yCenter, float zCenter, float maxDist) {
+      final float x, final float y, final float z, final float xCenter, final float yCenter, final float zCenter, final float maxDist) {
     float dx = x - xCenter;
     float dy = y - yCenter;
     float dz = z - zCenter;
@@ -151,9 +151,9 @@ public class SpaceGridState extends BaseAppState {
   // Inner triple-loop helper — params reflect the per-cell geometry algorithm; a record per call would allocate per cell.
   @SuppressWarnings("PMD.ExcessiveParameterList")
   private void emitNeighborSegments(
-      List<Segment> segs, int j, int i, int k,
-      float x, float y, float z, float value,
-      float[][] current, float[][] last) {
+      final List<Segment> segs, final int j, final int i, final int k,
+      final float x, final float y, final float z, final float value,
+      final float[][] current, final float[][] last) {
     if (j > 0) {
       maybeAddSpan(segs, value, last[i][k], x, y, z, x, y - cellSize, z);
     }
@@ -169,10 +169,10 @@ public class SpaceGridState extends BaseAppState {
   @SuppressWarnings("PMD.ExcessiveParameterList")
   // Inner-loop helper — params are the two endpoints' coords + their falloff values; a record wrapper would only shift verbosity.
   private void maybeAddSpan(
-      List<Segment> segs,
-      float value, float neighbor,
-      float x1, float y1, float z1,
-      float x2, float y2, float z2) {
+      final List<Segment> segs,
+      final float value, final float neighbor,
+      final float x1, final float y1, final float z1,
+      final float x2, final float y2, final float z2) {
     if (value >= 0 && neighbor >= 0) {
       segs.add(new Segment(x1, y1, z1, value, x2, y2, z2, neighbor));
     }
@@ -184,7 +184,7 @@ public class SpaceGridState extends BaseAppState {
     float[] color = new float[segs.size() * 2 * 4];
     int posIndex = 0;
     int colorIndex = 0;
-    for (Segment seg : segs) {
+    for (final Segment seg : segs) {
       pos[posIndex++] = seg.end1.x;
       pos[posIndex++] = seg.end1.y;
       pos[posIndex++] = seg.end1.z;
@@ -211,7 +211,7 @@ public class SpaceGridState extends BaseAppState {
   }
 
   @Override
-  protected void cleanup(Application app) {
+  protected void cleanup(final Application app) {
     //Auto-generated method stub
   }
 
@@ -221,7 +221,7 @@ public class SpaceGridState extends BaseAppState {
   }
 
   @Override
-  public void update(float tpf) {
+  public void update(final float tpf) {
     // Need to update the relative position of our grid node
     if (posRef.update()) {
       Vec3d pos = posRef.get();
@@ -247,7 +247,7 @@ public class SpaceGridState extends BaseAppState {
     float value2;
 
     public Segment(
-        float x1, float y1, float z1, float value1, float x2, float y2, float z2, float value2) {
+        final float x1, final float y1, final float z1, final float value1, final float x2, final float y2, final float z2, final float value2) {
       this.end1.set(x1, y1, z1);
       this.end2.set(x2, y2, z2);
       this.value1 = Math.max(0, value1);

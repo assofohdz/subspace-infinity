@@ -29,7 +29,7 @@ public class AIEntities {
       final EntityId owner,
       final PhysicsSpace<?, ?> phys,
       final long createdTime,
-      byte ship) {
+      final byte ship) {
 
     EntityId mob =
         ShipFactory.createShip(

@@ -36,7 +36,8 @@
 
 package infinity.ai;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.simsilica.sim.SimTime;
 
@@ -54,13 +55,13 @@ public class LoopAction<T extends TimedGoal> implements Action {
 
     private double heartBeat = 0.0001;
 
-    public LoopAction( T goal, ActionFactory<T> iterationFactory ) {
+    public LoopAction( final T goal, final ActionFactory<T> iterationFactory ) {
         this.goal = goal;
         this.iterationFactory = iterationFactory;
     }
 
     @Override
-    public ActionStatus run( SimTime time, Brain brain ) {
+    public ActionStatus run( final SimTime time, final Brain brain ) {
 
         goal.updateTime(time);
         if( goal.getTimeRemaining() <= 0 ) {
@@ -88,14 +89,14 @@ public class LoopAction<T extends TimedGoal> implements Action {
     }
 
     @Override
-    public void abort( Brain brain ) {
+    public void abort( final Brain brain ) {
         if( action != null ) {
             action.abort(brain);
         }
     }
 
     @Override
-    public double getHeartbeat( SimTime time ) {
+    public double getHeartbeat( final SimTime time ) {
         return heartBeat;
     }
 

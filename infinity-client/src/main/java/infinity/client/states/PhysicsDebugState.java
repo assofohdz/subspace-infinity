@@ -74,12 +74,12 @@ public class PhysicsDebugState extends CompositeAppState {
   private VersionedHolder<String> activeBodyCount;
   private VersionedReference<Vec3d> posRef;
 
-  public PhysicsDebugState(HostState host) {
+  public PhysicsDebugState(final HostState host) {
     this.host = host;
   }
 
   @Override
-  protected void initialize(Application app) {
+  protected void initialize(final Application app) {
     PhysicsSpace<EntityId, MBlockShape> phys = host.getSystems().get(PhysicsSpace.class);
     this.stats = phys.getStats();
 
@@ -103,7 +103,7 @@ public class PhysicsDebugState extends CompositeAppState {
   }
 
   @Override
-  protected void cleanup(Application app) {
+  protected void cleanup(final Application app) {
     DebugHudState debug = getState(DebugHudState.class);
     if (debug != null) {
       debug.removeDebugValue("Contacts");
@@ -116,7 +116,7 @@ public class PhysicsDebugState extends CompositeAppState {
   }
 
   @Override
-  public void update(float tpf) {
+  public void update(final float tpf) {
     // We should be the last child of the GameSessionState... so everything
     // should be up-to-date.
     BinStatusState<MBlockShape> binState = getState(BinStatusState.class);

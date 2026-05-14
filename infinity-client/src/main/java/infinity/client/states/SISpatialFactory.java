@@ -80,7 +80,7 @@ public class SISpatialFactory {
   }
 
   /** Most shapes ignore {@code scale}; the arena ghost-cube reads it via {@link #createArena(double)}. */
-  public Spatial createModel(EntityId id, String shapeName, Mass mass, double scale) {
+  public Spatial createModel(final EntityId id, final String shapeName, final Mass mass, final double scale) {
     final DoubleFunction<Spatial> factory = shapeFactories.get(shapeName);
     if (factory != null) {
       return factory.apply(scale);
@@ -118,7 +118,7 @@ public class SISpatialFactory {
       Map.entry(ShapeNames.FLAG, scale -> createFlag(Flag.FLAG_THEIRS)),
       Map.entry(ShapeNames.DOOR, scale -> createDoor()));
 
-  protected Geometry createBox(float size, ColorRGBA color) {
+  protected Geometry createBox(final float size, final ColorRGBA color) {
     Box box = new Box(size, size, size);
     Geometry geom = new Geometry("box", box);
     geom.setMaterial(GuiGlobals.getInstance().createMaterial(color, false).getMaterial());
@@ -127,7 +127,7 @@ public class SISpatialFactory {
     return geom;
   }
   /** Creates a root-level spatial for the specified root group. */
-  protected Spatial createPartSpatial(EntityId id, Group group, Mass mass) {
+  protected Spatial createPartSpatial(final EntityId id, final Group group, final Mass mass) {
     Node node = new Node(objectString + id);
 
     // The root level will need to be positioned relative to the rigid body
@@ -146,8 +146,8 @@ public class SISpatialFactory {
   }
 
   /** Creates a child spatial for the specified child group. */
-  protected Spatial createPartSpatial(Node parent, EntityId id, Group group, Mass mass) {
-    for (Part child : group.getChildren()) {
+  protected Spatial createPartSpatial(final Node parent, final EntityId id, final Group group, final Mass mass) {
+    for (final Part child : group.getChildren()) {
       if (child instanceof CellArrayPart) {
         Spatial ps = createPartSpatial(id, (CellArrayPart) child, false, mass);
         ps.setLocalTranslation(child.getShapeRelativePosition().toVector3f());
@@ -162,7 +162,7 @@ public class SISpatialFactory {
     return parent;
   }
 
-  public Spatial createSphere(EntityId id, float radius, Mass mass) {
+  public Spatial createSphere(final EntityId id, final float radius, final Mass mass) {
     Sphere mesh = new Sphere(24, 24, radius);
     mesh.setTextureMode(Sphere.TextureMode.Projected);
     mesh.scaleTextureCoordinates(new Vector2f(4, 2));
@@ -192,7 +192,7 @@ public class SISpatialFactory {
   }
 
   /** Creates a root-level spatial for the specified root part. */
-  protected Spatial createPartSpatial(EntityId id, CellArrayPart part, boolean isRoot, Mass mass) {
+  protected Spatial createPartSpatial(final EntityId id, final CellArrayPart part, final boolean isRoot, final Mass mass) {
     if (part.getCells() == null) {
       return createSphere(id, (float) part.getMass().getRadius(), mass);
     }
@@ -306,7 +306,7 @@ public class SISpatialFactory {
     log.info("Setting geometry material on spatial:{}; ship:{}", s, ship);
   }
 
-  private Spatial createBomb(int viewOffset) {
+  private Spatial createBomb(final int viewOffset) {
     final Quad quad = new Quad(CoreViewConstants.BOMBSIZE, CoreViewConstants.BOMBSIZE);
     final float halfSize = CoreViewConstants.BOMBSIZE * 0.5f;
     quad.setBuffer(VertexBuffer.Type.Position, 3, QuadMeshes.verticesQuad(halfSize));

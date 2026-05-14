@@ -84,7 +84,7 @@ public class Main extends SimpleApplication {
       // Give log4j time to flush
       try {
         Thread.sleep(100);
-      } catch (InterruptedException ignored) {
+      } catch (final InterruptedException ignored) {
         // Re-interrupt: top-level uncaught-exception handler has no caller to rethrow to.
         Thread.currentThread().interrupt();
       }
@@ -116,7 +116,7 @@ public class Main extends SimpleApplication {
 
     try {
       main.start();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       log.error("Fatal error during application startup", e);
       throw e;
     }

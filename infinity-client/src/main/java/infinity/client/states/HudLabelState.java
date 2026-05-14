@@ -55,7 +55,7 @@ public class HudLabelState extends BaseAppState {
   private int playerFrequency;
 
   @Override
-  protected void initialize(Application app) {
+  protected void initialize(final Application app) {
     hudLabelRoot = new Node("HUD labels");
 
     this.camera = app.getCamera();
@@ -75,7 +75,7 @@ public class HudLabelState extends BaseAppState {
   }
 
   @Override
-  protected void cleanup(Application app) {
+  protected void cleanup(final Application app) {
     if (labels != null) {
       labels.stop();
       labels = null;
@@ -100,14 +100,14 @@ public class HudLabelState extends BaseAppState {
   }
 
   @Override
-  public void update(float tpf) {
+  public void update(final float tpf) {
 
     // Grab a consistent time for this frame
     long time = timeSource.getTime();
 
     // Update all of the models
     labels.update();
-    for (LabelHolder label : labels.getArray()) {
+    for (final LabelHolder label : labels.getArray()) {
       label.update(time);
     }
   }
@@ -123,7 +123,7 @@ public class HudLabelState extends BaseAppState {
 
     TransitionBuffer<? extends PositionTransition3d> buffer;
 
-    public LabelHolder(Entity entity) {
+    public LabelHolder(final Entity entity) {
       this.entity = entity;
 
       this.modelSpatial = modelView.getModelSpatial(entity.getId(), true);
@@ -151,7 +151,7 @@ public class HudLabelState extends BaseAppState {
       updateComponents();
     }
 
-    protected void updateLabelPos(Vector3f pos) {
+    protected void updateLabelPos(final Vector3f pos) {
       Vector3f loc = modelSpatial.getWorldTranslation();
 
       if (!visible || isPlayerEntity) {
@@ -177,7 +177,7 @@ public class HudLabelState extends BaseAppState {
       }
     }
 
-    public void update(long time) {
+    public void update(final long time) {
 
       // Look back in the brief history that we've kept and
       // pull an interpolated value.  To do this, we grab the
@@ -205,7 +205,7 @@ public class HudLabelState extends BaseAppState {
       }
     }
 
-    protected void setVisible(boolean f) {
+    protected void setVisible(final boolean f) {
       if (this.visible == f) {
         return;
       }
@@ -223,17 +223,17 @@ public class HudLabelState extends BaseAppState {
   }
 
   private class LabelContainer extends EntityContainer<LabelHolder> {
-    public LabelContainer(EntityData ed) {
+    public LabelContainer(final EntityData ed) {
       super(ed, Name.class, BodyPosition.class, Frequency.class);
     }
 
     @Override
-    protected LabelHolder addObject(Entity e) {
+    protected LabelHolder addObject(final Entity e) {
       return new LabelHolder(e);
     }
 
     @Override
-    protected void updateObject(LabelHolder object, Entity e) {
+    protected void updateObject(final LabelHolder object, final Entity e) {
       object.updateComponents();
       // Update other labels if the player updates his frequency
       if (object.isPlayerEntity) {
@@ -247,7 +247,7 @@ public class HudLabelState extends BaseAppState {
     }
 
     public void updateLabelColours() {
-      for (LabelHolder labelHolder : getArray()) {
+      for (final LabelHolder labelHolder : getArray()) {
         // Dont update if the label is the player's
         if (labelHolder.isPlayerEntity) {
           continue;
@@ -257,7 +257,7 @@ public class HudLabelState extends BaseAppState {
     }
 
     @Override
-    protected void removeObject(LabelHolder object, Entity e) {
+    protected void removeObject(final LabelHolder object, final Entity e) {
       object.dispose();
     }
   }

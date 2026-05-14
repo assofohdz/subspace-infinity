@@ -37,7 +37,8 @@
 package infinity.ai;
 
 import java.util.Objects;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.simsilica.sim.SimTime;
 
@@ -54,12 +55,12 @@ public class Sequence implements Action {
     private int current = 0;
     private double heartBeat;
 
-    public Sequence( Action... actions ) {
+    public Sequence( final Action... actions ) {
         this.actions = actions;
     }
 
     @Override
-    public ActionStatus run( SimTime time, Brain brain ) {
+    public ActionStatus run( final SimTime time, final Brain brain ) {
         if( current >= actions.length ) {
             return ActionStatus.DONE;
         }
@@ -82,7 +83,7 @@ public class Sequence implements Action {
     }
 
     @Override
-    public void abort( Brain brain ) {
+    public void abort( final Brain brain ) {
         if( current >= actions.length ) {
             return;
         }
@@ -90,7 +91,7 @@ public class Sequence implements Action {
     }
 
     @Override
-    public double getHeartbeat( SimTime time ) {
+    public double getHeartbeat( final SimTime time ) {
         return heartBeat;
     }
 

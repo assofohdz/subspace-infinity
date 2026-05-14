@@ -38,8 +38,8 @@ package infinity.es;
 
 import com.google.common.base.MoreObjects;
 
-import com.simsilica.es.*;
-import com.simsilica.mathd.*;
+import com.simsilica.es.EntityComponent;
+import com.simsilica.mathd.Vec3d;
 
 /**
  * Component holding metadata about a probe / projectile sent into the world.

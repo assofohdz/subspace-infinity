@@ -85,7 +85,7 @@ public class MobDebugState extends BaseAppState {
     private boolean probesEnabled;
     private boolean probesStarted = false;
 
-    public MobDebugState(HostState host) {
+    public MobDebugState(final HostState host) {
         this.host = host;
     }
 
@@ -94,11 +94,11 @@ public class MobDebugState extends BaseAppState {
         resetProbesEnabled();
     }
 
-    public void setViewOrigin( double x, double y, double z ) {
+    public void setViewOrigin( final double x, final double y, final double z ) {
         viewOrigin.set(x, y, z);
     }
 
-    public void setViewOrigin( Vec3d origin ) {
+    public void setViewOrigin( final Vec3d origin ) {
         setViewOrigin(origin.x, origin.y, origin.z);
     }
 
@@ -127,7 +127,7 @@ public class MobDebugState extends BaseAppState {
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize( final Application app ) {
         final GameSystemManager systems = host.getSystems();
         final MobSystem mobs = systems.get(MobSystem.class);
         this.stats = mobs.getStats();
@@ -154,7 +154,7 @@ public class MobDebugState extends BaseAppState {
     }
 
     @Override
-    protected void cleanup( Application app ) {
+    protected void cleanup( final Application app ) {
         if( probes != null ) {
             if( probesStarted ) {
                 probes.stop();
@@ -183,14 +183,14 @@ public class MobDebugState extends BaseAppState {
         }
     }
 
-    public void update( float tpf ) {
+    public void update( final float tpf ) {
         if( frameTime != null ) {
             frameTime.setObject(String.format("%.2f ms", stats.getDouble(MobStats.STAT_FRAME_TIME)/1000000.0));
             activeMobCount.setObject(String.valueOf(stats.getLong(MobStats.STAT_ACTIVE_MOB_COUNT)));
         }
         if( probesEnabled ) {
             probes.update();
-            for( Probe p : probes.getArray() ) {
+            for( final Probe p : probes.getArray() ) {
                 p.updatePosition();
             }
         }
@@ -202,7 +202,7 @@ public class MobDebugState extends BaseAppState {
         private Spatial view;
         private RigidBody body;
 
-        public Probe( Entity entity ) {
+        public Probe( final Entity entity ) {
             this.entity = entity;
             this.info = entity.get(ProbeInfo.class);
             this.view = probeTemplate.clone();
@@ -231,7 +231,7 @@ public class MobDebugState extends BaseAppState {
     }
 
     private class ProbeContainer extends EntityContainer<Probe> {
-        public ProbeContainer( EntityData ed ) {
+        public ProbeContainer( final EntityData ed ) {
             super(ed, MobType.class, ProbeInfo.class);
         }
 
@@ -239,7 +239,7 @@ public class MobDebugState extends BaseAppState {
             return super.getArray();
         }
 
-        protected Probe addObject( Entity e ) {
+        protected Probe addObject( final Entity e ) {
             if (log.isInfoEnabled()) {
                 log.info("add probe for:{}", e.getId());
             }
@@ -248,11 +248,11 @@ public class MobDebugState extends BaseAppState {
             return object;
         }
 
-        protected void updateObject( Probe object, Entity e ) {
+        protected void updateObject( final Probe object, final Entity e ) {
             // no-op: Probe data (ProbeInfo) is set at addObject; nothing to refresh on entity change
         }
 
-        protected void removeObject( Probe object, Entity e ) {
+        protected void removeObject( final Probe object, final Entity e ) {
             if (log.isInfoEnabled()) {
                 log.info("remove probe for:{}", e.getId());
             }

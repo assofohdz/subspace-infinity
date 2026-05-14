@@ -25,7 +25,7 @@ public final class MapAnalyzer {
 
   private MapAnalyzer() {}
 
-  public static void main(String[] args) throws IOException {
+  public static void main(final String[] args) throws IOException {
     if (args.length < 1) {
       System.err.println("Usage: MapAnalyzer <map1.lvl> [map2.lvl]");
       System.err.println("Paths can be absolute, or filenames resolved under infinity/assets/Maps/");
@@ -44,14 +44,14 @@ public final class MapAnalyzer {
     }
   }
 
-  private static File resolve(String pathArg) {
+  private static File resolve(final String pathArg) {
     String[] candidates = new String[] {
         pathArg,
         "assets/Maps/" + pathArg,
         "infinity/assets/Maps/" + pathArg,
         "../infinity/assets/Maps/" + pathArg,
     };
-    for (String c : candidates) {
+    for (final String c : candidates) {
       File f = new File(c);
       if (f.isFile()) {
         return f;
@@ -61,7 +61,7 @@ public final class MapAnalyzer {
         "Cannot find map file: " + pathArg + " (cwd=" + System.getProperty("user.dir") + ")");
   }
 
-  private static MapReport analyze(File file) throws IOException {
+  private static MapReport analyze(final File file) throws IOException {
     BitMap bmp;
     try (InputStream is = Files.newInputStream(file.toPath());
          BufferedInputStream bis = new BufferedInputStream(is)) {
@@ -146,7 +146,7 @@ public final class MapAnalyzer {
     return arr;
   }
 
-  private static String categorize(short s) {
+  private static String categorize(final short s) {
     if (s >= 0 && s < CATEGORIES.length) {
       final String label = CATEGORIES[s];
       if (label != null) {
@@ -156,17 +156,17 @@ public final class MapAnalyzer {
     return "other(" + s + ")";
   }
 
-  private static long key(int x, int z) {
+  private static long key(final int x, final int z) {
     return ((long) x << 32) | (z & 0xffffffffL);
   }
 
-  private static void printReport(MapReport r) {
+  private static void printReport(final MapReport r) {
     System.out.println("=== " + r.name + " ===");
     System.out.println("Total non-zero tiles: " + r.total);
     System.out.println();
     System.out.println("By category:");
     // TreeMap for stable ordering
-    for (Map.Entry<String, Integer> e : new TreeMap<>(r.categoryCounts).entrySet()) {
+    for (final Map.Entry<String, Integer> e : new TreeMap<>(r.categoryCounts).entrySet()) {
       System.out.printf("  %-26s %8d%n", e.getKey(), e.getValue());
     }
     System.out.println();
@@ -177,7 +177,7 @@ public final class MapAnalyzer {
         .forEach(e -> System.out.printf("  id %-4d %8d%n", e.getKey(), e.getValue()));
   }
 
-  private static void printDiff(MapReport a, MapReport b) {
+  private static void printDiff(final MapReport a, final MapReport b) {
     Set<Long> onlyA = new HashSet<>(a.occupied);
     onlyA.removeAll(b.occupied);
     Set<Long> onlyB = new HashSet<>(b.occupied);
@@ -201,7 +201,7 @@ public final class MapAnalyzer {
     final Map<String, Integer> categoryCounts = new LinkedHashMap<>();
     final Set<Long> occupied = new HashSet<>();
 
-    MapReport(String name) {
+    MapReport(final String name) {
       this.name = name;
     }
   }

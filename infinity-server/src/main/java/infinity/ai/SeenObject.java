@@ -36,10 +36,11 @@
 
 package infinity.ai;
 
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
 
-import com.simsilica.es.*;
-import com.simsilica.mblock.phys.*;
+import com.simsilica.es.EntityId;
+import com.simsilica.mblock.phys.MBlockShape;
 
 
 /**
@@ -60,7 +61,7 @@ public class SeenObject {
     private String type;
     private double distance;
 
-    public SeenObject( EntityId entityId, Vec3d position, Quatd orientation, Vec3d velocity, MBlockShape shape, String type, double distance ) {
+    public SeenObject( final EntityId entityId, final Vec3d position, final Quatd orientation, final Vec3d velocity, final MBlockShape shape, final String type, final double distance ) {
         this.entityId = entityId;
         this.position = position.clone();
         this.orientation = orientation.clone();

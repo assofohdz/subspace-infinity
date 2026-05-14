@@ -36,7 +36,8 @@
 
 package infinity.es.input;
 
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Quatd;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.es.EntityComponent;
 
 /**

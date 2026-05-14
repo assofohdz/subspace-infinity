@@ -64,7 +64,7 @@ public class MapSwapReproducerTest {
     runLoadThenClearTest("trench2.lvl", map);
   }
 
-  private void runLoadThenClearTest(String label, LevelFile map) {
+  private void runLoadThenClearTest(final String label, final LevelFile map) {
     InMemoryLeafDb leafDb = new InMemoryLeafDb();
     InfinityDefaultLeafWorld world = new InfinityDefaultLeafWorld(leafDb, 10);
 
@@ -74,14 +74,14 @@ public class MapSwapReproducerTest {
     System.out.println("[" + label + "] tracked cells written: " + tracked.size());
 
     // Clear everything tracked
-    for (Vec3d pos : tracked) {
+    for (final Vec3d pos : tracked) {
       world.setWorldCell(pos, 0);
     }
 
     // Verify: every tracked cell must now be zero-type
     int lingering = 0;
     int shown = 0;
-    for (Vec3d pos : tracked) {
+    for (final Vec3d pos : tracked) {
       int raw = world.getWorldCell(pos);
       int type = raw & TYPE_MASK;
       if (type != 0) {
@@ -185,7 +185,7 @@ public class MapSwapReproducerTest {
           for (int j = 0; j < iterations; j++) {
             world.setWorldCell(cells[idx], types[idx]);
           }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
           Thread.currentThread().interrupt();
         } finally {
           done.countDown();
@@ -235,7 +235,7 @@ public class MapSwapReproducerTest {
   // reproducer test enumerates all cell layouts
   @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
   private Set<Vec3d> writeMapCells(
-      InfinityDefaultLeafWorld world, LevelFile map, Vec3d arenaOffset) {
+      final InfinityDefaultLeafWorld world, final LevelFile map, final Vec3d arenaOffset) {
     Set<Vec3d> coordinates = new HashSet<>();
     short[][] tiles = map.getMap();
 
@@ -290,7 +290,7 @@ public class MapSwapReproducerTest {
     return coordinates;
   }
 
-  private static boolean isCorner3x3(int xpos, int zpos) {
+  private static boolean isCorner3x3(final int xpos, final int zpos) {
     boolean xLow = xpos >= 0 && xpos <= 2;
     boolean xHigh = xpos >= SIZE - 3 && xpos <= SIZE - 1;
     boolean zLow = zpos >= 0 && zpos <= 2;
@@ -298,13 +298,13 @@ public class MapSwapReproducerTest {
     return (xLow && zLow) || (xLow && zHigh) || (xHigh && zLow) || (xHigh && zHigh);
   }
 
-  private static File resolveMap(String name) {
+  private static File resolveMap(final String name) {
     String[] candidates = {
         "assets/Maps/" + name,
         "infinity/assets/Maps/" + name,
         "../infinity/assets/Maps/" + name,
     };
-    for (String c : candidates) {
+    for (final String c : candidates) {
       File f = new File(c);
       if (f.isFile()) {
         return f;
@@ -314,7 +314,7 @@ public class MapSwapReproducerTest {
         "Cannot locate " + name + " (cwd=" + System.getProperty("user.dir") + ")");
   }
 
-  private static LevelFile loadLvl(File file) throws IOException {
+  private static LevelFile loadLvl(final File file) throws IOException {
     BitMap bmp;
     try (InputStream is = Files.newInputStream(file.toPath());
          BufferedInputStream bis = new BufferedInputStream(is)) {
@@ -341,16 +341,16 @@ public class MapSwapReproducerTest {
     private final Map<LeafId, LeafData> leaves = new ConcurrentHashMap<>();
 
     @Override
-    public LeafData loadLeaf(LeafId leafId) {
+    public LeafData loadLeaf(final LeafId leafId) {
       return leaves.computeIfAbsent(leafId, this::createEmpty);
     }
 
     @Override
-    public void storeLeaf(LeafData leaf) {
+    public void storeLeaf(final LeafData leaf) {
       leaves.put(leaf.getInfo().leafId, leaf);
     }
 
-    private LeafData createEmpty(LeafId leafId) {
+    private LeafData createEmpty(final LeafId leafId) {
       Vec3i world = leafId.getWorld(null);
       CellArray cells = new CellArray(LeafId.SIZE);
       return new LeafData(new LeafInfo(world, leafId, new DataVersion(0)), cells, LeafId.CELL_COUNT);

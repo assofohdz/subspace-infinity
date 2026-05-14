@@ -36,9 +36,11 @@
 
 package infinity.ai;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -60,24 +62,24 @@ public class Strategy<T extends Goal> {
   private MovementListener onMoved;
   private BlockedListener onBlocked;
 
-  public Strategy(ActionFactory<T> plan) {
+  public Strategy(final ActionFactory<T> plan) {
     if (plan == null) {
       throw new IllegalArgumentException("Plan cannot be null");
     }
     this.plan = plan;
   }
 
-  public Strategy<T> onDone(ActionFactory<T> onDone) {
+  public Strategy<T> onDone(final ActionFactory<T> onDone) {
     this.onDone = onDone;
     return this;
   }
 
-  public Strategy<T> onFailed(ActionFactory<T> onFailed) {
+  public Strategy<T> onFailed(final ActionFactory<T> onFailed) {
     this.onFailed = onFailed;
     return this;
   }
 
-  public Strategy<T> onTouch(Collection<String> types, TouchListener listener) {
+  public Strategy<T> onTouch(final Collection<String> types, final TouchListener listener) {
     if (types == null) {
       touchTypes = Predicates.alwaysTrue();
     } else {
@@ -87,47 +89,47 @@ public class Strategy<T extends Goal> {
     return this;
   }
 
-  public Strategy<T> onMoved(MovementListener onMoved) {
+  public Strategy<T> onMoved(final MovementListener onMoved) {
     this.onMoved = onMoved;
     return this;
   }
 
-  public Strategy<T> onBlocked(BlockedListener onBlocked) {
+  public Strategy<T> onBlocked(final BlockedListener onBlocked) {
     this.onBlocked = onBlocked;
     return this;
   }
 
-  public boolean isInterestingTouch(String type) {
+  public boolean isInterestingTouch(final String type) {
     return touchTypes != null && touchTypes.apply(type);
   }
 
-  public Action plan(Brain brain, T goal) {
+  public Action plan(final Brain brain, final T goal) {
     return plan.createAction(brain, goal);
   }
 
-  public Action done(Brain brain, T goal) {
+  public Action done(final Brain brain, final T goal) {
     return onDone == null ? null : onDone.createAction(brain, goal);
   }
 
-  public Action failed(Brain brain, T goal) {
+  public Action failed(final Brain brain, final T goal) {
     return onFailed == null ? null : onFailed.createAction(brain, goal);
   }
 
-  public boolean touch(Brain brain, TouchEvent event) {
+  public boolean touch(final Brain brain, final TouchEvent event) {
     if (onTouch != null) {
       return onTouch.touch(brain, event);
     }
     return false;
   }
 
-  public boolean objectMoved(Brain brain, SeenObject object) {
+  public boolean objectMoved(final Brain brain, final SeenObject object) {
     if (onMoved != null) {
       return onMoved.objectMoved(brain, object);
     }
     return false;
   }
 
-  public boolean blocked(Brain brain, Object blocker) {
+  public boolean blocked(final Brain brain, final Object blocker) {
     if (onBlocked != null) {
       return onBlocked.blocked(brain, blocker);
     }

@@ -36,12 +36,16 @@
 
 package infinity.server;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Vec3i;
 
-import com.simsilica.mblock.*;
-import com.simsilica.mworld.*;
+import com.simsilica.mblock.CellArray;
+import com.simsilica.mworld.DataVersion;
+import com.simsilica.mworld.LeafData;
+import com.simsilica.mworld.LeafId;
+import com.simsilica.mworld.LeafInfo;
 import com.simsilica.mworld.db.LeafDb;
 
 /** Stub {@link LeafDb} returning empty leaves; placeholder for tests. */
@@ -52,7 +56,7 @@ public class EmptyLeafDb implements LeafDb {
     public static final int LEAF_SIZE = LeafInfo.SIZE;
 
     @Override
-    public LeafData loadLeaf( LeafId leafId ) {
+    public LeafData loadLeaf( final LeafId leafId ) {
         Vec3i world = leafId.getWorld(null);
         CellArray cells = new CellArray(LEAF_SIZE);
         return new LeafData(new LeafInfo(world, leafId, new DataVersion(0)), cells, LeafInfo.CELL_COUNT);

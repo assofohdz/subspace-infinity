@@ -38,9 +38,9 @@ package infinity.ai;
 
 import java.util.Collection;
 
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Vec3d;
 
-import com.simsilica.es.*;
+import com.simsilica.es.EntityId;
 
 /**
  *  Implemented by objects that can be controlled by a Brain and

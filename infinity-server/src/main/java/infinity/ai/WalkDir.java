@@ -36,9 +36,10 @@
 
 package infinity.ai;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.SimTime;
 
 /**
@@ -62,11 +63,11 @@ public class WalkDir implements Action {
     private Vec3d move = new Vec3d();
     private Vec3d lastPosition = new Vec3d();
 
-    public WalkDir( Vec3d facing, Vec3d move, double duration, double checkTime ) {
+    public WalkDir( final Vec3d facing, final Vec3d move, final double duration, final double checkTime ) {
         this(WalkTo.getFacing(facing), move, duration, checkTime);
     }
 
-    public WalkDir( double facing, Vec3d move, double duration, double checkTime ) {
+    public WalkDir( final double facing, final Vec3d move, final double duration, final double checkTime ) {
 
 log.info("WalkDir({}, {}, {})", facing, move, duration);
         this.facing = facing;
@@ -76,7 +77,7 @@ log.info("WalkDir({}, {}, {})", facing, move, duration);
     }
 
     @Override
-    public ActionStatus run( SimTime time, Brain brain ) {
+    public ActionStatus run( final SimTime time, final Brain brain ) {
         Actor actor = brain.getActor();
         actor.turnTo(facing);
         actor.move(move);
@@ -113,14 +114,14 @@ log.info("******************** Aborting moveDir");
     }
 
     @Override
-    public void abort( Brain brain ) {
+    public void abort( final Brain brain ) {
         Actor actor = brain.getActor();
         actor.turnTo(actor.getFacing());
         actor.move(new Vec3d());
     }
 
     @Override
-    public double getHeartbeat( SimTime time ) {
+    public double getHeartbeat( final SimTime time ) {
         // At most 1 second to check our status
         double delta = endTime - time.getTimeInSeconds();
         if( checkTime > 0 ) {

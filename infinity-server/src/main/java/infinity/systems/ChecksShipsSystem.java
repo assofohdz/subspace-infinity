@@ -432,7 +432,9 @@ public class ChecksShipsSystem extends AbstractGameSystem {
   }
 
   private static String intValue(final EntityComponent c) {
-    if (c == null) return "?";
+    if (c == null) {
+      return "?";
+    }
     final ToIntFunction<EntityComponent> fn = INT_GETTERS.get(c.getClass());
     return fn == null ? "?" : Integer.toString(fn.applyAsInt(c));
   }

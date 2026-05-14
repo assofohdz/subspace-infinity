@@ -36,9 +36,10 @@
 
 package infinity.ai;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Vec3d;
 
 /**
  *
@@ -52,7 +53,7 @@ public class TouchEvent {
     private Vec3d contact;
     private Vec3d normal;
 
-    public TouchEvent( SeenObject object, Vec3d contact, Vec3d normal ) {
+    public TouchEvent( final SeenObject object, final Vec3d contact, final Vec3d normal ) {
         this.object = object;
         this.contact = contact;
         this.normal = normal;

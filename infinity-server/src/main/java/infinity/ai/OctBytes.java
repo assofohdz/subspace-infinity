@@ -36,13 +36,16 @@
 
 package infinity.ai;
 
-import java.io.*;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.MoreObjects;
 
-import com.simsilica.mathd.*;
+import com.simsilica.mathd.Vec3d;
+import com.simsilica.mathd.Vec3i;
 
 /**
  * Keeps track of an octree of byte values that can be queried for intersection. This is probably a
@@ -63,7 +66,7 @@ public class OctBytes {
   private final Vec3i rootOrigin;
   private final int rootSize;
 
-  public OctBytes(Vec3d origin, double minSize, double maxSize) {
+  public OctBytes(final Vec3d origin, final double minSize, final double maxSize) {
     this.origin = origin;
     this.minSize = minSize;
     this.maxSize = maxSize;
@@ -79,17 +82,17 @@ public class OctBytes {
     this.root = new Octad();
   }
 
-  public void set(Vec3d min, Vec3d max, byte value) {
+  public void set(final Vec3d min, final Vec3d max, final byte value) {
     Vec3i v1 = min.mult(scale).floor();
     Vec3i v2 = max.mult(scale).floor();
     root.set(rootOrigin.x, rootOrigin.y, rootOrigin.z, rootSize, v1, v2, value);
   }
 
-  public void clear(Vec3d min, Vec3d max) {
+  public void clear(final Vec3d min, final Vec3d max) {
     set(min, max, (byte) 0x0);
   }
 
-  public boolean intersects(Vec3d min, Vec3d max) {
+  public boolean intersects(final Vec3d min, final Vec3d max) {
     return false;
   }
 
@@ -99,7 +102,7 @@ public class OctBytes {
     return result.toString();
   }
 
-  public void dump(PrintWriter out) {
+  public void dump(final PrintWriter out) {
     out.println(this);
     root.dump("", "root", out);
   }
@@ -127,7 +130,7 @@ public class OctBytes {
 
     // Returns true if the octad defined by the specified parameters
     // is completely contained in the box defined by min,max
-    private static boolean octadInBox(int xo, int yo, int zo, int size, Vec3i min, Vec3i max) {
+    private static boolean octadInBox(final int xo, final int yo, final int zo, final int size, final Vec3i min, final Vec3i max) {
       // Note: we use <= beceause we are also using size to define
       // the octad bounds.  Not sure if min/max will be max-inclusive yet or not.
       // So this may need to change... but it's likely that max will also be min+size.
@@ -139,7 +142,7 @@ public class OctBytes {
           && zo + size <= max.z;
     }
 
-    private static boolean octadOutsideBox(int xo, int yo, int zo, int size, Vec3i min, Vec3i max) {
+    private static boolean octadOutsideBox(final int xo, final int yo, final int zo, final int size, final Vec3i min, final Vec3i max) {
       if (xo + size <= min.x || yo + size <= min.y || zo + size <= min.z) {
         return true;
       }
@@ -147,7 +150,7 @@ public class OctBytes {
       return xo >= max.x || yo >= max.y || zo >= max.z;
     }
 
-    public void dump(String indent, String label, PrintWriter out) {
+    public void dump(final String indent, final String label, final PrintWriter out) {
       if (children == null) {
         out.println(indent + label + ":" + value);
         return;
@@ -169,7 +172,7 @@ public class OctBytes {
     }
 
     // Returns true if totally set to value, ie: no children
-    public boolean set(int xo, int yo, int zo, int size, Vec3i min, Vec3i max, byte value) {
+    public boolean set(final int xo, final int yo, final int zo, final int size, final Vec3i min, final Vec3i max, final byte value) {
       if (octadOutsideBox(xo, yo, zo, size, min, max)) {
         // Then don't change anything... but if we have no children
         // and match the value desired then return true.  This won't
@@ -219,7 +222,7 @@ public class OctBytes {
 
     // Order has to be consistent in all of these types of blocks since
     // we supply the octad coordinates externally
-    private int recurseChildrenSet(int xo, int yo, int zo, int size, Vec3i min, Vec3i max, byte value) {
+    private int recurseChildrenSet(final int xo, final int yo, final int zo, final int size, final Vec3i min, final Vec3i max, final byte value) {
       int count = 0;
       final int split = size >> 1;
       // Octant index encodes per-axis half-step in bits: bit0=x, bit1=y, bit2=z.
@@ -245,7 +248,7 @@ public class OctBytes {
     private final byte value;
     private OctCell[] children;
 
-    private OctCell(Octad octad, Vec3i origin, int size) {
+    private OctCell(final Octad octad, final Vec3i origin, final int size) {
       this.origin = origin;
       this.size = size;
       this.value = octad.value;

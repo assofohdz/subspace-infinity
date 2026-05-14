@@ -96,7 +96,7 @@ public class LanternBlockFactory implements BlockFactory {
       final CellData cells,
       final BlockType type) {
     int n = 0;
-    for (GeomPart p : faces) {
+    for (final GeomPart p : faces) {
       buffer.addPart(i, j, k, p);
       n++;
     }

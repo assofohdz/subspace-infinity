@@ -36,22 +36,32 @@
 
 package infinity.ai;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 import infinity.es.MobType;
 import infinity.es.ProbeInfo;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 
-import com.simsilica.es.*;
-import com.simsilica.mathd.*;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityContainer;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.filter.SimpleMovingMean;
-import com.simsilica.sim.*;
+import com.simsilica.sim.AbstractGameSystem;
+import com.simsilica.sim.SimTime;
 
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
-import com.simsilica.mphys.*;
+import com.simsilica.mphys.AbstractBody;
+import com.simsilica.mphys.Bin;
+import com.simsilica.mphys.BinIndex;
+import com.simsilica.mphys.PhysicsSpace;
+import com.simsilica.mphys.RigidBody;
 
 /**
  *
@@ -84,7 +94,7 @@ public class MobSystem extends AbstractGameSystem {
     }
 
     // Temporary just to consolidate it
-    public static String getType( AbstractBody<EntityId, MBlockShape> body ) {
+    public static String getType( final AbstractBody<EntityId, MBlockShape> body ) {
         String name = body.shape.getPart().getName();
         if( "/Blocks/fence1.blocks".equals(name) ) {
             return "fence";
@@ -173,7 +183,7 @@ public class MobSystem extends AbstractGameSystem {
     }
 
     @Override
-    public void update( SimTime time ) {
+    public void update( final SimTime time ) {
 
         brains.update();
         drivers.update();
@@ -215,8 +225,8 @@ public class MobSystem extends AbstractGameSystem {
         // want to keep physics and AI responsive.
 
         BinIndex<EntityId, MBlockShape> binIndex = space.getBinIndex();
-        for( Bin<EntityId, MBlockShape> bin : binIndex.getActiveBins() ) {
-            for( RigidBody<EntityId, MBlockShape> body : bin.getActiveObjects().getArray() ) {
+        for( final Bin<EntityId, MBlockShape> bin : binIndex.getActiveBins() ) {
+            for( final RigidBody<EntityId, MBlockShape> body : bin.getActiveObjects().getArray() ) {
                 // Seems to nicely only be the objects that are actually active
 
                 // We'll skip mobs here because mob->mob could be done in a more
@@ -251,7 +261,7 @@ public class MobSystem extends AbstractGameSystem {
         double radius = body.shape.getMass().getRadius();
 
         // Brute-force, no special spatial indexes.  FIXME: use a bin system or something
-        for( Brain brain : brains.getArray() ) {
+        for( final Brain brain : brains.getArray() ) {
 
             // Don't deliver our own events
             if( brain.getId().getId() == body.id.getId() ) {
@@ -300,7 +310,7 @@ public class MobSystem extends AbstractGameSystem {
     // a totally separate system.
 
     private class BrainContainer extends EntityContainer<Brain> {
-        public BrainContainer( EntityData ed ) {
+        public BrainContainer( final EntityData ed ) {
             super(ed, MobType.class);
         }
 
@@ -309,7 +319,7 @@ public class MobSystem extends AbstractGameSystem {
         }
 
         @Override
-        protected Brain addObject( Entity e ) {
+        protected Brain addObject( final Entity e ) {
 
             String type = e.get(MobType.class).getTypeName(ed);
             BrainConfiguration config = BrainConfigurations.getConfig(type);
@@ -335,19 +345,19 @@ public class MobSystem extends AbstractGameSystem {
         }
 
         @Override
-        protected void removeObject( Brain driver, Entity e ) {
+        protected void removeObject( final Brain driver, final Entity e ) {
 log.info("removeObject({})", e);
         }
     }
 
     private class DriverContainer extends EntityContainer<MobDriver> {
 
-        public DriverContainer( EntityData ed ) {
+        public DriverContainer( final EntityData ed ) {
             super(ed, MobType.class);
         }
 
         @Override
-        protected MobDriver addObject( Entity e ) {
+        protected MobDriver addObject( final Entity e ) {
             MobDriver result = new MobDriver(physics, e.getId());
 
             String type = e.get(MobType.class).getTypeName(ed);
@@ -393,7 +403,7 @@ log.info("existing body:{}", body);
         }
 
         @Override
-        protected void removeObject( MobDriver driver, Entity e ) {
+        protected void removeObject( final MobDriver driver, final Entity e ) {
 log.info("removeObject({})", e);
             driver.release();
         }
@@ -401,7 +411,7 @@ log.info("removeObject({})", e);
 
     // I guess this could have been done with an ObjectStatusListener instead
     private class MobBodyInitializer implements Function<RigidBody<EntityId, MBlockShape>, Void> {
-        public Void apply( RigidBody<EntityId, MBlockShape> body ) {
+        public Void apply( final RigidBody<EntityId, MBlockShape> body ) {
             // See if this is one of the ones we need to add a player driver to
             MobDriver driver = drivers.getObject(body.id);
 log.info("MobBodyInitializer.apply({})  driver:{}", body, driver);

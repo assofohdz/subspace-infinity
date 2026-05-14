@@ -48,7 +48,7 @@ import com.simsilica.es.EntityId;
 public class Flee extends AbstractGoal implements Goal {
   private final EntityId pursuer;
 
-  public Flee(EntityId pursuer) {
+  public Flee(final EntityId pursuer) {
     this.pursuer = pursuer;
   }
 
@@ -62,7 +62,7 @@ public class Flee extends AbstractGoal implements Goal {
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     if (o == this) {
       return true;
     }

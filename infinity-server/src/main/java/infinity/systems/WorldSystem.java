@@ -35,7 +35,7 @@ public class WorldSystem extends BaseInfinitySystem {
   }
 
   @Override
-  public void update(SimTime time) {
+  public void update(final SimTime time) {
     // no-op: world cells edited reactively via chat command, not per-tick
   }
 
@@ -57,7 +57,7 @@ public class WorldSystem extends BaseInfinitySystem {
   }
 
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
-  private String flipWorldCell(EntityId player, EntityId avatarId, Matcher matcher) {
+  private String flipWorldCell(final EntityId player, final EntityId avatarId, final Matcher matcher) {
     String x = matcher.group(1);
     String z = matcher.group(2);
 
@@ -74,7 +74,7 @@ public class WorldSystem extends BaseInfinitySystem {
     return "Flipped cell at " + pos;
   }
 
-  public int setWorldCell(Vec3d pos, int cellType) {
+  public int setWorldCell(final Vec3d pos, final int cellType) {
     return world.setWorldCell(pos, cellType);
   }
 

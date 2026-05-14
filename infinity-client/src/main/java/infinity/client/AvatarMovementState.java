@@ -316,7 +316,7 @@ public class AvatarMovementState extends BaseAppState
     return b == null ? -1 : b;
   }
 
-  protected Vec3d updateShipLocation(Vec3d loc) {
+  protected Vec3d updateShipLocation(final Vec3d loc) {
     Vec3d newLoc = loc.clone();
 
     long time = System.nanoTime();
@@ -338,13 +338,13 @@ public class AvatarMovementState extends BaseAppState
     return posHolder.createReference();
   }
 
-  private void setLocation(Vector3f loc) {
+  private void setLocation(final Vector3f loc) {
     position.set(loc);
     posHolder.incrementVersion();
   }
 
   @Override
-  public void valueActive(FunctionId func, double value, double tpf) {
+  public void valueActive(final FunctionId func, final double value, final double tpf) {
     // Movement - valueActive is called every frame while input is active
     if (func == AvatarMovementFunctions.F_TURN) {
       currentRotation = value;
@@ -358,7 +358,7 @@ public class AvatarMovementState extends BaseAppState
   }
 
   /** Continuous fire while held — bombs/mines/thor/repel/burst/bullets. */
-  private void dispatchHeldWeapon(FunctionId func) {
+  private void dispatchHeldWeapon(final FunctionId func) {
     if (func == AvatarMovementFunctions.F_BOMB) {
       // Shift+TAB swaps bomb→mine; bare TAB stays bomb.
       session.attack(shiftPressed ? WeaponType.MINE : WeaponType.BOMB);

@@ -205,7 +205,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     }
   }
 
-  private void createThor(Entity requesterEntity, final long time, ActionPosition info) {
+  private void createThor(final Entity requesterEntity, final long time, final ActionPosition info) {
     EntityId requester = requesterEntity.getId();
     final ThorConfig cfg = ConsumableLogic.thorConfigFor(ed, configRegistry, requester);
 
@@ -231,7 +231,7 @@ public class ConsumableSystem extends BaseInfinitySystem
   }
 
   /** Stamps {@link RepelSpeed}/{@link RepelDistance} on the spawned effect — repel-impulse reads components, not config. */
-  private void createRepel(Entity requesterEntity, final long time, ActionPosition info) {
+  private void createRepel(final Entity requesterEntity, final long time, final ActionPosition info) {
     EntityId requester = requesterEntity.getId();
     final RepelConfig cfg = ConsumableLogic.repelConfigFor(ed, configRegistry, requester);
 
@@ -493,7 +493,7 @@ public class ConsumableSystem extends BaseInfinitySystem
   }
 
   @Override
-  public void newContact(Contact<EntityId, MBlockShape> contact) {
+  public void newContact(final Contact<EntityId, MBlockShape> contact) {
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
@@ -503,7 +503,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     }
   }
 
-  public boolean isThor(EntityId idOne) {
+  public boolean isThor(final EntityId idOne) {
     return thorProjectiles.containsId(idOne);
   }
 
@@ -517,7 +517,7 @@ public class ConsumableSystem extends BaseInfinitySystem
       this.attackVelocity = attackVelocity;
     }
 
-    public ActionPosition(ActionPosition source) {
+    public ActionPosition(final ActionPosition source) {
       this.location = source.location;
       this.attackVelocity = source.attackVelocity;
     }

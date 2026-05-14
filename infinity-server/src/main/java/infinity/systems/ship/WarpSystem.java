@@ -120,7 +120,7 @@ public class WarpSystem extends BaseInfinitySystem
   }
 
   @Override
-  public void update(SimTime tpf) {
+  public void update(final SimTime tpf) {
 
     canWarp.applyChanges();
     warpTouchEntities.applyChanges();
@@ -191,7 +191,7 @@ public class WarpSystem extends BaseInfinitySystem
   }
 
   /** Warp the avatar to the arena center; returns chat-console feedback. */
-  public String warpToCenter(EntityId avatarId) {
+  public String warpToCenter(final EntityId avatarId) {
     Entity child = ed.getEntity(avatarId, BodyPosition.class);
     BodyPosition childBodyPos = child.get(BodyPosition.class);
     Vec3d lastLoc = childBodyPos.getLastLocation();
@@ -206,12 +206,12 @@ public class WarpSystem extends BaseInfinitySystem
     ed.setComponents(h, new ChangeTarget(shipId, source), new WarpToChange(target));
   }
 
-  public String commandRequestWarpToCenter(EntityId entityId, EntityId avatarId, Matcher matcher) {
+  public String commandRequestWarpToCenter(final EntityId entityId, final EntityId avatarId, final Matcher matcher) {
     return warpToCenter(avatarId);
   }
 
   /** Teleport to world coords; refuses if the 3x3 target neighborhood contains any non-empty cell. */
-  public String commandTeleportWorld(EntityId entityId, EntityId avatarId, Matcher matcher) {
+  public String commandTeleportWorld(final EntityId entityId, final EntityId avatarId, final Matcher matcher) {
     final double x = Double.parseDouble(matcher.group(1));
     final double z = Double.parseDouble(matcher.group(2));
     final Vec3d target = new Vec3d(x, InfinityConstants.GAMEPLAY_Y, z);
@@ -226,7 +226,7 @@ public class WarpSystem extends BaseInfinitySystem
   }
 
   /** Teleport to arena-local coords (0,0)=NW; same neighbor-block guard as {@link #commandTeleportWorld}. */
-  public String commandTeleportArena(EntityId entityId, EntityId avatarId, Matcher matcher) {
+  public String commandTeleportArena(final EntityId entityId, final EntityId avatarId, final Matcher matcher) {
     final ArenaId arena = ed.getComponent(avatarId, ArenaId.class);
     if (arena == null) {
       return "Cannot teleport: ship is in no-arena void (no ArenaId)";
@@ -277,7 +277,7 @@ public class WarpSystem extends BaseInfinitySystem
   }
 
   @Override
-  public void newContact(Contact contact) {
+  public void newContact(final Contact contact) {
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 

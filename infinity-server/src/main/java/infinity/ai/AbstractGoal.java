@@ -36,7 +36,8 @@
 
 package infinity.ai;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Paul Speed
@@ -52,7 +53,7 @@ public abstract class AbstractGoal implements Goal {
     return getClass().getName().hashCode();
   }
 
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     if (o == this) {
       return true;
     }
@@ -65,7 +66,7 @@ public abstract class AbstractGoal implements Goal {
   }
 
   @Override
-  public void setFailedAction(Action failedAction) {
+  public void setFailedAction(final Action failedAction) {
     this.failedAction = failedAction;
   }
 }

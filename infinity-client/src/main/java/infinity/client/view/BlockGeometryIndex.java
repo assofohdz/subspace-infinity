@@ -138,7 +138,7 @@ public class BlockGeometryIndex {
       registerTileBlockTypes();
       bootstrapAllArenaTilesets(buildTileMaterialFromLevel(assets, levelPath));
       geomFactory = new GeometryFactory(materials);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new InfinityRunTimeException("Error initializing block set configuration", e);
     }
   }
@@ -167,7 +167,7 @@ public class BlockGeometryIndex {
       bootstrapAllArenaTilesets(buildTileMaterialFromPng(assets));
 
       geomFactory = new GeometryFactory(materials);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new InfinityRunTimeException("Error initializing block set configuration", e);
     }
   }
@@ -194,7 +194,7 @@ public class BlockGeometryIndex {
       typeCountField.set(null, requiredSize);
 
       log.info("Expanded BlockTypeIndex from {} to {} types", currentTypes.length, requiredSize);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new InfinityRunTimeException("Failed to expand BlockTypeIndex", e);
     }
   }
@@ -325,7 +325,7 @@ public class BlockGeometryIndex {
       final int h = img.getHeight();
       final int[] pixels = img.getRGB(0, 0, w, h, null, 0, w);
       return buildPaddedTilesetTexture(pixels, w, h, false);
-    } catch (IOException e) {
+    } catch (final IOException e) {
       throw new InfinityRunTimeException("Failed to read fallback tileset PNG: " + path, e);
     }
   }

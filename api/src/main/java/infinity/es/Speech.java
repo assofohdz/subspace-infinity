@@ -36,9 +36,11 @@
 
 package infinity.es;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.simsilica.es.*;
+import com.simsilica.es.EntityComponent;
+import com.simsilica.es.EntityId;
 
 /**
  *  Not fully fleshed out... but text that will pop-up above an

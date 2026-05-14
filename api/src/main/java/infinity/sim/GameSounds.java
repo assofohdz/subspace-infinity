@@ -144,9 +144,9 @@ public class GameSounds {
   public static void createPrizeSound(
       final @Nonnull EntityData ed,
       final long createdTime,
-      EntityId parent,
-      Vec3d loc,
-      @Nonnull PhysicsSpace phys) {
+      final EntityId parent,
+      final Vec3d loc,
+      @Nonnull final PhysicsSpace phys) {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result,
@@ -161,9 +161,9 @@ public class GameSounds {
   public static void createThorSound(
       final @Nonnull EntityData ed,
       final long createdTime,
-      EntityId parent,
-      Vec3d loc,
-      @Nonnull PhysicsSpace phys) {
+      final EntityId parent,
+      final Vec3d loc,
+      @Nonnull final PhysicsSpace phys) {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result,
@@ -176,12 +176,12 @@ public class GameSounds {
   }
 
   public static void createMineSound(
-      EntityData ed,
-      EntityId requester,
-      @Nonnull PhysicsSpace phys,
-      long time,
-      Vec3d location,
-      BombLevel level) {
+      final EntityData ed,
+      final EntityId requester,
+      @Nonnull final PhysicsSpace phys,
+      final long time,
+      final Vec3d location,
+      final BombLevel level) {
     final EntityId result = ed.createEntity();
     ed.setComponents(
         result,

@@ -55,7 +55,7 @@ public final class DebugFunctions {
 
     public static final FunctionId F_PROBE_DEBUG = new FunctionId(IN_GAME, "Probe Toggle");
 
-    public static void initializeDefaultMappings( InputMapper inputMapper ) {
+    public static void initializeDefaultMappings( final InputMapper inputMapper ) {
 
         inputMapper.map(F_BIN_DEBUG, KeyInput.KEY_F3);
         inputMapper.map(BinStatusState.F_PHYSICS_DUMP, KeyInput.KEY_F3, KeyInput.KEY_LSHIFT);

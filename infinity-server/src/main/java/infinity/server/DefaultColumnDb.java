@@ -39,16 +39,24 @@ package infinity.server;
 import com.simsilica.mworld.db.AbstractColumnDb;
 import com.simsilica.mworld.db.ParentIdFileFunction;
 import com.simsilica.mworld.db.SpoolingObjectDb;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
-import java.util.function.*;
-import java.util.zip.*;
+import java.util.function.Function;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.cache.*;
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 
-import com.simsilica.mworld.*;
+import com.simsilica.mworld.ColumnData;
+import com.simsilica.mworld.ColumnId;
 import com.simsilica.mworld.io.ColumnDataProtocol;
 
 /** Backing column-database for world cell storage. */
@@ -104,16 +112,16 @@ public class DefaultColumnDb extends AbstractColumnDb {
   }
 
   @Override
-  public ColumnData getColumn( ColumnId columnId ) {
+  public ColumnData getColumn( final ColumnId columnId ) {
     return cache.getUnchecked(columnId);
   }
 
   @Override
-  public void markChanged( ColumnData col ) {
+  public void markChanged( final ColumnData col ) {
     storage.update(col.getColumnId(), col);
   }
 
-  protected ColumnData loadColumn( ColumnId columnId ) {
+  protected ColumnData loadColumn( final ColumnId columnId ) {
 
     // See if we've generated this column before
     File f = fileFunc.apply(columnId);
@@ -128,15 +136,15 @@ public class DefaultColumnDb extends AbstractColumnDb {
     return new ColumnData(columnId, 1);
   }
 
-  protected ColumnData readColumn( File f ) {
+  protected ColumnData readColumn( final File f ) {
     try( BufferedInputStream in = new BufferedInputStream(new GZIPInputStream(Files.newInputStream(f.toPath()))) ) {
       return protocol.read(in);
-    } catch( IOException e ) {
+    } catch( final IOException e ) {
       throw new IllegalStateException("Error reading column:" + f, e);
     }
   }
 
-  protected void writeColumn( ColumnData col ) {
+  protected void writeColumn( final ColumnData col ) {
     File f = fileFunc.apply(col.getColumnId());
 
     // Reset the version first so that we write the new version value
@@ -147,11 +155,11 @@ public class DefaultColumnDb extends AbstractColumnDb {
     writeColumn(f, col);
   }
 
-  protected void writeColumn( File f, ColumnData col ) {
+  protected void writeColumn( final File f, final ColumnData col ) {
     long start = System.nanoTime();
     try( BufferedOutputStream out = new BufferedOutputStream(new GZIPOutputStream(Files.newOutputStream(f.toPath()))) ) {
       protocol.write(col, out);
-    } catch( IOException e ) {
+    } catch( final IOException e ) {
       throw new IllegalStateException("Error writing column:" + f, e);
     }
     long end = System.nanoTime();
@@ -162,7 +170,7 @@ public class DefaultColumnDb extends AbstractColumnDb {
 
 
   protected class ColumnLoader extends CacheLoader<ColumnId, ColumnData> {
-    public ColumnData load( ColumnId id ) {
+    public ColumnData load( final ColumnId id ) {
       return storage.get(id);
     }
   }

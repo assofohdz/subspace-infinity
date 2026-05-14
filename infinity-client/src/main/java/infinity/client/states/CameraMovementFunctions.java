@@ -74,8 +74,7 @@ public class CameraMovementFunctions {
 
     private CameraMovementFunctions() { /* utility */ }
 
-    public static void initializeDefaultMappings( InputMapper inputMapper )
-    {
+    public static void initializeDefaultMappings( final InputMapper inputMapper ) {
         // The joystick Y axes are backwards on game pads... forward
         // is negative.  So we'll flip it over in the mapping.
         inputMapper.map( F_MOVE, InputState.Negative, Axis.JOYSTICK_LEFT_Y );

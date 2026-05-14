@@ -14,7 +14,7 @@ public class CommandFunction<T, R> {
   private final AccessLevel accessLevelRequired;
   private final Function<T, R> consumer;
 
-  public CommandFunction(final AccessLevel accessLevelRequired, Function<T, R> consumer) {
+  public CommandFunction(final AccessLevel accessLevelRequired, final Function<T, R> consumer) {
     this.accessLevelRequired = accessLevelRequired;
     this.consumer = consumer;
   }

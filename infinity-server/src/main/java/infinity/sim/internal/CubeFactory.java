@@ -18,7 +18,7 @@ public class CubeFactory implements ShapeFactory<MBlockShape> {
   }
 
   @Override
-  public MBlockShape createShape(String name, double scale, Mass mass) {
+  public MBlockShape createShape(final String name, final double scale, final Mass mass) {
     // Static cube via MBlockShape.createCube — Type.Blocks. Cell-scale is
     // `extents/2` so the produced cube edge length = scale / 2; pass 2 × edge
     // to get an edge-length cube (e.g. 2 × TILE_SIZE for a TILE_SIZE-edge cube).

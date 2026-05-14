@@ -86,16 +86,16 @@ public class Brain {
   // the regular action processing... for when failing goals, etc.
   private ActionStatus forcedStatus;
 
-  public Brain(EntityId id, BrainConfiguration config) {
+  public Brain(final EntityId id, final BrainConfiguration config) {
     this.id = id;
     this.config = config;
   }
 
-  public void initialize(BrainScheduler scheduler) {
+  public void initialize(final BrainScheduler scheduler) {
     this.scheduler = scheduler;
   }
 
-  public void terminate(BrainScheduler scheduler) {
+  public void terminate(final BrainScheduler scheduler) {
     this.scheduler = null;
   }
 
@@ -107,7 +107,7 @@ public class Brain {
     return actor;
   }
 
-  public void setActor(Actor actor) {
+  public void setActor(final Actor actor) {
     log.info("setActor({})", actor);
     this.actor = actor;
   }
@@ -121,7 +121,7 @@ public class Brain {
     return failedGoals;
   }
 
-  public void setProperty(String name, Object value) {
+  public void setProperty(final String name, final Object value) {
     if (value == null) {
       // Go back to the default
       localProperties.remove(name);
@@ -130,7 +130,7 @@ public class Brain {
     }
   }
 
-  public <T> T getProperty(String name, T defaultValue) {
+  public <T> T getProperty(final String name, final T defaultValue) {
     @SuppressWarnings("unchecked")
     T result = (T) localProperties.get(name);
     if (result != null) {
@@ -143,7 +143,7 @@ public class Brain {
     return currentGoal;
   }
 
-  public boolean objectMoved(SeenObject obj) {
+  public boolean objectMoved(final SeenObject obj) {
     if (currentStrategy != null && currentStrategy.objectMoved(this, obj)) {
       return true;
     }
@@ -157,7 +157,7 @@ public class Brain {
   // Can't provide any other information right now because contact
   // doesn't really have it... We'll pretend we do for now with
   // an Object.
-  public boolean blocked(Object blocker) {
+  public boolean blocked(final Object blocker) {
     if (currentStrategy != null && currentStrategy.blocked(this, blocker)) {
       return true;
     }
@@ -168,7 +168,7 @@ public class Brain {
     return false;
   }
 
-  public boolean isInterestingTouch(String type) {
+  public boolean isInterestingTouch(final String type) {
     if (currentStrategy != null && currentStrategy.isInterestingTouch(type)) {
       return true;
     }
@@ -180,7 +180,7 @@ public class Brain {
     return false;
   }
 
-  public void touch(TouchEvent event) {
+  public void touch(final TouchEvent event) {
     if (pendingTouches.add(event)) {
       // Make sure we get a chance to evaluate the event by
       // rescheduling ourselves for 'now'
@@ -189,11 +189,11 @@ public class Brain {
     }
   }
 
-  public boolean isFailedGoal(Goal goal) {
+  public boolean isFailedGoal(final Goal goal) {
     return failedGoals.contains(goal);
   }
 
-  protected void addFailedGoal(Goal goal) {
+  protected void addFailedGoal(final Goal goal) {
     failedGoals.add(goal);
 
     // Chickens can only remember 3 past failures
@@ -206,7 +206,7 @@ public class Brain {
     return config.selectGoal(this);
   }
 
-  protected Strategy<Goal> selectStrategy(Goal goal) {
+  protected Strategy<Goal> selectStrategy(final Goal goal) {
     log.info("selectStrategy({})", goal);
     // Stored Strategy<G> is keyed on the runtime goal class — bridging into
     // Strategy<Goal> here so currentGoal can flow through plan/done/failed.
@@ -223,13 +223,13 @@ public class Brain {
     return result;
   }
 
-  protected Action makePlan(Strategy<Goal> strategy, Goal goal) {
+  protected Action makePlan(final Strategy<Goal> strategy, final Goal goal) {
     log.info("makePlan({}, {})", strategy, goal);
     return strategy.plan(this, goal);
   }
 
   /** Overrides the existing goal with a new higher priority goal. */
-  public void newGoal(Goal goal) {
+  public void newGoal(final Goal goal) {
     log.info("newGoal({})", goal);
     // We should just be able to abort the current action
     // set the current goal and clear the current strategy+action.
@@ -255,12 +255,12 @@ public class Brain {
     scheduler.reschedule(this);
   }
 
-  protected boolean deliverTouches(Set<TouchEvent> events) {
+  protected boolean deliverTouches(final Set<TouchEvent> events) {
     // Without being able to sort by any kind of priority,
     // try to deliver to the current strategy first and stop
     // at the first handled one.
     if (currentStrategy != null) {
-      for (TouchEvent event : pendingTouches) {
+      for (final TouchEvent event : pendingTouches) {
         if (currentStrategy.touch(this, event)) {
           // It was handled and changed the goal
           return true;
@@ -269,7 +269,7 @@ public class Brain {
     }
     // Try the defaults
     if (config.getDefaultStrategy() != null) {
-      for (TouchEvent event : pendingTouches) {
+      for (final TouchEvent event : pendingTouches) {
         if (config.getDefaultStrategy().touch(this, event)) {
           // It was handled and changed the goal
           return true;
@@ -280,7 +280,7 @@ public class Brain {
     return false;
   }
 
-  public void think(SimTime time) {
+  public void think(final SimTime time) {
     log.info("think():{}", actor);
 
     if (!pendingTouches.isEmpty()) {
@@ -314,7 +314,7 @@ public class Brain {
    * Pick the next goal/strategy/action if needed. Returns {@code false} when the
    * planning step threw and {@code think()} should bail (heartbeat already set).
    */
-  private boolean ensureGoalAndAction(SimTime time) {
+  private boolean ensureGoalAndAction(final SimTime time) {
     if (action != null) {
       return true;
     }
@@ -327,7 +327,7 @@ public class Brain {
       currentStrategy = selectStrategy(currentGoal);
       try {
         action = makePlan(currentStrategy, currentGoal);
-      } catch (RuntimeException e) {
+      } catch (final RuntimeException e) {
         log.error("Error making plan for:{}, strategy:{}", currentGoal, currentStrategy, e);
         nextHeartbeat = time.getFutureTime(0.001);
         currentGoal = null;
@@ -338,7 +338,7 @@ public class Brain {
   }
 
   /** Honour any forced status, otherwise step the current action. */
-  private ActionStatus runCurrentAction(SimTime time) {
+  private ActionStatus runCurrentAction(final SimTime time) {
     if (forcedStatus != null) {
       final ActionStatus status = forcedStatus;
       forcedStatus = null;
@@ -348,7 +348,7 @@ public class Brain {
   }
 
   /** Compute the next heartbeat for an action that is still RUNNING. */
-  private void scheduleNextRunHeartbeat(SimTime time) {
+  private void scheduleNextRunHeartbeat(final SimTime time) {
     // See how long to wait
     double next = action.getHeartbeat(time);
 
@@ -364,7 +364,7 @@ public class Brain {
   }
 
   /** Drive DONE / FAILED outcomes through the strategy and clear it. */
-  private void finishStrategy(ActionStatus status) {
+  private void finishStrategy(final ActionStatus status) {
     if (currentStrategy == null) {
       // This was a tail action from a finished strategy... so clear
       // it and get ready for the next goal

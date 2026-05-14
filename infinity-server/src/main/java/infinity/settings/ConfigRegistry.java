@@ -101,33 +101,61 @@ public final class ConfigRegistry {
     return slotType.cast(value);
   }
 
-  public BulletConfig bullet() { return get(BulletConfig.class); }
+  public BulletConfig bullet() {
+    return get(BulletConfig.class);
+  }
 
-  public BombConfig bomb() { return get(BombConfig.class); }
+  public BombConfig bomb() {
+    return get(BombConfig.class);
+  }
 
-  public GravBombConfig gravBomb() { return get(GravBombConfig.class); }
+  public GravBombConfig gravBomb() {
+    return get(GravBombConfig.class);
+  }
 
-  public MineConfig mine() { return get(MineConfig.class); }
+  public MineConfig mine() {
+    return get(MineConfig.class);
+  }
 
-  public BurstFireConfig burst() { return get(BurstFireConfig.class); }
+  public BurstFireConfig burst() {
+    return get(BurstFireConfig.class);
+  }
 
-  public RepelConfig repel() { return get(RepelConfig.class); }
+  public RepelConfig repel() {
+    return get(RepelConfig.class);
+  }
 
-  public RocketConfig rocket() { return get(RocketConfig.class); }
+  public RocketConfig rocket() {
+    return get(RocketConfig.class);
+  }
 
-  public BrickConfig brick() { return get(BrickConfig.class); }
+  public BrickConfig brick() {
+    return get(BrickConfig.class);
+  }
 
-  public DecoyConfig decoy() { return get(DecoyConfig.class); }
+  public DecoyConfig decoy() {
+    return get(DecoyConfig.class);
+  }
 
-  public PortalConfig portal() { return get(PortalConfig.class); }
+  public PortalConfig portal() {
+    return get(PortalConfig.class);
+  }
 
-  public ThorConfig thor() { return get(ThorConfig.class); }
+  public ThorConfig thor() {
+    return get(ThorConfig.class);
+  }
 
-  public PrizeConfig prize() { return get(PrizeConfig.class); }
+  public PrizeConfig prize() {
+    return get(PrizeConfig.class);
+  }
 
-  public PrizeWeightsConfig prizeWeights() { return get(PrizeWeightsConfig.class); }
+  public PrizeWeightsConfig prizeWeights() {
+    return get(PrizeWeightsConfig.class);
+  }
 
-  public SpawnConfig spawn() { return get(SpawnConfig.class); }
+  public SpawnConfig spawn() {
+    return get(SpawnConfig.class);
+  }
 
   public static Builder builder() {
     return new Builder();

@@ -150,43 +150,105 @@ public final class MapSystemLogic {
     private Vec3d firstWritten;
     private Vec3d lastWritten;
 
-    public int getTotalNonZero() { return totalNonZero; }
-    public void incrementTotalNonZero() { totalNonZero++; }
+    public int getTotalNonZero() {
+      return totalNonZero;
+    }
 
-    public int getTurfFlags() { return turfFlags; }
-    public void incrementTurfFlags() { turfFlags++; }
+    public void incrementTotalNonZero() {
+      totalNonZero++;
+    }
 
-    public int getAsteroidsSmall() { return asteroidsSmall; }
-    public void incrementAsteroidsSmall() { asteroidsSmall++; }
+    public int getTurfFlags() {
+      return turfFlags;
+    }
 
-    public int getAsteroidsMedium() { return asteroidsMedium; }
-    public void incrementAsteroidsMedium() { asteroidsMedium++; }
+    public void incrementTurfFlags() {
+      turfFlags++;
+    }
 
-    public int getOver5() { return over5; }
-    public void incrementOver5() { over5++; }
+    public int getAsteroidsSmall() {
+      return asteroidsSmall;
+    }
 
-    public int getDoors() { return doors; }
-    public void incrementDoors() { doors++; }
+    public void incrementAsteroidsSmall() {
+      asteroidsSmall++;
+    }
 
-    public int getWormholes() { return wormholes; }
-    public void incrementWormholes() { wormholes++; }
+    public int getAsteroidsMedium() {
+      return asteroidsMedium;
+    }
 
-    public int getCellsVisible() { return cellsVisible; }
-    public void incrementCellsVisible() { cellsVisible++; }
+    public void incrementAsteroidsMedium() {
+      asteroidsMedium++;
+    }
 
-    public int getCellsInvisible() { return cellsInvisible; }
-    public void incrementCellsInvisible() { cellsInvisible++; }
+    public int getOver5() {
+      return over5;
+    }
 
-    public int getCellsFailedLeaf() { return cellsFailedLeaf; }
-    public void incrementCellsFailedLeaf() { cellsFailedLeaf++; }
+    public void incrementOver5() {
+      over5++;
+    }
 
-    public SortedMap<Integer, Integer> getIdHistogram() { return idHistogram; }
+    public int getDoors() {
+      return doors;
+    }
 
-    public Vec3d getFirstWritten() { return firstWritten; }
-    public void setFirstWritten(final Vec3d firstWritten) { this.firstWritten = firstWritten; }
+    public void incrementDoors() {
+      doors++;
+    }
 
-    public Vec3d getLastWritten() { return lastWritten; }
-    public void setLastWritten(final Vec3d lastWritten) { this.lastWritten = lastWritten; }
+    public int getWormholes() {
+      return wormholes;
+    }
+
+    public void incrementWormholes() {
+      wormholes++;
+    }
+
+    public int getCellsVisible() {
+      return cellsVisible;
+    }
+
+    public void incrementCellsVisible() {
+      cellsVisible++;
+    }
+
+    public int getCellsInvisible() {
+      return cellsInvisible;
+    }
+
+    public void incrementCellsInvisible() {
+      cellsInvisible++;
+    }
+
+    public int getCellsFailedLeaf() {
+      return cellsFailedLeaf;
+    }
+
+    public void incrementCellsFailedLeaf() {
+      cellsFailedLeaf++;
+    }
+
+    public SortedMap<Integer, Integer> getIdHistogram() {
+      return idHistogram;
+    }
+
+    public Vec3d getFirstWritten() {
+      return firstWritten;
+    }
+
+    public void setFirstWritten(final Vec3d firstWritten) {
+      this.firstWritten = firstWritten;
+    }
+
+    public Vec3d getLastWritten() {
+      return lastWritten;
+    }
+
+    public void setLastWritten(final Vec3d lastWritten) {
+      this.lastWritten = lastWritten;
+    }
   }
 
   /**

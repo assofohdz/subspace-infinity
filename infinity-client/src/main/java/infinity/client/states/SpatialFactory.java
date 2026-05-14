@@ -36,17 +36,24 @@
 
 package infinity.client.states;
 
-import com.jme3.math.*;
+import com.jme3.math.ColorRGBA;
+import com.jme3.math.Vector2f;
 import com.jme3.renderer.queue.RenderQueue.ShadowMode;
-import com.jme3.scene.*;
-import com.jme3.scene.shape.*;
-import com.jme3.texture.*;
+import com.jme3.scene.Geometry;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.shape.Box;
+import com.jme3.scene.shape.Sphere;
+import com.jme3.texture.Texture;
 
-import com.simsilica.es.*;
+import com.simsilica.es.EntityId;
 import com.simsilica.lemur.GuiGlobals;
 
-import com.simsilica.mblock.phys.*;
-import com.simsilica.ext.mphys.*;
+import com.simsilica.mblock.phys.CellArrayPart;
+import com.simsilica.mblock.phys.Group;
+import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mblock.phys.Part;
+import com.simsilica.ext.mphys.Mass;
 import infinity.client.view.BlockGeometryIndex;
 
 /** Convenience factory for creating Spatials from {@link MBlockShape} parts. */
@@ -59,11 +66,11 @@ public class SpatialFactory {
     // technically origin and not CoG anymore
     private boolean debugCoG = false;
 
-    public SpatialFactory( BlockGeometryIndex geomIndex ) {
+    public SpatialFactory( final BlockGeometryIndex geomIndex ) {
         this.geomIndex = geomIndex;
     }
 
-    public Spatial createModel( EntityId id, MBlockShape shape, Mass mass ) {
+    public Spatial createModel( final EntityId id, final MBlockShape shape, final Mass mass ) {
 
         Part part = shape.getPart();
 
@@ -78,7 +85,7 @@ public class SpatialFactory {
         return result;
     }
 
-    protected Spatial createPartSpatial( EntityId id, Group group, Mass mass ) {
+    protected Spatial createPartSpatial( final EntityId id, final Group group, final Mass mass ) {
         Node node = new Node(OBJECT_NODE_PREFIX + id);
         if( debugCoG ) {
             node.attachChild(createBox(0.1f, ColorRGBA.Orange));
@@ -99,8 +106,8 @@ public class SpatialFactory {
         return node;
     }
 
-    protected Spatial createPartSpatial( Node parent, EntityId id, Group group, Mass mass ) {
-        for( Part child : group.getChildren() ) {
+    protected Spatial createPartSpatial( final Node parent, final EntityId id, final Group group, final Mass mass ) {
+        for( final Part child : group.getChildren() ) {
             if( child instanceof CellArrayPart ) {
                 Spatial ps = createPartSpatial(id, (CellArrayPart)child, false, mass);
                 ps.setLocalTranslation(child.getShapeRelativePosition().toVector3f());
@@ -115,7 +122,7 @@ public class SpatialFactory {
         return parent;
     }
 
-    protected Spatial createPartSpatial( EntityId id, CellArrayPart part, boolean isRoot, Mass mass ) {
+    protected Spatial createPartSpatial( final EntityId id, final CellArrayPart part, final boolean isRoot, final Mass mass ) {
         if( part.getCells() == null ) {
             return createSphere(id, (float)part.getMass().getRadius(), mass);
         }
@@ -146,7 +153,7 @@ public class SpatialFactory {
     }
 
 
-    public Spatial createSphere( EntityId id, float radius, Mass mass ) {
+    public Spatial createSphere( final EntityId id, final float radius, final Mass mass ) {
         Sphere mesh = new Sphere(24, 24, radius);
         mesh.setTextureMode(Sphere.TextureMode.Projected);
         mesh.scaleTextureCoordinates(new Vector2f(4, 2));
@@ -168,7 +175,7 @@ public class SpatialFactory {
         return geom;
     }
 
-    protected Geometry createBox( float size, ColorRGBA color ) {
+    protected Geometry createBox( final float size, final ColorRGBA color ) {
         Box box = new Box(size, size, size);
         Geometry geom = new Geometry("box", box);
         geom.setMaterial(GuiGlobals.getInstance().createMaterial(color, false).getMaterial());

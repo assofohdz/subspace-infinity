@@ -36,7 +36,8 @@
 
 package infinity.ai;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.simsilica.sim.SimTime;
 
@@ -52,7 +53,7 @@ public class Wait implements Action {
     private double duration;
     private double endTime;
 
-    public Wait( double duration ) {
+    public Wait( final double duration ) {
         this.duration = duration;
     }
 
@@ -60,16 +61,16 @@ public class Wait implements Action {
         return duration;
     }
 
-    protected boolean onStart( SimTime time, Brain brain ) {
+    protected boolean onStart( final SimTime time, final Brain brain ) {
         return true;
     }
 
-    protected boolean onDone( SimTime time, Brain brain ) {
+    protected boolean onDone( final SimTime time, final Brain brain ) {
         return true;
     }
 
     @Override
-    public ActionStatus run( SimTime time, Brain brain ) {
+    public ActionStatus run( final SimTime time, final Brain brain ) {
         double t = time.getTimeInSeconds();
         if( endTime == 0 ) {
             // The first time we're run
@@ -94,7 +95,7 @@ public class Wait implements Action {
     }
 
     @Override
-    public double getHeartbeat( SimTime time ) {
+    public double getHeartbeat( final SimTime time ) {
         // Just check us again the next time... we're basically a 'pause'
         // after we say the words
         return endTime - time.getTimeInSeconds();

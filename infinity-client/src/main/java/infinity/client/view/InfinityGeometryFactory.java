@@ -71,17 +71,17 @@ public class InfinityGeometryFactory {
     private Map<String, Material> materials;
     private boolean allowCollisions;
 
-    public InfinityGeometryFactory( Map<String, Material> materials ) {
+    public InfinityGeometryFactory( final Map<String, Material> materials ) {
         this(true, materials);
     }
 
-    public InfinityGeometryFactory( boolean allowCollisions, Map<String, Material> materials ) {
+    public InfinityGeometryFactory( final boolean allowCollisions, final Map<String, Material> materials ) {
         this.allowCollisions = allowCollisions;
         this.materials = materials;
     }
 
     /** Clears {@code target}'s children, then attaches one Geometry per material in {@code cells}. */
-    public Node generateBlocks( Node target, CellArray cells, CellData lightData, boolean smoothLighting ) {
+    public Node generateBlocks( final Node target, final CellArray cells, final CellData lightData, final boolean smoothLighting ) {
         log.info("Generating blocks");
         long start = System.nanoTime();
         Node result = target;
@@ -102,7 +102,7 @@ public class InfinityGeometryFactory {
     }
 
     /** Same shape as {@link #generateBlocks} but for fluid cells. */
-    public Node generateFluid( Node target, CellArray fluid, CellArray cells, CellData lightData, boolean smoothLighting ) {
+    public Node generateFluid( final Node target, final CellArray fluid, final CellArray cells, final CellData lightData, final boolean smoothLighting ) {
         if( fluid == null ) {
             return target;
         }
@@ -125,10 +125,10 @@ public class InfinityGeometryFactory {
         return result;
     }
 
-    protected void renderBuffer( Node target, DefaultPartBuffer buffer,
-                                 LightGradient gradient, CellData lightData) {
+    protected void renderBuffer( final Node target, final DefaultPartBuffer buffer,
+                                 final LightGradient gradient, final CellData lightData) {
         // Resolve the GeomParts into actual JME mesh data
-        for( DefaultPartBuffer.PartList list : buffer.getPartLists() ) {
+        for( final DefaultPartBuffer.PartList list : buffer.getPartLists() ) {
             if( list.list.isEmpty() ) {
                 continue;
             }
@@ -136,7 +136,7 @@ public class InfinityGeometryFactory {
             final BlockMeshBuilder.MeshBuffers buffers =
                     BlockMeshBuilder.buildMeshBuffers(mt, list.vertCount, list.triCount);
             int baseIndex = 0;
-            for( DefaultPartBuffer.PartEntry entry : list.list ) {
+            for( final DefaultPartBuffer.PartEntry entry : list.list ) {
                 baseIndex = BlockMeshBuilder.emitPart(buffers, mt, entry, gradient, lightData, baseIndex);
             }
             final Mesh mesh = assembleMesh(buffers);
@@ -198,13 +198,13 @@ public class InfinityGeometryFactory {
     // out of this class into separate gradient classes.
     //----------------------------------------------------------------------
 
-    private static int average( int... lights ) {
+    private static int average( final int... lights ) {
         int s = 0;
         int r = 0;
         int g = 0;
         int b = 0;
         int count = 0;
-        for( int i : lights ) {
+        for( final int i : lights ) {
             if( i == LightUtils.SOLID ) {
                 continue;
             }
@@ -220,7 +220,7 @@ public class InfinityGeometryFactory {
         return LightUtils.toLight(s/count, r/count, g/count, b/count);
     }
 
-    private LightGradient calculateLightGradient( CellArray cells, CellData lightData ) {
+    private LightGradient calculateLightGradient( final CellArray cells, final CellData lightData ) {
         int xSize = cells.getSizeX();
         int ySize = cells.getSizeY();
         int zSize = cells.getSizeZ();
@@ -260,7 +260,7 @@ public class InfinityGeometryFactory {
         // Signature fixed by LightGradient interface.
         @SuppressWarnings("PMD.ExcessiveParameterList")
         @Override
-        public void appendLight( CellData lights, final int i, final int j, final int k, float x, float y, float z, Direction dir, FloatBuffer colors ) {
+        public void appendLight( final CellData lights, final int i, final int j, final int k, final float x, final float y, final float z, final Direction dir, final FloatBuffer colors ) {
             // If the vertex sits on the border facing outward (most common case),
             // the sample point steps one cell along that axis to the cell behind
             // the visible face. Each axis is independent — see BlockMeshBuilder.{x,y,z}Offset.
@@ -282,15 +282,15 @@ public class InfinityGeometryFactory {
     private static class SmoothLightGradient implements LightGradient {
         private final CellArray corners;
 
-        SmoothLightGradient( CellArray corners ) {
+        SmoothLightGradient( final CellArray corners ) {
             this.corners = corners;
         }
 
-        private static float interp( float x, float x1, float x2 ) {
+        private static float interp( final float x, final float x1, final float x2 ) {
             return x1 + (x2 - x1) * x;
         }
 
-        private static float bilinearInterp( float x, float y, float nw, float ne, float se, float sw ) {
+        private static float bilinearInterp( final float x, final float y, final float nw, final float ne, final float se, final float sw ) {
             float n = interp(x, nw, ne);
             float s = interp(x, sw, se);
             return interp(y, n, s);
@@ -298,38 +298,38 @@ public class InfinityGeometryFactory {
 
         // Math kernel — 11 params are the sample point + 8 corner lights; record-wrapping just shifts verbosity to call sites.
         @SuppressWarnings("PMD.ExcessiveParameterList")
-        private static float trilinearInterp( float x, float y, float z,
-                                       float dnw, float dne, float dse, float dsw,
-                                       float unw, float une, float use, float usw ) {
+        private static float trilinearInterp( final float x, final float y, final float z,
+                                       final float dnw, final float dne, final float dse, final float dsw,
+                                       final float unw, final float une, final float use, final float usw ) {
             float d = bilinearInterp(x, y, dnw, dne, dse, dsw);
             float u = bilinearInterp(x, y, unw, une, use, usw);
             return interp(z, d, u);
         }
 
-        private static float accumToFloat( int accum ) {
+        private static float accumToFloat( final int accum ) {
             // The accumulator is x 8, so divide by 8 to average it
             int result = accum;
             // Then make it from 0..1
             return result/15f;
         }
 
-        private static float accToRed( int spread ) {
+        private static float accToRed( final int spread ) {
             return accumToFloat(LightUtils.red(spread));
         }
-        private static float accToGreen( int spread ) {
+        private static float accToGreen( final int spread ) {
             return accumToFloat(LightUtils.green(spread));
         }
-        private static float accToBlue( int spread ) {
+        private static float accToBlue( final int spread ) {
             return accumToFloat(LightUtils.blue(spread));
         }
-        private static float accToSun( int spread ) {
+        private static float accToSun( final int spread ) {
             return accumToFloat(LightUtils.sun(spread));
         }
 
         // Signature fixed by LightGradient interface.
         @SuppressWarnings("PMD.ExcessiveParameterList")
         @Override
-        public void appendLight( CellData lights, int i, int j, int k, float x, float y, float z, Direction dir, FloatBuffer colors ) {
+        public void appendLight( final CellData lights, final int i, final int j, final int k, final float x, final float y, final float z, final Direction dir, final FloatBuffer colors ) {
             int dnw = corners.getCell(i, j, k);
             int dne = corners.getCell(i + 1, j, k);
             int dse = corners.getCell(i + 1, j + 1, k);

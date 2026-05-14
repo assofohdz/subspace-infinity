@@ -83,7 +83,7 @@ public class GameSessionClientService extends AbstractClientService implements G
     }
 
     @Override
-    public void setMovementInput(MovementInput input) {
+    public void setMovementInput(final MovementInput input) {
         getDelegate().setMovementInput(input);
     }
 

@@ -261,7 +261,7 @@ public final class InfinityChatHostedService extends AbstractHostedConnectionSer
    * @param description the help description of the pattern
    * @param c the function that will be run when the pattern is matched
    */
-  public void registerPatternBiConsumer(Pattern pattern, String description, CommandBiFunction c) {
+  public void registerPatternBiConsumer(final Pattern pattern, final String description, final CommandBiFunction c) {
     patternBiConsumer.put(pattern, c);
 
     postPublicMessage(SYSTEM_MESSAGE_SENDER, MessageTypes.MESSAGE, description);

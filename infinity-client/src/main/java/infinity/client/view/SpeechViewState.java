@@ -39,22 +39,30 @@ package infinity.client.view;
 import infinity.client.ConnectionState;
 import infinity.client.states.ModelViewState;
 import infinity.es.Speech;
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.*;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.MultimapBuilder;
 
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.bounding.*;
-import com.jme3.font.*;
+import com.jme3.bounding.BoundingBox;
+import com.jme3.bounding.BoundingVolume;
+import com.jme3.font.BitmapFont;
+import com.jme3.font.BitmapText;
 import com.jme3.font.Rectangle;
-import com.jme3.math.*;
-import com.jme3.scene.*;
+import com.jme3.math.ColorRGBA;
+import com.jme3.scene.Node;
+import com.jme3.scene.Spatial;
 import com.jme3.scene.control.BillboardControl;
 
-import com.simsilica.es.*;
-import com.simsilica.es.common.*;
+import com.simsilica.es.Entity;
+import com.simsilica.es.EntityContainer;
+import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
+import com.simsilica.es.common.Decay;
 import com.simsilica.ethereal.TimeSource;
 import com.simsilica.lemur.GuiGlobals;
 /**
@@ -95,7 +103,7 @@ public class SpeechViewState extends BaseAppState {
     }
 
     @Override
-    protected void initialize( Application app ) {
+    protected void initialize( final Application app ) {
         this.ed = getState(ConnectionState.class, true).getEntityData();
         this.timeSource = getState(ConnectionState.class, true).getRemoteTimeSource();
         this.models = getState(ModelViewState.class, true);
@@ -107,7 +115,7 @@ public class SpeechViewState extends BaseAppState {
     }
 
     @Override
-    protected void cleanup( Application app ) {
+    protected void cleanup( final Application app ) {
         if (bubbles != null) {
             bubbles.stop();
             bubbles = null;
@@ -131,10 +139,10 @@ public class SpeechViewState extends BaseAppState {
     }
 
     @Override
-    public void update( float tpf ) {
+    public void update( final float tpf ) {
         bubbles.update();
         long time = timeSource.getTime();
-        for( SpeechBubble bubble : bubbles.getArray() ) {
+        for( final SpeechBubble bubble : bubbles.getArray() ) {
             bubble.update(time);
         }
     }
@@ -148,7 +156,7 @@ public class SpeechViewState extends BaseAppState {
         private float yOffset;
         private float lineOffset = 0;
 
-        public SpeechBubble(Speech speech, Decay decay ) {
+        public SpeechBubble(final Speech speech, final Decay decay ) {
             this.decay = decay;
             this.speaker = speech.getSpeaker();
             final String text = speech.getText();
@@ -168,17 +176,17 @@ public class SpeechViewState extends BaseAppState {
             root.attachChild(spatial);
 
             // Adjust the offset of any existing bubbles for the entity ID
-            for( SpeechBubble bubble : activeBubbles.get(speaker) ) {
+            for( final SpeechBubble bubble : activeBubbles.get(speaker) ) {
                 bubble.lineOffset += 0.1f;
             }
             activeBubbles.put(speaker, this);
         }
 
-        protected void update( Speech speech ) {
+        protected void update( final Speech speech ) {
             // no-op: Speech text is rendered at construction and never updates in-place; bubble decays via Decay
         }
 
-        public void update( long time ) {
+        public void update( final long time ) {
             if( model == null ) {
                 // Try to load the model
                 model = models.getModel(speaker);
@@ -211,7 +219,7 @@ public class SpeechViewState extends BaseAppState {
 
     private class SpeechContainer extends EntityContainer<SpeechBubble> {
 
-        public SpeechContainer( EntityData ed ) {
+        public SpeechContainer( final EntityData ed ) {
             super(ed, Speech.class, Decay.class);
         }
 
@@ -219,18 +227,18 @@ public class SpeechViewState extends BaseAppState {
             return (SpeechBubble[])super.getArray();
         }
 
-        protected SpeechBubble addObject( Entity e ) {
+        protected SpeechBubble addObject( final Entity e ) {
             Speech speech = e.get(Speech.class);
             Decay decay = e.get(Decay.class);
 log.info("New speech:{}", speech);
             return new SpeechBubble(speech, decay);
         }
 
-        protected void updateObject( SpeechBubble object, Entity e ) {
+        protected void updateObject( final SpeechBubble object, final Entity e ) {
             object.update(e.get(Speech.class));
         }
 
-        protected void removeObject( SpeechBubble object, Entity e ) {
+        protected void removeObject( final SpeechBubble object, final Entity e ) {
             object.release();
         }
     }

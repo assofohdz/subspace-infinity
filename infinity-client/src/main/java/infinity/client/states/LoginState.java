@@ -9,10 +9,19 @@ package infinity.client.states;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
-import com.jme3.math.*;
-import com.jme3.scene.*;
+import com.jme3.math.Vector3f;
+import com.jme3.scene.Node;
 
-import com.simsilica.lemur.*;
+import com.simsilica.lemur.ActionButton;
+import com.simsilica.lemur.Axis;
+import com.simsilica.lemur.CallMethodAction;
+import com.simsilica.lemur.Container;
+import com.simsilica.lemur.FillMode;
+import com.simsilica.lemur.GuiGlobals;
+import com.simsilica.lemur.HAlignment;
+import com.simsilica.lemur.Insets3f;
+import com.simsilica.lemur.Label;
+import com.simsilica.lemur.TextField;
 import com.simsilica.lemur.component.SpringGridLayout;
 import com.simsilica.lemur.style.ElementId;
 import infinity.Main;
@@ -27,7 +36,7 @@ public class LoginState extends BaseAppState {
   private Container serverInfoPanel;
   private String serverInfo;
 
-  public LoginState( String serverInfo ) {
+  public LoginState( final String serverInfo ) {
     this.serverInfo = serverInfo;
   }
 
@@ -43,7 +52,7 @@ public class LoginState extends BaseAppState {
   }
 
   @Override
-  protected void initialize( Application app ) {
+  protected void initialize( final Application app ) {
     loginPanel = new Container();
     loginPanel.addChild(new Label("Login", new ElementId("title")));
 
@@ -88,7 +97,7 @@ public class LoginState extends BaseAppState {
   }
 
   @Override
-  protected void cleanup( Application app ) {
+  protected void cleanup( final Application app ) {
     // no-op: panels are attached/detached in onEnable/onDisable; no other resources to release
   }
 

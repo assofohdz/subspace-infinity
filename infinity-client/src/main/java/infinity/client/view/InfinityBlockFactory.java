@@ -4,7 +4,12 @@
 package infinity.client.view;
 
 
-import com.simsilica.mblock.geom.*;
+import com.simsilica.mblock.geom.BoundaryShape;
+import com.simsilica.mblock.geom.DefaultBlockFactory;
+import com.simsilica.mblock.geom.DefaultPartFactory;
+import com.simsilica.mblock.geom.GeomPartBuffer;
+import com.simsilica.mblock.geom.MaterialType;
+import com.simsilica.mblock.geom.PartFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

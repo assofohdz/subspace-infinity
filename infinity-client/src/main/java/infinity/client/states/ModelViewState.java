@@ -165,12 +165,12 @@ public class ModelViewState extends BaseAppState {
     // Nothing to do here
   }
 
-  public Spatial getModel(EntityId entityId) {
+  public Spatial getModel(final EntityId entityId) {
     Model model = modelIndex.get(entityId);
     return model == null ? null : model.spatial;
   }
 
-  protected Spatial findPickedSpatial(Spatial spatial) {
+  protected Spatial findPickedSpatial(final Spatial spatial) {
     Long oid = spatial.getUserData("oid");
     if (oid != null) {
       return spatial;
@@ -181,7 +181,7 @@ public class ModelViewState extends BaseAppState {
     return null;
   }
 
-  protected void addTestObject(Vector3f loc, float size) {
+  protected void addTestObject(final Vector3f loc, final float size) {
 
     Vector4f coord = new Vector4f(loc.x, loc.y, loc.z, size);
 
@@ -209,7 +209,7 @@ public class ModelViewState extends BaseAppState {
   }
 
   @Override
-  protected void initialize(Application app) {
+  protected void initialize(final Application app) {
 
     this.ed = getState(ConnectionState.class).getEntityData();
 
@@ -290,7 +290,7 @@ public class ModelViewState extends BaseAppState {
   }
 
   @Override
-  protected void cleanup(Application app) {
+  protected void cleanup(final Application app) {
     DebugHudState debug = getState(DebugHudState.class);
     if (debug != null) {
       debug.removeDebugValue("Bodies");
@@ -323,7 +323,7 @@ public class ModelViewState extends BaseAppState {
   }
 
   @Override
-  public void update(float tpf) {
+  public void update(final float tpf) {
     centerWorld = localView.getCenterCellWorld();
 
     if (posRef.update()) {
@@ -351,7 +351,7 @@ public class ModelViewState extends BaseAppState {
     models.update();
     largeModels.update();
     long time = timeSource.getTime();
-    for (Body body : bodies.getArray()) {
+    for (final Body body : bodies.getArray()) {
       body.update(time);
     }
     drainMarkerQueue(time);
@@ -403,13 +403,13 @@ public class ModelViewState extends BaseAppState {
     }
   }
 
-  private void updateFlagMaterials(int shipFrequency) {
-    for (Entity flagEntity : flags) {
+  private void updateFlagMaterials(final int shipFrequency) {
+    for (final Entity flagEntity : flags) {
       updateSingleFlagMaterial(shipFrequency, flagEntity);
     }
   }
 
-  void updateSingleFlagMaterial(int shipFrequency, Entity flagEntity) {
+  void updateSingleFlagMaterial(final int shipFrequency, final Entity flagEntity) {
     Frequency flagfrequency = flags.getEntity(flagEntity.getId()).get(Frequency.class);
     siModelFactory.setFlagMaterialVariables(
         getModelSpatial(flagEntity.getId(), true),
@@ -436,10 +436,10 @@ public class ModelViewState extends BaseAppState {
               coord.w + coord.z - centerWorld.z);
     }
 
-    for (Model m : models.getArray()) {
+    for (final Model m : models.getArray()) {
       m.updateRelativePosition();
     }
-    for (Model m : largeModels.getArray()) {
+    for (final Model m : largeModels.getArray()) {
       m.updateRelativePosition();
     }
   }
@@ -485,12 +485,12 @@ public class ModelViewState extends BaseAppState {
     largeModels.setFilter(Filters.or(LargeGridCell.class, filters));
   }
 
-  protected Spatial findAnimRoot(Spatial s) {
+  protected Spatial findAnimRoot(final Spatial s) {
     if (s.getControl(AnimComposer.class) != null) {
       return s;
     }
     if (s instanceof Node) {
-      for (Spatial child : ((Node) s).getChildren()) {
+      for (final Spatial child : ((Node) s).getChildren()) {
         Spatial result = findAnimRoot(child);
         if (result != null) {
           return result;
@@ -500,12 +500,12 @@ public class ModelViewState extends BaseAppState {
     return null;
   }
 
-  protected Spatial createModel(EntityId id, ShapeInfo shapeInfo, Mass mass) {
+  protected Spatial createModel(final EntityId id, final ShapeInfo shapeInfo, final Mass mass) {
     final String shapeName = shapeInfo.getShapeName(ed);
     return siModelFactory.createModel(id, shapeName, mass, shapeInfo.getScale());
   }
 
-  protected Model getModel(EntityId entityId, boolean create) {
+  protected Model getModel(final EntityId entityId, final boolean create) {
     Model result = modelIndex.get(entityId);
     if (result == null && create) {
       result = new Model(this, entityId);
@@ -515,7 +515,7 @@ public class ModelViewState extends BaseAppState {
     return result;
   }
 
-  protected Model releaseModel(EntityId entityId) {
+  protected Model releaseModel(final EntityId entityId) {
     Model result = modelIndex.get(entityId);
     if (result.release()) {
       modelIndex.remove(entityId);

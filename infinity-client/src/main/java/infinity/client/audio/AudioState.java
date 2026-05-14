@@ -93,7 +93,9 @@ public class AudioState extends BaseAppState {
 
   @Override
   protected void onEnable() {
-    if (ed == null) return;
+    if (ed == null) {
+      return;
+    }
     sounds = new AudioContainer(ed);
     sounds.start();
     ((SimpleApplication) getApplication()).getRootNode().attachChild(soundRoot);
@@ -101,14 +103,18 @@ public class AudioState extends BaseAppState {
 
   @Override
   protected void onDisable() {
-    if (sounds == null) return;
+    if (sounds == null) {
+      return;
+    }
     sounds.stop();
     sounds = null;
   }
 
   @Override
   public void update(final float tpf) {
-    if (sounds == null) return;
+    if (sounds == null) {
+      return;
+    }
     sounds.update();
   }
 
@@ -158,7 +164,7 @@ public class AudioState extends BaseAppState {
     return result;
   }
 
-  private AudioNode createMine(Entity entity) {
+  private AudioNode createMine(final Entity entity) {
     // Node information:
     final Node result = new Node("fireMine:" + entity.getId());
     result.setUserData("fireMineId", Long.valueOf(entity.getId().getId()));

@@ -147,7 +147,7 @@ public final class GameSessionState extends CompositeAppState {
   }
 
   @Override
-  public void update(float tpf) {
+  public void update(final float tpf) {
     // Auto-generated method stub
   }
 

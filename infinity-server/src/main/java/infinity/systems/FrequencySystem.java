@@ -77,7 +77,7 @@ public class FrequencySystem extends AbstractGameSystem
    * @param m The matcher that contains the frequency as group 1
    */
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
-  private String changeFrequency(EntityId entityId, EntityId avatarEntityId, Matcher m) {
+  private String changeFrequency(final EntityId entityId, final EntityId avatarEntityId, final Matcher m) {
     final EntityId h = ed.createEntity();
     ed.setComponents(
         h,
@@ -102,7 +102,7 @@ public class FrequencySystem extends AbstractGameSystem
   }
 
   @Override
-  public void newContact(Contact contact) {
+  public void newContact(final Contact contact) {
     RigidBody<EntityId, MBlockShape> body1 = contact.body1;
     AbstractBody<EntityId, MBlockShape> body2 = contact.body2;
 
@@ -142,7 +142,7 @@ public class FrequencySystem extends AbstractGameSystem
   }
 
   @Override
-  public void update(SimTime time) {
+  public void update(final SimTime time) {
     freqencies.applyChanges();
     flags.applyChanges();
     frequencyChanges.applyChanges();

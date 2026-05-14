@@ -30,7 +30,7 @@ public class LevelFile {
         return mapName;
     }
 
-    public void setMapName(String mapName) {
+    public void setMapName(final String mapName) {
         this.mapName = mapName;
     }
 

@@ -36,11 +36,16 @@
 
 package infinity.ai;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Set;
 
-import org.slf4j.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.simsilica.sim.*;
+import com.simsilica.sim.SimTime;
 
 /**
  *  Keeps track of a bunch of brains and their current scheduling.
@@ -72,7 +77,7 @@ public class BrainScheduler {
      *  will be run at its next heartbeat and all subsequent heardbeats
      *  until removed.
      */
-    public void add( Brain brain ) {
+    public void add( final Brain brain ) {
         if( !brains.add(brain) ) {
             throw new IllegalArgumentException("Brain is already being managed:" + brain);
         }
@@ -84,7 +89,7 @@ public class BrainScheduler {
      *  Forces the brain to get removed and readded to the schedule in case
      *  its next heartbeat time has changed.
      */
-    public void reschedule( Brain brain ) {
+    public void reschedule( final Brain brain ) {
         log.info("reschedule({})", brain);
         reschedule.add(brain);
     }
@@ -93,7 +98,7 @@ public class BrainScheduler {
      *  Removes the brain from the scheduler, no further processing
      *  will happen for the specified brain.
      */
-    public boolean remove( Brain brain ) {
+    public boolean remove( final Brain brain ) {
         if( brains.remove(brain) ) {
             schedule.remove(brain);
             brain.terminate(this);
@@ -106,13 +111,13 @@ public class BrainScheduler {
      *  Called by the brain management code to get the currently scheduled
      *  and ready brains to think.
      */
-    public void update( SimTime time ) {
+    public void update( final SimTime time ) {
 
         // Reschedule any pending reskeds
         if( !reschedule.isEmpty() ) {
             // Not efficient but functional
             schedule.removeAll(reschedule);
-            for( Brain b : reschedule ) {
+            for( final Brain b : reschedule ) {
                 schedule(b);
             }
             reschedule.clear();
@@ -121,7 +126,7 @@ public class BrainScheduler {
     }
 
     @SuppressWarnings("PMD.CompareObjectsWithEquals") // Brain identity check: abort if we find ourselves
-    protected void schedule( Brain brain ) {
+    protected void schedule( final Brain brain ) {
         log.info("schedule({})", brain);
 
         if( schedule.isEmpty() ) {
@@ -148,7 +153,7 @@ public class BrainScheduler {
         schedule.add(brain);
     }
 
-    protected void think( SimTime time ) {
+    protected void think( final SimTime time ) {
         if( schedule.isEmpty() ) {
             return;
         }

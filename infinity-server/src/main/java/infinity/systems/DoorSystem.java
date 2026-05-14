@@ -44,10 +44,10 @@ public class DoorSystem extends AbstractGameSystem {
   }
 
   @Override
-  public void update(SimTime time) {
+  public void update(final SimTime time) {
     doors.applyChanges();
 
-    for (Entity e : doors) {
+    for (final Entity e : doors) {
       Door door = e.get(Door.class);
       SpawnPosition pos = e.get(SpawnPosition.class);
       if (door.getEndTime() < System.currentTimeMillis()) {
@@ -61,7 +61,7 @@ public class DoorSystem extends AbstractGameSystem {
     // no-op: lifecycle hook unused; cleanup happens in terminate()
   }
 
-  private void openOrCloseDoor(EntityId entityId, Door door, SpawnPosition pos) {
+  private void openOrCloseDoor(final EntityId entityId, final Door door, final SpawnPosition pos) {
     boolean open = world.getWorldCell(pos.getLocation()) == 0;
     ed.setComponent(
         entityId, new Door(System.currentTimeMillis(), door.getInterval()));
