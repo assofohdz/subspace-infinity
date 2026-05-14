@@ -12,11 +12,11 @@ import org.junit.Test;
 
 /**
  * Unit coverage for the Slice 8d math/scoping helpers extracted from
- * {@link PrizeSystem#update}. Each helper is a pure function on primitives
- * (or, for {@link PrizeSystem#countPlayersInArena}, on a tiny synthetic
+ * {@link PrizeSpawnerSystem#update}. Each helper is a pure function on primitives
+ * (or, for {@link PrizeSpawnerSystem#countPlayersInArena}, on a tiny synthetic
  * {@link DefaultEntityData}), so no system manager fixture is needed.
  *
- * <p>Heavier integration coverage (full {@code PrizeSystem} update loop with
+ * <p>Heavier integration coverage (full {@code PrizeSpawnerSystem} update loop with
  * real spawners + ships + ConfigRegistry) sits with the broader
  * spawn-projection harness backlog — these helpers cover the seams most
  * likely to harbour bugs (per-arena scoping, off-by-one in regen-batch
@@ -33,25 +33,25 @@ public class PrizeSystemScalingTest {
   @Test
   public void effectiveMaxCount_noScalingFlat() {
     // countPerPlayer=0 collapses scaling regardless of player count.
-    assertEquals(5, PrizeSystem.computeEffectiveMaxCount(5, 0, 100));
+    assertEquals(5, PrizeSpawnerSystem.computeEffectiveMaxCount(5, 0, 100));
   }
 
   @Test
   public void effectiveMaxCount_zeroPlayers_returnsBase() {
     // Empty arena: scaling collapses to the base cap.
-    assertEquals(5, PrizeSystem.computeEffectiveMaxCount(5, 2, 0));
+    assertEquals(5, PrizeSpawnerSystem.computeEffectiveMaxCount(5, 2, 0));
   }
 
   @Test
   public void effectiveMaxCount_additive() {
     // base + perPlayer × players: 5 + 2×4 = 13.
-    assertEquals(13, PrizeSystem.computeEffectiveMaxCount(5, 2, 4));
+    assertEquals(13, PrizeSpawnerSystem.computeEffectiveMaxCount(5, 2, 4));
   }
 
   @Test
   public void effectiveMaxCount_zeroBase_pureScaling() {
     // Subspace canon-style "purely scaled": maxCount=0 → count = perPlayer × players.
-    assertEquals(40, PrizeSystem.computeEffectiveMaxCount(0, 10, 4));
+    assertEquals(40, PrizeSpawnerSystem.computeEffectiveMaxCount(0, 10, 4));
   }
 
   // ──────────────────────────────────────────────────────────────────────
@@ -60,17 +60,17 @@ public class PrizeSystemScalingTest {
 
   @Test
   public void effectiveRadius_noScalingFlat() {
-    assertEquals(100.0, PrizeSystem.computeEffectiveRadius(100.0, 0.0, 100), 0.0);
+    assertEquals(100.0, PrizeSpawnerSystem.computeEffectiveRadius(100.0, 0.0, 100), 0.0);
   }
 
   @Test
   public void effectiveRadius_zeroPlayers_returnsBase() {
-    assertEquals(100.0, PrizeSystem.computeEffectiveRadius(100.0, 50.0, 0), 0.0);
+    assertEquals(100.0, PrizeSpawnerSystem.computeEffectiveRadius(100.0, 50.0, 0), 0.0);
   }
 
   @Test
   public void effectiveRadius_additive() {
-    assertEquals(300.0, PrizeSystem.computeEffectiveRadius(100.0, 50.0, 4), 0.0);
+    assertEquals(300.0, PrizeSpawnerSystem.computeEffectiveRadius(100.0, 50.0, 4), 0.0);
   }
 
   // ──────────────────────────────────────────────────────────────────────
@@ -80,33 +80,33 @@ public class PrizeSystemScalingTest {
   @Test
   public void regenAmount_capsAtBatch_whenDeficitLarger() {
     // alive=0, cap=20, batch=3 → spawn 3 (batch caps).
-    assertEquals(3, PrizeSystem.computeRegenAmount(3, 0, 20));
+    assertEquals(3, PrizeSpawnerSystem.computeRegenAmount(3, 0, 20));
   }
 
   @Test
   public void regenAmount_capsAtDeficit_whenBatchLarger() {
     // alive=5, cap=10, batch=20 → spawn 5 (deficit caps).
-    assertEquals(5, PrizeSystem.computeRegenAmount(20, 5, 10));
+    assertEquals(5, PrizeSpawnerSystem.computeRegenAmount(20, 5, 10));
   }
 
   @Test
   public void regenAmount_atCap_returnsZero() {
     // alive=10, cap=10 → no deficit, no spawn.
-    assertEquals(0, PrizeSystem.computeRegenAmount(5, 10, 10));
+    assertEquals(0, PrizeSpawnerSystem.computeRegenAmount(5, 10, 10));
   }
 
   @Test
   public void regenAmount_overCap_returnsZero() {
     // alive>cap (e.g. arena player count just dropped) → no spawn until
     // pickups/decay drain the surplus.
-    assertEquals(0, PrizeSystem.computeRegenAmount(5, 12, 10));
+    assertEquals(0, PrizeSpawnerSystem.computeRegenAmount(5, 12, 10));
   }
 
   @Test
   public void regenAmount_clampsBatchAtLeastOne() {
     // Misconfigured regenBatch=0: clamp up to 1 so the spawner still
     // trickles rather than freezing entirely.
-    assertEquals(1, PrizeSystem.computeRegenAmount(0, 0, 10));
+    assertEquals(1, PrizeSpawnerSystem.computeRegenAmount(0, 0, 10));
   }
 
   // ──────────────────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ public class PrizeSystemScalingTest {
     final EntityId trench1 = ed.createEntity();
     ed.setComponent(trench1, new ArenaId(ZONE_TRENCH, EntityId.NULL_ID));
 
-    assertEquals(0, PrizeSystem.countPlayersInArena(ed, List.of(trench1), null));
+    assertEquals(0, PrizeSpawnerSystem.countPlayersInArena(ed, List.of(trench1), null));
   }
 
   @Test
@@ -128,7 +128,7 @@ public class PrizeSystemScalingTest {
     final DefaultEntityData ed = new DefaultEntityData();
     assertEquals(
         0,
-        PrizeSystem.countPlayersInArena(
+        PrizeSpawnerSystem.countPlayersInArena(
             ed, List.of(), new ArenaId(ZONE_TRENCH, EntityId.NULL_ID)));
   }
 
@@ -151,12 +151,12 @@ public class PrizeSystemScalingTest {
     final List<EntityId> all = List.of(trench1, trench2, deva1, noArena);
 
     assertEquals(
-        2, PrizeSystem.countPlayersInArena(ed, all, new ArenaId(ZONE_TRENCH, EntityId.NULL_ID)));
+        2, PrizeSpawnerSystem.countPlayersInArena(ed, all, new ArenaId(ZONE_TRENCH, EntityId.NULL_ID)));
     assertEquals(
-        1, PrizeSystem.countPlayersInArena(ed, all, new ArenaId("deva", EntityId.NULL_ID)));
+        1, PrizeSpawnerSystem.countPlayersInArena(ed, all, new ArenaId("deva", EntityId.NULL_ID)));
     // Arena that no ship is in: zero, even though ships exist.
     assertEquals(
-        0, PrizeSystem.countPlayersInArena(ed, all, new ArenaId("svs", EntityId.NULL_ID)));
+        0, PrizeSpawnerSystem.countPlayersInArena(ed, all, new ArenaId("svs", EntityId.NULL_ID)));
   }
 
   @Test
@@ -173,7 +173,7 @@ public class PrizeSystemScalingTest {
 
     assertEquals(
         2,
-        PrizeSystem.countPlayersInArena(
+        PrizeSpawnerSystem.countPlayersInArena(
             ed, List.of(ship1, ship2), new ArenaId(ZONE_TRENCH, new EntityId(7))));
   }
 }

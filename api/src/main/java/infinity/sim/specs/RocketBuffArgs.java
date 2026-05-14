@@ -6,7 +6,7 @@ package infinity.sim.specs;
 import com.simsilica.es.EntityId;
 
 /** Parameter record for {@code ShipFactory.createRocketBuff}; {@code originalThrust}/{@code originalSpeed} captured for revert on buff expiry. */
-public record RocketBuffSpec(
+public record RocketBuffArgs(
     EntityId ship,
     long createdTime,
     long activeTimeMs,

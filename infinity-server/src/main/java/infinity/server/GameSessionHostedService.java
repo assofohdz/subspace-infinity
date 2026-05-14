@@ -72,7 +72,7 @@ import infinity.sim.util.InfinityRunTimeException;
 import infinity.systems.ship.ConsumableSystem;
 import infinity.systems.AvatarSystem;
 import infinity.systems.ship.WarpSystem;
-import infinity.systems.ship.WeaponsFireSystem;
+import infinity.systems.ship.WeaponsFireEligibilitySystem;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
@@ -196,7 +196,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
     private final Quatd lastViewOrient = new Quatd();
     private final EntityId playerEntityId;
 
-    private final WeaponsFireSystem weaponsFireSystem;
+    private final WeaponsFireEligibilitySystem weaponsFireSystem;
     private WarpSystem warpSys;
     private ConsumableSystem actionSys;
     private AvatarSystem avatarSys;
@@ -207,7 +207,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       this.conn = conn;
 
       final PhysicsSpace<?, ?> phys = gameSystems.get(PhysicsSpace.class, true);
-      weaponsFireSystem = gameSystems.get(WeaponsFireSystem.class, true);
+      weaponsFireSystem = gameSystems.get(WeaponsFireEligibilitySystem.class, true);
 
       // Engine-tier ship collision radius — slice s6-ship-radius lifted this
       // out of a legacy hardcoded constant (mirrors the projectile-radius
@@ -227,7 +227,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       avatarEntityId =
           ShipFactory.createPlayerShip(
               ed,
-              new infinity.sim.specs.ShipSpec(
+              new infinity.sim.specs.ShipArgs(
                   spawnLoc,
                   playerEntityId,
                   phys,

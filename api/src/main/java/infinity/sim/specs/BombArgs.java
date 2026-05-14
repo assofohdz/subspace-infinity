@@ -3,15 +3,17 @@
 
 package infinity.sim.specs;
 
+import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/** Parameter record for {@code MapFactory.createPrize}; non-positive {@code decayMillis} clamps to {@link infinity.sim.MapFactory#PRIZE_DEFAULT_DECAY_MS}. */
-public record PrizeSpec(
+/** Parameter record for {@code WeaponFactory.createBomb}. */
+public record BombArgs(
+    EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,
     Vec3d position,
-    String prizeType,
+    Vec3d linearVelocity,
     long decayMillis,
-    boolean hidden,
+    String shapeName,
     double radius) {}

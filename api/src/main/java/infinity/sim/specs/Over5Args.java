@@ -7,13 +7,10 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/** Parameter record for {@code WeaponFactory.createBomb}. */
-public record BombSpec(
+/** Parameter record for {@code MapFactory.createOver5}; sized animation overlay (no gravity, no warp). */
+public record Over5Args(
     EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,
     Vec3d position,
-    Vec3d linearVelocity,
-    long decayMillis,
-    String shapeName,
     double radius) {}

@@ -7,10 +7,10 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/** Parameter record for {@code MapFactory.createOver5}; sized animation overlay (no gravity, no warp). */
-public record Over5Spec(
-    EntityId owner,
+/** Parameter record for {@code MapFactory.createWarpEffect}; visual ghost (no mass/filter), zero radius. */
+public record WarpEffectArgs(
+    EntityId parent,
     PhysicsSpace<?, ?> phys,
     long createdTime,
     Vec3d position,
-    double radius) {}
+    long decayMillis) {}

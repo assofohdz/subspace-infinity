@@ -42,6 +42,11 @@ public final class ConfigRegistry {
   private static final String SLOT_TYPE = "slotType";
 
   // Declared BEFORE EMPTY: EMPTY = builder().build() iterates SLOTS at <clinit>.
+  // GravBombConfig + ThorConfig have no dedicated fragment adapters and fall
+  // back to DEFAULTS — intentional: GravBomb hasn't diverged from Bomb yet
+  // (revisit when canon adds GravBomb-specific knobs); Thor tunables are
+  // per-ship via ships.groovy (ThorStats), not arena-global. Adding a fragment
+  // adapter for either today would never load.
   public static final List<Slot<?>> SLOTS =
       List.of(
           Slot.of(BulletConfig.class, BulletConfig.DEFAULTS),

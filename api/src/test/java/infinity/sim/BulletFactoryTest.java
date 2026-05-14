@@ -17,7 +17,7 @@ import infinity.config.BulletConfig;
 import infinity.config.EngineConfig;
 import infinity.es.Parent;
 import infinity.es.ShapeNames;
-import infinity.sim.specs.BulletSpec;
+import infinity.sim.specs.BulletArgs;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
@@ -55,7 +55,7 @@ public class BulletFactoryTest {
     final EntityId bullet =
         WeaponFactory.createBullet(
             ed,
-            new BulletSpec(
+            new BulletArgs(
                 owner,
                 phys,
                 createdTime,
@@ -99,7 +99,7 @@ public class BulletFactoryTest {
     final EntityId bullet =
         WeaponFactory.createBullet(
             ed,
-            new BulletSpec(
+            new BulletArgs(
                 owner,
                 phys,
                 0L,

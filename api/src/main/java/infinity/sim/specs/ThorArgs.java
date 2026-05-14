@@ -7,13 +7,12 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/** Parameter record for {@code WeaponFactory.createBullet}. */
-public record BulletSpec(
+/** Parameter record for {@code WeaponFactory.createThor}; {@code attackVelocity} currently unused. */
+public record ThorArgs(
     EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,
     Vec3d position,
-    Vec3d linearVelocity,
+    Vec3d attackVelocity,
     long decayMillis,
-    String shapeName,
     double radius) {}

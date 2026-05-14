@@ -9,7 +9,7 @@ import com.simsilica.mphys.PhysicsSpace;
 import java.util.Map;
 
 /** Parameter record for {@code MapFactory.createSpawner}; distinct from {@link infinity.config.SpawnerSpec} (the per-arena Groovy spawner record). */
-public record SpawnerCreateSpec(
+public record SpawnerCreateArgs(
     EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,

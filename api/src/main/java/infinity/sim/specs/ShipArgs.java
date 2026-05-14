@@ -7,12 +7,11 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/** Parameter record for {@code WeaponFactory.createThor}; {@code attackVelocity} currently unused. */
-public record ThorSpec(
+/** Parameter record for {@code ShipFactory.createShip} / {@code createPlayerShip}. */
+public record ShipArgs(
+    Vec3d spawnLoc,
     EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,
-    Vec3d position,
-    Vec3d attackVelocity,
-    long decayMillis,
+    byte ship,
     double radius) {}

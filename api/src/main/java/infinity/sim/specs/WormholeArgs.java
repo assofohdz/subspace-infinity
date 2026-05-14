@@ -7,10 +7,13 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/** Parameter record for {@code MapFactory.createWarpEffect}; visual ghost (no mass/filter), zero radius. */
-public record WarpEffectSpec(
-    EntityId parent,
+/** Parameter record for {@code MapFactory.createWormhole}; gravity well + touch sensor pair warping ships to {@code warpTargetLocation}. */
+public record WormholeArgs(
+    EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,
     Vec3d position,
-    long decayMillis) {}
+    double force,
+    String gravityType,
+    Vec3d warpTargetLocation,
+    double scale) {}

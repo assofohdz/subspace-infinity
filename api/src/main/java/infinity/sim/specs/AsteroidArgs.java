@@ -7,11 +7,11 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/** Parameter record for {@code WeaponFactory.createRepel}. */
-public record RepelSpec(
+/** Parameter record for {@code MapFactory.createAsteroidSmall} / {@code createAsteroidMedium} (OVER1 vs OVER2). */
+public record AsteroidArgs(
     EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,
     Vec3d position,
-    long decayMillis,
+    double mass,
     double radius) {}

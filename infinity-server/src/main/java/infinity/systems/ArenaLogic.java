@@ -192,7 +192,7 @@ public final class ArenaLogic {
       final EntityId spawnerId =
           MapFactory.createSpawner(
               ed,
-              new infinity.sim.specs.SpawnerCreateSpec(
+              new infinity.sim.specs.SpawnerCreateArgs(
                   EntityId.NULL_ID,
                   phys,
                   now,

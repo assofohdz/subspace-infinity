@@ -19,14 +19,14 @@ import infinity.es.Parent;
 import infinity.es.WeaponType;
 import infinity.es.WeaponTypes;
 import infinity.es.ship.actions.Thor;
-import infinity.sim.specs.BombSpec;
-import infinity.sim.specs.BulletSpec;
-import infinity.sim.specs.BurstSpec;
-import infinity.sim.specs.DelayedBombSpec;
-import infinity.sim.specs.ExplosionSpec;
-import infinity.sim.specs.MineSpec;
-import infinity.sim.specs.RepelSpec;
-import infinity.sim.specs.ThorSpec;
+import infinity.sim.specs.BombArgs;
+import infinity.sim.specs.BulletArgs;
+import infinity.sim.specs.BurstArgs;
+import infinity.sim.specs.DelayedBombArgs;
+import infinity.sim.specs.ExplosionArgs;
+import infinity.sim.specs.MineArgs;
+import infinity.sim.specs.RepelArgs;
+import infinity.sim.specs.ThorArgs;
 import java.util.concurrent.TimeUnit;
 
 /** Factory methods for projectile weapons + explosion ghosts; structural composition only — tuning flows via spec records. @see ShipFactory @see MapFactory */
@@ -34,11 +34,11 @@ public final class WeaponFactory {
 
   private WeaponFactory() {}
 
-  public static EntityId createDelayedBomb(final EntityData ed, final DelayedBombSpec spec) {
+  public static EntityId createDelayedBomb(final EntityData ed, final DelayedBombArgs spec) {
     final EntityId lastDelayedBomb =
         WeaponFactory.createBomb(
             ed,
-            new BombSpec(
+            new BombArgs(
                 spec.owner(),
                 spec.phys(),
                 spec.createdTime(),
@@ -57,7 +57,7 @@ public final class WeaponFactory {
     return lastDelayedBomb;
   }
 
-  public static EntityId createBomb(final EntityData ed, final BombSpec spec) {
+  public static EntityId createBomb(final EntityData ed, final BombArgs spec) {
     final EntityId lastBomb = ed.createEntity();
 
     ed.setComponents(
@@ -78,7 +78,7 @@ public final class WeaponFactory {
     return lastBomb;
   }
 
-  public static EntityId createBullet(final EntityData ed, final BulletSpec spec) {
+  public static EntityId createBullet(final EntityData ed, final BulletArgs spec) {
     final EntityId lastBullet = ed.createEntity();
 
     ed.setComponents(
@@ -101,7 +101,7 @@ public final class WeaponFactory {
   }
 
   // Explosion is for now only visual, so only object type and position
-  public static EntityId createExplosion(final EntityData ed, final ExplosionSpec spec) {
+  public static EntityId createExplosion(final EntityData ed, final ExplosionArgs spec) {
     final EntityId lastExplosion = ed.createEntity();
 
     // Explosion is a ghost
@@ -118,7 +118,7 @@ public final class WeaponFactory {
     return lastExplosion;
   }
 
-  public static EntityId createBurst(final EntityData ed, final BurstSpec spec) {
+  public static EntityId createBurst(final EntityData ed, final BurstArgs spec) {
     final EntityId lastBomb = ed.createEntity();
 
     ed.setComponents(
@@ -135,7 +135,7 @@ public final class WeaponFactory {
     return lastBomb;
   }
 
-  public static EntityId createRepel(final EntityData ed, final RepelSpec spec) {
+  public static EntityId createRepel(final EntityData ed, final RepelArgs spec) {
     final EntityId lastWarpTo = ed.createEntity();
 
     ed.setComponents(
@@ -153,7 +153,7 @@ public final class WeaponFactory {
     return lastWarpTo;
   }
 
-  public static EntityId createThor(final EntityData ed, final ThorSpec spec) {
+  public static EntityId createThor(final EntityData ed, final ThorArgs spec) {
     final EntityId lastBomb = ed.createEntity();
 
     ed.setComponents(
@@ -176,7 +176,7 @@ public final class WeaponFactory {
     return lastBomb;
   }
 
-  public static EntityId createMine(final EntityData ed, final MineSpec spec) {
+  public static EntityId createMine(final EntityData ed, final MineArgs spec) {
     EntityId lastMine = ed.createEntity();
     ed.setComponents(
         lastMine,

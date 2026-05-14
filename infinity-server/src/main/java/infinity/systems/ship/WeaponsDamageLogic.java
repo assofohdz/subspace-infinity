@@ -15,20 +15,15 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.QueryFilter;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.SphereVolume;
-import infinity.config.ArenaConfig;
-import infinity.config.EngineConfig;
 import infinity.es.Damage;
 import infinity.es.Frequency;
 import infinity.es.Jitter;
 import infinity.es.Parent;
 import infinity.es.SplashDamage;
-import infinity.es.arena.ArenaId;
+import infinity.es.arena.FriendlyFireMode;
+import infinity.es.ship.weapons.BombJitterTime;
 import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.WeaponType;
-import infinity.settings.ConfigRegistry;
-import infinity.settings.ConfigRegistrySystem;
-import infinity.settings.EngineConfigSystem;
-import infinity.systems.ArenaSystem;
 
 /** Damage / splash / jitter / FF helpers; companion to {@link WeaponsLogic} (pure math) and {@link WeaponsFireSystem} (ECS). */
 final class WeaponsDamageLogic {
@@ -38,30 +33,26 @@ final class WeaponsDamageLogic {
     /** Direct-hit damage; FF mode 2 allows same-team, modes 0/1 swallow damage but still detonate. */
     static void applyDirectHitDamage(
             final EntityData ed,
-            final ArenaSystem arenaSys,
-            final ConfigRegistrySystem cr,
             final EnergySystem energy,
             final EntityId damageEntityId,
             final Damage damage,
             final EntityId victimId,
             final long nowSimNanos) {
-        if (!shouldDamageVictim(ed, arenaSys, damageEntityId, victimId, false)) {
+        if (!shouldDamageVictim(ed, damageEntityId, victimId, false)) {
             return;
         }
         final EntityId attackerShipId = attackerShipIdOf(ed, damageEntityId);
         energy.damage(victimId, damage.getIntendedDamage(), attackerShipId, WeaponType.NONE);
-        stampJitter(ed, cr, damageEntityId, victimId, nowSimNanos);
+        stampJitter(ed, damageEntityId, victimId, nowSimNanos);
     }
 
     /** Splash damage via {@code physicsSpace.queryBounds} pre-filter + strict distance check; splash FF uses mode≥1. */
-    // Splash-damage payload: ed + physics + arena + cr + energy + intent (damage/splash/point/now); orchestrator-held refs, not a domain object.
+    // Splash-damage payload: ed + physics + energy + intent (damage/splash/point/now); orchestrator-held refs, not a domain object.
     @SuppressWarnings("PMD.ExcessiveParameterList")
     static void applySplashDamage(
             final EntityData ed,
             final EntitySet energyEntities,
             final PhysicsSpace<EntityId, MBlockShape> physicsSpace,
-            final ArenaSystem arenaSys,
-            final ConfigRegistrySystem cr,
             final EnergySystem energy,
             final EntityId damageEntityId,
             final Damage damage,
@@ -93,18 +84,17 @@ final class WeaponsDamageLogic {
             if (dx * dx + dy * dy + dz * dz > radiusSq) {
                 continue;
             }
-            if (!shouldDamageVictim(ed, arenaSys, damageEntityId, victimId, true)) {
+            if (!shouldDamageVictim(ed, damageEntityId, victimId, true)) {
                 continue;
             }
             energy.damage(victimId, damage.getIntendedDamage(), attackerShipId, WeaponType.NONE);
-            stampJitter(ed, cr, damageEntityId, victimId, nowSimNanos);
+            stampJitter(ed, damageEntityId, victimId, nowSimNanos);
         }
     }
 
     /** Stamps {@link Jitter} on bomb-hit victims; takes max(existing, new) to never shorten an in-flight shake. */
     static void stampJitter(
             final EntityData ed,
-            final ConfigRegistrySystem cr,
             final EntityId damageEntityId,
             final EntityId victimId,
             final long nowSimNanos) {
@@ -116,7 +106,8 @@ final class WeaponsDamageLogic {
         if (attackerShipId == null) {
             return;
         }
-        final long jitterMs = weaponsFor(ed, cr, attackerShipId).bomb().jitterTimeMs();
+        final BombJitterTime jitter = ed.getComponent(attackerShipId, BombJitterTime.class);
+        final long jitterMs = jitter == null ? 0L : jitter.jitterMs();
         if (jitterMs <= 0L) {
             return;
         }
@@ -130,7 +121,6 @@ final class WeaponsDamageLogic {
     /** FF gate; bottoms out on {@link WeaponsLogic#shouldDamageVictim} for the pure tri-state decision. */
     static boolean shouldDamageVictim(
             final EntityData ed,
-            final ArenaSystem arenaSys,
             final EntityId damageEntityId,
             final EntityId victimId,
             final boolean isSplash) {
@@ -151,7 +141,7 @@ final class WeaponsDamageLogic {
         final Integer attackerFreqValue =
                 attackerFreq == null ? null : attackerFreq.getFrequency();
         final Integer victimFreqValue = victimFreq == null ? null : victimFreq.getFrequency();
-        final int ffMode = friendlyFireModeFor(ed, arenaSys, attackerShipId);
+        final int ffMode = friendlyFireModeFor(ed, attackerShipId);
         return WeaponsLogic.shouldDamageVictim(attackerFreqValue, victimFreqValue, ffMode, isSplash);
     }
 
@@ -159,8 +149,9 @@ final class WeaponsDamageLogic {
     static void applyBombRecoil(
             final EntityData ed,
             final PhysicsSpace<EntityId, MBlockShape> physicsSpace,
-            final EngineConfigSystem engineConfigSystem,
-            final EntityId shipId) {
+            final EntityId shipId,
+            final double bombThrustScale,
+            final double maxProjectileSpeedJme) {
         final BombStats stats = ed.getComponent(shipId, BombStats.class);
         if (stats == null || stats.thrust() == 0) {
             return;
@@ -170,32 +161,20 @@ final class WeaponsDamageLogic {
         if (shipBody == null) {
             return;
         }
-        final EngineConfig engineCfg = engineConfigSystem.get();
         final Vec3d impulse =
                 WeaponsLogic.recoilImpulse(
                         stats.thrust(),
-                        engineCfg.bombThrustScale(),
-                        engineCfg.maxProjectileSpeedJme(),
+                        bombThrustScale,
+                        maxProjectileSpeedJme,
                         new Quatd(shipBody.orientation));
         ed.setComponent(shipId, new Impulse(impulse));
     }
 
+    /** Reads per-ship {@link FriendlyFireMode} stamped at spawn; defaults to off when missing. */
     static int friendlyFireModeFor(
-            final EntityData ed, final ArenaSystem arenaSys, final EntityId attackerShipId) {
-        final ArenaId arenaId = ed.getComponent(attackerShipId, ArenaId.class);
-        if (arenaId == null) {
-            return ArenaConfig.EMPTY.friendlyFire();
-        }
-        return arenaSys.getArenaConfig(arenaId.getArena()).friendlyFire();
-    }
-
-    private static ConfigRegistry weaponsFor(
-            final EntityData ed, final ConfigRegistrySystem cr, final EntityId attacker) {
-        final ArenaId arenaId = ed.getComponent(attacker, ArenaId.class);
-        if (arenaId == null) {
-            return ConfigRegistry.EMPTY;
-        }
-        return cr.forArena(arenaId);
+            final EntityData ed, final EntityId attackerShipId) {
+        final FriendlyFireMode mode = ed.getComponent(attackerShipId, FriendlyFireMode.class);
+        return mode == null ? 0 : mode.mode();
     }
 
     /** Resolves firing ship via {@link Parent}; {@link EntityId#NULL_ID} for orphan projectiles. */

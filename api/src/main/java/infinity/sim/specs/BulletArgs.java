@@ -7,10 +7,13 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/** Parameter record for {@code MapFactory.createTurfStationaryFlag}; factory offsets by {@code (0.5,0,0.5)} to tile-center. */
-public record TurfStationaryFlagSpec(
-    EntityId parent,
+/** Parameter record for {@code WeaponFactory.createBullet}. */
+public record BulletArgs(
+    EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,
     Vec3d position,
+    Vec3d linearVelocity,
+    long decayMillis,
+    String shapeName,
     double radius) {}

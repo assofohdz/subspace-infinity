@@ -8,7 +8,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
 /** Parameter record for {@code MapFactory.createDoor}; {@code owner} may be {@code null} for free-standing doors. */
-public record DoorSpec(
+public record DoorArgs(
     EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,

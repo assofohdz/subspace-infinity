@@ -27,3 +27,24 @@ For complete setup instructions including all dependencies:
 | `./gradlew :infinity-client:runX11` | Run on Linux/Wayland with X11 backend |
 | `./gradlew clean` | Clean build artifacts |
 | `./gradlew dependencyUpdates` | Check for dependency updates |
+
+## Live-Reload Behaviour (Operator Note)
+
+Editing the Groovy fragment files (`zone/conf/<preset>/*.groovy`,
+`zone/arenas/<name>/arena.groovy`) at runtime updates the per-arena
+`ConfigRegistry` snapshot. The flow-on effect depends on which fragment
+you edited:
+
+- **Ship-stat fragments** (`ships.groovy`) — re-flow into existing live
+  ships via `ShipSpawnSystem.reprojectAll()`. Capability stats and
+  `*Max` update; Energy/Health/inventory current counts are preserved
+  (see `ShipSpawnSystemTuningProjectionTest`).
+- **Weapon and prize fragments** (`bombs.groovy`, `bullets.groovy`,
+  `prize-weights.groovy`, etc.) — registry update only. Existing
+  in-flight projectiles + already-spawned prizes use the OLD config;
+  next spawn / next shot picks up the NEW config. Per the template-vs-
+  instance split (see [`config-pattern.md`](.claude/rules/config-pattern.md)
+  and [ADR-0002](docs/adr/0002-config-component-projection.md)).
+
+When changing an arena fragment, pause new gameplay long enough for the
+live shots/prizes to expire if you need the change to apply uniformly.

@@ -28,14 +28,14 @@ import infinity.es.Spawner;
 import infinity.es.SphereShape;
 import infinity.es.WarpTouch;
 import infinity.es.ship.actions.BrickSpan;
-import infinity.sim.specs.AsteroidSpec;
-import infinity.sim.specs.DoorSpec;
-import infinity.sim.specs.Over5Spec;
-import infinity.sim.specs.PrizeSpec;
-import infinity.sim.specs.SpawnerCreateSpec;
-import infinity.sim.specs.TurfStationaryFlagSpec;
-import infinity.sim.specs.WarpEffectSpec;
-import infinity.sim.specs.WormholeSpec;
+import infinity.sim.specs.AsteroidArgs;
+import infinity.sim.specs.DoorArgs;
+import infinity.sim.specs.Over5Args;
+import infinity.sim.specs.PrizeArgs;
+import infinity.sim.specs.SpawnerCreateArgs;
+import infinity.sim.specs.TurfStationaryFlagArgs;
+import infinity.sim.specs.WarpEffectArgs;
+import infinity.sim.specs.WormholeArgs;
 import java.util.concurrent.TimeUnit;
 
 /** Factory methods for map decoration, prizes/spawners, and ship-deployed map structures (bricks, decoys, portals). @see ShipFactory @see WeaponFactory */
@@ -52,7 +52,7 @@ public final class MapFactory {
 
   private MapFactory() {}
 
-  public static EntityId createWormhole(final EntityData ed, final WormholeSpec spec) {
+  public static EntityId createWormhole(final EntityData ed, final WormholeArgs spec) {
     final EntityId lastWormhole = ed.createEntity();
 
     final PhysicsSpace<?, ?> phys = spec.phys();
@@ -83,7 +83,7 @@ public final class MapFactory {
     return lastWormhole;
   }
 
-  public static EntityId createDoor(final EntityData ed, final DoorSpec spec) {
+  public static EntityId createDoor(final EntityData ed, final DoorArgs spec) {
     final EntityId lastDoor = ed.createEntity();
     ed.setComponents(
         lastDoor, new SpawnPosition(spec.phys().getGrid(), spec.position()), new Mass(0), new Door());
@@ -98,7 +98,7 @@ public final class MapFactory {
   }
 
   /** OVER5 visual overlay entity; no gravity, no warp — just a sized animation overlay. */
-  public static EntityId createOver5(final EntityData ed, final Over5Spec spec) {
+  public static EntityId createOver5(final EntityData ed, final Over5Args spec) {
     final EntityId lastOver5 = ed.createEntity();
 
     ed.setComponents(
@@ -111,7 +111,7 @@ public final class MapFactory {
   }
 
   /** Small asteroid with animation. */
-  public static EntityId createAsteroidSmall(final EntityData ed, final AsteroidSpec spec) {
+  public static EntityId createAsteroidSmall(final EntityData ed, final AsteroidArgs spec) {
     final EntityId lastOver1 = ed.createEntity();
 
     ed.setComponents(
@@ -125,7 +125,7 @@ public final class MapFactory {
   }
 
   /** Medium asteroid with animation. */
-  public static EntityId createAsteroidMedium(final EntityData ed, final AsteroidSpec spec) {
+  public static EntityId createAsteroidMedium(final EntityData ed, final AsteroidArgs spec) {
     final EntityId lastOver2 = ed.createEntity();
 
     ed.setComponents(
@@ -138,7 +138,7 @@ public final class MapFactory {
     return lastOver2;
   }
 
-  public static EntityId createWarpEffect(final EntityData ed, final WarpEffectSpec spec) {
+  public static EntityId createWarpEffect(final EntityData ed, final WarpEffectArgs spec) {
     final EntityId lastWarpTo = ed.createEntity();
 
     // Warp is a ghost
@@ -161,7 +161,7 @@ public final class MapFactory {
 
   /** Creates a stationary, frequency-less flag for initial flag placement. */
   public static EntityId createTurfStationaryFlag(
-      final EntityData ed, final TurfStationaryFlagSpec spec) {
+      final EntityData ed, final TurfStationaryFlagArgs spec) {
     final EntityId lastFlag = ed.createEntity();
 
     ed.setComponents(
@@ -198,7 +198,7 @@ public final class MapFactory {
   }
 
   /** Create a prize entity; non-positive {@code decayMillis} on the spec clamps up to {@link #PRIZE_DEFAULT_DECAY_MS}. */
-  public static EntityId createPrize(final EntityData ed, final PrizeSpec spec) {
+  public static EntityId createPrize(final EntityData ed, final PrizeArgs spec) {
     final EntityId result = ed.createEntity();
 
     final long effectiveDecay =
@@ -225,8 +225,8 @@ public final class MapFactory {
     return result;
   }
 
-  /** Create a prize-spawner entity from {@link SpawnerCreateSpec}; effective cap is {@code maxCount + countPerPlayer × N}. */
-  public static EntityId createSpawner(final EntityData ed, final SpawnerCreateSpec spec) {
+  /** Create a prize-spawner entity from {@link SpawnerCreateArgs}; effective cap is {@code maxCount + countPerPlayer × N}. */
+  public static EntityId createSpawner(final EntityData ed, final SpawnerCreateArgs spec) {
     final EntityId result = ed.createEntity();
 
     ed.setComponents(

@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Optional per-spawner override for prize-type weights. Sparse map merged on
  * top of the spawner's arena defaults at selection time by {@code
- * PrizeSystem}. Keys are prize-type strings (matching {@code PrizeTypes}
+ * PrizeSpawnerSystem}. Keys are prize-type strings (matching {@code PrizeTypes}
  * constants — {@code "Bomb"}, {@code "Gun"}, ...); values are non-negative
  * weights. Authored declaratively via {@code arena.groovy}'s
  * {@code spawners { spawn ..., weights: [...] }} block (see

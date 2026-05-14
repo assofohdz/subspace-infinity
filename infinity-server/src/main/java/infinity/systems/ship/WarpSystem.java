@@ -164,11 +164,11 @@ public class WarpSystem extends BaseInfinitySystem
 
     MapFactory.createWarpEffect(
         ed,
-        new infinity.sim.specs.WarpEffectSpec(
+        new infinity.sim.specs.WarpEffectArgs(
             shipId, physicsSpace, tpf.getTime(), originalLocation, 1000));
     MapFactory.createWarpEffect(
         ed,
-        new infinity.sim.specs.WarpEffectSpec(
+        new infinity.sim.specs.WarpEffectArgs(
             shipId, physicsSpace, tpf.getTime(), targetLocation, 1000));
 
     // Zero motion so the body sleeps immediately — prevents redundant "left arena" log after spawn-warp.

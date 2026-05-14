@@ -24,6 +24,7 @@ import infinity.es.ship.actions.ThorFireDelay;
 import infinity.es.ship.actions.ThorStats;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
+import infinity.es.ship.weapons.BombJitterTime;
 import infinity.es.ship.weapons.BombSafetyRadius;
 import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletCurrentLevel;
@@ -69,6 +70,14 @@ final class ShipWeaponsProjector {
     ed.setComponent(
         shipId,
         new BombSafetyRadius(bombConfig.bombSafety(), bombConfig.proximityDistance()));
+  }
+
+  /** Per-ship snapshot of arena {@code BombConfig.jitterTimeMs}; read by WeaponsDamageLogic at detonation per ADR-0002. */
+  static void projectBombJitter(
+      final EntityData ed,
+      final EntityId shipId,
+      final infinity.config.BombConfig bombConfig) {
+    ed.setComponent(shipId, new BombJitterTime(bombConfig.jitterTimeMs()));
   }
 
   static void projectBullets(

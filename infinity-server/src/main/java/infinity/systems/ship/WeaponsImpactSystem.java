@@ -18,26 +18,33 @@ import infinity.es.ProximityFuse;
 import infinity.es.ship.Energy;
 import infinity.es.ship.actions.Thor;
 import infinity.es.ship.weapons.Bounce;
+import infinity.sim.Detonator;
 import infinity.systems.BaseInfinitySystem;
 import infinity.systems.ContactSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Projectile-vs-body and projectile-vs-world contacts; dispatches detonation to {@link WeaponsReaperSystem}. Canonical writer for {@link Bounce}. */
+/**
+ * Projectile-vs-body and projectile-vs-world contacts; dispatches detonation to {@link WeaponsReaperSystem}
+ * via the {@link Detonator} api/-defined seam. Canonical writer for {@link Bounce}.
+ *
+ * @see infinity.sim.Detonator
+ * @see <a href="../../../../../../docs/adr/0003-communication-channels.md">ADR-0003 Channel B (in-tick coordination via api/ interface)</a>
+ */
 public class WeaponsImpactSystem extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
 
   static final Logger log = LoggerFactory.getLogger(WeaponsImpactSystem.class);
 
   private EntityData ed;
-  private WeaponsReaperSystem reaper;
+  private Detonator detonator;
   private volatile long lastTickNanos;
 
   @Override
   @SuppressWarnings("unchecked")
   protected void initialize() {
     ed = requireSystem(EntityData.class);
-    reaper = requireSystem(WeaponsReaperSystem.class);
+    detonator = requireSystem(WeaponsReaperSystem.class);
     final ContactSystem<EntityId, MBlockShape> contactSystem = requireSystem(ContactSystem.class);
     contactSystem.addListener(this);
   }
@@ -106,7 +113,7 @@ public class WeaponsImpactSystem extends BaseInfinitySystem
     }
 
     final Damage damage = damageEntity.get(Damage.class);
-    reaper.detonate(
+    detonator.detonate(
         damageEntity.getId(),
         damage,
         contact.contactPoint,
@@ -130,7 +137,7 @@ public class WeaponsImpactSystem extends BaseInfinitySystem
         ed.setComponent(idOne, bounce.decreaseBounces());
       }
     } else {
-      reaper.detonate(idOne, damage, contact.contactPoint, null, lastTickNanos);
+      detonator.detonate(idOne, damage, contact.contactPoint, null, lastTickNanos);
       contact.disable();
     }
   }

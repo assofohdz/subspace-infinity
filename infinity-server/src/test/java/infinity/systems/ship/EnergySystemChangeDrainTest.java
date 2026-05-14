@@ -195,7 +195,7 @@ public class EnergySystemChangeDrainTest {
           "Pool at 0 after lethal hit",
           0,
           f.ed.getComponent(ship, Energy.class).getEnergy());
-      // Dead is stamped — death prize spawning requires PrizeSystem +
+      // Dead is stamped — Channel A PrizeSpawnIntent emission requires
       // Player + BodyPosition which the fixture doesn't include, but
       // the Dead marker write is unconditional on Player.
       assertEquals(

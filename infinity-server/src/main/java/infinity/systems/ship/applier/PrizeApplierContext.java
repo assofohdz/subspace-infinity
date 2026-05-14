@@ -10,7 +10,7 @@ import infinity.systems.ship.WarpSystem;
 
 /**
  * Dependencies bundled for a {@link PrizeApplier} invocation. Built once in
- * {@code PrizeSystem.initialize()} and passed into every applier call —
+ * {@code PrizeConsumptionSystem.initialize()} and passed into every applier call —
  * keeps the {@link PrizeApplier#apply(EntityId, PrizeApplierContext)}
  * signature stable as new dependencies are added.
  *

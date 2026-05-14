@@ -7,11 +7,12 @@ import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/** Parameter record for {@code ShipFactory.createShip} / {@code createPlayerShip}. */
-public record ShipSpec(
-    Vec3d spawnLoc,
+/** Parameter record for {@code WeaponFactory.createMine}. */
+public record MineArgs(
     EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,
-    byte ship,
+    Vec3d position,
+    long decayMillis,
+    String shapeName,
     double radius) {}

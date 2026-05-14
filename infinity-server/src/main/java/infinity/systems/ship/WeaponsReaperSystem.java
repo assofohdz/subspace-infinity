@@ -15,18 +15,15 @@ import com.simsilica.sim.SimTime;
 import infinity.es.Damage;
 import infinity.es.SplashDamage;
 import infinity.es.ship.Energy;
-import infinity.settings.ConfigRegistrySystem;
+import infinity.sim.Detonator;
 import infinity.sim.WeaponFactory;
-import infinity.systems.ArenaSystem;
 import infinity.systems.BaseInfinitySystem;
 
 /** Post-detonation cleanup — splash + direct-hit damage, explosion spawn, projectile end-of-life {@link Decay} stamp. */
-public class WeaponsReaperSystem extends BaseInfinitySystem {
+public class WeaponsReaperSystem extends BaseInfinitySystem implements Detonator {
 
   private EntityData ed;
   private PhysicsSpace<EntityId, MBlockShape> physicsSpace;
-  private ConfigRegistrySystem configRegistry;
-  private ArenaSystem arenaSystem;
   private EnergySystem energySystem;
 
   private EntitySet healthBearers;
@@ -37,8 +34,6 @@ public class WeaponsReaperSystem extends BaseInfinitySystem {
     ed = requireSystem(EntityData.class);
     final MPhysSystem<MBlockShape> physics = requireSystem(MPhysSystem.class);
     physicsSpace = physics.getPhysicsSpace();
-    configRegistry = requireSystem(ConfigRegistrySystem.class);
-    arenaSystem = requireSystem(ArenaSystem.class);
     energySystem = requireSystem(EnergySystem.class);
 
     healthBearers = ed.getEntities(Energy.class);
@@ -56,6 +51,7 @@ public class WeaponsReaperSystem extends BaseInfinitySystem {
   }
 
   /** Detonation seam called by {@link WeaponsImpactSystem} (contact) and {@link ProximityFuseSystem} (fuse). */
+  @Override
   public void detonate(
       final EntityId damageEntityId,
       final Damage damage,
@@ -68,8 +64,6 @@ public class WeaponsReaperSystem extends BaseInfinitySystem {
           ed,
           healthBearers,
           physicsSpace,
-          arenaSystem,
-          configRegistry,
           energySystem,
           damageEntityId,
           damage,
@@ -79,8 +73,6 @@ public class WeaponsReaperSystem extends BaseInfinitySystem {
     } else if (directVictimId != null) {
       WeaponsDamageLogic.applyDirectHitDamage(
           ed,
-          arenaSystem,
-          configRegistry,
           energySystem,
           damageEntityId,
           damage,
@@ -89,7 +81,7 @@ public class WeaponsReaperSystem extends BaseInfinitySystem {
     }
     WeaponFactory.createExplosion(
         ed,
-        new infinity.sim.specs.ExplosionSpec(
+        new infinity.sim.specs.ExplosionArgs(
             EntityId.NULL_ID,
             physicsSpace,
             nowSimNanos,

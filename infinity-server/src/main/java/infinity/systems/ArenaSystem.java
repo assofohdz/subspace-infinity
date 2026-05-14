@@ -221,6 +221,11 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     return getArenaConfig(arenaName).wallFriction();
   }
 
+  /** FF tri-state ({@code 0}=off, {@code 1}=splash-only, {@code 2}=all); {@link ArenaConfig#EMPTY} default on unknown. */
+  public int getFriendlyFireMode(final String arenaName) {
+    return getArenaConfig(arenaName).friendlyFire();
+  }
+
   /** See {@link ArenaSpatialIndex#getArenaMap}. */
   @Nullable
   public ArenaMap getArenaMap(final String arenaName) {

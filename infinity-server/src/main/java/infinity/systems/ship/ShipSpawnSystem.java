@@ -12,6 +12,7 @@ import infinity.config.ShipConfig;
 import infinity.config.ShipStat;
 import infinity.es.RadarShapeInfo;
 import infinity.es.arena.ArenaId;
+import infinity.es.arena.FriendlyFireMode;
 import infinity.es.ship.BounceRestitution;
 import infinity.es.ship.LinearDamping;
 import infinity.es.ship.Energy;
@@ -27,6 +28,7 @@ import infinity.es.ship.Thrust;
 import infinity.es.ship.ThrustStats;
 import infinity.es.ship.TurnResponsiveness;
 import infinity.settings.ConfigRegistrySystem;
+import infinity.systems.ArenaSystem;
 import infinity.systems.BaseInfinitySystem;
 
 import org.slf4j.Logger;
@@ -45,6 +47,7 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
 
   private EntityData ed;
   private ConfigRegistrySystem configRegistry;
+  private ArenaSystem arenaSystem;
 
   private EntitySet ships;
 
@@ -52,6 +55,8 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
   protected void initialize() {
     ed = requireSystem(EntityData.class);
     configRegistry = requireSystem(ConfigRegistrySystem.class);
+    // Optional: unit tests register only ConfigRegistrySystem; FF defaults to 0 when absent.
+    arenaSystem = getSystem(ArenaSystem.class);
     // Ships in no-arena void (no ArenaId) intentionally not watched; reprojected on entry.
     ships = ed.getEntities(ShipType.class, ArenaId.class);
   }
@@ -112,6 +117,9 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
       return;
     }
     project(shipEntity.getId(), cfg, registry.bomb(), resetLivePool);
+    // Per-ship snapshot of arena FF tri-state — read by WeaponsDamageLogic at detonation per ADR-0002.
+    final int ffMode = arenaSystem == null ? 0 : arenaSystem.getFriendlyFireMode(arena.getArena());
+    ed.setComponent(shipEntity.getId(), new FriendlyFireMode(ffMode));
     logProjectionApplied(shipEntity, shipType, arena, cfg, resetLivePool);
   }
 
@@ -162,6 +170,7 @@ public class ShipSpawnSystem extends BaseInfinitySystem {
     projectRadar(shipId, cfg);
     ShipWeaponsProjector.projectBombs(ed, shipId, cfg.bombs(), resetLivePool);
     ShipWeaponsProjector.projectBombSafety(ed, shipId, bombConfig);
+    ShipWeaponsProjector.projectBombJitter(ed, shipId, bombConfig);
     ShipWeaponsProjector.projectBullets(ed, shipId, cfg.bullets(), resetLivePool);
     ShipWeaponsProjector.projectMines(ed, shipId, cfg.mines(), resetLivePool);
     ShipWeaponsProjector.projectBursts(ed, shipId, cfg.bursts(), resetLivePool);

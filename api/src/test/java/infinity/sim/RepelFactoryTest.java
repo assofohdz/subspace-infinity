@@ -17,7 +17,7 @@ import infinity.config.RepelConfig;
 import infinity.es.Parent;
 import infinity.es.ship.actions.RepelDistance;
 import infinity.es.ship.actions.RepelSpeed;
-import infinity.sim.specs.RepelSpec;
+import infinity.sim.specs.RepelArgs;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
@@ -52,7 +52,7 @@ public class RepelFactoryTest {
     final EntityId repel =
         WeaponFactory.createRepel(
             ed,
-            new RepelSpec(
+            new RepelArgs(
                 owner,
                 phys,
                 createdTime,
@@ -80,7 +80,7 @@ public class RepelFactoryTest {
     final EntityId repel =
         WeaponFactory.createRepel(
             ed,
-            new RepelSpec(
+            new RepelArgs(
                 owner,
                 phys,
                 0L,
@@ -110,7 +110,7 @@ public class RepelFactoryTest {
     final EntityId repel =
         WeaponFactory.createRepel(
             ed,
-            new RepelSpec(
+            new RepelArgs(
                 owner,
                 phys,
                 0L,

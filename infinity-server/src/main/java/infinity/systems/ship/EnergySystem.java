@@ -9,16 +9,17 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
+import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.SimTime;
 import infinity.es.ChangeTarget;
 import infinity.es.DamageSource;
 import infinity.es.Dead;
+import infinity.es.PrizeSpawnIntent;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyChange;
 import infinity.es.ship.EnergyStats;
 import infinity.es.ship.Player;
 import infinity.systems.BaseInfinitySystem;
-import infinity.systems.PrizeSystem;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,9 +40,6 @@ public class EnergySystem extends BaseInfinitySystem {
   // Cache (target, delta) at apply-time — Zay-ES may null components on the
   // removed Change holder; reverse from cache on Decay-reaper removal.
   private final Map<EntityId, TrackedApply> trackedApplied = new HashMap<>();
-
-  // Lazy-resolved so EnergySystem stays usable in test fixtures without PrizeSystem.
-  private PrizeSystem prizeSystem;
 
   private record TrackedApply(EntityId target, int delta) {}
 
@@ -146,7 +144,7 @@ public class EnergySystem extends BaseInfinitySystem {
     }
   }
 
-  /** Mark dead (idempotent) + spawn death prize for {@link Player} ships. */
+  /** Mark dead (idempotent) + emit a Channel A {@link PrizeSpawnIntent} for {@link Player} ships; drained by {@code DeathPrizeSystem}. */
   private void handleDeath(final Entity target) {
     final long now = System.nanoTime();
     if (log.isInfoEnabled()) {
@@ -163,12 +161,12 @@ public class EnergySystem extends BaseInfinitySystem {
     if (bp == null) {
       return;
     }
-    if (prizeSystem == null) {
-      prizeSystem = getSystem(PrizeSystem.class);
-    }
-    if (prizeSystem != null) {
-      prizeSystem.spawnDeathPrize(target.getId(), bp.getLastLocation(), now);
-    }
+    final Vec3d deathPosition = bp.getLastLocation();
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(
+        holder,
+        ChangeTarget.self(target.getId()),
+        new PrizeSpawnIntent(deathPosition, now));
   }
 
   public boolean hasEnergy(final EntityId entityId) {

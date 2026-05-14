@@ -18,8 +18,8 @@ import infinity.config.EngineConfig;
 import infinity.es.Hidden;
 import infinity.es.PrizeTypes;
 import infinity.es.Spawner;
-import infinity.sim.specs.PrizeSpec;
-import infinity.sim.specs.SpawnerCreateSpec;
+import infinity.sim.specs.PrizeArgs;
+import infinity.sim.specs.SpawnerCreateArgs;
 import java.util.Map;
 import org.junit.Test;
 
@@ -55,7 +55,7 @@ public class SpawnerProjectionTest {
     final EntityId spawnerId =
         MapFactory.createSpawner(
             ed,
-            new SpawnerCreateSpec(
+            new SpawnerCreateArgs(
                 EntityId.NULL_ID,
                 phys,
                 0L,
@@ -87,7 +87,7 @@ public class SpawnerProjectionTest {
     final EntityId spawnerId =
         MapFactory.createSpawner(
             ed,
-            new SpawnerCreateSpec(
+            new SpawnerCreateArgs(
                 EntityId.NULL_ID,
                 phys,
                 0L,
@@ -119,7 +119,7 @@ public class SpawnerProjectionTest {
     final EntityId prizeId =
         MapFactory.createPrize(
             ed,
-            new PrizeSpec(
+            new PrizeArgs(
                 phys,
                 0L,
                 new Vec3d(0, 0, 0),
@@ -141,7 +141,7 @@ public class SpawnerProjectionTest {
     final EntityId prizeId =
         MapFactory.createPrize(
             ed,
-            new PrizeSpec(
+            new PrizeArgs(
                 phys,
                 0L,
                 new Vec3d(0, 0, 0),

@@ -3,17 +3,10 @@
 package infinity.events.zone;
 
 import com.simsilica.es.EntityId;
-import com.simsilica.event.EventType;
 import com.simsilica.event.PlayerEntityEvent;
 
-/**
- * Zone-level event for player lifecycle changes (joined, banned, etc.).
- *
- * @author Asser
- */
+/** Zone-level event payload for player lifecycle. No EventType constants; reserved for future wiring. */
 public class PlayerEvent extends PlayerEntityEvent {
-
-    public static final EventType<PlayerEvent> playerBanned = EventType.create("PlayerBanned", PlayerEvent.class);
 
     public PlayerEvent(final EntityId player) {
         super(player);

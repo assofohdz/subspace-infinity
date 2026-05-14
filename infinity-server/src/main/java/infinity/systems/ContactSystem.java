@@ -27,7 +27,41 @@ import infinity.sim.CategoryFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Last-in-line contact dispatcher; fans out to per-system {@link ContactListener}s and disables contacts marked for skip. */
+/**
+ * ADR-0003 Channel C dispatcher: physics-tick contact firehose with custom
+ * filtering and ordered listener fan-out. Domain-specific (physics) and not
+ * subsumable under Channel A (intent components) or Channel B (EventBus) —
+ * see {@code docs/adr/0003-communication-channels.md}.
+ *
+ * <p>Listener-ordering: FIFO from {@link #addListener} call order. Each
+ * physics contact is dispatched synchronously to listeners in registration
+ * order via the iteration of {@link #listeners} in {@link #newContact}. The
+ * registration order is the order systems call {@code addListener} from
+ * their {@code initialize()}, which in turn is the order they appear in
+ * {@code GameServer.GameServer(int, String)} (per
+ * {@code GameSystemManager.initialize()}). Today's order — see the
+ * registration block in {@link infinity.server.GameServer} — is
+ * {@code WeaponsImpactSystem → ConsumableSystem → ArenaMembershipSystem →
+ * PrizeConsumptionSystem → GravitySystem → WarpSystem → FrequencySystem}.
+ * {@code WeaponsImpactSystem} must fire before {@code PrizeConsumptionSystem}
+ * so kill-credit is recorded before any prize-consumption side-effects;
+ * reordering registration silently breaks that contract.
+ *
+ * <p>Filter semantics: {@link #newContact} runs three pre-dispatch filters
+ * before fan-out — sensor (disable contact + still fan out so observers see
+ * it), category-filter (disable + suppress fan-out), parent-child
+ * (disable + suppress fan-out). For body-vs-static-map contacts, no
+ * filtering runs and per-ship {@link BounceRestitution} + arena wall
+ * friction are applied to the contact before fan-out. See
+ * {@link #handleBodyVsBody} and {@link #handleBodyVsStaticMap}.
+ *
+ * <p>Dispatch timing: synchronous from the physics tick — the
+ * {@link com.simsilica.mphys.PhysicsSpace}'s contact-dispatcher invokes
+ * {@link #newContact} once per generated contact during physics
+ * integration, not from {@link #update(SimTime)}. Listeners must not
+ * block; mutations should be queued (Channel A intent components) and
+ * drained on the next ECS tick.
+ */
 public class ContactSystem<K, S extends AbstractShape> extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
 

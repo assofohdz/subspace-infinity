@@ -99,7 +99,7 @@ public final class LegacyMapProjector {
     if (s == MapTypes.VIE_TURF_FLAG) {
       MapFactory.createTurfStationaryFlag(
           ed,
-          new infinity.sim.specs.TurfStationaryFlagSpec(
+          new infinity.sim.specs.TurfStationaryFlagArgs(
               EntityId.NULL_ID, physicsSpace, createdTime, location, engineCfg.flagRadius()));
       stats.incrementTurfFlags();
       return true;
@@ -107,7 +107,7 @@ public final class LegacyMapProjector {
     if (s == MapTypes.VIE_ASTEROID_SMALL) {
       MapFactory.createAsteroidSmall(
           ed,
-          new infinity.sim.specs.AsteroidSpec(
+          new infinity.sim.specs.AsteroidArgs(
               null, physicsSpace, createdTime, location, 0, engineCfg.over1Radius()));
       stats.incrementAsteroidsSmall();
       return true;
@@ -115,7 +115,7 @@ public final class LegacyMapProjector {
     if (s == MapTypes.VIE_ASTEROID_MEDIUM) {
       MapFactory.createAsteroidMedium(
           ed,
-          new infinity.sim.specs.AsteroidSpec(
+          new infinity.sim.specs.AsteroidArgs(
               null, physicsSpace, createdTime, location, 0, engineCfg.over2Radius()));
       stats.incrementAsteroidsMedium();
       return true;
@@ -123,7 +123,7 @@ public final class LegacyMapProjector {
     if (s == MapTypes.VIE_ASTEROID_END) {
       MapFactory.createOver5(
           ed,
-          new infinity.sim.specs.Over5Spec(
+          new infinity.sim.specs.Over5Args(
               null, physicsSpace, createdTime, location, engineCfg.over5Radius()));
       stats.incrementOver5();
       return true;
@@ -131,14 +131,14 @@ public final class LegacyMapProjector {
     if (s >= MapTypes.VIE_V_DOOR_START && s <= MapTypes.VIE_H_DOOR_END) {
       MapFactory.createDoor(
           ed,
-          new infinity.sim.specs.DoorSpec(null, physicsSpace, createdTime, 5000, location));
+          new infinity.sim.specs.DoorArgs(null, physicsSpace, createdTime, 5000, location));
       stats.incrementDoors();
       return true;
     }
     if (s == MapTypes.VIE_WORMHOLE) {
       MapFactory.createWormhole(
           ed,
-          new infinity.sim.specs.WormholeSpec(
+          new infinity.sim.specs.WormholeArgs(
               null,
               physicsSpace,
               createdTime,

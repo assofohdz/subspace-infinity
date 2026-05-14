@@ -15,7 +15,7 @@ import infinity.es.MobType;
 import infinity.es.ProbeInfo;
 import infinity.es.input.CharacterInput;
 import infinity.es.ship.Player;
-import infinity.sim.specs.ShipSpec;
+import infinity.sim.specs.ShipArgs;
 
 public class AIEntities {
 
@@ -34,7 +34,7 @@ public class AIEntities {
     EntityId mob =
         ShipFactory.createShip(
             ed,
-            new ShipSpec(
+            new ShipArgs(
                 spawnLoc, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius()));
     byte flags = 0x0;
     ed.setComponent(mob, new CharacterInput(new Vec3d(), new Quatd(), flags));

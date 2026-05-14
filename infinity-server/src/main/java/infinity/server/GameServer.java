@@ -144,14 +144,19 @@ import infinity.systems.GravitySystem;
 import infinity.systems.InfinityTimeSystem;
 import infinity.systems.MapSystem;
 import infinity.systems.MovementInputSystem;
-import infinity.systems.PrizeSystem;
+import infinity.systems.DeathPrizeSystem;
+import infinity.systems.PrizeConsumptionSystem;
+import infinity.systems.PrizeSpawnerSystem;
+import infinity.systems.ServerTelemetrySystem;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineConfigSystem;
 import infinity.settings.GroovyShipLoader;
 import infinity.systems.SettingsSystem;
 import infinity.systems.ship.ShipSpawnSystem;
 import infinity.systems.ship.WarpSystem;
-import infinity.systems.ship.WeaponsFireSystem;
+import infinity.systems.ship.WeaponsFireAudioSystem;
+import infinity.systems.ship.WeaponsFireEligibilitySystem;
+import infinity.systems.ship.WeaponsProjectileSpawnSystem;
 import infinity.systems.ship.WeaponsImpactSystem;
 import infinity.systems.ship.WeaponsReaperSystem;
 import infinity.systems.WorldSystem;
@@ -357,12 +362,39 @@ public class GameServer {
     ContactSystem<EntityId, MBlockShape> contactSystem = new ContactSystem<>();
     systems.register(ContactSystem.class, contactSystem);
     mBlockShapeMPhysSystem.getPhysicsSpace().setContactDispatcher(contactSystem);
+    // ContactSystem is the ADR-0003 Channel C dispatcher (see its class Javadoc).
+    // The seven systems below register as ContactListeners from their initialize();
+    // GameSystemManager initializes systems in registration order, so the order
+    // they appear in this method is the order they fire on each contact:
+    //   1. WeaponsImpactSystem    — projectile vs body / world; kill-credit
+    //   2. ConsumableSystem       — Thor projectile-vs-body
+    //   3. ArenaMembershipSystem  — ship enters/leaves arena ghost-cube
+    //   4. PrizeConsumptionSystem — ship-vs-prize pickup (split from PrizeSystem
+    //                               per P2-k; occupies the original PrizeSystem
+    //                               slot for ordering)
+    //   5. GravitySystem          — gravity-well wormhole proximity
+    //   6. WarpSystem             — wormhole / warp-tile teleport
+    //   7. FrequencySystem        — frequency change on touch
+    // ORDERING CONTRACT: WeaponsImpactSystem MUST register BEFORE
+    // PrizeConsumptionSystem so kill-credit logic runs before any prize-
+    // consumption side-effects on the same contact frame (per ADR-0003 Channel
+    // C bar item #2). Reordering breaks that silently — there is no runtime
+    // check.
     // Game systems.
     systems.register(AvatarSystem.class, new AvatarSystem());
     systems.register(MovementInputSystem.class, new MovementInputSystem());
     systems.register(MobSystem.class, new MobSystem());
     // WeaponsReaperSystem must register BEFORE WeaponsImpactSystem — Impact.initialize() looks it up.
-    systems.register(WeaponsFireSystem.class, new WeaponsFireSystem());
+    // WeaponsFireSystem (546 lines) split into 3 Use-Case systems per P2-k:
+    //   WeaponsFireEligibilitySystem    — energy/cooldown/level gate; emits
+    //                                     FireRequest Channel A intent.
+    //   WeaponsProjectileSpawnSystem    — drains FireRequest; calls
+    //                                     WeaponFactory.create*.
+    //   WeaponsFireAudioSystem          — drains FireRequest; calls GameSounds;
+    //                                     LAST drainer destroys the holder.
+    systems.register(WeaponsFireEligibilitySystem.class, new WeaponsFireEligibilitySystem());
+    systems.register(WeaponsProjectileSpawnSystem.class, new WeaponsProjectileSpawnSystem());
+    systems.register(WeaponsFireAudioSystem.class, new WeaponsFireAudioSystem());
     systems.register(WeaponsReaperSystem.class, new WeaponsReaperSystem());
     systems.register(WeaponsImpactSystem.class, new WeaponsImpactSystem());
     systems.register(ConsumableSystem.class, new ConsumableSystem());
@@ -377,7 +409,25 @@ public class GameServer {
     systems.register(RegionSystem.class, new RegionSystem());
     systems.register(ChecksShipsSystem.class, new ChecksShipsSystem());
     systems.register(ChecksWorldSystem.class, new ChecksWorldSystem());
-    systems.register(PrizeSystem.class, new PrizeSystem(mBlockShapeMPhysSystem.getPhysicsSpace()));
+    // PrizeSystem (805 lines) split into 3 Use-Case systems per P2-k:
+    //   PrizeSpawnerSystem        — arena periodic spawning + cap-scaling.
+    //   PrizeConsumptionSystem    — prize-on-contact dispatch (Contact listener,
+    //                               registered AFTER WeaponsImpactSystem for
+    //                               kill-credit-before-prize-consumption order
+    //                               per ContactSystem class Javadoc).
+    //   DeathPrizeSystem          — drains PrizeSpawnIntent Channel A holders
+    //                               emitted by EnergySystem on the death-edge;
+    //                               requires PrizeSpawnerSystem (shared per-arena
+    //                               selector cache + negative-roll logic).
+    systems.register(
+        PrizeSpawnerSystem.class,
+        new PrizeSpawnerSystem(mBlockShapeMPhysSystem.getPhysicsSpace()));
+    systems.register(
+        PrizeConsumptionSystem.class,
+        new PrizeConsumptionSystem(mBlockShapeMPhysSystem.getPhysicsSpace()));
+    systems.register(
+        DeathPrizeSystem.class,
+        new DeathPrizeSystem(mBlockShapeMPhysSystem.getPhysicsSpace()));
     systems.register(GravitySystem.class, new GravitySystem());
     systems.register(InfinityTimeSystem.class, new InfinityTimeSystem());
 
@@ -406,6 +456,9 @@ public class GameServer {
 
     // And the system that will publish the BodyPosition components
     systems.addSystem(new BodyPositionPublisher<>());
+
+    // Periodic server telemetry — fires logStats() every 10s.
+    systems.register(ServerTelemetrySystem.class, new ServerTelemetrySystem(this));
 
     // Register some custom serializers
     registerSerializers();

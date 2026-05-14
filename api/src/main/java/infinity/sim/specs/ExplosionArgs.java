@@ -4,15 +4,15 @@
 package infinity.sim.specs;
 
 import com.simsilica.es.EntityId;
+import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 
-/** Parameter record for {@code WeaponFactory.createMine}. */
-public record MineSpec(
+/** Parameter record for {@code WeaponFactory.createExplosion}; visual ghost (no mass/filter). */
+public record ExplosionArgs(
     EntityId owner,
     PhysicsSpace<?, ?> phys,
     long createdTime,
     Vec3d position,
     long decayMillis,
-    String shapeName,
-    double radius) {}
+    ShapeInfo shapeInfo) {}

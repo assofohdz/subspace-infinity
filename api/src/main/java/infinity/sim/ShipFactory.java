@@ -27,8 +27,8 @@ import infinity.es.ship.Player;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.RocketBuff;
 import infinity.es.ship.actions.RocketSnapshot;
-import infinity.sim.specs.RocketBuffSpec;
-import infinity.sim.specs.ShipSpec;
+import infinity.sim.specs.RocketBuffArgs;
+import infinity.sim.specs.ShipArgs;
 import java.util.concurrent.TimeUnit;
 
 /** Factory methods for ship + ship-buff entities; structural composition only — tunable per-ship stats projected by {@code ShipSpawnSystem}. @see WeaponFactory @see MapFactory */
@@ -37,7 +37,7 @@ public final class ShipFactory {
   private ShipFactory() {}
 
   /** Create a basic ship entity (no player-specific components). */
-  public static EntityId createShip(final EntityData ed, final ShipSpec spec) {
+  public static EntityId createShip(final EntityData ed, final ShipArgs spec) {
     final EntityId result = ed.createEntity();
 
     ed.setComponent(result, new Parent(spec.owner()));
@@ -70,7 +70,7 @@ public final class ShipFactory {
   }
 
   /** Create a ship entity with player-specific components stamped on top of {@link #createShip}. */
-  public static EntityId createPlayerShip(final EntityData ed, final ShipSpec spec) {
+  public static EntityId createPlayerShip(final EntityData ed, final ShipArgs spec) {
 
     final EntityId result = createShip(ed, spec);
 
@@ -93,7 +93,7 @@ public final class ShipFactory {
   }
 
   /** Buff entity driving a rocket activation; {@link Decay} owns lifetime, {@code RocketBuffSystem} reverts on removal via {@link RocketSnapshot}. */
-  public static EntityId createRocketBuff(final EntityData ed, final RocketBuffSpec spec) {
+  public static EntityId createRocketBuff(final EntityData ed, final RocketBuffArgs spec) {
     final EntityId buff = ed.createEntity();
     ed.setComponents(
         buff,

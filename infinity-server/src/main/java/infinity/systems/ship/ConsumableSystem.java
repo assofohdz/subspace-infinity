@@ -213,7 +213,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     gunProjectile =
         WeaponFactory.createThor(
             ed,
-            new infinity.sim.specs.ThorSpec(
+            new infinity.sim.specs.ThorArgs(
                 requester,
                 physicsSpace,
                 time,
@@ -238,7 +238,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     final EntityId repelEffect =
         WeaponFactory.createRepel(
             ed,
-            new infinity.sim.specs.RepelSpec(
+            new infinity.sim.specs.RepelArgs(
                 requester,
                 physicsSpace,
                 time,
@@ -312,7 +312,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     // RocketActive lifecycle owned by the buff entity's Decay; RocketBuffSystem mirrors add/remove.
     ShipFactory.createRocketBuff(
         ed,
-        new infinity.sim.specs.RocketBuffSpec(
+        new infinity.sim.specs.RocketBuffArgs(
             ship, time, buffDurationMs, originalThrust, originalSpeed));
   }
 

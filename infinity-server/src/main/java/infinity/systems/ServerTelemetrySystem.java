@@ -14,16 +14,16 @@ import com.simsilica.sim.SimTime;
 
 import infinity.server.GameServer;
 
-/** Periodically logs {@link GameServer#logStats} via a fixed-rate timer. */
-public class StatsSystem extends AbstractGameSystem {
+/** Periodically logs {@link GameServer#logStats} via a fixed-rate timer; not an ADR-0001 *Stats system. */
+public class ServerTelemetrySystem extends AbstractGameSystem {
 
-    static Logger log = LoggerFactory.getLogger(StatsSystem.class);
+    static Logger log = LoggerFactory.getLogger(ServerTelemetrySystem.class);
     public static final int LOGINTERVALMS = 10000;
     private final GameServer server;
     private Timer timer;
     SimTime localTime;
 
-    public StatsSystem(final GameServer server) {
+    public ServerTelemetrySystem(final GameServer server) {
         this.server = server;
     }
 

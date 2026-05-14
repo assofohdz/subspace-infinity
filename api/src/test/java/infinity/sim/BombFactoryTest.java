@@ -16,7 +16,7 @@ import infinity.config.BombConfig;
 import infinity.config.EngineConfig;
 import infinity.es.Parent;
 import infinity.es.ShapeNames;
-import infinity.sim.specs.BombSpec;
+import infinity.sim.specs.BombArgs;
 import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
@@ -45,7 +45,7 @@ public class BombFactoryTest {
     final EntityId bomb =
         WeaponFactory.createBomb(
             ed,
-            new BombSpec(
+            new BombArgs(
                 owner,
                 phys,
                 createdTime,

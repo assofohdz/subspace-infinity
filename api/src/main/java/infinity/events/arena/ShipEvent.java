@@ -13,12 +13,7 @@ import com.simsilica.event.EventType;
  */
 public class ShipEvent {
 
-    public static final EventType<ShipEvent> shipDestroyed = EventType.create("ShipDestroyed", ShipEvent.class);
     public static final EventType<ShipEvent> shipSpawned = EventType.create("ShipSpawned", ShipEvent.class);
-    public static final EventType<ShipEvent> weaponFiring = EventType.create("WeaponFiring", ShipEvent.class);
-    public static final EventType<ShipEvent> weaponFired = EventType.create("WeaponFired", ShipEvent.class);
-    public static final EventType<ShipEvent> shipChangeAllowed = EventType.create("ShipChangeAllowed", ShipEvent.class);
-    public static final EventType<ShipEvent> shipChangeDenied = EventType.create("ShipChangeDenied", ShipEvent.class);
 
     private final EntityId shipId;
 
