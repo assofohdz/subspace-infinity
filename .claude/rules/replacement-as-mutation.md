@@ -302,13 +302,14 @@ guards 32 component types against single-writer regressions
   `ThrustChange` holder removal).
 - **`WeaponsDamageLogic`** — `Jitter` (stamp on jitter-weapon hit;
   the only writer).
-- **`WeaponsFireSystem`** — `Damage`, `SplashDamage`, `ProximityFuse`,
-  `Repellable` (stamps the per-projectile attack payload at fire
-  time; also stamps `Repellable` at `ShipSpawnSystem.spawnShip` —
-  spawn-time projection sharing, not a runtime race). Note:
-  `ConsumableSystem.createProjectileThor` also stamps `Damage` on
-  the spawned Thor projectile — disjoint entities (per-projectile,
-  not shared with a bullet/bomb), so no race.
+- **`WeaponsProjectileSpawnSystem`** — `Damage`, `SplashDamage`,
+  `ProximityFuse`, `Repellable` (drains `FireRequest` from
+  `WeaponsFireEligibilitySystem` and stamps the per-projectile attack
+  payload at fire time; also stamps `Repellable` at
+  `ShipSpawnSystem.spawnShip` — spawn-time projection sharing, not a
+  runtime race). Note: `ConsumableSystem.createProjectileThor` also
+  stamps `Damage` on the spawned Thor projectile — disjoint entities
+  (per-projectile, not shared with a bullet/bomb), so no race.
 - **`ConsumableSystem`** — `RepelSpeed`, `RepelDistance` (Pattern-4
   per-effect projection on the spawned repel-effect entity, not on
   the ship; sibling to the weapon-spawn projector).

@@ -40,7 +40,7 @@ JUnit @Test
    └── assert: ed.getComponent(shipId, Thrust.class).getThrust() == expected, …
 ```
 
-No `MapSystem`, no `ArenaSystem`, no `PrizeSystem`, no physics, no chat. The ship's `ArenaId` is synthetic — `ConfigRegistrySystem.replace(arenaId, snapshot)` is the entire arena-load substitute.
+No `MapSystem`, no `ArenaSystem`, no `PrizeSpawnerSystem`/`PrizeConsumptionSystem`/`DeathPrizeSystem`, no physics, no chat. The ship's `ArenaId` is synthetic — `ConfigRegistrySystem.replace(arenaId, snapshot)` is the entire arena-load substitute.
 
 ## Slices
 

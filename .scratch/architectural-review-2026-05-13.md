@@ -1,5 +1,7 @@
 # Architectural Review — 2026-05-13
 
+**Status (2026-05-14):** audit closed. All P0 / P1 (except P1-h, deferred) / P2 items shipped across commits `3cbe191a`, `09295c8b`, `71cc91b7`, `47c5ea13`, `74e8722b`, `ff760003`, `fbf5abc8`, `3c5e870a`. New findings surfaced during execution are tracked in [§ Follow-ups](#follow-ups-from-execution) below.
+
 **Method:** six specialist agents in parallel (ECS compliance / layer boundaries / settings pipeline / server cohesion / client lifecycle / test coverage), synthesised by hand. Read-only audit; no edits performed.
 
 **Headline:** the codebase is in good architectural shape. ADR-0001 is enforced almost everywhere it claims to be, layer boundaries are clean save for one concrete leak, the settings pipeline is well-bounded, the System/Logic split is coherent across the server, and the client correctly observes-only. The largest gap is **test coverage of two boundaries that are intentionally manual today** (prize appliers translating Subspace canon; settings adapters translating Groovy DSL). The second-largest gap is **mechanised architecture enforcement** — most of the discipline lives in `.claude/rules/*.md` and is audited by hand, not by tests.
@@ -12,123 +14,92 @@
 
 | | Result |
 |---|---|
-| Component immutability (final fields, no setters, no-arg ctor) | **0 violations** across `api/src/main/java/infinity/es/**` |
-| `EntitySet` lifecycle (released in `terminate()` / `cleanup()`) | **0 leaks** on server; **1 leak on client** — see E |
-| Canonical-writer rule (one writer per component) | **0 violations** — `replacement-as-mutation.md` snapshot confirms 0 remaining multi-writer hot-spots across ~95 component types |
+| Component immutability (final fields, no setters, no-arg ctor) | **0 violations** across `api/src/main/java/infinity/es/**` — now guarded by `ComponentImmutabilityTest` (P1-b) |
+| `EntitySet` lifecycle (released in `terminate()` / `cleanup()`) | **0 leaks** on server; 1 client leak was the 2026-05-13 sweep (closed) — now covered by `BaseAppStateLifecycleHarness` (P1-i) |
+| Canonical-writer rule (one writer per component) | **0 violations** — guarded by `CanonicalWriterTest` across 32 component types |
 | Decay-TTL parallelism | **0 violations** — `Decay` is the sole entity-lifetime mechanism. `Delay` and `Jitter` are distinct concepts (deferred-action; component-reaper) |
-| Hot-path config-import discipline | **2 violations** (CCP leak) — see D2 |
+| Hot-path config-import discipline | **0 violations** post-P2-h (WeaponsDamageLogic refactor) — guarded by `LayerDependencyTest` |
 
-The migration work the team has already invested is real. The audit found exactly the shape ADR-0001 promised. The next-most-valuable investment is a mechanised guard that prevents regressions — see ADR-1 below and item P1-a.
+### B. Layer boundaries — clean
 
-### B. Layer boundaries — one concrete leak, three test gaps
-
-- `modules/` is cleanly excised at the source level (removed from `settings.gradle` in v1.0.17, zero imports referencing it). Only stale `1.0.17` build artifacts remain on disk — harmless but worth a `./gradlew clean` and a `.gitignore` check.
-- `api/` is clean. Zero imports of `infinity.client.*`, `infinity.systems.*`, `infinity.server.*`, `infinity.settings.*`.
-- Server is clean. Zero imports of `infinity.client.*`.
-- ADR-0005's `infinity.sim.internal..` relocation landed: `CubeFactory` moved to `api/`; the 5 server-internal classes (`InfinityDefaultLeafWorld`, `InfinityEntityBodyFactory`, `InfinityPhysicsManager`, `PlayerDriver`, plus `Driver` which was dead code) moved to `infinity.sim.internal..`. `LayerDependencyTest` Rule 3 now forbids `infinity.sim.internal..` on the client. Remaining gap (per P1-c): `infinity.settings..` is not yet in Rule 1's forbidden list.
+- `modules/` source-level excised (v1.0.17); stale build artifacts removed (P2-f).
+- `api/` clean: zero imports of `infinity.client.*`, `infinity.systems.*`, `infinity.server.*`, `infinity.settings.*`. `LayerDependencyTest` Rule 1 enforces.
+- Server clean: zero imports of `infinity.client.*`.
+- ADR-0005's `infinity.sim.internal..` relocation done. `LayerDependencyTest` Rule 3 forbids client access.
 
 ### C. Settings pipeline — well-architected
 
-- The `GroovySettingsHost<T>` + `GroovySettingsAdapter<T>` refactor has landed for **12 fragment adapters**. Two legacy `Groovy*Loader` classes remain (`GroovyShipLoader`, `GroovyArenaLoader`) — both intentional, neither blocking. Two boot-time loaders (`GroovyEngineLoader`, `GroovyZoneLoader`) are outside the per-arena flow by design.
-- `ConfigRegistry` ownership is clean: one `ConfigRegistrySystem` per server, `ConcurrentHashMap<arenaId, ConfigRegistry>`. Arena lookups via `forArena()` with `EMPTY` fallback.
-- **16 / 18 `*Config` records** are fully wired through the loader → registry → projection chain. Two dangling `ConfigRegistry.SLOTS` entries — `ThorConfig`, `GravBombConfig` — have no fragment adapters and fall back to `DEFAULTS`. Intentional today (Thor is per-ship via `ships.groovy`; GravBomb hasn't diverged from Bomb yet) but undocumented — a future author may waste effort adding an adapter that wouldn't be loaded.
-- **32 / 32 prize appliers** emit `ChangeTarget + *Change` entity holders per ADR-0001. None directly mutate components. Spot-checked appliers (`Cloak`, `Thor`, `Shields`) all cite REFERENCE.md or document an Infinity divergence.
-- **Live-reload coverage is partial — by design.** Editing `ships.groovy` triggers `ShipSpawnSystem.reprojectAll()` and re-flows into live ships. Editing weapon / prize fragments updates the registry but does not re-flow into existing entities — new spawns / new shots pick up the change. Defensible (template vs instance, CCP) but surprising to operators; merits an operator-runbook note.
+- `GroovySettingsHost<T>` + `GroovySettingsAdapter<T>` refactor landed for 12 fragment adapters. Two legacy `Groovy*Loader` classes remain (`GroovyShipLoader`, `GroovyArenaLoader`) — both intentional. Two boot-time loaders (`GroovyEngineLoader`, `GroovyZoneLoader`) are outside the per-arena flow by design.
+- `ConfigRegistry` ownership clean: one `ConfigRegistrySystem` per server, `ConcurrentHashMap<arenaId, ConfigRegistry>`. Arena lookups via `forArena()` with `EMPTY` fallback.
+- 18/18 `*Config` records wired through the loader → registry → projection chain. `ThorConfig` + `GravBombConfig` slots are explicitly documented as per-ship / not-yet-diverged (P2-e).
+- 33/33 prize appliers test-pinned (P1-f) against REFERENCE.md canonical Subspace semantics; 8 stub appliers explicitly throw `UnsupportedOperationException`.
+- Live-reload coverage documented in `BUILDING.md` operator-runbook section (P2-g): ship-stat fragments re-flow via `reprojectAll`; weapon/prize fragments apply to next-spawn only.
 
-### D. Server cohesion — good, three pin-pricks
+### D. Server cohesion — split landed
 
-1. **No god systems by accretion-of-state.** `PrizeSystem` (805 lines), `WeaponsFireSystem` (546), `ConsumableSystem` (557) are domain-coherent — none are accreted state. System/Logic pairs (`MapSystem`/`MapSystemLogic`, `WeaponsFireSystem`/`WeaponsLogic`, `ConsumableSystem`/`ConsumableLogic`) are clean ECS-shell + pure-helper splits. **By Use-Case granularity** (Clean Architecture's Single Responsibility applied to gameplay rules) the answer is different: `PrizeSystem` carries at least three distinct Use Cases — arena prize spawning, prize-on-contact consumption, death-prize spawning — and `WeaponsFireSystem` carries at least three — eligibility check, projectile-spawn dispatch, audio side-effects. Splitting either by Use Case would improve testability and per-rule isolation. `ConsumableSystem` is single-Use-Case ("player consumable actions") despite the line count. Splits tracked as P2-k.
-2. **`infinity.config` imports outside the spawn-tier exempt set** (per ADR-0002 Config-Component Projection). Two hot-path leaks plus four edge cases the ADR's rule-as-written does not unambiguously cover:
-   - **Hot-path violations**:
-     - `infinity-server/src/main/java/infinity/systems/ship/WeaponsDamageLogic.java:18-19` imports `infinity.config.ArenaConfig` + `infinity.config.EngineConfig` and reads them per detonation. Lower per-tick frequency than the resolved `WeaponsEligibility` case but the same shape — tracked as P2-h.
-   - **Spawn-adjacent reads not named in the ADR's exempt set** (settings agent classified as "creation-time / acceptable"; consistent with CCP intent but would fail a strict ArchUnit guard as written today):
-     - `WeaponsFireSystem.createProjectileBullet()` reads `BulletConfig` / `BombConfig` at projectile spawn.
-     - `PrizeSystem.spawnBounty()` reads `PrizeWeightsConfig` and `PrizeConfig` at prize spawn.
-     - `ArenaSpatialIndex.getArenaSpawn()` reads `SpawnConfig` at arena-entity lookup (cold path).
-   - **Sentinel-constant lookup**:
-     - `ContactSystem` imports `ArenaConfig` solely to call `ArenaConfig.EMPTY.wallFriction()` as a fallback constant — neither a hot read nor a spawn projection.
-   - Resolving these three boundary cases is a prerequisite for P1-d's static guard; see P0-c and P1-d for the design notes.
-3. **Channel-discipline findings (per ADR-0003) plus one dead field:**
-   - **Direct `getSystem` calls bypassing both intent-component (Channel A) and bus (Channel B) channels:**
-     - `EnergySystem.getSystem(PrizeSystem.class)` on death-edge (line ~164) silently no-ops if `PrizeSystem` is absent at registration — implicit ordering contract. A `PrizeSpawnIntent` component drained by `PrizeSystem` (Channel A) removes it.
-     - `WeaponsImpactSystem.requireSystem(WeaponsReaperSystem.class).detonate(...)` — in-tick synchronous call; could be intentional (immediate detonation; no queryability needed), but the channel choice is undocumented. Decide and document.
-   - **`ContactSystem` is a third communication channel in practice** — seven systems register listeners against it (`WeaponsImpactSystem`, `ConsumableSystem`, `WarpSystem`, `PrizeSystem`, `FrequencySystem`, `ArenaMembershipSystem`, `GravitySystem`). ADR-0003 names this Channel C (domain-specific, narrow allowance). Registration order in `GameServer.java` is the implicit listener-ordering contract (e.g. `WeaponsImpactSystem` must process a contact before `PrizeSystem` for kill-credit) and is undocumented in `ContactSystem`'s own Javadoc per the Channel-C bar.
-   - **Dormant bus surface.** `ShipEvent.shipDestroyed`, `weaponFired`, `weaponFiring`, `shipChangeAllowed/Denied`, `PlayerEvent.playerBanned` are declared `EventType` constants but never published — `DeathSystem` calls no `EventBus.publish`, `WeaponsFireSystem` none. Sibling: `api/src/main/java/infinity/sim/Events.java` defines an orphan enum (`DEATHEVENT`, `WEAPONFIRED`) that parallels the bus surface — an early prototype that did not retire. Per ADR-0003, either wire to natural publishers (`DeathSystem` publishes `shipDestroyed`, `WeaponsFireSystem` publishes `weaponFired`) or retire both surfaces.
-   - **Dead field:** `WeaponsFireSystem.energySystem` (~line 74) acquired in `initialize()` but never read.
-4. **Misnamed system:** `StatsSystem` is a 75-line server-telemetry logger (fires `GameServer.logStats()` every 10s). It is **not** an ADR-0001 `*Stats` system. Trip-hazard for future contributors — rename to `ServerTelemetrySystem` or `LogStatsSystem`.
-5. Registration ordering rules are documented inline in `GameServer.java:255–261, 365–368, 375–376` — three explicit dependencies. Healthy.
+- `PrizeSystem` (805 LOC) split into `PrizeSpawnerSystem` + `PrizeConsumptionSystem` + `DeathPrizeSystem` (P2-k).
+- `WeaponsFireSystem` (546 LOC) split into `WeaponsFireEligibilitySystem` + `WeaponsProjectileSpawnSystem` + `WeaponsFireAudioSystem` (P2-k).
+- `ConsumableSystem` left single-Use-Case as the audit recommended.
+- Channel discipline (ADR-0003): Channel A (intent components) used for EnergySystem→DeathPrizeSystem death-edge + eligibility→spawn/audio. Channel B (`Detonator` interface) for WeaponsImpact→Reaper. Channel C (`ContactSystem`) documented (P2-d).
+- Dormant bus surface retired (P2-j): 6 unpublished `EventType` constants deleted + orphan `infinity.sim.Events` enum file removed.
+- `StatsSystem` renamed to `ServerTelemetrySystem` and registered (was dead code).
 
 ### E. Client — clean
 
-- 32 `BaseAppState` classes. Zero direct ECS writes (`ed.setComponent` / `createEntity` / `removeEntity`). Two justified one-shot `ed.getComponent` sites (`Model`, `ModelContainer`); all other reads go through `ed.watchEntity`, per the rule.
-- `GameSessionState` is the entry-point wiring 18 child states. 165 lines — well under the smell threshold.
-- RMI surface (`api/src/main/java/infinity/net/GameSession.java`) covers move / attack / action / avatar / toggle / map. No write paths bypass it.
-- `BodyPosition` is used correctly for the two cases that need it (`AvatarMovementState`, `InfinityCameraState`). No position polling.
-- Release-in-`cleanup()` audit (2026-05-13) covered all 32 `BaseAppState` classes; 7 leak / risk sites found and fixed in this iteration (`InfinityCameraState`, `MobDebugState`, `AudioState`, `HudLabelState`, `MapState`, `SpeechViewState`, `PlayerListState`). Lifecycle test infra is now P1-i.
+- 32 `BaseAppState` classes. Zero direct ECS writes. `BodyPosition` used correctly for the two cases that need it.
+- `BaseAppStateLifecycleHarness` (P1-i) + 3 sample tests landed; 4 remaining leak-fixed states need a `GuiGlobals` test fixture (follow-up).
 
-### F. Test coverage + CI signal — biggest single gap in the repo
+### F. Test coverage + CI signal
 
-- **58 tests** total: 12 api, 43 server, 3 client.
-- **Strongest asset:** ADR-0001 fixtures. `CanonicalWriterDrainTest` (`infinity-server/src/test/java/infinity/systems/CanonicalWriterDrainTest.java:69`, 456 lines) is a generalised 4-scenario property test (one-shot / decay-bound / multi-source sum / no-op) using a synthetic `TestStat`. **18 `*ChangeDrainTest` files** pair real systems against the property test. `CanonicalWriterTest` (architecture test) enforces the one-writer rule across 24 component types.
-- **Largest gap: prize appliers.** Four of 33 have direct tests (`Cloak`, `MultiFire`, `Repel`, `XRadar`). 29 appliers translating Subspace canon (REFERENCE.md mechanics: tri-state status, centisecond conversions, energy drain rates) have no test that pins the canonical behaviour. The "simplify this applier" refactor cannot be done safely.
-- **Second gap: settings adapters.** Zero dedicated tests for the 13 adapter classes (`BombAdapter`, `BulletAdapter`, …, `SingleClosureAdapter`, `Validators`). They are exercised only transitively through `GroovyArenaLoaderTest` / `GroovyZoneLoaderTest`. A grammar break in `SingleClosureAdapter` passes `./gradlew build` and only shows up at gameplay launch.
-- **Spawn-projection harness PRD** (`.scratch/spawn-projection-test-harness/`) is mature (ready-for-human, slice 0 done — `ShipSpawnSystemTest`, `RepelPrizeApplierTest`, `BulletFactoryTest`, `EnergySystemIntentTest`, plus slice-3 hot-reload). Not blocked, just not pulled.
-- **CI signal is thin.** One job in `.github/workflows/gradle.yml`: `./gradlew build`. PMD is `ignoreFailures = true` (warning-only by design, with a 600-violation baseline and a "ratchet on touched files" rule — `pmd-on-touched-files.md`). No JaCoCo, no integration runner, no separate static-analysis gate.
-- **Cheap architecture tests that would pay off** (none of these exist yet, all are easy ArchUnit rules):
-  - Every `*Change` class implements `EntityComponent` and is constructed alongside a `ChangeTarget` at every emit site.
-  - Every class in `infinity.systems.*` (excluding the spawn-tier exempt set) does not depend on `infinity.config..`.
-  - Every class in `infinity.systems.ship.applier..` has Javadoc containing `REFERENCE.md` or `Infinity divergence`.
-  - The `Section B` immutability rule turned into ArchUnit (final fields, no setters, no-arg constructor).
-  - `LayerDependencyTest` Rule 3 extended with `infinity.sim..` once CubeFactory is moved or re-packaged (per finding B).
+- **~206 tests** (was 58 at audit time): 12 api, ~178 server, ~13 client. Most growth from P1-f (27 prize-applier tests) + P1-g (13 adapter tests) + P1-i (lifecycle harness) + P1-e (spawn-projection slices 2 + 4).
+- ArchUnit guards live: component immutability (P1-b), `LayerDependencyTest` Rules 1/3, `CanonicalWriterTest` 32-type registry, hot-path `infinity.config` import guard (P1-d).
+- Spawn-projection harness PRD: slices 1, 1b, 1c, 1d, 2, 3, 4 ✅. Slice 5×N (Pattern-4 cluster carbon-copies) remains as new CCP migrations land.
+- CI signal still thin — one `./gradlew build` job. PMD ratchet 0/0/0/0 across modules; Checkstyle ratchets dropped sharply post-sweep (api 12→2, server-main 79→55, client-main 27→21).
 
 ---
 
-## Proposed prioritization
+## Remaining / open
 
-### P0 — fix soon, low effort, real bug or load-bearing leak
-
-| # | Item | Owner suggestion | Effort |
-|---|---|---|---|
-
-### P1 — high-leverage architectural ratchets
-
-| # | Item | Why | Effort |
-|---|---|---|---|
-| P1-b | **Component immutability + no-arg-ctor ArchUnit rule** — encodes `.claude/rules/components.md` as a test | The rule is currently audited by hand; a five-line ArchUnit rule guards it forever | 1 hr |
-| P1-e | **Pull spawn-projection harness PRD** (slices 2, 4, 5×N). Already designed; the PRD says it's ready-for-human. Closes the documented "manual launch is the only verification" risk | Memory note: this is a known scar | half-week |
-| P1-f | **Prize-applier subspace-canon tests** — one per applier, pinning REFERENCE.md semantics. 29 missing; the 4 existing ones (`Cloak`, `Repel`, `MultiFire`, `XRadar`) show the cheap shape | Refactor risk: today the appliers cannot be safely simplified | 1-2 days, parallelisable |
-| P1-g | **Per-adapter settings tests** — one per `*Adapter` class. Currently 0; pipeline tracker is the only enforcement | Same risk shape as P1-f but for the DSL ↔ `*Config` boundary | 1 day |
-| P1-h | **Design gameplay-interface contracts in api/ before the module loader lands its first consumer** (per ADR-0004). Interfaces like `GameMode`, `ScoringRule`, `RespawnPolicy`, `RoundLifecycle`, `KillFeed` — to be defined in api/, with the core providing a default implementation and modules supplying alternates. Clean Architecture's "Use Cases as ports, frameworks at the edge" applied to gameplay extensibility. Cost paid once per gameplay aspect; benefit compounds with every module that ships against the interface (vs. the default "modules attach arbitrary systems" path, which produces a sprawling ecosystem expensive to unwind once contributors have shipped). The first module that ships is the moment to design the first interface | Asymmetric long-run payoff: locks in composable mods + a small clear API surface for community contributions before the module ecosystem ossifies | 1 day per gameplay aspect, paid lazily as motivated |
-| P1-i | **Build client-lifecycle test infrastructure.** Today there are 3 client tests total; all client `BaseAppState` lifecycle correctness is verified by manual launch (per the spawn-projection-test-harness PRD's stated scar). The 7-leak sweep done in this iteration (former P0-a + P2-i) shipped without test coverage because the infra doesn't exist. A minimal harness — synthetic `Application` + `EntityData` + `AppStateManager`, fixture for `initialize() → onEnable() → onDisable() → cleanup()` cycle assertions, mock `WatchedEntity` / `EntityContainer` to verify `release()` / `stop()` calls — would catch regressions in the same shape forever | Closes the "manual launch is the only verification" gap for client-state lifecycle correctness; complements P1-e's spawn-projection harness with client-side equivalent | 2-3 days |
-
-### P2 — cleanups, judgment calls, documentation
-
-| # | Item | Note |
+| Item | Status | Note |
 |---|---|---|
-| P2-a | Remove dead `WeaponsFireSystem.energySystem` field | Refactor leftover |
-| P2-b | Rename `StatsSystem` → `ServerTelemetrySystem` (or `LogStatsSystem`) | Naming trip-hazard against ADR-0001 `*Stats` |
-| P2-c | **Migrate cross-system direct calls** to one of three patterns: **(A)** intent component (ADR-0001/0003 Channel A — right when the call is a mutation request that can lag a tick: `EnergySystem→PrizeSystem` death-edge → `PrizeSpawnIntent` drained by `PrizeSystem`); **(B)** Dependency Inversion via api/-defined interface (right when the call is synchronous coordination that must complete in-tick: `WeaponsImpactSystem→WeaponsReaperSystem.detonate()` → define `Detonator` interface in api/, reaper implements, impact depends on interface); **(C)** document the deliberate direct call. Removes implicit registration-order contracts; makes cross-system contracts compile-time-checked rather than reflective | Removes implicit ordering contracts; aligns the two cases with the right channel; testable against mock collaborators |
-| P2-d | **Document `ContactSystem` as ADR-0003 Channel C** in its class Javadoc — listener ordering guarantees, filter semantics, dispatch timing — and document the registration order in `GameServer.java` (kill-credit before prize consumption). Per ADR-0003 Channel-C bar item #4 (listener contract documented in dispatcher Javadoc) | Order is correct today, but undocumented; makes Channel-C status explicit |
-| P2-e | Document the dangling `ThorConfig` / `GravBombConfig` slots — explain the per-ship-only rationale so future authors don't add unused adapters | One-line javadoc per slot in `ConfigRegistry.SLOTS` |
-| P2-f | `./gradlew clean` + `.gitignore` audit of stale `modules/build/*-1.0.17.*` artifacts | Cosmetic |
-| P2-g | Operator-runbook note: "editing weapon/prize fragments applies to new spawns only; ship-stat edits re-flow via `reprojectAll`" | Memory + CONTRIBUTING.md or BUILDING.md |
-| P2-h | Convert `WeaponsDamageLogic` arena/engine config reads to spawn-projected components or per-detonation context object. Currently allowlisted as a tombstone in the P1-d ArchUnit rule (`hot_path_systems_must_not_depend_on_infinity_config`); remove that allowlist entry when this lands | Lower urgency than P0-c |
-| P2-j | **Audit dormant `EventType` declarations and retire the orphan `infinity.sim.Events` enum.** Either wire `ShipEvent.shipDestroyed` / `weaponFired` / etc. to natural publishers (`DeathSystem`, `WeaponsFireSystem`) or remove the declarations. Same decision on `PlayerEvent.playerBanned`. The `Events` enum (`DEATHEVENT`, `WEAPONFIRED`) parallels the bus surface — early prototype that should retire entirely (or, if kept, unify with the bus types). Per ADR-0003 open work | Closes ADR-0003's dormant-surface item; one source of truth for announcements |
-| P2-k | **Split `PrizeSystem` by Use Case** — extract `PrizeSpawnerSystem` (arena prize spawning + cap-scaling), `PrizeConsumptionSystem` (prize-on-contact application via the existing applier table), and `DeathPrizeSystem` (death-edge prize drop, decoupled from `EnergySystem` per P2-c). `WeaponsFireSystem` split (eligibility / spawn / audio) is a similar candidate but lower-priority. Per D1 Use-Case-granularity finding | Per-Use-Case testability; each split is independently mockable; the canonical-writer rule per ADR-0001 stays intact (each Use Case writes a disjoint set of components) | 1-2 days |
-| P2-l | **`*Spec` → `*Args` rename** in `api/src/main/java/infinity/sim/specs/`. `api.config.SpawnerSpec` (template tier, arena DSL declaration) and `api.sim.specs.SpawnerCreateSpec` (factory-call argument) both end in `Spec`; the suffix collides because `*Config` migration introduced the template-tier `*Spec` naming alongside the existing factory-arg `*Spec`. Rename the factory-arg side to `*Args` while the surface is small (18 records, mechanical import updates). Calcifies as more modules ship against the api surface | Naming hazard against ADR-0002 `*Config` records; mechanical now, expensive later | half-day |
+| **P1-h** — Gameplay-interface contracts in api/ (`GameMode`, `ScoringRule`, `RespawnPolicy`, `RoundLifecycle`, `KillFeed`) | **Deferred** | Per `create-module` skill: module loader is paused; no live consumer for the API yet. Design when first module ships. |
+| **Spawn-projection harness Slice 5×N** | Open | One slice per Pattern-4 CCP migration as those land. PRD ready. |
+| **`GuiGlobals` test fixture** | Open | Unlocks lifecycle tests for `MobDebugState`, `HudLabelState`, `PlayerListState`, `SpeechViewState` (the 4 leak-fixed states that need a GuiGlobals stub before they can be tested). |
 
 ---
 
-## Cross-cutting observations
+## Follow-ups from execution
 
-- **The "0 violations" findings are real, but earned by hand.** ADR-0001 conformance, immutability, EntitySet release, prize-applier discipline — all of these came back clean. Every one of them was achieved by manual auditing across multiple migration waves. Each is one PR away from quiet regression. The single highest-leverage investment from this review is **mechanising the audits as cheap ArchUnit rules** (P1-a, P1-b, P1-c, P1-d). The agents found these in minutes; tests would find them at every build.
+Items surfaced during P1/P2 execution, not part of the original audit:
 
-- **The two coverage gaps that matter** (prize appliers translating REFERENCE.md; settings adapters translating Groovy DSL) sit at the **boundary between Subspace canon and Infinity code**. Both are "translation" boundaries — the kind of code that drifts silently against an external spec. Both deserve their own tier of tests that pin canonical behaviour. The spawn-projection harness PRD already exists and is ready-for-human; the analogue for prize-canon and DSL-canon would complete the test triad.
+- **Asymmetric `ContactSystem` listener lifecycle (latent leak).** `WarpSystem` + `GravitySystem` call `addListener` but never `removeListener` in `terminate()` — risk if `ContactSystem` outlives them or the systems are re-registered. Other five contact-listener systems handle this correctly. *Source: Delta sweep, ContactSystem doc agent.*
 
-- **Naming hazards.** Three flagged: `StatsSystem` (telemetry, not ADR-0001 `*Stats`), api-side `infinity.sim` vs server-side `infinity.sim` (same FQN, different layers), and "config" pre-disambiguation between CCP templates and the settings pipeline (resolved in CONTEXT.md but not yet in code). All three are real cognitive load and one of them (the `sim` collision) is a load-bearing test gap.
+- **Kill-credit attribution gap.** `EnergySystem` death-edge emits `ChangeTarget.self(target)` (matching legacy behaviour) — the `source` slot for killer attribution is unset. Could be threaded by inspecting `EnergyChange` siblings carrying a `DamageSource`. *Source: Alpha PrizeSystem-split agent.*
 
-- **The bus is severely underused.** Three `EventBus.publish` sites in the whole codebase (one for ship-spawn, two for account login/logout); six declared `EventType` constants never published; an orphan `infinity.sim.Events` enum paralleling the bus surface from an earlier design that did not retire. Direct `getSystem` method calls fill the announcement gap and accumulate implicit registration-order contracts (D3). ADR-0003 names the discipline; P2-c / P2-d / P2-j are the cleanup. The risk shape is the opposite of "bus spaghetti" — it's "bus disuse + direct-call spaghetti".
+- **Three inconsistent `ContactSystem` lookup idioms** across the seven listener-registering systems: `getSystem(ContactSystem.class)`, `getSystem(ContactSystem.class, true)`, `requireSystem(ContactSystem.class)`. Cosmetic but worth unifying. *Source: Delta.*
 
-- **Clean Architecture lens identifies three positive-ROI divergences.** Most CA divergences (no Use Cases layer, frameworks not at the edge) are deliberate and not worth converting — ECS is the right style for real-time games, and abstracting Zay-ES behind api/ interfaces would fight the framework's grain. But three CA-flavored moves do pay off: **(a)** Dependency Inversion for cross-system collaboration via api/-defined interfaces (folded into P2-c as Option B); **(b)** designing gameplay-interface contracts in api/ before the module loader's first consumer ships (P1-h — single highest-leverage long-run move per ADR-0004); **(c)** splitting domain-coherent god systems by Use Case granularity (P2-k for PrizeSystem). The remaining CA gaps (Use Cases layer, framework abstraction at the edge) stay deliberate non-goals.
+- **`PlayerEvent` class is empty** after P2-j retired `playerBanned`. Class file kept; decide whether to delete entirely or wait for a new player event. *Source: Epsilon event-audit agent.*
 
-- **No major refactor needed.** This is a healthy codebase. The review surfaced ~18 concrete code-architecture items, none of which require an architectural rewrite. Most are 1-2 hour cleanups or test additions. The largest single item (P1-e, pulling the spawn-projection harness slices) is already designed; it just needs execution time.
+- **`DefaultColumnDb` real concurrency bugs** (not just style TODOs): hard-sync write bottleneck (every `writeColumn` serialises through a class-wide lock) + DataVersion read-after-write race. Promoted to `.scratch/code-todos-backlog.md` with full context. *Source: TODO triage agent.*
+
+- **AI files perf TODOs** in `BrainConfigurations` / `MobDriver` / `MobSystem` (brute-force spatial scans from the Simsilica demo origin). Promoted to backlog; not blocking. *Source: TODO triage agent.*
+
+- **Checkstyle remaining 78 violations** (post-sweep): 52 `RedundantModifierCheck` + 25 `HiddenFieldCheck` + 1 `ArrayTypeStyleCheck`. All deferred per-site-judgment rules. PMD remains 0/0/0/0.
+
+- **Sonar long-tail** clusters that need refactor-scale work: `S6548` Singleton review (~14), `S107` >7-params (~13), `S135` multi-break/continue (~11). All explicitly deferred from previous tier triage.
+
+---
+
+## Cross-cutting observations (durable)
+
+- **The "0 violations" findings are real, but earned by hand.** ADR-0001 conformance, immutability, EntitySet release, prize-applier discipline — all clean. Each was achieved by manual auditing across multiple migration waves. Each was one PR away from quiet regression until the P1-a/b/c/d ArchUnit guards landed. **Lesson:** mechanise audits as cheap ArchUnit rules when they catch a class of bug worth catching.
+
+- **The two coverage gaps that matter** (prize appliers translating REFERENCE.md; settings adapters translating Groovy DSL) sit at the **boundary between Subspace canon and Infinity code**. Both are "translation" boundaries — the kind of code that drifts silently against an external spec. Both now have dedicated tier-tests pinning canonical behaviour (P1-f, P1-g).
+
+- **Naming hazards** flagged in the audit were three: `StatsSystem` (telemetry, not ADR-0001 `*Stats`), api-side `infinity.sim` vs server-side `infinity.sim`, and "config" pre-disambiguation between CCP templates and the settings pipeline. The first is resolved (P2-b rename). The second is a layer-test gap; the third is documented in CONTEXT.md.
+
+- **The bus was severely underused.** Three `EventBus.publish` sites in the whole codebase pre-P2-j; six declared `EventType` constants never published; an orphan `infinity.sim.Events` enum paralleling the bus surface. Post-P2-j, the bus surface is lean: orphans retired, `shipSpawned` is the canonical live event, and any new event must ship with a publisher in the same PR.
+
+- **Clean Architecture lens identified three positive-ROI divergences.** (a) Dependency Inversion via api/-defined interfaces for cross-system collaboration (P2-c Channel B — landed: `Detonator`). (b) Designing gameplay-interface contracts in api/ before module loader (P1-h — deferred until module loader returns). (c) Splitting domain-coherent god systems by Use Case granularity (P2-k — landed: PrizeSystem + WeaponsFireSystem).
+
+- **No major refactor needed.** The audit surfaced ~18 concrete items, none requiring architectural rewrite. Almost all closed in a single multi-day pass. The single deferred item (P1-h) is lazy by design.

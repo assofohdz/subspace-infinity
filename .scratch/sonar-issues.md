@@ -244,11 +244,6 @@
 |------|-------|-----|
 | L31 | Raw generic type — missing type parameter | Add the proper type parameter (e.g. `List<SomeType>`). |
 
-### `infinity-server/src/main/java/infinity/systems/PrizeSystem.java`
-| Line | Issue | Fix |
-|------|-------|-----|
-| L304 | Commented-out code block | Remove the commented-out code. |
-
 ### `infinity-server/src/main/java/infinity/systems/WallLightDecorator.java`
 | Line | Issue | Fix |
 |------|-------|-----|

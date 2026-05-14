@@ -62,7 +62,7 @@ Names rejected: **"Prefab"** (Flecs prefabs are themselves entities inherited fr
 - Prize spawners read `PrizeWeightsConfig` to pick a prize type, then `PrizeConfig` for the spawned prize's tunables. The spawned prize entity carries components, not Config refs.
 - Live-reload reconcilers (`ArenaSystem.handleShipsScriptReload()` → `ShipSpawnSystem.reprojectAll()`) re-read templates and re-project onto already-live entities. This is the one *post-spawn* path that crosses the seam, by design.
 
-No other server system reads `*Config` types. Hot-path consumers (`PlayerDriver`, `EnergySystem` drain, `WeaponsFireSystem` projectile spawn parameters, ship-tick logic) read components only.
+No other server system reads `*Config` types. Hot-path consumers (`PlayerDriver`, `EnergySystem` drain, `WeaponsProjectileSpawnSystem` projectile spawn parameters, ship-tick logic) read components only.
 
 ### Who reads what
 

@@ -38,7 +38,7 @@ in the long tail of arena populations.
   [`SpawnerSpec`](../../api/src/main/java/infinity/config/SpawnerSpec.java)'s
   `countPerPlayer` and `radiusPerPlayer` apply additive scaling per active
   ship in the spawner's arena. See
-  [`PrizeSystem.update`](../../infinity-server/src/main/java/infinity/systems/PrizeSystem.java)
+  [`PrizeSpawnerSystem.update`](../../infinity-server/src/main/java/infinity/systems/PrizeSpawnerSystem.java)
   for the consumer + `countPlayersInArena` helper.
 - [`config-pattern.md`](./config-pattern.md) — template (`*Config`) vs
   instance (component) split. Per-player scaling fields live on the

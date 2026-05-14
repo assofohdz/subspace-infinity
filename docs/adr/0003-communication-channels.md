@@ -17,7 +17,7 @@ The CONTEXT.md "Events" section already names three planes (ECS transient compon
 **Today's state of the codebase** (audited 2026-05-13):
 
 - The first plane — "ECS transient component" — is the Change-entity mechanism already standardised by [ADR-0001](./0001-ecs-component-model.md). Every mutation request flows through `ChangeTarget + *Change` entity holders drained by canonical writers. ~95 component types audited, 0 multi-writer violations.
-- The second and third planes — arena and zone `EventBus` events — share one `EventBus` instance at runtime. There are three publish call sites in the entire server / client codebase (`AccountEvent.playerLoggedOn`, `AccountEvent.playerLoggedOff`, `ShipEvent.shipSpawned`) and one client listener (`ClientEvent.clientConnected/clientDisconnected` in `MainMenuState`). The `EventType` declarations under `api/src/main/java/infinity/events/arena/ShipEvent.java` (`shipDestroyed`, `weaponFiring`, `weaponFired`, `shipChangeAllowed`, `shipChangeDenied`) and `events/zone/PlayerEvent.java` (`playerBanned`) describe the *intended* surface but are mostly dormant.
+- The second and third planes — arena and zone `EventBus` events — share one `EventBus` instance at runtime. There are three publish call sites in the entire server / client codebase (`AccountEvent.playerLoggedOn`, `AccountEvent.playerLoggedOff`, `ShipEvent.shipSpawned`) and one client listener (`ClientEvent.clientConnected/clientDisconnected` in `MainMenuState`). `ShipEvent` retains only `shipSpawned`; the formerly-dormant types (`shipDestroyed`, `weaponFiring`, `weaponFired`, `shipChangeAllowed`, `shipChangeDenied`) and the `PlayerEvent` class (`playerBanned`) were deleted in P2-j.
 - The "arena vs zone" split is a *naming convention* on the same bus instance — events declared under `infinity.events.arena.*` carry an entity ID payload from which a listener can derive `ArenaId`; events under `infinity.events.zone.*` are server-global by intent. Nothing at runtime enforces the split today.
 
 **ECS-literature signal** (briefly, because the calculus is informed by it):
@@ -72,7 +72,7 @@ EventBus events are further classified by scope:
 
 ### Channel C — domain-specific channels (narrow allowance)
 
-Some communication does not fit Channel A or Channel B. The canonical example is **`ContactSystem`**: physics contacts fire at physics-tick rate with potentially many events per tick, need custom filtering (sensor / category / parent-child) before fan-out, and have listener-order dependencies that matter for correctness (e.g. `WeaponsImpactSystem` must process a projectile-vs-ship contact before `PrizeSystem` so kill-credit is recorded before any prize-consumption side-effects). Seven systems register against `ContactSystem` today.
+Some communication does not fit Channel A or Channel B. The canonical example is **`ContactSystem`**: physics contacts fire at physics-tick rate with potentially many events per tick, need custom filtering (sensor / category / parent-child) before fan-out, and have listener-order dependencies that matter for correctness (e.g. `WeaponsImpactSystem` must process a projectile-vs-ship contact before `PrizeConsumptionSystem` so kill-credit is recorded before any prize-consumption side-effects). Seven systems register against `ContactSystem` today.
 
 `ContactSystem`-shape channels are neither intent components nor `EventBus` events. They are *domain-specific listener channels* owned by one canonical dispatcher.
 
@@ -142,7 +142,7 @@ Common mistake the two ADRs together prevent: publishing a "damage event" on the
 
 - **Two channels means two mental models.** New contributors have to learn both. Mitigation: the decision tree above, plus the convention that the two channels never overlap in role.
 - **The arena-vs-zone naming convention is enforced by discipline, not runtime.** A misclassified event type (declared under `arena.*` but actually zone-scoped, or vice versa) will compile and run; the bug surfaces only if a listener over-fires. Mitigation: code review against package placement; per-arena bus split available as a future runtime guard if the discipline fails.
-- **Dead event types accumulate.** `ShipEvent` declares six types; only `shipSpawned` is published today. Declaring an `EventType` for a planned but-not-yet-published case costs nothing but signals an intent that may not survive. Mitigation: periodic cleanup (architectural-review punch list).
+- **Dead event types accumulate.** Dormant `EventType` constants were culled in P2-j; `ShipEvent` now declares only `shipSpawned`. Declaring an `EventType` for a planned-but-not-yet-published case signals intent that may not survive — cull proactively.
 - **Bus events are not durable.** A subscriber that boots after a publish never sees the event. Acceptable for the current consumer set (HUD, audio, telemetry — all alive for the session); not acceptable if a future consumer needs replay. That consumer is responsible for either persisting state itself or moving to an intent-component shape if queryability is needed.
 
 ### Neutral / deferred
@@ -173,7 +173,7 @@ Common mistake the two ADRs together prevent: publishing a "damage event" on the
 
 The decision is fully described above. What remains is enforcement and cleanup, tracked in the architectural review punch list rather than here:
 
-- **Audit dormant `EventType` declarations.** Most types under `ShipEvent` and `PlayerEvent` are declared but never published. Cull or wire.
+- **Audit dormant `EventType` declarations.** Culled in P2-j; verify no new dormant types accumulate.
 - **Define a trigger condition for per-arena bus instances** if the cross-arena-leak scenario becomes concrete.
 - **Cross-link rule files.** `.claude/rules/` does not currently have an `events.md` rule covering Channel B; consider adding one or rolling the discipline into a CONTEXT.md cross-reference from this ADR.
 - **Sweep CLAUDE.md / CONTEXT.md / `.scratch/`** for "three planes" framing once this ADR lands. Update CONTEXT.md's "Events" section to reference this ADR rather than restating.
@@ -183,7 +183,7 @@ The decision is fully described above. What remains is enforcement and cleanup, 
 - [`docs/adr/0001-ecs-component-model.md`](./0001-ecs-component-model.md) — defines the intent-component (Change entity) channel that this ADR codifies as Channel A.
 - [`.claude/rules/replacement-as-mutation.md`](../../.claude/rules/replacement-as-mutation.md) — the operational recipe for Channel A; ADR-0001 supersedes its scope but RaM remains the per-component-write rule.
 - [`CONTEXT.md`](../../CONTEXT.md) "Events" section — the three-plane teaching this ADR refines. Update CONTEXT.md to cross-reference once this ADR is Accepted.
-- `api/src/main/java/infinity/events/arena/ShipEvent.java`, `api/src/main/java/infinity/events/zone/PlayerEvent.java`, `api/src/main/java/infinity/net/AccountEvent.java` — current `EventType` surface.
+- `api/src/main/java/infinity/events/arena/ShipEvent.java` (`shipSpawned` only), `api/src/main/java/infinity/net/AccountEvent.java` — current `EventType` surface. `PlayerEvent` was deleted in P2-j.
 - Sander Mertens, "Building an ECS" series — discusses both event-as-component (with the one-tick-lag tradeoff) and observer/bus patterns; informs the rejection of unifying under one channel.
 - Bevy `Event` / `MessageReader` documentation — alternative buffered-queue design considered and rejected for this codebase.
 - Simsilica `sim-event` (the `EventBus` library) — the Channel B implementation.

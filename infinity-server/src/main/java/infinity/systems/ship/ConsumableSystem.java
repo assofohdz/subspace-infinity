@@ -102,7 +102,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     decoyOwners = ed.getEntities(Decoy.class, DecoyStats.class);
     portalOwners = ed.getEntities(Portal.class, PortalStats.class);
 
-    getSystem(ContactSystem.class).addListener(this);
+    requireSystem(ContactSystem.class).addListener(this);
   }
 
   @Override
@@ -129,7 +129,7 @@ public class ConsumableSystem extends BaseInfinitySystem
     portalOwners.release();
     portalOwners = null;
 
-    getSystem(ContactSystem.class).removeListener(this);
+    requireSystem(ContactSystem.class).removeListener(this);
   }
 
   @Override

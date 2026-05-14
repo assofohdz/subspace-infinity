@@ -94,11 +94,13 @@ public class WarpSystem extends BaseInfinitySystem
                 + " ~tparena <x> <z>",
             new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::commandTeleportArena));
 
-    getSystem(ContactSystem.class).addListener(this);
+    requireSystem(ContactSystem.class).addListener(this);
   }
 
   @Override
   protected void terminate() {
+    requireSystem(ContactSystem.class).removeListener(this);
+
     warpTouchEntities.release();
     warpTouchEntities = null;
 

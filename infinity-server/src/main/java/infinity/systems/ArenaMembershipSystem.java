@@ -10,7 +10,6 @@ import com.simsilica.mphys.AbstractBody;
 import com.simsilica.mphys.Contact;
 import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Sensor;
 import infinity.es.arena.ArenaId;
@@ -29,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * {@code (ship, arena)} stores its last observed frame and {@link #update}
  * fires a leave once the gap exceeds {@link #EXIT_GRACE_FRAMES}.
  */
-public class ArenaMembershipSystem extends AbstractGameSystem
+public class ArenaMembershipSystem extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
 
   private static final Logger log = LoggerFactory.getLogger(ArenaMembershipSystem.class);
@@ -47,13 +46,13 @@ public class ArenaMembershipSystem extends AbstractGameSystem
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class);
-    getSystem(ContactSystem.class).addListener(this);
+    ed = requireSystem(EntityData.class);
+    requireSystem(ContactSystem.class).addListener(this);
   }
 
   @Override
   protected void terminate() {
-    getSystem(ContactSystem.class).removeListener(this);
+    requireSystem(ContactSystem.class).removeListener(this);
     currentArena.clear();
     lastSeenFrame.clear();
   }

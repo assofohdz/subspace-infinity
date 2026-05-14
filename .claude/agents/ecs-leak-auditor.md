@@ -11,13 +11,13 @@ You are an ECS leak auditor for Subspace Infinity (Zay-ES).
 
 Find two bug classes project-wide:
 
-1. **EntitySet leaks** — an `EntitySet` field declared in a class that does not `release()` it in its lifecycle method (`terminate()` for `AbstractGameSystem`/`BaseGameModule`, `cleanup()` for `BaseAppState`).
-2. **Immutability violations** — components under `api/src/main/java/infinity/es/` with non-final fields, missing no-arg constructor, or setter methods.
+1. **EntitySet leaks** — an `EntitySet` field declared in a class that does not `release()` it in its lifecycle method (`terminate()` for `AbstractGameSystem` / `BaseInfinitySystem`, `cleanup()` for `BaseAppState`). `BaseGameModule` no longer has a server-side implementation home — the `:modules` Gradle project was removed in v1.0.17 — so module classes don't exist in-tree today.
+2. **Immutability violations** — components under `api/src/main/java/infinity/es/` with non-final fields, missing no-arg constructor, or setter methods (per [`components.md`](../../.claude/rules/components.md) / [ADR-0001](../../docs/adr/0001-ecs-component-model.md)).
 
 ## Procedure
 
 1. **Leaks:**
-   - Grep `(private|protected).*EntitySet` under `infinity-server/src/main/java/**/*.java` + `infinity-client/src/main/java/**/*.java` + `modules/src/main/java/**/*.java`.
+   - Grep `(private|protected).*EntitySet` under `infinity-server/src/main/java/**/*.java` + `infinity-client/src/main/java/**/*.java`.
    - For each match, open the file; check for `terminate()` or `cleanup()` that calls `release()` on every declared EntitySet field.
    - Flag any field that isn't released.
 2. **Immutability:**

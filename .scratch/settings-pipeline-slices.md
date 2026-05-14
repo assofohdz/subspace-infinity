@@ -355,7 +355,7 @@ knobs that map cleanly onto declarative spawners.
 gives each prize a random lifetime in `[PrizeMinExist, PrizeMaxExist]`
 (REFERENCE.md `## Prize`). `PrizeConfig.defaultMinDecayMs` field added,
 `PrizeAdapter` parses optional `minExist <cs>` (×10→ms) and throws when
-`minExist > maxExist`. `PrizeSystem.sampleDecayMs` samples uniformly
+`minExist > maxExist`. `PrizeSpawnerSystem.sampleDecayMs` samples uniformly
 in `[min, max]`; `[min, min]` collapse for arenas omitting `minExist`
 preserves 1:1 behaviour. Per-spawner explicit `ttlMs` remains a fixed
 override (precedence α). Active arenas authored: trench
@@ -372,12 +372,12 @@ arena's `[PrizeWeight]` table (same selector default-cadence
 spawners use). Plumbed:
 - `PrizeConfig.deathPrizeTimeMs` field (default `0L` = disabled),
   `PrizeAdapter` parses optional `deathPrizeTime <cs>` (×10→ms).
-- `PrizeSystem.spawnDeathPrize(shipId, deathPosition, timeNs)` —
+- `DeathPrizeSystem.spawnDeathPrize(shipId, deathPosition, timeNs)` —
   no-op when `deathPrizeTimeMs == 0`; selector falls back to
   `globalFallbackSelector` for ships without an `ArenaId`.
 - `EnergySystem` death branch (the only seat where
   `Health<=0 → Dead` happens today) inlines a synchronous call to
-  `prizeSystem.spawnDeathPrize` filtered by `Player.class +
+  `deathPrizeSystem.spawnDeathPrize` filtered by `Player.class +
   BodyPosition.class` so non-ship dying entities don't trigger
   drops.
 
@@ -413,7 +413,7 @@ swap DUD for proper inverse appliers without re-authoring presets.
 Plumbed:
 - `PrizeConfig.prizeNegativeFactor` field (default `0` = disabled).
 - `PrizeAdapter` parses optional `negativeFactor <int>`.
-- `PrizeSystem.maybeRollNegative(prizeType, prizeConfig)` —
+- `PrizeSpawnerSystem.maybeRollNegative(prizeType, prizeConfig)` —
   no-ops when `factor <= 0` or selected is already `Dud`; otherwise
   `random.nextInt(factor) == 0` triggers DUD substitution.
 - `spawnBounty` + `spawnDeathPrize` both route through the helper.
@@ -456,12 +456,12 @@ documented per-key in `SpawnerSpec` Javadoc.
   overload accepting `boolean hidden`) — original signatures preserved
   via delegating overloads for ABI stability.
 - `ArenaSystem.materializePrizeSpawners` forwards the 4 new fields.
-- `PrizeSystem.update` computes per-arena player count via new
+- `PrizeSpawnerSystem.update` computes per-arena player count via new
   `countPlayersInArena(ArenaId)` helper; effective max =
   `maxCount + countPerPlayer × players`; effective radius =
   `radius + radiusPerPlayer × players`; spawns up to
   `min(regenBatch, deficit)` prizes per interval tick.
-- `PrizeSystem.spawnBounty` passes `spawner.isHidden()` to
+- `PrizeSpawnerSystem.spawnBounty` passes `spawner.isHidden()` to
   `createPrize`.
 - `ModelContainer.addObject`/`updateObject` early-return when target
   entity carries `Hidden` — tracked in container map but no spatial
@@ -474,7 +474,7 @@ documented per-key in `SpawnerSpec` Javadoc.
   legacy 6-arg createPrize stays visible). `GroovyArenaLoaderTest`
   extended for new DSL fields (omitted = no-op defaults; explicit =
   pass-through). Math + per-arena scoping extracted from
-  `PrizeSystem.update` into static helpers
+  `PrizeSpawnerSystem.update` into static helpers
   (`computeEffectiveMaxCount`, `computeEffectiveRadius`,
   `computeRegenAmount`, `countPlayersInArena`) and unit-tested in
   `PrizeSystemScalingTest` (16 cases — additive formulas, regen-batch
@@ -492,7 +492,7 @@ documented per-key in `SpawnerSpec` Javadoc.
   `PrizeFactor`/`PrizeDelay`/`MinimumVirtual`/`UpgradeVirtual`/
   `PrizeHideCount` stay unwired. Operators porting a Subspace map
   hand-author one large `spawners {}` entry covering the arena.
-- Full `PrizeSystem.update` integration test (real spawner entity,
+- Full `PrizeSpawnerSystem.update` integration test (real spawner entity,
   contact loop, time stepping) — heavy fixture; sits with the broader
   spawn-projection harness backlog. The math seams it would cover are
   now unit-tested via the static helpers above; what's missing is
@@ -698,7 +698,7 @@ this is fine (a few dozen ships, fire rate ~1-2/sec), but worth a perf
 review pass alongside the per-tick `ProximityFuseSystem` scan — both
 paths could benefit from arena-level pre-filtering on `ArenaId` (today
 the scan is global because EntitySet membership is global), and from
-caching per-arena player counts so other systems (`PrizeSystem.update`,
+caching per-arena player counts so other systems (`PrizeSpawnerSystem`,
 `StatusDrainSystem`) don't recompute it every tick. Sits with the
 spawn-projection / ECS broad-phase backlog.
 
@@ -1254,9 +1254,9 @@ descope as B2: only base/deva/trench got migrated.
   `prize-weights.groovy`.
 - 3 typed `prize-weights.groovy` authored (base, deva, trench);
   3 old `prizeweights.groovy` deleted.
-- `PrizeSystem.readArenaWeights` reads from typed slot;
+- `PrizeSpawnerSystem.readArenaWeights` reads from typed slot;
   `SettingsSystem` field + last `org.ini4j.Ini` reference dropped from
-  PrizeSystem.
+  PrizeSpawnerSystem.
 
 **Out of scope (deferred):** `deathPrizeWeights` slot + DSL + fragment
 files (only svs-league/svs-dueling author `[DPrizeWeight]`, neither is

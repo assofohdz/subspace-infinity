@@ -230,7 +230,7 @@ The ADR doesn't address scheduled-future application. Today `EnergySystem` reads
 The user's "look at the codebase and go 'that is consistent, nice'" goal extends the audit to non-ship entity classes. Each gets a one-slice audit + a Yes/No/Defer decision in the migration tracker:
 
 - **Bombs / bullets / mines / thors (projectiles)** — mostly factory-tier (`WeaponFactory.create*`) + per-frame physics. Likely no Change-entity work needed; `Decay` handles their lifetime. Audit confirms or surfaces hidden races.
-- **Prizes** — spawn (`MapFactory.createPrize`) + Decay-driven despawn + collision-driven pickup. Pickup mutation flows through `PrizeSystem` (a Change-entity emit; not a target-component mutation). Likely no migration.
+- **Prizes** — spawn (`MapFactory.createPrize`) + Decay-driven despawn + collision-driven pickup. Pickup mutation flows through `PrizeConsumptionSystem` (a Change-entity emit; not a target-component mutation). Likely no migration.
 - **Doors** — `DoorSystem` is documented as the sole mutating writer. Verify and add to the canonical-writers snapshot if so; no migration.
 - **Asteroids** — out of scope unless an audit surfaces a multi-writer issue.
 - **Arena entities** (`ArenaMap`, `Sensor`, `LargeObject`, `ArenaFootprint`) — `ArenaLogic` is the sole writer; spawn-time only. No migration.
@@ -343,7 +343,7 @@ Flip ✅ when the slice lands (canonical writer + emit sites + tests + rule snap
 ### Non-ship audit (Yes/No/Defer per aspect)
 
 - ✅ **Bombs/projectiles** — No migration. Spawn-only factory projection (`WeaponFactory.create*`) + Decay-driven removal. Weapon-level collisions are pre-existing ship-side, owned by weapon-levels slice. Audit 2026-05-12.
-- ✅ **Prizes** — No migration. Spawn-only (`MapFactory.createPrize`) + Decay-driven removal. Pickup mutation flows through `PrizeSystem` → prize appliers (ship-side, already migrated for Energy/Movement/Status/etc.). Audit 2026-05-12.
+- ✅ **Prizes** — No migration. Spawn-only (`MapFactory.createPrize`) + Decay-driven removal. Pickup mutation flows through `PrizeConsumptionSystem` → prize appliers (ship-side, already migrated for Energy/Movement/Status/etc.). Audit 2026-05-12.
 - ✅ **Doors** — No migration. `DoorSystem` is already sole post-spawn writer (verified by audit; entry exists in `replacement-as-mutation.md` snapshot line 322). `MapFactory` does the spawn-time stamp. Audit 2026-05-12.
 - ✅ **Asteroids** — No migration. Visual decoration, spawn-only. Audit 2026-05-12.
 - ✅ **Arena entities** — No migration. `ArenaLogic` is sole writer (verified; entry exists in `replacement-as-mutation.md` snapshot line 309). Arena bootstrap on load only. Audit 2026-05-12.

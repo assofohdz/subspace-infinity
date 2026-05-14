@@ -350,17 +350,17 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | 🔀 | `PrizeHideCount` | ❌ (diverged) | (n/a) | (n/a) | — | absorbed into `SpawnerSpec.regenBatch` per-spawner DSL (Slice 8d) | (n/a) |
 | 🔀 | `MinimumVirtual` | ❌ (diverged) | (n/a) | (n/a) | — | absorbed into `SpawnerSpec.radius` per-spawner DSL (Slice 8d C1, was already there pre-rename) | (n/a) |
 | 🔀 | `UpgradeVirtual` | ❌ (diverged) | (n/a) | (n/a) | — | absorbed into `SpawnerSpec.radiusPerPlayer` per-spawner DSL (Slice 8d) | (n/a) |
-| ✅ | `PrizeMaxExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultDecayMs` | — | `PrizeSystem` (decay routing for prize entities) | ✅ `ConfigRegistrySystemLoadTest` |
-| ✅ | `PrizeMinExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultMinDecayMs` | — | `PrizeSystem.sampleDecayMs` (uniform random in `[minDecayMs, maxDecayMs]` for spawners with no explicit `ttlMs`) | ✅ `ConfigRegistrySystemLoadTest` |
-| ✅ | `PrizeNegativeFactor` | ✅ prize.groovy | `PrizeAdapter` (raw int) | `PrizeConfig.prizeNegativeFactor` | — | `PrizeSystem.maybeRollNegative` (1-in-N → swap to `Dud` via DUD substitution; called from both `spawnBounty` + `spawnDeathPrize`) | ✅ `ConfigRegistrySystemLoadTest` |
-| ✅ | `DeathPrizeTime` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.deathPrizeTimeMs` | — | `EnergySystem` death branch → `PrizeSystem.spawnDeathPrize` (1 weighted prize at ship's `BodyPosition` on death; no-op when `deathPrizeTimeMs == 0`) | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `PrizeMaxExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultDecayMs` | — | `PrizeSpawnerSystem` (decay routing for prize entities) | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `PrizeMinExist` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.defaultMinDecayMs` | — | `PrizeSpawnerSystem.sampleDecayMs` (uniform random in `[minDecayMs, maxDecayMs]` for spawners with no explicit `ttlMs`) | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `PrizeNegativeFactor` | ✅ prize.groovy | `PrizeAdapter` (raw int) | `PrizeConfig.prizeNegativeFactor` | — | `PrizeSpawnerSystem.maybeRollNegative` (1-in-N → swap to `Dud` via DUD substitution; called from both `spawnBounty` + `spawnDeathPrize`) | ✅ `ConfigRegistrySystemLoadTest` |
+| ✅ | `DeathPrizeTime` | ✅ prize.groovy | `PrizeAdapter` (cs×10→ms) | `PrizeConfig.deathPrizeTimeMs` | — | `EnergySystem` death branch → `DeathPrizeSystem.spawnDeathPrize` (1 weighted prize at ship's `BodyPosition` on death; no-op when `deathPrizeTimeMs == 0`) | ✅ `ConfigRegistrySystemLoadTest` |
 | ⚠️ | `EngineShutdownTime` | ✅ misc.groovy | ❌ | ❌ | (Glue family — see Status appliers) | ❌ | ❌ |
 | ⚠️ | `TakePrizeReliable` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `S2CTakePrizeReliable` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 
 ## [PrizeWeight] — applier dispatch
 
-[PrizeWeight] keys are spawn-frequency multipliers per prize type, authored in a typed `prize-weights.groovy` fragment, read by `PrizeWeightsAdapter` into `PrizeWeightsConfig.weights`, and consumed by `PrizeSystem.readArenaWeights` via `ConfigRegistry.prizeWeights()`. The "Applier" column tracks the per-prize implementation status. "Subsystem" column = which ship-side system the applier writes through (or delegates to).
+[PrizeWeight] keys are spawn-frequency multipliers per prize type, authored in a typed `prize-weights.groovy` fragment, read by `PrizeWeightsAdapter` into `PrizeWeightsConfig.weights`, and consumed by `PrizeSpawnerSystem.readArenaWeights` via `ConfigRegistry.prizeWeights()`. The "Applier" column tracks the per-prize implementation status. "Subsystem" column = which ship-side system the applier writes through (or delegates to).
 
 Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key into the same `Map<String,Integer>` slot.
 

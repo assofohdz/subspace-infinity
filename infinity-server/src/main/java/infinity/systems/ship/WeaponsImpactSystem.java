@@ -45,16 +45,12 @@ public class WeaponsImpactSystem extends BaseInfinitySystem
   protected void initialize() {
     ed = requireSystem(EntityData.class);
     detonator = requireSystem(WeaponsReaperSystem.class);
-    final ContactSystem<EntityId, MBlockShape> contactSystem = requireSystem(ContactSystem.class);
-    contactSystem.addListener(this);
+    requireSystem(ContactSystem.class).addListener(this);
   }
 
   @Override
   protected void terminate() {
-    final ContactSystem<EntityId, MBlockShape> contactSystem = getSystem(ContactSystem.class);
-    if (contactSystem != null) {
-      contactSystem.removeListener(this);
-    }
+    requireSystem(ContactSystem.class).removeListener(this);
   }
 
   @Override

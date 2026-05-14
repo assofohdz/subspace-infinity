@@ -14,7 +14,6 @@ import com.simsilica.mphys.ContactListener;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.StaticBody;
-import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.ChangeTarget;
 import infinity.es.Flag;
@@ -38,7 +37,7 @@ import java.util.regex.Pattern;
  * {@code =N} chat command (player retargets own frequency). See
  * {@code .claude/rules/replacement-as-mutation.md}.
  */
-public class FrequencySystem extends AbstractGameSystem
+public class FrequencySystem extends BaseInfinitySystem
     implements ContactListener<EntityId, MBlockShape> {
 
   private final Pattern freuencyChange = Pattern.compile("=(\\d+)");
@@ -51,8 +50,8 @@ public class FrequencySystem extends AbstractGameSystem
 
   @Override
   protected void initialize() {
-    ed = getSystem(EntityData.class, true);
-    phys = getSystem(PhysicsSpace.class, true);
+    ed = requireSystem(EntityData.class);
+    phys = requireSystem(PhysicsSpace.class);
 
     freqencies = ed.getEntities(Frequency.class);
     flags = ed.getEntities(Flag.class);
@@ -67,7 +66,7 @@ public class FrequencySystem extends AbstractGameSystem
         new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::changeFrequency));
 
     // Register this as a contact listener with the ContactSystem
-    getSystem(ContactSystem.class, true).addListener(this);
+    requireSystem(ContactSystem.class).addListener(this);
   }
 
   /**
@@ -89,7 +88,7 @@ public class FrequencySystem extends AbstractGameSystem
   @Override
   protected void terminate() {
     //Remove this as a contact listener with the ContactSystem
-    getSystem(ContactSystem.class, true).removeListener(this);
+    requireSystem(ContactSystem.class).removeListener(this);
 
     freqencies.release();
     freqencies = null;

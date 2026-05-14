@@ -24,20 +24,20 @@ Update this file in the same change that adds/moves/removes a typed config field
 | `shipSection` key | Groovy DSL (in `ships.groovy`) | `ShipConfig` field | Projected component(s) | Hot-path consumer(s) |
 |---|---|---|---|---|
 | `InitialRotation` | `rotation initial:` | `rotation.initial()` | `Rotation` (rad/sec; ×2π/400 at projection) | `PlayerDriver.update()` |
-| `MaximumRotation` | `rotation max:` | `rotation.max()` | `RotationMax` | `PrizeSystem.handleAcquireRotation()` |
-| `UpgradeRotation` | `rotation upgrade:` | `rotation.upgrade()` | `RotationUpgrade` | `PrizeSystem.handleAcquireRotation()` |
+| `MaximumRotation` | `rotation max:` | `rotation.max()` | `RotationMax` | `RotationPrizeApplier` |
+| `UpgradeRotation` | `rotation upgrade:` | `rotation.upgrade()` | `RotationUpgrade` | `RotationPrizeApplier` |
 | `InitialThrust` | `thrust initial:` | `thrust.initial()` | `Thrust` | `PlayerDriver.update()` |
-| `MaximumThrust` | `thrust max:` | `thrust.max()` | `ThrustMax` | `PrizeSystem.handleAcquireThruster()` |
-| `UpgradeThrust` | `thrust upgrade:` | `thrust.upgrade()` | `ThrustUpgrade` | `PrizeSystem.handleAcquireThruster()` |
+| `MaximumThrust` | `thrust max:` | `thrust.max()` | `ThrustMax` | `ThrusterPrizeApplier` |
+| `UpgradeThrust` | `thrust upgrade:` | `thrust.upgrade()` | `ThrustUpgrade` | `ThrusterPrizeApplier` |
 | `InitialSpeed` | `speed initial:` | `speed.initial()` | `Speed` | `PlayerDriver.update()` |
-| `MaximumSpeed` | `speed max:` | `speed.max()` | `SpeedMax` | `PrizeSystem.handleAcquireTopSpeed()` |
-| `UpgradeSpeed` | `speed upgrade:` | `speed.upgrade()` | `SpeedUpgrade` | `PrizeSystem.handleAcquireTopSpeed()` |
+| `MaximumSpeed` | `speed max:` | `speed.max()` | `SpeedMax` | `TopSpeedPrizeApplier` |
+| `UpgradeSpeed` | `speed upgrade:` | `speed.upgrade()` | `SpeedUpgrade` | `TopSpeedPrizeApplier` |
 | `InitialRecharge` | `recharge initial:` | `recharge.initial()` | `Recharge` (energy/sec; ÷10 at projection) | `EnergySystem.update()` |
-| `MaximumRecharge` | `recharge max:` | `recharge.max()` | `RechargeMax` | `PrizeSystem.handleAcquireRecharge()` |
-| `UpgradeRecharge` | `recharge upgrade:` | `recharge.upgrade()` | `RechargeUpgrade` | `PrizeSystem.handleAcquireRecharge()` |
+| `MaximumRecharge` | `recharge max:` | `recharge.max()` | `RechargeMax` | `RechargePrizeApplier` |
+| `UpgradeRecharge` | `recharge upgrade:` | `recharge.upgrade()` | `RechargeUpgrade` | `RechargePrizeApplier` |
 | `InitialEnergy` | `energy initial:` | `energy.initial()` | `Health` (live pool) + `Energy` (cap) | `EnergySystem.update()` (both); `WeaponsSystem` / `WarpSystem` filter on `Health` |
-| `MaximumEnergy` | `energy max:` | `energy.max()` | `EnergyMax` | `PrizeSystem.handleAcquireEnergy()` |
-| `UpgradeEnergy` | `energy upgrade:` | `energy.upgrade()` | `EnergyUpgrade` | `PrizeSystem.handleAcquireEnergy()` |
+| `MaximumEnergy` | `energy max:` | `energy.max()` | `EnergyMax` | `EnergyPrizeApplier` |
+| `UpgradeEnergy` | `energy upgrade:` | `energy.upgrade()` | `EnergyUpgrade` | `EnergyPrizeApplier` |
 | `InitialRocket` | `rockets start:` | `rockets.start()` | `Rocket` | `RocketPrizeApplier` (reads cap to gate); `ConsumableSystem.canFireRocket` |
 | `RocketMax` | `rockets max:` | `rockets.max()` | `RocketMax` | `RocketPrizeApplier` (cap check) |
 | `RocketTime` | `rockets activeTimeCs:` (cs×10→ms at projection) | `rockets.activeTimeCs()` | `RocketTime` (ms) | `ConsumableSystem.createRocketBuff` (buff entity Decay deadline); `RocketBuffSystem` (revert seam) |

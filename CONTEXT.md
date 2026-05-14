@@ -63,7 +63,7 @@ A short-lived `EntityComponent` written by one system to signal a request to ano
 _Avoid_: "marker component" (some are markers; some carry payload).
 
 **Zone event**:
-A Simsilica `EventBus` event whose scope is the whole server / zone — login, account state, arena lifecycle, master-server pings. Lives in `infinity.events.zone.*` (e.g. `PlayerEvent`) or, for session-coupled events, alongside its publisher (e.g. `infinity.net.AccountEvent`). Process-global; listeners are zone-level (lobby UI, account services).
+A Simsilica `EventBus` event whose scope is the whole server / zone — login, account state, arena lifecycle, master-server pings. Lives in `infinity.events.zone.*` or, for session-coupled events, alongside its publisher (e.g. `infinity.net.AccountEvent`). Process-global; listeners are zone-level (lobby UI, account services).
 _Avoid_: "meta event", "global event", "server event".
 
 **Arena event**:

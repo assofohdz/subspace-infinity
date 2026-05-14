@@ -136,7 +136,7 @@ Each `spawn` entry materializes into a real spawner entity at arena-load. `Prize
 | `includeFragment '/conf/.../spawn.groovy'` | String | `ConfigRegistry.spawn()` → `SpawnConfig` | `ArenaSystem.getArenaSpawn(arenaName, freq)` — per-team spawn point selected by `freq % teams.size()`; falls back to `ArenaConfig.spawnX()/spawnZ()` when `SpawnConfig.teams` is empty |
 | `wallFriction N` | double [0,1] | `ArenaConfig.wallFriction()` | `ContactSystem` (body-vs-static contacts: damps tangential velocity; friction=0 prevents torque from off-center contacts) |
 | `includeFragment '...'` | String (repeatable) | `ArenaConfig.fragmentIncludes()` → forwarded to `SettingsSystem.loadFragments` | Anything that calls `SettingsSystem.getInt/getString(arenaName, section, key, default)` |
-| `spawners { spawn ... }` | Block (repeatable) | `ArenaConfig.spawners()` → `List<SpawnerSpec>` → materialized into spawner entities by `ArenaSystem.doLoad` | `PrizeSystem` (picks prizes; reads per-spawner `PrizeWeightsOverride` merged atop arena `[PrizeWeight]` defaults) |
+| `spawners { spawn ... }` | Block (repeatable) | `ArenaConfig.spawners()` → `List<SpawnerSpec>` → materialized into spawner entities by `ArenaSystem.doLoad` | `PrizeSpawnerSystem` (picks prizes; reads per-spawner `PrizeWeightsOverride` merged atop arena `[PrizeWeight]` defaults) |
 
 ## Groovy fragment DSL
 
