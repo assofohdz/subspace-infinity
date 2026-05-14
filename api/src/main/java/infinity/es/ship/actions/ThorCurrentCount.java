@@ -2,14 +2,12 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.actions;
 
-import com.simsilica.es.EntityComponent;
-
 /**
  * Current number of Thor's Hammers in a ship
  *
  * @author Asser
  */
-public class ThorCurrentCount implements EntityComponent {
+public class ThorCurrentCount implements InventoryCount {
 
     private final int count;
 
@@ -22,6 +20,11 @@ public class ThorCurrentCount implements EntityComponent {
     }
 
     public int getCount() {
+        return count;
+    }
+
+    @Override
+    public int count() {
         return count;
     }
 

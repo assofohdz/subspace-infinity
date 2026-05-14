@@ -2,14 +2,12 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.actions;
 
-import com.simsilica.es.EntityComponent;
-
 /**
  * Initial number of Rockets given to ships when they start
  *
  * @author Asser
  */
-public class Rocket implements EntityComponent {
+public class Rocket implements InventoryCount {
 
     private final int count;
 
@@ -22,6 +20,11 @@ public class Rocket implements EntityComponent {
     }
 
     public int getCount() {
+        return count;
+    }
+
+    @Override
+    public int count() {
         return count;
     }
 

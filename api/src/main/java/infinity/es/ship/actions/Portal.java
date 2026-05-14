@@ -2,14 +2,12 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.actions;
 
-import com.simsilica.es.EntityComponent;
-
 /**
  * Initial number of Portals given to ships when they start
  *
  * @author Asser
  */
-public class Portal implements EntityComponent {
+public class Portal implements InventoryCount {
 
     private final int count;
 
@@ -22,6 +20,11 @@ public class Portal implements EntityComponent {
     }
 
     public int getCount() {
+        return count;
+    }
+
+    @Override
+    public int count() {
         return count;
     }
 

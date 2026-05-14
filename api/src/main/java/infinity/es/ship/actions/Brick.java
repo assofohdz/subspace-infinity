@@ -2,14 +2,12 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.actions;
 
-import com.simsilica.es.EntityComponent;
-
 /**
  * Initial number of Bricks given to ships when they start
  *
  * @author Asser
  */
-public class Brick implements EntityComponent {
+public class Brick implements InventoryCount {
 
     private final int count;
 
@@ -22,6 +20,11 @@ public class Brick implements EntityComponent {
     }
 
     public int getCount() {
+        return count;
+    }
+
+    @Override
+    public int count() {
         return count;
     }
 

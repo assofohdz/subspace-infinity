@@ -2,8 +2,6 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.actions;
 
-import com.simsilica.es.EntityComponent;
-
 /**
  * Stats record for the Repel aspect: hard-cap inventory count.
  *
@@ -16,7 +14,7 @@ import com.simsilica.es.EntityComponent;
  *
  * @see infinity.config.RepelConfig
  */
-public record RepelStats(int max) implements EntityComponent {
+public record RepelStats(int max) implements InventoryCap {
 
   public RepelStats() {
     this(0);

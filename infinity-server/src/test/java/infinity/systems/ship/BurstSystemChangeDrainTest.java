@@ -114,6 +114,38 @@ public class BurstSystemChangeDrainTest {
     }
   }
 
+  @Test
+  public void inventoryDecrement_drainsToOneLess() {
+    final Fixture f = newFixture();
+    try {
+      final EntityId ship = newShip(f.ed, 3, new BurstStats(5, 3000));
+      emit(f.ed, ship, -1);
+      f.systems.update();
+      assertEquals(
+          "Fire-side BurstChange(-1) decrements inventory",
+          2,
+          f.ed.getComponent(ship, Burst.class).getCount());
+    } finally {
+      f.shutdown();
+    }
+  }
+
+  @Test
+  public void inventoryDecrement_clampsAtZero() {
+    final Fixture f = newFixture();
+    try {
+      final EntityId ship = newShip(f.ed, 0, new BurstStats(5, 3000));
+      emit(f.ed, ship, -1);
+      f.systems.update();
+      assertEquals(
+          "BurstSystem clamps at 0 below; -1 from empty inventory is a no-op",
+          0,
+          f.ed.getComponent(ship, Burst.class).getCount());
+    } finally {
+      f.shutdown();
+    }
+  }
+
   private static final class Fixture {
     private final GameSystemManager systems;
     private final DefaultEntityData ed;

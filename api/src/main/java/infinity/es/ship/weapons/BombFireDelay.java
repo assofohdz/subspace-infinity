@@ -2,14 +2,12 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.es.ship.weapons;
 
-import com.simsilica.es.EntityComponent;
-
 /**
  * Component holding the cooldown timer between bomb shots.
  *
  * @author Asser
  */
-public class BombFireDelay implements EntityComponent {
+public class BombFireDelay implements FireDelay {
 
     private final long start;
     private final long delta;
@@ -24,6 +22,7 @@ public class BombFireDelay implements EntityComponent {
         delta = deltaMillis * 1000000;
     }
 
+    @Override
     public double getPercent() {
         final long time = System.nanoTime();
         return (double) (time - start) / delta;

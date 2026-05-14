@@ -4,6 +4,7 @@
 package infinity.systems.ship;
 
 import com.simsilica.es.Entity;
+import com.simsilica.es.EntityComponent;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
@@ -14,20 +15,27 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.QueryFilter;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.SphereVolume;
+import infinity.es.ChangeTarget;
 import infinity.es.Frequency;
+import infinity.es.ship.actions.Burst;
+import infinity.es.ship.actions.BurstChange;
+import infinity.es.ship.actions.InventoryCount;
 import infinity.es.ship.weapons.BombCurrentLevel;
 import infinity.es.ship.weapons.BombFireDelay;
 import infinity.es.ship.weapons.BombSafetyRadius;
 import infinity.es.ship.weapons.BombStats;
 import infinity.es.ship.weapons.BulletFireDelay;
 import infinity.es.ship.weapons.BulletStats;
+import infinity.es.ship.weapons.EnergyCost;
+import infinity.es.ship.weapons.FireDelay;
 import infinity.es.ship.weapons.GravityBombCost;
 import infinity.es.ship.weapons.GravityBombFireDelay;
 import infinity.es.ship.weapons.MineFireDelay;
 import infinity.es.ship.weapons.MineStats;
 import infinity.es.ship.weapons.WeaponType;
+import java.util.function.Function;
 
-/** Pre-fire eligibility + cooldown stamp + cost deduction; canonical writer (post-spawn) for {@code *FireDelay}. */
+/** Pre-fire eligibility + cooldown stamp + cost deduction; canonical writer (post-spawn) for {@code *FireDelay}. Energy weapons and inventory weapons share generic helpers; per-weapon variation collapses to a {@code (Class, accessor)} pair at the dispatch site. */
 final class WeaponsEligibility {
 
     private WeaponsEligibility() {}
@@ -51,97 +59,56 @@ final class WeaponsEligibility {
         }
         switch (weaponType) {
             case WeaponType.BULLET:
-                return canAttackBullet(ed, bullets, energy, requester);
+                return canAttackEnergyWeapon(ed, energy, bullets, requester,
+                        BulletFireDelay.class, BulletStats.class);
             case WeaponType.BOMB:
-                return canAttackBomb(ed, physicsSpace, energy, bombs, energyEntities, requester);
+                return canAttackEnergyWeapon(ed, energy, bombs, requester,
+                                BombFireDelay.class, BombStats.class)
+                        && bombSafetyClear(ed, physicsSpace, bombs, energyEntities, requester.getId());
             case WeaponType.GRAVBOMB:
-                return canAttackGravityBomb(ed, gravityBombs, energy, requester);
+                return canAttackEnergyWeapon(ed, energy, gravityBombs, requester,
+                        GravityBombFireDelay.class, GravityBombCost.class);
             case WeaponType.MINE:
-                return canAttackMine(ed, mines, energy, requester);
+                return canAttackEnergyWeapon(ed, energy, mines, requester,
+                        MineFireDelay.class, MineStats.class);
             case WeaponType.BURST:
-                return canAttackBurst(bursts, requester);
+                return canAttackInventoryWeapon(ed, bursts, requester, Burst.class);
             default:
                 return false;
         }
     }
 
-    static boolean canAttackBullet(
+    /** Energy-cost weapon eligibility: membership + cooldown ready + cost-source present + cost &le; current health. */
+    static boolean canAttackEnergyWeapon(
             final EntityData ed,
-            final EntitySet bullets,
             final EnergySystem energy,
-            final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!bullets.contains(requester)) {
+            final EntitySet set,
+            final Entity requester,
+            final Class<? extends FireDelay> delayClass,
+            final Class<? extends EnergyCost> costClass) {
+        if (!set.contains(requester)) {
             return false;
         }
-        final BulletFireDelay gfd = ed.getComponent(requesterId, BulletFireDelay.class);
-        if (gfd.getPercent() < 1) {
+        final EntityId id = requester.getId();
+        final FireDelay delay = ed.getComponent(id, delayClass);
+        if (delay == null || delay.getPercent() < 1) {
             return false;
         }
-        final BulletStats stats = ed.getComponent(requesterId, BulletStats.class);
-        return stats != null && stats.fireCostEnergy() <= energy.getHealth(requesterId);
+        final EnergyCost cost = ed.getComponent(id, costClass);
+        return cost != null && cost.energyCost() <= energy.getHealth(id);
     }
 
-    /** Bomb eligibility — adds bomb-safety scan (rejects fire when an enemy is inside proximity-arm radius). */
-    static boolean canAttackBomb(
+    /** Inventory-cost weapon eligibility: membership + inventory count &gt; 0. Subspace-canonical alternative to energy-cost (e.g. {@code Burst}, no {@code BurstEnergy} in canon). */
+    static boolean canAttackInventoryWeapon(
             final EntityData ed,
-            final PhysicsSpace<EntityId, MBlockShape> physicsSpace,
-            final EnergySystem energy,
-            final EntitySet bombs,
-            final EntitySet energyEntities,
-            final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!bombs.contains(requester)) {
+            final EntitySet set,
+            final Entity requester,
+            final Class<? extends InventoryCount> inventoryClass) {
+        if (!set.contains(requester)) {
             return false;
         }
-        final BombFireDelay bfd = ed.getComponent(requesterId, BombFireDelay.class);
-        if (bfd.getPercent() < 1) {
-            return false;
-        }
-        final BombStats stats = ed.getComponent(requesterId, BombStats.class);
-        if (stats == null || stats.fireCostEnergy() > energy.getHealth(requesterId)) {
-            return false;
-        }
-        return bombSafetyClear(ed, physicsSpace, bombs, energyEntities, requesterId);
-    }
-
-    static boolean canAttackGravityBomb(
-            final EntityData ed,
-            final EntitySet gravityBombs,
-            final EnergySystem energy,
-            final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!gravityBombs.contains(requester)) {
-            return false;
-        }
-        final GravityBombFireDelay bfd = ed.getComponent(requesterId, GravityBombFireDelay.class);
-        if (bfd.getPercent() < 1) {
-            return false;
-        }
-        final GravityBombCost bc = ed.getComponent(requesterId, GravityBombCost.class);
-        return bc.getCost() <= energy.getHealth(requesterId);
-    }
-
-    static boolean canAttackMine(
-            final EntityData ed,
-            final EntitySet mines,
-            final EnergySystem energy,
-            final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!mines.contains(requester)) {
-            return false;
-        }
-        final MineFireDelay bfd = ed.getComponent(requesterId, MineFireDelay.class);
-        if (bfd.getPercent() < 1) {
-            return false;
-        }
-        final MineStats stats = ed.getComponent(requesterId, MineStats.class);
-        return stats != null && stats.dropCostEnergy() <= energy.getHealth(requesterId);
-    }
-
-    /** Inventory presence only — no cooldown/cost yet. */
-    static boolean canAttackBurst(final EntitySet bursts, final Entity requester) {
-        return bursts.contains(requester);
+        final InventoryCount inv = ed.getComponent(requester.getId(), inventoryClass);
+        return inv != null && inv.count() > 0;
     }
 
     /** Rejects bomb fire when an enemy sits inside proximity-arm radius; no-op when arena's BombSafety is off. */
@@ -203,7 +170,7 @@ final class WeaponsEligibility {
                 safety.baseTiles(), bombLevel.getLevel().level);
     }
 
-    /** Stamps a fresh {@code *FireDelay} on the ship; burst has no cooldown yet. */
+    /** Stamps a fresh {@code *FireDelay} on the ship; burst has no cooldown yet; gravbomb refreshes the existing delay rather than rebuilding from stats. */
     static boolean setCoolDown(
             final EntityData ed,
             final EntitySet bullets,
@@ -217,16 +184,19 @@ final class WeaponsEligibility {
             return false;
         }
         if (flag == WeaponType.BULLET) {
-            return setCoolDownBullet(ed, bullets, requester);
+            return setCoolDownEnergyWeapon(ed, bullets, requester,
+                    BulletStats.class, s -> new BulletFireDelay(s.fireDelayMillis()));
         }
         if (flag == WeaponType.BOMB) {
-            return setCoolDownBomb(ed, bombs, requester);
+            return setCoolDownEnergyWeapon(ed, bombs, requester,
+                    BombStats.class, s -> new BombFireDelay(s.fireDelayMillis()));
         }
         if (flag == WeaponType.GRAVBOMB) {
             return setCoolDownGravityBomb(ed, gravityBombs, requester);
         }
         if (flag == WeaponType.MINE) {
-            return setCoolDownMine(ed, mines, requester);
+            return setCoolDownEnergyWeapon(ed, mines, requester,
+                    MineStats.class, s -> new MineFireDelay(s.fireDelayMillis()));
         }
         if (flag == WeaponType.BURST) {
             return bursts.contains(requester);
@@ -234,34 +204,26 @@ final class WeaponsEligibility {
         return false;
     }
 
-    static boolean setCoolDownBullet(
-            final EntityData ed, final EntitySet bullets, final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!bullets.contains(requester)) {
+    /** Energy-cost weapon: read stats, build a fresh per-weapon FireDelay; caller's lambda keeps the {@code new *FireDelay(...)} visible to {@code CanonicalWriterTest}. */
+    static <S extends EntityComponent> boolean setCoolDownEnergyWeapon(
+            final EntityData ed,
+            final EntitySet set,
+            final Entity requester,
+            final Class<S> statsClass,
+            final Function<S, ? extends FireDelay> delayFromStats) {
+        if (!set.contains(requester)) {
             return false;
         }
-        final BulletStats stats = ed.getComponent(requesterId, BulletStats.class);
+        final EntityId id = requester.getId();
+        final S stats = ed.getComponent(id, statsClass);
         if (stats == null) {
             return false;
         }
-        ed.setComponent(requesterId, new BulletFireDelay(stats.fireDelayMillis()));
+        ed.setComponent(id, delayFromStats.apply(stats));
         return true;
     }
 
-    static boolean setCoolDownBomb(
-            final EntityData ed, final EntitySet bombs, final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!bombs.contains(requester)) {
-            return false;
-        }
-        final BombStats stats = ed.getComponent(requesterId, BombStats.class);
-        if (stats == null) {
-            return false;
-        }
-        ed.setComponent(requesterId, new BombFireDelay(stats.fireDelayMillis()));
-        return true;
-    }
-
+    /** GravBomb refreshes the existing FireDelay (preserves its configured delta) rather than rebuilding from stats. */
     static boolean setCoolDownGravityBomb(
             final EntityData ed, final EntitySet gravityBombs, final Entity requester) {
         final EntityId requesterId = requester.getId();
@@ -273,21 +235,7 @@ final class WeaponsEligibility {
         return true;
     }
 
-    static boolean setCoolDownMine(
-            final EntityData ed, final EntitySet mines, final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!mines.contains(requester)) {
-            return false;
-        }
-        final MineStats stats = ed.getComponent(requesterId, MineStats.class);
-        if (stats == null) {
-            return false;
-        }
-        ed.setComponent(requesterId, new MineFireDelay(stats.fireDelayMillis()));
-        return true;
-    }
-
-    /** Debits per-weapon cost via attributed {@link EnergySystem#damage(EntityId,int,EntityId,byte)}; burst has no cost yet. */
+    /** Debits per-weapon cost: energy weapons via {@link EnergySystem#damage(EntityId,int,EntityId,byte)}; inventory weapons via a {@code *Change(-1)} Change holder drained by the per-type canonical writer. */
     // Cost-deduction payload: ed + energy + 5 per-weapon EntitySets + requester + flag; orchestrator dispatch shape.
     @SuppressWarnings("PMD.ExcessiveParameterList")
     static boolean deductCostOfAttack(
@@ -304,80 +252,62 @@ final class WeaponsEligibility {
             return false;
         }
         if (flag == WeaponType.BULLET) {
-            return deductCostOfAttackBullet(ed, energy, bullets, requester);
+            return deductEnergyCost(ed, energy, bullets, requester,
+                    BulletStats.class, WeaponType.BULLET);
         }
         if (flag == WeaponType.BOMB) {
-            return deductCostOfAttackBomb(ed, energy, bombs, requester);
+            return deductEnergyCost(ed, energy, bombs, requester,
+                    BombStats.class, WeaponType.BOMB);
         }
         if (flag == WeaponType.GRAVBOMB) {
-            return deductCostOfAttackGravityBomb(ed, energy, gravityBombs, requester);
+            return deductEnergyCost(ed, energy, gravityBombs, requester,
+                    GravityBombCost.class, WeaponType.GRAVBOMB);
         }
         if (flag == WeaponType.MINE) {
-            return deductCostOfAttackMine(ed, energy, mines, requester);
+            return deductEnergyCost(ed, energy, mines, requester,
+                    MineStats.class, WeaponType.MINE);
         }
         if (flag == WeaponType.BURST) {
-            return bursts.contains(requester);
+            return deductInventoryWeapon(ed, bursts, requester, new BurstChange(-1));
         }
         return false;
     }
 
-    static boolean deductCostOfAttackBullet(
-            final EntityData ed, final EnergySystem energy,
-            final EntitySet bullets, final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!bullets.contains(requester)) {
+    /** Energy-cost weapon: attribute cost to the firer via {@link EnergySystem#damage}. Cost source implements {@link EnergyCost}. */
+    static boolean deductEnergyCost(
+            final EntityData ed,
+            final EnergySystem energy,
+            final EntitySet set,
+            final Entity requester,
+            final Class<? extends EnergyCost> costClass,
+            final byte weaponType) {
+        if (!set.contains(requester)) {
             return false;
         }
-        final BulletStats stats = ed.getComponent(requesterId, BulletStats.class);
-        if (stats == null || stats.fireCostEnergy() > energy.getHealth(requesterId)) {
+        final EntityId id = requester.getId();
+        final EnergyCost source = ed.getComponent(id, costClass);
+        if (source == null) {
             return false;
         }
-        energy.damage(requesterId, stats.fireCostEnergy(), requesterId, WeaponType.BULLET);
+        final int amount = source.energyCost();
+        if (amount > energy.getHealth(id)) {
+            return false;
+        }
+        energy.damage(id, amount, id, weaponType);
         return true;
     }
 
-    static boolean deductCostOfAttackBomb(
-            final EntityData ed, final EnergySystem energy,
-            final EntitySet bombs, final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!bombs.contains(requester)) {
+    /** Inventory-cost weapon: emits a one-shot {@code ChangeTarget.self(ship) + *Change(-1)} Change holder; drained by the per-type canonical writer (e.g. {@code BurstSystem}). */
+    static boolean deductInventoryWeapon(
+            final EntityData ed,
+            final EntitySet set,
+            final Entity requester,
+            final EntityComponent change) {
+        if (!set.contains(requester)) {
             return false;
         }
-        final BombStats stats = ed.getComponent(requesterId, BombStats.class);
-        if (stats == null || stats.fireCostEnergy() > energy.getHealth(requesterId)) {
-            return false;
-        }
-        energy.damage(requesterId, stats.fireCostEnergy(), requesterId, WeaponType.BOMB);
-        return true;
-    }
-
-    static boolean deductCostOfAttackGravityBomb(
-            final EntityData ed, final EnergySystem energy,
-            final EntitySet gravityBombs, final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!gravityBombs.contains(requester)) {
-            return false;
-        }
-        final GravityBombCost bc = ed.getComponent(requesterId, GravityBombCost.class);
-        if (bc.getCost() > energy.getHealth(requesterId)) {
-            return false;
-        }
-        energy.damage(requesterId, bc.getCost(), requesterId, WeaponType.GRAVBOMB);
-        return true;
-    }
-
-    static boolean deductCostOfAttackMine(
-            final EntityData ed, final EnergySystem energy,
-            final EntitySet mines, final Entity requester) {
-        final EntityId requesterId = requester.getId();
-        if (!mines.contains(requester)) {
-            return false;
-        }
-        final MineStats stats = ed.getComponent(requesterId, MineStats.class);
-        if (stats == null || stats.dropCostEnergy() > energy.getHealth(requesterId)) {
-            return false;
-        }
-        energy.damage(requesterId, stats.dropCostEnergy(), requesterId, WeaponType.MINE);
+        final EntityId holder = ed.createEntity();
+        ed.setComponents(holder, ChangeTarget.self(requester.getId()), change);
         return true;
     }
 }
