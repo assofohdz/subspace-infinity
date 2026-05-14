@@ -137,7 +137,7 @@ public class ModelViewState extends BaseAppState {
   // to position the objects relative to the terrain.  The physics grid
   // is necessary for building the array of model filters.
   private final Vec3i largeModelCenter = new Vec3i();
-  private static final int gridRadius = 2;
+  private static final int GRID_RADIUS = 2;
   final Map<EntityId, Model> modelIndex = new HashMap<>();
   private final Vector3f avatarLoc = new Vector3f();
   // Center cell
@@ -445,12 +445,12 @@ public class ModelViewState extends BaseAppState {
   }
 
   protected void resetModelFilter() {
-    int size = gridRadius * 2 + 1;
+    int size = GRID_RADIUS * 2 + 1;
     final ComponentFilter[][] gridFilters = new ComponentFilter[size][size];
     ComponentFilter[] filters = new ComponentFilter[size * size];
 
-    int xOffset = centerWorld.x - gridRadius;
-    int zOffset = centerWorld.z - gridRadius;
+    int xOffset = centerWorld.x - GRID_RADIUS;
+    int zOffset = centerWorld.z - GRID_RADIUS;
     int index = 0;
     for (int x = 0; x < size; x++) {
       for (int z = 0; z < size; z++) {
@@ -467,12 +467,12 @@ public class ModelViewState extends BaseAppState {
   protected void resetLargeModelFilter() {
     // Update the large objects filter also... we'll use the same
     // radius/size for now
-    int size = gridRadius * 2 + 1;
+    int size = GRID_RADIUS * 2 + 1;
     final ComponentFilter[][] largeGridFilters = new ComponentFilter[size][size];
     ComponentFilter[] filters = new ComponentFilter[size * size];
 
-    int xOffset = largeModelCenter.x - gridRadius;
-    int zOffset = largeModelCenter.z - gridRadius;
+    int xOffset = largeModelCenter.x - GRID_RADIUS;
+    int zOffset = largeModelCenter.z - GRID_RADIUS;
     int index = 0;
     for (int x = 0; x < size; x++) {
       for (int z = 0; z < size; z++) {

@@ -172,15 +172,15 @@ public class WallLightDecoratorTest {
 
   @Test
   public void decorate_nonWallTilesIgnored_noEmittersFromGoalsOrFlags() {
-    // Place a 13-tile "run" of vieGoalArea tiles (172) — outside the wall range
-    // [vieNormalStart..vieNormalEnd] = [1..161], so the wall mask stays empty
+    // Place a 13-tile "run" of VIE_GOAL_AREA tiles (172) — outside the wall range
+    // [VIE_NORMAL_START..VIE_NORMAL_END] = [1..161], so the wall mask stays empty
     // and no emitter is produced even though the geometry would otherwise qualify.
     final int runLength = CoreViewConstants.WALL_LIGHT_MIN_RUN;
     final short[][] tiles = new short[FIXTURE_SIZE][FIXTURE_SIZE];
     final int rowZ = 10;
     final int startX = 5;
     for (int i = 0; i < runLength; i++) {
-      placeTile(tiles, startX + i, rowZ, MapTypes.vieGoalArea);
+      placeTile(tiles, startX + i, rowZ, MapTypes.VIE_GOAL_AREA);
     }
     final InfinityDefaultLeafWorld world = newWorld();
     final Set<Vec3d> coordinates = new HashSet<>();
@@ -200,7 +200,7 @@ public class WallLightDecoratorTest {
   /**
    * Build a tile grid of {@code size×size} with a horizontal wall run of
    * {@code length} cells starting at {@code (startX, z)} in <em>world</em>
-   * coordinates. Wall tile id is {@link MapTypes#vieNormalStart} (id 1, in the
+   * coordinates. Wall tile id is {@link MapTypes#VIE_NORMAL_START} (id 1, in the
    * wall range). Indexing is inverted to match the decorator's
    * {@code tiles[extent - x][extent - z]} read order.
    */
@@ -208,7 +208,7 @@ public class WallLightDecoratorTest {
       final int size, final int z, final int startX, final int length) {
     final short[][] tiles = new short[size][size];
     for (int i = 0; i < length; i++) {
-      placeTile(tiles, startX + i, z, MapTypes.vieNormalStart);
+      placeTile(tiles, startX + i, z, MapTypes.VIE_NORMAL_START);
     }
     return tiles;
   }
@@ -218,7 +218,7 @@ public class WallLightDecoratorTest {
       final int size, final int x, final int startZ, final int length) {
     final short[][] tiles = new short[size][size];
     for (int i = 0; i < length; i++) {
-      placeTile(tiles, x, startZ + i, MapTypes.vieNormalStart);
+      placeTile(tiles, x, startZ + i, MapTypes.VIE_NORMAL_START);
     }
     return tiles;
   }

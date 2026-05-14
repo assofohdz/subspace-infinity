@@ -36,10 +36,6 @@ public class AudioTypes {
     public static final String FLAG = "flag";
 
 
-    public static AudioType repel(final EntityData ed) {
-        return AudioType.create(REPEL, ed);
-    }
-
     public static AudioType fireThor(final EntityData ed) {
         return AudioType.create(FIRE_THOR, ed);
     }
@@ -97,10 +93,6 @@ public class AudioTypes {
         default:
             throw new UnsupportedOperationException("Unknown bullet level: " + level.level);
         }
-    }
-
-    public static AudioType explosion2(final EntityData ed) {
-        return AudioType.create(EXPLOSION2, ed);
     }
 
     public static AudioType fireBurst(final EntityData ed) {

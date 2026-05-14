@@ -101,9 +101,9 @@ public class LegacyMapProjectorTest {
   @Test
   public void project_outOfRangeTileId_writesInvisibleBlockType() {
     final LevelFile lvl = newEmptyLvl();
-    // vieStation (id 219) — not entity-backed in the projector AND > MAX_VISIBLE_TILE,
+    // VIE_STATION (id 219) — not entity-backed in the projector AND > MAX_VISIBLE_TILE,
     // so falls to the INVISIBLE_BLOCK_TYPE fallback per writeTileCell's contract.
-    placeTile(lvl, /*worldX=*/5, /*worldZ=*/7, MapTypes.vieStation);
+    placeTile(lvl, /*worldX=*/5, /*worldZ=*/7, MapTypes.VIE_STATION);
 
     projector.project(lvl, Vec3d.ZERO, ARENA_TILE_BASE, 0L);
 
@@ -116,7 +116,7 @@ public class LegacyMapProjectorTest {
   @Test
   public void project_turfFlag_spawnsFlagEntityAndLeavesCellEmpty() {
     final LevelFile lvl = newEmptyLvl();
-    placeTile(lvl, /*worldX=*/3, /*worldZ=*/4, MapTypes.vieTurfFlag);
+    placeTile(lvl, /*worldX=*/3, /*worldZ=*/4, MapTypes.VIE_TURF_FLAG);
 
     final Set<Vec3d> coords = projector.project(lvl, Vec3d.ZERO, ARENA_TILE_BASE, 100L);
 
@@ -133,8 +133,8 @@ public class LegacyMapProjectorTest {
   @Test
   public void project_doorAndWormhole_spawnEntitiesNotCells() {
     final LevelFile lvl = newEmptyLvl();
-    placeTile(lvl, /*worldX=*/10, /*worldZ=*/10, MapTypes.vieVDoorStart);
-    placeTile(lvl, /*worldX=*/20, /*worldZ=*/20, MapTypes.vieWormhole);
+    placeTile(lvl, /*worldX=*/10, /*worldZ=*/10, MapTypes.VIE_V_DOOR_START);
+    placeTile(lvl, /*worldX=*/20, /*worldZ=*/20, MapTypes.VIE_WORMHOLE);
 
     projector.project(lvl, Vec3d.ZERO, ARENA_TILE_BASE, 100L);
 
@@ -194,7 +194,7 @@ public class LegacyMapProjectorTest {
    * {@link LevelFile#getMap} mutation. We bypass the file-IO constructor
    * (no stream needed) and use the {@code BitMap}-only constructor; the
    * tile array is allocated in the field initializer to all-zero, which
-   * means every cell is {@code vieNoTile} (skipped by the projector).
+   * means every cell is {@code VIE_NO_TILE} (skipped by the projector).
    */
   private static LevelFile newEmptyLvl() {
     final LevelFile lvl = new LevelFile(new BitMap(null));

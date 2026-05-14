@@ -65,7 +65,7 @@ public class ChecksWorldSystem extends BaseInfinitySystem {
 
     ships = ed.getEntities(ShipType.class);
     final ComponentFilter<?> prizeSpawnerFilter =
-        FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.Prizes);
+        FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.PRIZES);
     prizeSpawners =
         ed.getEntities(prizeSpawnerFilter, Spawner.class, SpawnPosition.class);
     prizes = ed.getEntities(PrizeType.class);

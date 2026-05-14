@@ -10,6 +10,7 @@ import infinity.settings.GroovyFragmentLoader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
 import org.ini4j.Profile.Section;
@@ -127,8 +128,7 @@ public class SettingsSystem extends AbstractGameSystem {
     try {
       return Integer.parseInt(raw.trim());
     } catch (final NumberFormatException ignored) {
-      final Boolean aliased = parseBoolAlias(raw);
-      return aliased != null ? (aliased ? 1 : 0) : defaultValue;
+      return parseBoolAlias(raw).map(b -> b ? 1 : 0).orElse(defaultValue);
     }
   }
 
@@ -145,8 +145,7 @@ public class SettingsSystem extends AbstractGameSystem {
     if (raw == null) {
       return defaultValue;
     }
-    final Boolean aliased = parseBoolAlias(raw);
-    return aliased != null ? aliased : defaultValue;
+    return parseBoolAlias(raw).orElse(defaultValue);
   }
 
   /**
@@ -178,15 +177,15 @@ public class SettingsSystem extends AbstractGameSystem {
     return sec != null ? sec.get(key) : null;
   }
 
-  private static Boolean parseBoolAlias(final String raw) {
+  private static Optional<Boolean> parseBoolAlias(final String raw) {
     final String v = raw.trim();
     if (isTrueAlias(v)) {
-      return Boolean.TRUE;
+      return Optional.of(Boolean.TRUE);
     }
     if (isFalseAlias(v)) {
-      return Boolean.FALSE;
+      return Optional.of(Boolean.FALSE);
     }
-    return null;
+    return Optional.empty();
   }
 
   /** True iff {@code v} is one of the truthy boolean aliases (y/yes/true/on/1). */

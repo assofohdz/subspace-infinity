@@ -10,11 +10,13 @@ import com.simsilica.ext.mphys.Impulse;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
+import infinity.es.AudioType;
 import infinity.es.AudioTypes;
 import infinity.es.CollisionCategory;
 import infinity.es.Delay;
 import infinity.es.Meta;
 import infinity.es.Parent;
+import infinity.es.WeaponType;
 import infinity.es.WeaponTypes;
 import infinity.es.ship.actions.Thor;
 import infinity.sim.specs.BombSpec;
@@ -50,7 +52,7 @@ public final class WeaponFactory {
         lastDelayedBomb,
         Delay.duration(
             spec.createdTime(), spec.scheduledMillis(), spec.delayedComponents(), Delay.SET));
-    ed.setComponents(lastDelayedBomb, WeaponTypes.gravityBomb(ed));
+    ed.setComponents(lastDelayedBomb, WeaponType.create(WeaponTypes.GRAVITYBOMB, ed));
 
     return lastDelayedBomb;
   }
@@ -67,7 +69,7 @@ public final class WeaponFactory {
             spec.createdTime(),
             spec.createdTime()
                 + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
-        WeaponTypes.bomb(ed),
+        WeaponType.create(WeaponTypes.BOMB, ed),
         new Impulse(spec.linearVelocity()),
         new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
         new Parent(spec.owner()));
@@ -88,7 +90,7 @@ public final class WeaponFactory {
             spec.createdTime(),
             spec.createdTime()
                 + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
-        WeaponTypes.bullet(ed),
+        WeaponType.create(WeaponTypes.BULLET, ed),
         new Impulse(spec.linearVelocity()),
         new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
         new Parent(spec.owner()));
@@ -127,7 +129,7 @@ public final class WeaponFactory {
             spec.createdTime(),
             spec.createdTime()
                 + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
-        WeaponTypes.burst(ed),
+        WeaponType.create(WeaponTypes.BURST, ed),
         new Parent(spec.owner()));
     ed.setComponent(lastBomb, new Meta(spec.createdTime()));
     return lastBomb;
@@ -145,7 +147,7 @@ public final class WeaponFactory {
             spec.createdTime()
                 + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
         new Parent(spec.owner()),
-        AudioTypes.repel(ed));
+        AudioType.create(AudioTypes.REPEL, ed));
 
     ed.setComponent(lastWarpTo, new Meta(spec.createdTime()));
     return lastWarpTo;
@@ -163,7 +165,7 @@ public final class WeaponFactory {
             spec.createdTime(),
             spec.createdTime()
                 + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
-        WeaponTypes.thor(ed),
+        WeaponType.create(WeaponTypes.THOR, ed),
         new Impulse(spec.attackVelocity()),
         new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
         new Parent(spec.owner()),
@@ -182,7 +184,7 @@ public final class WeaponFactory {
         new SpawnPosition(spec.phys().getGrid(), spec.position()),
         Decay.duration(
             spec.createdTime(), TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
-        WeaponTypes.mine(ed),
+        WeaponType.create(WeaponTypes.MINE, ed),
         new Parent(spec.owner()));
     ed.setComponent(lastMine, new Meta(spec.createdTime()));
     return lastMine;

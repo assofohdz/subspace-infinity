@@ -19,7 +19,7 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
 
     static Logger log = LoggerFactory.getLogger(InfinityBlockFactory.class);
 
-    public static final boolean debug = false;
+    public static final boolean DEBUG = false;
 
     private final PartFactory[] dirParts;
     private final PartFactory internalParts;
@@ -154,7 +154,7 @@ public class InfinityBlockFactory extends DefaultBlockFactory {
                 if (part == null || (sideMask & dir.getBitMask()) == 0) {
                     continue;
                 }
-                if (debug) {
+                if (DEBUG) {
                     log.info("add part for:{}", dir);
                 }
                 count += part.addParts(buffer, i, j, k, xWorld, yWorld, zWorld, type, dir);

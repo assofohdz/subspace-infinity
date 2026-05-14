@@ -15,6 +15,7 @@ import com.simsilica.mworld.World;
 import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.config.EngineConfig;
+import infinity.es.TileType;
 import infinity.es.TileTypes;
 import infinity.map.LevelFile;
 import infinity.map.LevelLoader;
@@ -96,11 +97,11 @@ public class MapSystem extends BaseInfinitySystem {
     // tiletypes as filters)
     final EntityId e = ed.createEntity();
     final short s = 0;
-    ed.setComponent(e, TileTypes.legacy("empty", s, ed));
+    ed.setComponent(e, TileType.create(TileTypes.LEGACY, "empty", s, ed));
 
     final EntityId e2 = ed.createEntity();
     final short s2 = 0;
-    ed.setComponent(e2, TileTypes.wangblob("empty", s2, ed));
+    ed.setComponent(e2, TileType.create(TileTypes.WANGBLOB, "empty", s2, ed));
   }
 
   /**

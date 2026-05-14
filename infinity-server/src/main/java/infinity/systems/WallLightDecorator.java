@@ -73,7 +73,7 @@ public final class WallLightDecorator {
     for (int x = 0; x < sx; x++) {
       for (int z = 0; z < sz; z++) {
         final short s = tiles[extentX - x][extentZ - z];
-        wall[x][z] = s >= MapTypes.vieNormalStart && s <= MapTypes.vieNormalEnd;
+        wall[x][z] = s >= MapTypes.VIE_NORMAL_START && s <= MapTypes.VIE_NORMAL_END;
       }
     }
     return wall;

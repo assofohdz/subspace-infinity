@@ -85,8 +85,8 @@ public final class BlockTypeExpander {
           InfinityConstants.TILE_TYPE_BASE + arenaIndex * InfinityConstants.TILE_COUNT;
       for (int tileId = 1; tileId <= InfinityConstants.TILE_COUNT; tileId++) {
         final boolean passThrough =
-            (tileId >= MapTypes.vieFlyOverStart && tileId <= MapTypes.vieFlyOverEnd)
-                || (tileId >= MapTypes.vieFlyUnderStart && tileId <= MapTypes.vieFlyUnderEnd);
+            (tileId >= MapTypes.VIE_FLY_OVER_START && tileId <= MapTypes.VIE_FLY_OVER_END)
+                || (tileId >= MapTypes.VIE_FLY_UNDER_START && tileId <= MapTypes.VIE_FLY_UNDER_END);
         if (!passThrough) {
           expanded[arenaBase + tileId - 1] = solid;
           installed++;

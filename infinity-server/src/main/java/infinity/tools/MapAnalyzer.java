@@ -114,34 +114,34 @@ public final class MapAnalyzer {
   private static String[] buildCategoryLookup() {
     final String[] arr = new String[256];
     // Normal tiles (covers border too; border is overwritten below).
-    for (int i = MapTypes.vieNormalStart; i <= MapTypes.vieNormalEnd; i++) {
+    for (int i = MapTypes.VIE_NORMAL_START; i <= MapTypes.VIE_NORMAL_END; i++) {
       arr[i] = "normal[1..161]";
     }
-    arr[MapTypes.vieBorder] = "border(20)";
+    arr[MapTypes.VIE_BORDER] = "border(20)";
     // Doors.
-    for (int i = MapTypes.vieVDoorStart; i <= MapTypes.vieVDoorEnd; i++) {
+    for (int i = MapTypes.VIE_V_DOOR_START; i <= MapTypes.VIE_V_DOOR_END; i++) {
       arr[i] = "door-vertical[162..165]";
     }
-    for (int i = MapTypes.vieHDoorStart; i <= MapTypes.vieHDoorEnd; i++) {
+    for (int i = MapTypes.VIE_H_DOOR_START; i <= MapTypes.VIE_H_DOOR_END; i++) {
       arr[i] = "door-horizontal[166..169]";
     }
     // Singletons.
-    arr[MapTypes.vieTurfFlag] = "turfFlag(170)";
-    arr[MapTypes.vieSafeZone] = "safeZone(171)";
-    arr[MapTypes.vieGoalArea] = "goalArea(172)";
+    arr[MapTypes.VIE_TURF_FLAG] = "turfFlag(170)";
+    arr[MapTypes.VIE_SAFE_ZONE] = "safeZone(171)";
+    arr[MapTypes.VIE_GOAL_AREA] = "goalArea(172)";
     // Fly zones.
-    for (int i = MapTypes.vieFlyOverStart; i <= MapTypes.vieFlyOverEnd; i++) {
+    for (int i = MapTypes.VIE_FLY_OVER_START; i <= MapTypes.VIE_FLY_OVER_END; i++) {
       arr[i] = "flyOver[173..175]";
     }
-    for (int i = MapTypes.vieFlyUnderStart; i <= MapTypes.vieFlyUnderEnd; i++) {
+    for (int i = MapTypes.VIE_FLY_UNDER_START; i <= MapTypes.VIE_FLY_UNDER_END; i++) {
       arr[i] = "flyUnder[176..190]";
     }
     // Asteroid family + station + wormhole.
-    arr[MapTypes.vieAsteroidSmall] = "asteroidSmall(216)";
-    arr[MapTypes.vieAsteroidMedium] = "asteroidMedium(217)";
-    arr[MapTypes.vieAsteroidEnd] = "asteroidEnd(218)";
-    arr[MapTypes.vieStation] = "station(219)";
-    arr[MapTypes.vieWormhole] = "wormhole(220)";
+    arr[MapTypes.VIE_ASTEROID_SMALL] = "asteroidSmall(216)";
+    arr[MapTypes.VIE_ASTEROID_MEDIUM] = "asteroidMedium(217)";
+    arr[MapTypes.VIE_ASTEROID_END] = "asteroidEnd(218)";
+    arr[MapTypes.VIE_STATION] = "station(219)";
+    arr[MapTypes.VIE_WORMHOLE] = "wormhole(220)";
     return arr;
   }
 

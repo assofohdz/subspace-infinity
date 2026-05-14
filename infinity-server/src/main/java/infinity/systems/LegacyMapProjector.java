@@ -96,7 +96,7 @@ public final class LegacyMapProjector {
       final long createdTime,
       final MapSystemLogic.MapBuildStats stats) {
     final EngineConfig engineCfg = engineConfigProvider.get();
-    if (s == MapTypes.vieTurfFlag) {
+    if (s == MapTypes.VIE_TURF_FLAG) {
       MapFactory.createTurfStationaryFlag(
           ed,
           new infinity.sim.specs.TurfStationaryFlagSpec(
@@ -104,7 +104,7 @@ public final class LegacyMapProjector {
       stats.turfFlags++;
       return true;
     }
-    if (s == MapTypes.vieAsteroidSmall) {
+    if (s == MapTypes.VIE_ASTEROID_SMALL) {
       MapFactory.createAsteroidSmall(
           ed,
           new infinity.sim.specs.AsteroidSpec(
@@ -112,7 +112,7 @@ public final class LegacyMapProjector {
       stats.asteroidsSmall++;
       return true;
     }
-    if (s == MapTypes.vieAsteroidMedium) {
+    if (s == MapTypes.VIE_ASTEROID_MEDIUM) {
       MapFactory.createAsteroidMedium(
           ed,
           new infinity.sim.specs.AsteroidSpec(
@@ -120,7 +120,7 @@ public final class LegacyMapProjector {
       stats.asteroidsMedium++;
       return true;
     }
-    if (s == MapTypes.vieAsteroidEnd) {
+    if (s == MapTypes.VIE_ASTEROID_END) {
       MapFactory.createOver5(
           ed,
           new infinity.sim.specs.Over5Spec(
@@ -128,14 +128,14 @@ public final class LegacyMapProjector {
       stats.over5++;
       return true;
     }
-    if (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieHDoorEnd) {
+    if (s >= MapTypes.VIE_V_DOOR_START && s <= MapTypes.VIE_H_DOOR_END) {
       MapFactory.createDoor(
           ed,
           new infinity.sim.specs.DoorSpec(null, physicsSpace, createdTime, 5000, location));
       stats.doors++;
       return true;
     }
-    if (s == MapTypes.vieWormhole) {
+    if (s == MapTypes.VIE_WORMHOLE) {
       MapFactory.createWormhole(
           ed,
           new infinity.sim.specs.WormholeSpec(

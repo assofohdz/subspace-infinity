@@ -53,7 +53,7 @@ public class BrainConfiguration implements GoalSelector {
     private GoalSelector goalSelector;
     private Map<String, Object> properties = new HashMap<>();
     private Map<Class<? extends Goal>, Strategy<?>> strategies = new HashMap<>();
-    private Strategy<?> defaultStrategy;
+    private Strategy<Goal> defaultStrategy;
 
     public BrainConfiguration() {
     }
@@ -112,11 +112,11 @@ public class BrainConfiguration implements GoalSelector {
         return null;
     }
 
-    public void setDefaultStrategy( Strategy<?> strategy ) {
+    public void setDefaultStrategy( Strategy<Goal> strategy ) {
         this.defaultStrategy = strategy;
     }
 
-    public Strategy<?> getDefaultStrategy() {
+    public Strategy<Goal> getDefaultStrategy() {
         return defaultStrategy;
     }
 

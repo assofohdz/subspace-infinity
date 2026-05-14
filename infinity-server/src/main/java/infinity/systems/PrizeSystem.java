@@ -144,7 +144,7 @@ public class PrizeSystem extends BaseInfinitySystem implements ContactListener<E
     engineConfigSystem = requireSystem(EngineConfigSystem.class);
 
     ComponentFilter<?> prizeSpawnerFilter =
-        FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.Prizes);
+        FieldFilter.create(Spawner.class, "type", Spawner.SpawnType.PRIZES);
 
     prizeSpawners =
         ed.getEntities(prizeSpawnerFilter, Spawner.class, SpawnPosition.class, SphereShape.class);

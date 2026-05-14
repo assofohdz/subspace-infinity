@@ -254,16 +254,16 @@ public class MapSwapReproducerTest {
         coordinates.add(location);
 
         // Entity-backed tiles: MapSystem continues without writing cells; match that.
-        if (s == MapTypes.vieTurfFlag
-            || s == MapTypes.vieAsteroidSmall
-            || s == MapTypes.vieAsteroidMedium
-            || s == MapTypes.vieAsteroidEnd
-            || (s >= MapTypes.vieVDoorStart && s <= MapTypes.vieHDoorEnd)
-            || s == MapTypes.vieWormhole) {
+        if (s == MapTypes.VIE_TURF_FLAG
+            || s == MapTypes.VIE_ASTEROID_SMALL
+            || s == MapTypes.VIE_ASTEROID_MEDIUM
+            || s == MapTypes.VIE_ASTEROID_END
+            || (s >= MapTypes.VIE_V_DOOR_START && s <= MapTypes.VIE_H_DOOR_END)
+            || s == MapTypes.VIE_WORMHOLE) {
           continue;
         }
 
-        if (s == MapTypes.vieBorder) {
+        if (s == MapTypes.VIE_BORDER) {
           world.setWorldCell(location, INVISIBLE_BLOCK_TYPE);
         }
 
@@ -271,8 +271,8 @@ public class MapSwapReproducerTest {
 
         if (tileId >= 1 && tileId <= MAX_VISIBLE_TILE) {
           boolean isPassThrough =
-              (tileId >= MapTypes.vieFlyOverStart && tileId <= MapTypes.vieFlyOverEnd)
-                  || (tileId >= MapTypes.vieFlyUnderStart && tileId <= MapTypes.vieFlyUnderEnd);
+              (tileId >= MapTypes.VIE_FLY_OVER_START && tileId <= MapTypes.VIE_FLY_OVER_END)
+                  || (tileId >= MapTypes.VIE_FLY_UNDER_START && tileId <= MapTypes.VIE_FLY_UNDER_END);
           if (!isPassThrough) {
             world.setWorldCell(location, INVISIBLE_BLOCK_TYPE);
           } else {

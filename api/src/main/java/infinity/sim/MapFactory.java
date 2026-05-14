@@ -237,7 +237,7 @@ public final class MapFactory {
             spec.maxCount(),
             spec.spawnInterval(),
             spec.spawnOnRing(),
-            Spawner.SpawnType.Prizes,
+            Spawner.SpawnType.PRIZES,
             true,
             spec.prizeDecayMillis(),
             spec.countPerPlayer(),

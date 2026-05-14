@@ -97,7 +97,7 @@ public class Spawner implements EntityComponent {
   }
 
   public enum SpawnType {
-    Players,
-    Prizes
+    PLAYERS,
+    PRIZES
   }
 }

@@ -76,7 +76,7 @@ public class GameSounds {
 
     ed.setComponents(
         result,
-        AudioTypes.explosion2(ed),
+        AudioType.create(AudioTypes.EXPLOSION2, ed),
         new Decay(
             createdTime, createdTime + TimeUnit.NANOSECONDS.convert(3000, TimeUnit.MILLISECONDS)),
         new SpawnPosition(phys.getGrid(), pos),
