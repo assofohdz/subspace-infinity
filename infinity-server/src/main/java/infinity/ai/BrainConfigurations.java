@@ -87,7 +87,7 @@ public final class BrainConfigurations {
     wireChickenGoalSelector(config);
     wireChickenDefaultStrategy(config);
     wireChickenWander(config);
-    wireChickenEat(config, ed);
+    wireMobEat(config, ed, 0.5, "*yum*", "*BACAW*");
     wireChickenGo(config);
     wireChickenFlee(config);
     return config;
@@ -196,94 +196,22 @@ public final class BrainConfigurations {
     return false;
   }
 
-  /** Chicken's Wander strategy: loop random walk, with corn-touch promoting to Eat. */
+  /** Chicken's Wander strategy: loop random walk + corn-touch promotion. */
   private static void wireChickenWander(final BrainConfiguration config) {
     config.setStrategy(
         Wander.class,
-        new Strategy<TimedGoal>(
-                (brain, goal) -> {
-                  log.info(LOG_CREATE_LOOP, goal);
-                  return new LoopAction<>(
-                      goal,
-                      (b, g) -> {
-                        double duration =
-                            Math.min(goal.getTimeRemaining(), 2 + Math.random() * 3);
-                        double angle = Math.random() * Math.PI * 2;
-                        Vec3d dir = new Vec3d(0, 0, 0.5);
-                        return new WalkDir(angle, dir, duration, 0);
-                      });
-                })
-            .onDone((brain, goal) -> {
-                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
-                  return null;
-                })
-            .onFailed((brain, goal) -> {
-                  log.info(LOG_GOAL_FAILED, goal, brain);
-                  return new Say("*bawk*", 1);
-                })
+        buildLoopWanderStrategy("*bawk*")
             .onTouch(Collections.singletonList(CORN),
-                BrainConfigurations::onCornTouchedPromoteToEat)
-            .onBlocked(BrainConfigurations::stopOnBlocked));
+                BrainConfigurations::onCornTouchedPromoteToEat));
   }
 
-  /** Chicken's Eat strategy: walk to the food, wait, eat (delete entity), say *yum*. */
-  private static void wireChickenEat(final BrainConfiguration config, final EntityData ed) {
-    config.setStrategy(
-        Eat.class,
-        new Strategy<Eat>(
-                (brain, goal) -> {
-                  // Walk to the food. For now we'll walk to where the food is...
-                  SeenObject food = brain.getActor().look(goal.getTarget());
-                  WalkTo walk = new WalkTo(food.getPosition(), 0.5, 0.35, 2.0);
-                  Wait wait =
-                      new Wait(1) {
-                        protected boolean onStart(SimTime time, Brain brain) {
-                          // Did another chicken eat it in the same update?
-                          if (ed.getComponent(goal.getTarget(), ShapeInfo.class) == null) {
-                            return false;
-                          }
-                          ed.removeEntity(goal.getTarget());
-                          return true;
-                        }
-                      };
-                  Say say = new Say("*yum*", 1);
-                  return new Sequence(walk, wait, say);
-                })
-            .onDone((brain, goal) -> {
-                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
-                  return null;
-                })
-            .onFailed((brain, goal) -> {
-                  if (log.isInfoEnabled()) {
-                    log.info(LOG_GOAL_FAILED_WITH_ACTION,
-                        goal, brain, goal.getFailedAction());
-                  }
-                  return new Say("*BACAW*", 1);
-                })
-            .onBlocked(BrainConfigurations::stopOnBlocked));
-  }
-
-  /** Chicken's Go strategy: walk to a target; corn-touch promotes to Eat. */
+  /** Chicken's Go strategy: walk to a target + corn-touch promotion. */
   private static void wireChickenGo(final BrainConfiguration config) {
     config.setStrategy(
         Go.class,
-        new Strategy<Go>(
-                (brain, goal) -> {
-                  Say say = new Say("?", 1);
-                  WalkTo walk = new WalkTo(goal.getTarget(), 0.5, goal.getRange(), 5.0);
-                  return new Sequence(say, walk);
-                })
-            .onDone((brain, goal) -> {
-                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
-                  return null;
-                })
-            .onFailed((brain, goal) -> {
-                  log.info(LOG_GOAL_FAILED, goal, brain);
-                  return new Say("??", 1);
-                })
+        buildGoStrategy(0.5)
             .onTouch(Collections.singletonList(CORN),
-                BrainConfigurations::onCornTouchedPromoteToEat)
-            .onBlocked(BrainConfigurations::stopOnBlocked));
+                BrainConfigurations::onCornTouchedPromoteToEat));
   }
 
   /** Chicken's Flee strategy: walk away from the pursuer with three BAWK steps. */
@@ -333,117 +261,103 @@ public final class BrainConfigurations {
     return true;
   }
 
-  public static BrainConfiguration createDog(final EntityData ed) {
-    BrainConfiguration config = new BrainConfiguration();
+  /** Shared LoopAction-based Wander strategy; failSay parameterises the onFailed bawk/ruff/Hmph reaction. */
+  private static Strategy<TimedGoal> buildLoopWanderStrategy(final String failSay) {
+    return new Strategy<TimedGoal>(
+            (brain, goal) -> {
+              log.info(LOG_CREATE_LOOP, goal);
+              return new LoopAction<>(
+                  goal,
+                  (b, g) -> {
+                    final double duration =
+                        Math.min(goal.getTimeRemaining(), 2 + Math.random() * 3);
+                    final double angle = Math.random() * Math.PI * 2;
+                    final Vec3d dir = new Vec3d(0, 0, 0.5);
+                    return new WalkDir(angle, dir, duration, 0);
+                  });
+            })
+        .onDone((brain, goal) -> {
+              log.info(LOG_GOAL_SUCCEEDED, goal, brain);
+              return null;
+            })
+        .onFailed((brain, goal) -> {
+              log.info(LOG_GOAL_FAILED, goal, brain);
+              return new Say(failSay, 1);
+            })
+        .onBlocked(BrainConfigurations::stopOnBlocked);
+  }
 
-    config.setProperty(HOME, new Vec3d(-17, 64, 19));
+  /** Shared Go strategy; walkSpeed parameterises the WalkTo speed. */
+  private static Strategy<Go> buildGoStrategy(final double walkSpeed) {
+    return new Strategy<Go>(
+            (brain, goal) -> {
+              final Say say = new Say("?", 1);
+              final WalkTo walk = new WalkTo(goal.getTarget(), walkSpeed, goal.getRange(), 5.0);
+              return new Sequence(say, walk);
+            })
+        .onDone((brain, goal) -> {
+              log.info(LOG_GOAL_SUCCEEDED, goal, brain);
+              return null;
+            })
+        .onFailed((brain, goal) -> {
+              log.info(LOG_GOAL_FAILED, goal, brain);
+              return new Say("??", 1);
+            })
+        .onBlocked(BrainConfigurations::stopOnBlocked);
+  }
 
+  /** Shared goal-selector for non-chicken mobs: go-home if past triggerDistance, else wander. */
+  private static void wireGenericGoalSelector(
+      final BrainConfiguration config,
+      final double triggerDistance,
+      final double arrivalRange) {
     config.setGoalSelector(
         (brain) -> {
           if (log.isInfoEnabled()) {
             log.info(LOG_SELECT_GOAL_FAILED, brain.getFailedGoals());
           }
-          Goal goHome = pickGoHomeGoal(brain, brain.getActor(), 10.0, 5.0);
+          final Goal goHome = pickGoHomeGoal(brain, brain.getActor(), triggerDistance, arrivalRange);
           return goHome != null ? goHome : new Wander(10);
         });
+  }
 
+  /** Shared default strategy for non-chicken mobs: random walk; ignore corn / TODO chase fast threats. */
+  private static void wireGenericDefaultStrategyCornSkip(final BrainConfiguration config) {
     config.setDefaultStrategy(
         new Strategy<Goal>(
                 (brain, goal) -> {
-                  // Random angle
-                  double angle = Math.random() * Math.PI * 2;
-                  Vec3d dir = new Vec3d(0, 0, 0.5);
-                  WalkDir walk = new WalkDir(angle, dir, 1.0, 0);
-
+                  final double angle = Math.random() * Math.PI * 2;
+                  final Vec3d dir = new Vec3d(0, 0, 0.5);
+                  final WalkDir walk = new WalkDir(angle, dir, 1.0, 0);
                   return new Sequence(new Say("/?/", 1, 0), walk);
                 })
             .onMoved(
                 (brain, obj) -> {
                   if (CORN.equals(obj.getType())) {
-                    // We don't care about moving corn
                     return false;
                   }
-
                   // TODO chase fast-moving objects (filter by size to skip corn).
                   return false;
                 }));
-
-    config.setStrategy(
-        Wander.class,
-        new Strategy<TimedGoal>(
-                (brain, goal) -> {
-                  log.info(LOG_CREATE_LOOP, goal);
-                  return new LoopAction<>(
-                      goal,
-                      (b, g) -> {
-                        // Random duration between 2-5 seconds, not more than
-                        // whatever time is remaining
-                        double duration =
-                            Math.min(goal.getTimeRemaining(), 2 + Math.random() * 3);
-
-                        // Random angle
-                        double angle = Math.random() * Math.PI * 2;
-                        Vec3d dir = new Vec3d(0, 0, 0.5);
-
-                        return new WalkDir(angle, dir, duration, 0);
-                      });
-                })
-            .onDone(
-                (brain, goal) -> {
-                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
-                  return null;
-                })
-            .onFailed(
-                (brain, goal) -> {
-                  log.info(LOG_GOAL_FAILED, goal, brain);
-                  return new Say("*ruff*", 1);
-                })
-            .onBlocked(
-                (brain, blocker) -> {
-                  log.info(LOG_BLOCKED_BY, blocker);
-                  brain.goalFailed();
-                  // Stop moving... really would be nice to be able to abort actions
-                  brain.getActor().move(new Vec3d());
-                  return true;
-                }));
-
-    wireDogEat(config, ed);
-
-    config.setStrategy(
-        Go.class,
-        new Strategy<Go>(
-                (brain, goal) -> {
-                  Say say = new Say("?", 1);
-                  WalkTo walk = new WalkTo(goal.getTarget(), 0.5, goal.getRange(), 5.0);
-                  return new Sequence(say, walk);
-                })
-            .onDone(
-                (brain, goal) -> {
-                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
-                  return null;
-                })
-            .onFailed(
-                (brain, goal) -> {
-                  log.info(LOG_GOAL_FAILED, goal, brain);
-                  return new Say("??", 1);
-                })
-            .onBlocked(BrainConfigurations::stopOnBlocked));
-
-    return config;
   }
 
-  /** Dog's Eat strategy: walk to food at 0.5 speed, eat, *yum* / *grr* on fail. */
-  private static void wireDogEat(final BrainConfiguration config, final EntityData ed) {
+  /** Shared Eat strategy: walk to food at walkSpeed, eat (delete entity), say yumSay; failSay on fail. */
+  private static void wireMobEat(
+      final BrainConfiguration config,
+      final EntityData ed,
+      final double walkSpeed,
+      final String yumSay,
+      final String failSay) {
     config.setStrategy(
         Eat.class,
         new Strategy<Eat>(
                 (brain, goal) -> {
-                  // Walk to the food. For now we'll walk to where the food is...
-                  SeenObject food = brain.getActor().look(goal.getTarget());
-                  WalkTo walk = new WalkTo(food.getPosition(), 0.5, 0.35, 2.0);
-                  Wait wait =
+                  final SeenObject food = brain.getActor().look(goal.getTarget());
+                  final WalkTo walk = new WalkTo(food.getPosition(), walkSpeed, 0.35, 2.0);
+                  final Wait wait =
                       new Wait(1) {
-                        protected boolean onStart(SimTime time, Brain brain) {
+                        @Override
+                        protected boolean onStart(final SimTime time, final Brain brain) {
                           // Did another mob eat it in the same update?
                           if (ed.getComponent(goal.getTarget(), ShapeInfo.class) == null) {
                             return false;
@@ -452,7 +366,7 @@ public final class BrainConfigurations {
                           return true;
                         }
                       };
-                  Say say = new Say("*yum*", 1);
+                  final Say say = new Say(yumSay, 1);
                   return new Sequence(walk, wait, say);
                 })
             .onDone((brain, goal) -> {
@@ -464,145 +378,31 @@ public final class BrainConfigurations {
                     log.info(LOG_GOAL_FAILED_WITH_ACTION,
                         goal, brain, goal.getFailedAction());
                   }
-                  return new Say("*grr*", 1);
+                  return new Say(failSay, 1);
                 })
             .onBlocked(BrainConfigurations::stopOnBlocked));
+  }
+
+  public static BrainConfiguration createDog(final EntityData ed) {
+    final BrainConfiguration config = new BrainConfiguration();
+    config.setProperty(HOME, new Vec3d(-17, 64, 19));
+    wireGenericGoalSelector(config, 10.0, 5.0);
+    wireGenericDefaultStrategyCornSkip(config);
+    config.setStrategy(Wander.class, buildLoopWanderStrategy("*ruff*"));
+    wireMobEat(config, ed, 0.5, "*yum*", "*grr*");
+    config.setStrategy(Go.class, buildGoStrategy(0.5));
+    return config;
   }
 
   public static BrainConfiguration createPerson(final EntityData ed) {
-    BrainConfiguration config = new BrainConfiguration();
-
+    final BrainConfiguration config = new BrainConfiguration();
     config.setProperty(HOME, new Vec3d(-15, 64, 26));
-
-    config.setGoalSelector(
-        (brain) -> {
-          if (log.isInfoEnabled()) {
-            log.info(LOG_SELECT_GOAL_FAILED, brain.getFailedGoals());
-          }
-          Goal goHome = pickGoHomeGoal(brain, brain.getActor(), 15.0, 5.0);
-          return goHome != null ? goHome : new Wander(10);
-        });
-
-    config.setDefaultStrategy(
-        new Strategy<Goal>(
-                (brain, goal) -> {
-                  // Random angle
-                  double angle = Math.random() * Math.PI * 2;
-                  Vec3d dir = new Vec3d(0, 0, 0.5);
-                  WalkDir walk = new WalkDir(angle, dir, 1.0, 0);
-
-                  return new Sequence(new Say("/?/", 1, 0), walk);
-                })
-            .onMoved(
-                (brain, obj) -> {
-                  if (CORN.equals(obj.getType())) {
-                    // We don't care about moving corn
-                    return false;
-                  }
-
-                  // TODO chase fast-moving objects (filter by size to skip corn).
-                  return false;
-                }));
-
-    config.setStrategy(
-        Wander.class,
-        new Strategy<TimedGoal>(
-                (brain, goal) -> {
-                  log.info(LOG_CREATE_LOOP, goal);
-                  return new LoopAction<>(
-                      goal,
-                      (b, g) -> {
-                        // Random duration between 2-5 seconds, not more than
-                        // whatever time is remaining
-                        double duration =
-                            Math.min(goal.getTimeRemaining(), 2 + Math.random() * 3);
-
-                        // Random angle
-                        double angle = Math.random() * Math.PI * 2;
-                        Vec3d dir = new Vec3d(0, 0, 0.5);
-
-                        return new WalkDir(angle, dir, duration, 0);
-                      });
-                })
-            .onDone(
-                (brain, goal) -> {
-                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
-                  return null;
-                })
-            .onFailed(
-                (brain, goal) -> {
-                  log.info(LOG_GOAL_FAILED, goal, brain);
-                  return new Say("Hmph!", 1);
-                })
-            .onBlocked(
-                (brain, blocker) -> {
-                  log.info(LOG_BLOCKED_BY, blocker);
-                  brain.goalFailed();
-                  // Stop moving... really would be nice to be able to abort actions
-                  brain.getActor().move(new Vec3d());
-                  return true;
-                }));
-
-    wirePersonEat(config, ed);
-
-    config.setStrategy(
-        Go.class,
-        new Strategy<Go>(
-                (brain, goal) -> {
-                  Say say = new Say("?", 1);
-                  WalkTo walk = new WalkTo(goal.getTarget(), 1, goal.getRange(), 5.0);
-                  return new Sequence(say, walk);
-                })
-            .onDone(
-                (brain, goal) -> {
-                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
-                  return null;
-                })
-            .onFailed(
-                (brain, goal) -> {
-                  log.info(LOG_GOAL_FAILED, goal, brain);
-                  return new Say("??", 1);
-                })
-            .onBlocked(BrainConfigurations::stopOnBlocked));
-
+    wireGenericGoalSelector(config, 15.0, 5.0);
+    wireGenericDefaultStrategyCornSkip(config);
+    config.setStrategy(Wander.class, buildLoopWanderStrategy("Hmph!"));
+    wireMobEat(config, ed, 1, "Yum!", "Ugh!");
+    config.setStrategy(Go.class, buildGoStrategy(1));
     return config;
-  }
-
-  /** Person's Eat strategy: walk to food at speed 1, eat, Yum!/Ugh! reactions. */
-  private static void wirePersonEat(final BrainConfiguration config, final EntityData ed) {
-    config.setStrategy(
-        Eat.class,
-        new Strategy<Eat>(
-                (brain, goal) -> {
-                  // Walk to the food. For now we'll walk to where the food is...
-                  SeenObject food = brain.getActor().look(goal.getTarget());
-                  WalkTo walk = new WalkTo(food.getPosition(), 1, 0.35, 2.0);
-                  Wait wait =
-                      new Wait(1) {
-                        protected boolean onStart(SimTime time, Brain brain) {
-                          // Did another mob eat it in the same update?
-                          if (ed.getComponent(goal.getTarget(), ShapeInfo.class) == null) {
-                            return false;
-                          }
-                          ed.removeEntity(goal.getTarget());
-                          return true;
-                        }
-                      };
-                  Say say = new Say("Yum!", 1);
-                  return new Sequence(walk, wait, say);
-                })
-            .onDone((brain, goal) -> {
-                  log.info(LOG_GOAL_SUCCEEDED, goal, brain);
-                  return null;
-                })
-            .onFailed((brain, goal) -> {
-                  if (log.isInfoEnabled()) {
-                    log.info(LOG_GOAL_FAILED_WITH_ACTION,
-                        goal, brain, goal.getFailedAction());
-                  }
-                  return new Say("Ugh!", 1);
-                })
-            .onBlocked(BrainConfigurations::stopOnBlocked));
   }
 
   public static BrainConfiguration createDummy(final EntityData ed) {
