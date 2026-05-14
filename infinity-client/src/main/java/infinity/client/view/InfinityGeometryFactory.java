@@ -160,8 +160,8 @@ public class InfinityGeometryFactory {
         }
         mesh.setBuffer(VertexBuffer.Type.Color, 4, buffers.colors);
         mesh.setStatic();
-        // FIXME: we do not need to calculate a bound because we could have
-        // collected that information above.
+        // NOTE: redundant bound recalc — buffer-fill loop above already has
+        // the min/max corners and could stamp the bound directly.
         mesh.updateBound();
         return mesh;
     }
@@ -186,7 +186,8 @@ public class InfinityGeometryFactory {
             throw new IllegalStateException("Materal not found for:" + mt.getId());
         }
         geom.setMaterial(mat);
-        // FIXME: Bucket.Transparent — kind of a hack; not sure what the better way is.
+        // NOTE: any alpha-blended material auto-routes to the transparent queue;
+        // explicit bucket selection by material type would be cleaner.
         if (geom.getMaterial().getAdditionalRenderState().getBlendMode() == BlendMode.Alpha) {
             log.debug("Putting in transparent bucket:{}", geom);
             geom.setQueueBucket(Bucket.Transparent);

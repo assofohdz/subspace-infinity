@@ -15,10 +15,6 @@ import com.simsilica.es.EntityComponent;
  * from {@code BombConfig.bombSafety()} + {@code BombConfig.proximityDistance()}.
  * Per ADR-0002 Config-Component Projection; closes the hot-path
  * {@code infinity.config.BombConfig} import in {@code WeaponsEligibility}.
- *
- * <p>TODO: bomb.groovy edits do not re-project this onto existing ships
- * today (consistent with existing fragment hot-reload story per
- * ADR-0004); selective per-component reproject is future work.
  */
 public record BombSafetyRadius(boolean enabled, int baseTiles) implements EntityComponent {
 

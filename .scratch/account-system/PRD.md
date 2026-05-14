@@ -10,4 +10,8 @@ See https://github.com/assofohdz/moss/tree/master/maccount and implement an acco
 - [ ] Ability to log in
 - [ ] Ability to log out
 
+## Code-extracted TODOs
+
+- [ ] Implement the `infinity.sim.AccountManager` interface (currently an empty marker) — needs per-entity access-level lookup so chat command dispatch can gate execution. Source: `infinity-server/src/main/java/infinity/server/chat/InfinityChatHostedService.java:193`.
+
 ## Comments

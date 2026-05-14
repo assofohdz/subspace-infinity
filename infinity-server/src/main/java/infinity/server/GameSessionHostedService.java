@@ -419,7 +419,6 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
     @Override
     public void toggle(final byte toggleInput) {
-      // TODO Auto-generated method stub
     }
 
     @Override

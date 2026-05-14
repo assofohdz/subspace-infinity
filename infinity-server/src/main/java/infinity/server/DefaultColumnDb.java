@@ -70,9 +70,9 @@ public class DefaultColumnDb extends AbstractColumnDb {
 
   private SpoolingObjectDb<ColumnId, ColumnData> storage;
 
-  // Class-wide write lock; FIXME above wants per-column locks but this matches the prior intent
-  // (serialize writeColumn). Locking on the `data` parameter (S2445) was unsafe — callers could
-  // hold an external monitor on the same ColumnData and deadlock with the spool thread.
+  // Class-wide write lock — serializes writeColumn calls. Locking on the `data` parameter
+  // (S2445) was unsafe: callers could hold an external monitor on the same ColumnData and
+  // deadlock with the spool thread. Per-column locks would scale better; see backlog.
   private final Object writeLock = new Object();
 
   public DefaultColumnDb( final File root) {
@@ -93,7 +93,6 @@ public class DefaultColumnDb extends AbstractColumnDb {
       }
 
       protected void storeObject( final ColumnId id, final ColumnData data ) {
-        // FIXME: column locks instead of hard sync
         synchronized(writeLock) {
           writeColumn(data);
         }
@@ -149,8 +148,6 @@ public class DefaultColumnDb extends AbstractColumnDb {
 
     // Reset the version first so that we write the new version value
     // to the file.
-    // FIXME: fix the thread sync issue here that is pretty common with all
-    // DataVerison use-cases.
     col.resetChanged(System.currentTimeMillis());
     writeColumn(f, col);
   }

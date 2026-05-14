@@ -226,15 +226,10 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
 
   public Iterable<SeenObject> search(final Predicate<? super String> filter) {
 
-    // For now the inefficient way  FIXME: use positional grid searches and
-    // split queries for static/dynamic
-    //
-    // Actually, search of live objects should probably be a physics
-    // query using some shape like a cone or sphere.
-
-    // Eventually we will want to know look direction, etc.
-    // For now just use a simple radius check
-    double radius = PERCEPTION_RADIUS; // chickens are near-sighted in this demo
+    // Linear scan over all objects — perception is a simple radius check (chickens
+    // are near-sighted in this demo). Spatial-index / physics broadphase upgrade is
+    // tracked in .scratch/code-todos-backlog.md.
+    double radius = PERCEPTION_RADIUS;
 
     // Could be a few cases here:
     // 1) rigid body (because radius is going to be relatively small, it should

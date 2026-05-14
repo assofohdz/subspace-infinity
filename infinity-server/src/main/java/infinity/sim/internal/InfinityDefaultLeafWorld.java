@@ -136,11 +136,6 @@ public class InfinityDefaultLeafWorld implements World {
 
   @Override
   public int setWorldCell(final Vec3d world, final int type) {
-    //TODO: Implement some kind of batching here so that we don't
-    // have to do a full recalculation for every cell change. Maybe
-    // a 'setWorldCells' that takes a list of cells to change and
-    // then does a single recalculation.
-
     LeafId id = LeafId.fromWorld(world);
     LeafData leaf = getLeaf(id);
     if (leaf == null) {

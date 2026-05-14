@@ -257,7 +257,7 @@ public class MapState extends BaseAppState {
         if (!imageMap.containsKey(key)) {
 
             if (!levelFiles.containsKey(tileSet)) {
-                final LevelFile lf = loadMap(tileSet); // TODO: Should be done in a non-intrusive way
+                final LevelFile lf = loadMap(tileSet);
                 levelFiles.put(tileSet, lf);
 
             }
@@ -294,7 +294,7 @@ public class MapState extends BaseAppState {
             if (!imageMap.containsKey(key)) {
 
                 if (!levelFiles.containsKey(tileSet)) {
-                    final LevelFile lf = loadMap(tileSet); // TODO: Should be done in a non-intrusive way
+                    final LevelFile lf = loadMap(tileSet);
                     levelFiles.put(tileSet, lf);
 
                 }
@@ -312,7 +312,6 @@ public class MapState extends BaseAppState {
         @Override
         protected void updateObject(final Image object, final Entity e) {
             // Does not support mass updating tiles right now
-            // TODO: The tileIndex in a TileInfo component could change
         }
 
         @Override

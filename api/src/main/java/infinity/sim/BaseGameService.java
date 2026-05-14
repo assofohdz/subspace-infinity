@@ -9,8 +9,8 @@ import com.jme3.network.service.AbstractHostedService;
  *
  * @author Asser
  */
-// TODO: instantiate via a future GroovyModuleLoader. The legacy AdaptiveLoader
-// was retired; see .scratch/deprecate-adaptive-loader/PRD.md. No concrete
+// NOTE: instantiated by the future GroovyModuleLoader. The legacy AdaptiveLoader
+// was retired; see .scratch/groovy-module-loader/PRD.md. No concrete
 // subclasses exist today; kept as scaffolding for the planned Groovy port.
 public abstract class BaseGameService extends AbstractHostedService {
 

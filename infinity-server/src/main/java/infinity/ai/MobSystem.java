@@ -260,7 +260,8 @@ public class MobSystem extends AbstractGameSystem {
         // when we don't that would be our broadphase check anyway
         double radius = body.shape.getMass().getRadius();
 
-        // Brute-force, no special spatial indexes.  FIXME: use a bin system or something
+        // Brute-force movement-event distribution — spatial bin index upgrade tracked
+        // in .scratch/code-todos-backlog.md.
         for( final Brain brain : brains.getArray() ) {
 
             // Don't deliver our own events
@@ -270,10 +271,8 @@ public class MobSystem extends AbstractGameSystem {
 
             // Really need to define our own sphere primitive
             Vec3d pos = brain.getActor().getPosition();
-            double perc = 2; // just hard-code something for now... should be the same
-                             // as the distance in Actor.look(), though.
-                             // The fact that we have two different places in the
-                             // code is a problem.  FIXME: consolidate perception checks
+            double perc = 2; // hard-coded perception radius; mirrors Actor.look() distance
+                             // — consolidation tracked in code-todos-backlog.md.
 
             // Everything at the moment is a chicken and we'll limit
             // chickens to movement of 5 cm/sec or more

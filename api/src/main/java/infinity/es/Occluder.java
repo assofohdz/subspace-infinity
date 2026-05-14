@@ -10,5 +10,4 @@ import com.simsilica.es.EntityComponent;
  * @author Asser
  */
 public class Occluder implements EntityComponent {
-    // TODO implement me
 }

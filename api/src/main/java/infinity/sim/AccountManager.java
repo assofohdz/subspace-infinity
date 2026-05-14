@@ -8,5 +8,4 @@ package infinity.sim;
  * @author Asser
  */
 public interface AccountManager {
-    // TODO implement me
 }

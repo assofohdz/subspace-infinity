@@ -467,7 +467,6 @@ public class ConsumableSystem extends BaseInfinitySystem
       return new ActionPosition(new Vec3d(shipBody.position), new Vec3d(0, 0, 0));
     }
 
-    // TODO: Look these settings up in SettingsSystem.
     if (weaponFlag == ConsumableTypeId.FIRETHOR) {
       projectileVelocity.addLocal(0, 0, 50);
     } else {

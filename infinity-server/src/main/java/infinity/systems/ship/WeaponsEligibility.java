@@ -316,7 +316,6 @@ final class WeaponsEligibility {
             return deductCostOfAttackMine(ed, energy, mines, requester);
         }
         if (flag == WeaponType.BURST) {
-            // TODO: Add cost to burst.
             return bursts.contains(requester);
         }
         return false;

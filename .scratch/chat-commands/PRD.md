@@ -98,4 +98,8 @@ Cross-ref: [GH #21](https://github.com/assofohdz/subspace-infinity/issues/21)
 | `%coord` | your coords (e.g. A4, J12) |
 | `%area` | your area (e.g. Upper-Right, Middle) |
 
+## Code-extracted TODOs
+
+- [ ] `InfinityChatHostedService.registerCommandConsumer` is a near-stub — it posts the help text but never builds the regex pattern that dispatches the command. Implement the pattern construction (sender-aware: prefix differs by access level) and wire it into the pattern-dispatch table used by `postMessage`. Source: `infinity-server/src/main/java/infinity/server/chat/InfinityChatHostedService.java:300`.
+
 ## Comments

@@ -190,7 +190,6 @@ public final class InfinityChatHostedService extends AbstractHostedConnectionSer
         matched = true;
         final CommandTriFunction<EntityId, EntityId, Matcher, String> cc =
             patternTriConsumer.get(pattern);
-        // TODO: Implement account service to manage security levels
         // if (getService(AccountHostedService.class).isAtLeastAtAccessLevel(fromEntity,
         // cc.getAccessLevelRequired())) {
         TriFunction<EntityId, EntityId, Matcher, String> function = cc.getFunction();
@@ -245,11 +244,9 @@ public final class InfinityChatHostedService extends AbstractHostedConnectionSer
   @Override
   public void registerPatternTriConsumer(
       final Pattern pattern, final String description, final CommandTriFunction c) {
-    // TODO: For now, only one consumer per pattern (we could potentially have
-    // multiple)
+    // NOTE: One consumer per pattern by design — last registration wins on collision.
     patternTriConsumer.put(pattern, c);
 
-    // TODO: Post message only to those who have the proper access level
     postPublicMessage(SYSTEM_MESSAGE_SENDER, MessageTypes.MESSAGE, description);
   }
 
@@ -297,10 +294,6 @@ public final class InfinityChatHostedService extends AbstractHostedConnectionSer
   @Override
   public void registerCommandConsumer(
       final String cmd, final String helptext, final CommandFunction c) {
-    // TODO: Put together the pattern that will match, depending on the sender and
-    // the command
-
-    // TODO: Post message only to those who have the proper access level
     postPublicMessage(SYSTEM_MESSAGE_SENDER, MessageTypes.MESSAGE, helptext);
   }
 

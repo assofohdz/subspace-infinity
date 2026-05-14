@@ -111,4 +111,10 @@ When a Sysop/SMod gives temporary powers to a player, that player gains abilitie
 
 A lower power class cannot use `*spec`, `*shutup`, or `*kill` on a higher power class. Sysops can `*moderator` an SMod to temporarily cancel their powers.
 
+## Code-extracted TODOs
+
+- [ ] Gate chat command dispatch on `AccountHostedService.isAtLeastAtAccessLevel(fromEntity, cc.getAccessLevelRequired())` — the call site is already prepared, body is commented out pending the account service. Source: `infinity-server/src/main/java/infinity/server/chat/InfinityChatHostedService.java:193`.
+- [ ] `registerPatternTriConsumer` broadcasts the command help text to every connected player on registration — should only post to players whose access level meets the command's requirement. Source: `infinity-server/src/main/java/infinity/server/chat/InfinityChatHostedService.java:252`.
+- [ ] `registerCommandConsumer` broadcasts the command help text to every connected player on registration — same access-level filter needed. Source: `infinity-server/src/main/java/infinity/server/chat/InfinityChatHostedService.java:303`.
+
 ## Comments

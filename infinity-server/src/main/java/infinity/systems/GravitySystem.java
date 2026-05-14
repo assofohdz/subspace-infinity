@@ -43,12 +43,10 @@ public class GravitySystem extends BaseInfinitySystem implements ContactListener
 
   @Override
   public void start() {
-    // TODO Auto-generated method stub
   }
 
   @Override
   public void stop() {
-    // TODO Auto-generated method stub
   }
 
   @Override

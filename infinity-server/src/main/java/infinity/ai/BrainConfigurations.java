@@ -319,7 +319,7 @@ public final class BrainConfigurations {
         });
   }
 
-  /** Shared default strategy for non-chicken mobs: random walk; ignore corn / TODO chase fast threats. */
+  /** Shared default strategy for non-chicken mobs: random walk; ignore corn. */
   private static void wireGenericDefaultStrategyCornSkip(final BrainConfiguration config) {
     config.setDefaultStrategy(
         new Strategy<Goal>(
@@ -334,7 +334,6 @@ public final class BrainConfigurations {
                   if (CORN.equals(obj.getType())) {
                     return false;
                   }
-                  // TODO chase fast-moving objects (filter by size to skip corn).
                   return false;
                 }));
   }

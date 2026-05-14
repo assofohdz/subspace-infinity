@@ -121,8 +121,6 @@ public class AvatarSystem extends BaseInfinitySystem {
   }
 
   public void requestShipChange(final EntityId shipEntity, final byte shipType) {
-    // TODO: Check for energy (full energy to switch ships)
-
     // ships.groovy live-reload is handled by ArenaSystem's per-arena file watcher
     // (fires on save, not on key press). Nothing to do here on ship change.
 
@@ -228,8 +226,6 @@ public class AvatarSystem extends BaseInfinitySystem {
    * @param newFreq the new freuency
    */
   public void requestFreqChange(final EntityId entityId, final int newFreq) {
-    // TODO: Check the ship restrictor in place to make sure the new frequency is
-    // allowed
     final EntityId h = ed.createEntity();
     ed.setComponents(h, ChangeTarget.self(entityId), new FrequencyChange(newFreq));
   }
@@ -277,7 +273,6 @@ public class AvatarSystem extends BaseInfinitySystem {
    * @param team the team to clear and reset
    */
   public void reset(final int team) {
-    // TODO: implement team reset (clear players, refresh ship slots).
   }
 
   /**

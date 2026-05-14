@@ -9,9 +9,9 @@ import com.simsilica.sim.AbstractGameSystem;
  *
  * @author Asser
  */
-// TODO: instantiate via a future GroovyModuleLoader. The legacy AdaptiveLoader
+// NOTE: instantiated by the future GroovyModuleLoader. The legacy AdaptiveLoader
 // (custom ClassLoader + reflection-based ~startModule chat command) was retired;
-// see .scratch/deprecate-adaptive-loader/PRD.md. Until that loader exists,
+// see .scratch/groovy-module-loader/PRD.md. Until that loader exists,
 // concrete subclasses live in modules/ but have no runtime instantiator.
 public abstract class BaseGameModule extends AbstractGameSystem {
 
