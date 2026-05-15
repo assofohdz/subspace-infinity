@@ -120,7 +120,7 @@ public class WeaponsProjectileSpawnSystem extends BaseInfinitySystem {
     final String bulletShape = BULLET_LEVEL_PREFIX + bulletCurrentLevel.getLevel().level;
 
     final ConfigRegistry cfg = weaponsFor(attacker);
-    final EntityId gunProjectile =
+    final EntityId bulletProjectile =
         WeaponFactory.createBullet(
             ed,
             new infinity.sim.specs.BulletArgs(
@@ -134,7 +134,7 @@ public class WeaponsProjectileSpawnSystem extends BaseInfinitySystem {
                 engineConfigSystem.get().bulletRadius()));
 
     ed.setComponent(
-        gunProjectile,
+        bulletProjectile,
         new Damage(
             CoreViewConstants.EXPLOSION0DECAY,
             cfg.bullet().damageAtLevel(bulletCurrentLevel.getLevel().level),

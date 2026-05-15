@@ -50,8 +50,11 @@ public final class EventBusBroadcastClientService extends AbstractClientService 
 
   /** Late-binding consumers (e.g. ChatState attached AFTER login) call this in initialize() to catch up on welcomes that arrived before they subscribed. Drains all queued events. */
   public void drainPendingTargeted(final Consumer<TargetedEvent> consumer) {
-    TargetedEvent ev;
-    while ((ev = pendingTargeted.poll()) != null) {
+    while (true) {
+      final TargetedEvent ev = pendingTargeted.poll();
+      if (ev == null) {
+        break;
+      }
       consumer.accept(ev);
     }
   }

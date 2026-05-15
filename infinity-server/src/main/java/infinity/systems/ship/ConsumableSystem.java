@@ -209,8 +209,8 @@ public class ConsumableSystem extends BaseInfinitySystem
     EntityId requester = requesterEntity.getId();
     final ThorConfig cfg = ConsumableLogic.thorConfigFor(ed, configRegistry, requester);
 
-    EntityId gunProjectile;
-    gunProjectile =
+    EntityId thorProjectile;
+    thorProjectile =
         WeaponFactory.createThor(
             ed,
             new infinity.sim.specs.ThorArgs(
@@ -223,7 +223,7 @@ public class ConsumableSystem extends BaseInfinitySystem
                 engineConfigSystem.get().thorRadius()));
 
     ed.setComponent(
-        gunProjectile,
+        thorProjectile,
         new Damage(
             CoreViewConstants.EXPLOSION1DECAY,
             cfg.damage(),

@@ -138,9 +138,9 @@ public class SIAudioFactory implements AudioFactory {
         return an;
     }
 
-    private AudioNode fireBullet(final int gunLevel) {
+    private AudioNode fireBullet(final int bulletLevel) {
         String sound = "";
-        switch (gunLevel) {
+        switch (bulletLevel) {
         case 1:
             sound = "Sounds/Subspace/gun1.wa2";
             break;
@@ -154,7 +154,7 @@ public class SIAudioFactory implements AudioFactory {
             sound = "Sounds/Subspace/gun4.wa2";
             break;
         default:
-            throw new UnsupportedOperationException("Unknown bullet level: " + gunLevel);
+            throw new UnsupportedOperationException("Unknown bullet level: " + bulletLevel);
         }
         final AudioNode an = new AudioNode(assets, sound, AudioData.DataType.Buffer);
         setDefaults(an);

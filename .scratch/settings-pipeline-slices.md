@@ -800,9 +800,20 @@ visuals `BulletVisuals`, `WeaponsSystem.BULLET` constant, methods
 `createProjectileBullet`/`projectBullets`), DSL block (`bullets`),
 `ShipConfig.bullets` accessor, audio constants (`FIRE_BULLETS_L*`),
 3 arena presets (trench/deva/testconf), all tests, and pipeline
-trackers updated in lockstep. Prize-side stays unchanged
-(`GunPrizeApplier`, `PrizeTypes.GUN`, `Gun` prize-type identifier =
-"Gun Upgrade") — the rename is the projectile-side family only.
+trackers updated in lockstep. Follow-up sweep cleaned 4 stragglers:
+`gunProjectile` local in `WeaponsProjectileSpawnSystem.createProjectileBullet`
+→ `bulletProjectile`; `gunProjectile` local in `ConsumableSystem.createThor`
+→ `thorProjectile` (was actively misleading — Thor code); `gunLevel`
+param in `SIAudioFactory.fireBullet` → `bulletLevel`;
+`BulletFireDelay.toString()` returned `"GunsCooldown[…]"` → `"BulletFireDelay[…]"`.
+Prize-side stays unchanged (`GunPrizeApplier`, `PrizeTypes.GUN`, `Gun`
+prize-type identifier = "Gun Upgrade") — REFERENCE.md `## PrizeWeight`
++ `## Cost` show `Gun` is the canonical Subspace prize NAME, and the
+appliers follow the `<PrizeName>PrizeApplier` convention shared by all
+other appliers. Per-ship Subspace knobs (`MaxGuns`, `InitialGuns`,
+`AllowGuns`, `FlaggerGunUpgrade`) and player-facing audio terms
+(`FIRE_GUNS_L*`, `createFireGuns`) are likewise canon-aligned and
+intentionally retained.
 
 ## Slice P2 — Physics implementation audit
 

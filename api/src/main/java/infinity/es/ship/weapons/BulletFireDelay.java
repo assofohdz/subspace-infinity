@@ -28,17 +28,12 @@ public class BulletFireDelay implements FireDelay {
         return (double) (time - start) / delta;
     }
 
-    /**
-     * Create a new copy of this class witht the same delay
-     *
-     * @return new BombFireDelay instance
-     */
     public BulletFireDelay copy() {
         return new BulletFireDelay(delta / 1000000);
     }
 
     @Override
     public String toString() {
-        return "GunsCooldown[" + (delta / 1000000.0) + " ms]";
+        return "BulletFireDelay[" + (delta / 1000000.0) + " ms]";
     }
 }
