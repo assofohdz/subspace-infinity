@@ -98,6 +98,12 @@ arena {
     // …
     includeFragment '/conf/trench-04-2026/misc.groovy'
     wallFriction 0.1
+    shipRestrictions {
+        // allow-list wins over deny-list; omit both to allow all ships
+        allow Ship.WARBIRD, Ship.JAVELIN   // only these ships are allowed
+        deny Ship.SPIDER                    // or: deny specific ships (when allow is empty)
+        maxPerTeam Ship.WARBIRD, 4         // optional per-team cap; -1 = unrestricted
+    }
     spawners {
         // Minimal: uses arena [PrizeWeight] defaults, global prize TTL
         spawn x: 512, z: 512, radius: 100, maxCount: 5, intervalMs: 2000, ttlMs: 10000
@@ -136,6 +142,7 @@ Each `spawn` entry materializes into a real spawner entity at arena-load. `Prize
 | `includeFragment '/conf/.../spawn.groovy'` | String | `ConfigRegistry.spawn()` → `SpawnConfig` | `ArenaSystem.getArenaSpawn(arenaName, freq)` — per-team spawn point selected by `freq % teams.size()`; falls back to `ArenaConfig.spawnX()/spawnZ()` when `SpawnConfig.teams` is empty |
 | `wallFriction N` | double [0,1] | `ArenaConfig.wallFriction()` | `ContactSystem` (body-vs-static contacts: damps tangential velocity; friction=0 prevents torque from off-center contacts) |
 | `includeFragment '...'` | String (repeatable) | `ArenaConfig.fragmentIncludes()` → forwarded to `SettingsSystem.loadFragments` | Anything that calls `SettingsSystem.getInt/getString(arenaName, section, key, default)` |
+| `shipRestrictions { allow / deny / maxPerTeam }` | Block (optional) | `ArenaConfig.shipRestrictions()` → `ShipRestrictionsConfig` → installed into `ConfigRegistry`; Infinity-only, no Subspace canon | `ConfigShipRestrictor` (called from `AvatarSystem` on ship-change; also enforces full-energy gate per `EnterShipEnergy=100%`) |
 | `spawners { spawn ... }` | Block (repeatable) | `ArenaConfig.spawners()` → `List<SpawnerSpec>` → materialized into spawner entities by `ArenaSystem.doLoad` | `PrizeSpawnerSystem` (picks prizes; reads per-spawner `PrizeWeightsOverride` merged atop arena `[PrizeWeight]` defaults) |
 
 ## Groovy fragment DSL
