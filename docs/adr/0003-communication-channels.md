@@ -116,7 +116,19 @@ Is the communication a request to mutate authoritative state?
                          write — bridge via EventBusBroadcastHostedService
                          (RMI callback → client republishes onto its own
                          local EventBus; see ADR-0005 client-read-only
-                         constraint). Current: PlayerKilledEvent.
+                         constraint). Current: PlayerKilledEvent,
+                         PlayerEnteredSession, TargetedEvent.
+                         Two bridge modes:
+                         **broadcast** — all connections receive the event;
+                         **targeted** — server iterates a Set<EntityId> of
+                         recipients and RMIs only matched connections; the
+                         Set is server-side metadata only, not on the wire.
+                         Client services republish received events on
+                         `*Local` EventType variants (e.g.
+                         `TargetedEvent.targetedLocal`) so server-side
+                         listeners subscribed to the non-Local type do not
+                         fire in single-JVM dev mode where both sides share
+                         the same static EventBus singleton.
 ```
 
 ### Naming hygiene
@@ -148,7 +160,7 @@ Common mistake the two ADRs together prevent: publishing a "damage event" on the
 - **Two channels means two mental models.** New contributors have to learn both. Mitigation: the decision tree above, plus the convention that the two channels never overlap in role.
 - **The arena-vs-zone naming convention is enforced by discipline, not runtime.** A misclassified event type (declared under `arena.*` but actually zone-scoped, or vice versa) will compile and run; the bug surfaces only if a listener over-fires. Mitigation: code review against package placement; per-arena bus split available as a future runtime guard if the discipline fails.
 - **Dead event types accumulate.** Dormant `EventType` constants were culled in P2-j; `ShipEvent` now declares only `shipSpawned`. Declaring an `EventType` for a planned-but-not-yet-published case signals intent that may not survive — cull proactively.
-- **Bus events are not durable.** A subscriber that boots after a publish never sees the event. Acceptable for the current consumer set (HUD, audio, telemetry — all alive for the session); not acceptable if a future consumer needs replay. That consumer is responsible for either persisting state itself or moving to an intent-component shape if queryability is needed.
+- **Bus events are not durable.** A subscriber that boots after a publish never sees the event. Acceptable for the current consumer set (HUD, audio, telemetry — all alive for the session); not acceptable if a future consumer needs replay. That consumer is responsible for either persisting state itself or moving to an intent-component shape if queryability is needed. **Late-binding pattern (bridge only):** `EventBusBroadcastClientService` subclasses may maintain a bounded `Queue<T>` that the RMI handler enqueues on arrival; AppStates that attach after an event fires drain the queue in `initialize()` before subscribing live. See `WelcomeService` → `ChatState` for the canonical example. Capacity is intentionally small (≤50); this is for "missed while attaching" tolerance, not a replay log.
 
 ### Neutral / deferred
 
@@ -172,7 +184,7 @@ Common mistake the two ADRs together prevent: publishing a "damage event" on the
 - **Channel B scope:** zone events server-global, arena events arena-scoped (payload-derived `ArenaId`); same `EventBus` instance today; per-arena split deferred.
 - **Channel C bar:** general primitives don't fit; one domain; one canonical owner; listener contract documented in dispatcher's Javadoc. Default is *don't add one*.
 - **Naming:** `*Change` / `*StatsChange` for intent components; `*Event` for bus events; "transient component" retired.
-- **Network:** Channel B (server `EventBus`) is server-only. Clients observe component state via SimEthereal; submit intent via RMI. Informational server-side events can be bridged to the client's local-only EventBus via `EventBusBroadcastHostedService` + `EventBusBroadcastClientService` (RMI callback fan-out; no shared-state writes through this channel — ADR-0005).
+- **Network:** Channel B (server `EventBus`) is server-only. Clients observe component state via SimEthereal; submit intent via RMI. Informational server-side events can be bridged to the client's local-only EventBus via `EventBusBroadcastHostedService` + `EventBusBroadcastClientService` (RMI callback fan-out; no shared-state writes through this channel — ADR-0005). Bridge supports broadcast (all connections) and targeted (explicit `Set<EntityId>` recipients, server-side only). Client services republish on `*Local` EventType variants to prevent server-side listeners from double-firing in single-JVM dev mode.
 
 ## Open work
 
