@@ -145,6 +145,8 @@ Each `spawn` entry materializes into a real spawner entity at arena-load. `Prize
 | `shipRestrictions { allow / deny / maxPerTeam }` | Block (optional) | `ArenaConfig.shipRestrictions()` → `ShipRestrictionsConfig` → installed into `ConfigRegistry`; Infinity-only, no Subspace canon | `ConfigShipRestrictor` (called from `AvatarSystem` on ship-change; also enforces full-energy gate per `EnterShipEnergy=100%`) |
 | `spawners { spawn ... }` | Block (repeatable) | `ArenaConfig.spawners()` → `List<SpawnerSpec>` → materialized into spawner entities by `ArenaSystem.doLoad` | `PrizeSpawnerSystem` (picks prizes; reads per-spawner `PrizeWeightsOverride` merged atop arena `[PrizeWeight]` defaults) |
 
+> **Forward-ref:** [ADR-0008](../../../docs/adr/0008-arena-composition-and-modules.md) designs additional `arena.groovy` statements for arena-composition modules — `scoring '…'`, `winCondition '…'`, `mechanic '…'`, `teamSetup '…'`, `roster '…'`, `respawnPolicy '…'`, `roundStructure '…'`, `matchStructure '…'`, `spawnPlacement '…'`, `shop '…'`, plus `usePreset '…'` for module bundles. **Not yet wired** — directives above are the v1 surface. When the loader lands, this table extends to cover the module statements.
+
 ## Groovy fragment DSL
 
 Each `.groovy` fragment under `conf/<preset>/` declares one or more sections. Loaded by `GroovyFragmentLoader` and merged into the arena's `Ini` (last-wins on key conflict, same as the legacy `#include`).

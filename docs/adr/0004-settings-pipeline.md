@@ -22,7 +22,7 @@ The Subspace community baseline is `.cfg` / INI files with flat `Key=Value` line
 
 The codebase has been migrating to Groovy fragments + typed `*Config` records since 2026-Q1. The pipeline has stabilised on a four-layer shape (file → host → adapter → registry) that this ADR formalises. CONTEXT.md's "Flagged ambiguities" section explicitly notes that "loader" was a previously-overloaded term resolved by splitting *host* (the I/O + evaluation pipeline) from *adapter* (the per-file DSL semantics); this ADR records that split as a normative decision.
 
-**A second extensibility constraint** has crystallised alongside the settings work: zone authors (community contributors, server operators, third parties) want to add new gameplay — game modes, custom scoring rules, new HUD elements, per-zone behaviours — without forking Infinity or rebuilding it. The `api/` module already carries a `BaseGameModule` interface as the server-extension contract; the previous `modules/` Gradle subproject was deleted in v1.0.17 (commit `26fea69c`) pending a "guardrailed Groovy module loader" (per [CLAUDE.md](../../CLAUDE.md) and [`.claude/skills/create-module/SKILL.md`](../../.claude/skills/create-module/SKILL.md)). The directory that already holds the operator-edited settings data — `zone/` — is the natural home for the same operator-installed module code. This ADR designs both faces of that extension surface as siblings, because they share a host, a trust model, and a directory.
+**A second extensibility constraint** has crystallised alongside the settings work: zone authors (community contributors, server operators, third parties) want to add new gameplay — game modes, custom scoring rules, new HUD elements, per-zone behaviours — without forking Infinity or rebuilding it. The `api/` module already carries an `ArenaModule` interface (renamed from `BaseGameModule` per [ADR-0008](./0008-arena-composition-and-modules.md)) as the server-extension contract; the previous `modules/` Gradle subproject was deleted in v1.0.17 (commit `26fea69c`) pending a "guardrailed Groovy module loader" (per [CLAUDE.md](../../CLAUDE.md) and [`.claude/skills/create-module/SKILL.md`](../../.claude/skills/create-module/SKILL.md)). The directory that already holds the operator-edited settings data — `zone/` — is the natural home for the same operator-installed module code. This ADR designs both faces of that extension surface as siblings, because they share a host, a trust model, and a directory.
 
 **Groovy specifically** was chosen because: (a) JVM-native — no second runtime to host; (b) closure-and-block DSL syntax fits both tuning shapes and module declarations naturally; (c) loose typing in the script with strict typing at the API boundary gives the best of both worlds; (d) the Simsilica / Gradle / Grails ecosystem familiarity reduces the author learning curve; (e) the same security customisers and host machinery cover both settings and modules. Alternatives considered below.
 
@@ -121,7 +121,7 @@ zone/modules/<name>/
 **Manifest** (`module.groovy`) declares the module's contributions in a closure DSL paralleling settings:
 
 - `name`, `version`, `requires` (api version range).
-- `serverSystems` — fully-qualified Groovy class names extending `BaseInfinitySystem` (or `BaseGameModule` for legacy modules that need the `*Manager` accessors).
+- `serverSystems` — fully-qualified Groovy class names extending `BaseInfinitySystem` (or implementing `ArenaModule` per [ADR-0008](./0008-arena-composition-and-modules.md) for modules that opt into the arena/match/round lifecycle).
 - `clientAppStates` — class names extending JME `BaseAppState`.
 - `components` — class names implementing `EntityComponent`; registered with Zay-ES on both sides.
 - `rmiServices` — RMI interface contracts (per ADR-0003 Channel B) the module exposes.
@@ -187,7 +187,7 @@ None of these protect against deliberate malice. A module that calls `System.exi
 
 - **`GroovyShipLoader` and `GroovyArenaLoader` are not yet thin facades over the host/adapter pattern.** Functional, intentional today (ships and `arena.groovy` have different lifecycles than per-arena fragments); CONTEXT.md notes the migration as open work tracked outside this ADR.
 - **Phase-1 legacy INI fragments.** `ConfigRegistrySystem.load` still has a three-phase load; Phase 1 reads `.cfg` for keys without typed adapters. The phase shrinks as more keys move to typed adapters.
-- **Module loader is not yet implemented.** The `BaseGameModule` interface exists in `api/`; the loader does not. This ADR is the design contract that the implementation will land against. Current guidance (`.claude/skills/create-module/SKILL.md`) says: "fold the logic into a regular `BaseInfinitySystem` until the loader exists."
+- **Module loader is not yet implemented.** The `ArenaModule` interface exists in `api/` (renamed from `BaseGameModule` per [ADR-0008](./0008-arena-composition-and-modules.md)); the loader does not. This ADR is the design contract that the implementation will land against. Current guidance (`.claude/skills/create-module/SKILL.md`) says: "fold the logic into a regular `BaseInfinitySystem` until the loader exists."
 - **Hot-reload of module code** is deliberately out of scope; classloader-swap mid-game has too many lifecycle edges (live entities holding references to old-class instances, EntitySets keyed on old class identity, JME scene-graph attachments). Restart-the-zone is the supported workflow.
 - **Server-pushes-module-to-client distribution** is deferred — raises trust questions the v1 operator-vetted model does not solve.
 
@@ -231,7 +231,7 @@ The decision is fully described above. Enforcement and implementation items live
 - Add per-adapter tests — 12 adapters, 0 dedicated tests today (transitive coverage only via `GroovyArenaLoaderTest` / `GroovyZoneLoaderTest`). Tracked as architectural-review P1-g.
 
 **Module loader (not yet implemented):**
-- Implement `GroovyModuleLoader` against this ADR's contract. The `BaseGameModule` interface in api/ stands; the loader is the missing piece.
+- Implement `GroovyModuleLoader` against this ADR's contract. The `ArenaModule` interface in api/ ([ADR-0008](./0008-arena-composition-and-modules.md)) stands; the loader is the missing piece.
 - Decide the precise `module.groovy` manifest DSL shape (a `SingleClosureAdapter`-style implementation would reuse settings machinery).
 - Decide the import-whitelist scope for modules — same `api.*` set as settings, plus the `BaseInfinitySystem` / `BaseAppState` base-class types.
 - Implement the manifest-hash handshake (or equivalent) to detect server/client module mismatch at session start.
@@ -254,6 +254,6 @@ The decision is fully described above. Enforcement and implementation items live
 - [`CLAUDE.md`](../../CLAUDE.md) Rule 3 — tuning knobs in Groovy, not Java; this pipeline is the mechanism.
 - [`CONTEXT.md`](../../CONTEXT.md) "Settings" section — flagged the *host vs adapter* ambiguity that this ADR resolves.
 - `GroovySettingsHost`, `GroovySettingsAdapter`, `ConfigRegistry`, `ConfigRegistrySystem`, `BombAdapter` (canonical adapter shape).
-- `api/src/main/java/infinity/sim/BaseGameModule.java` — server-extension contract the module loader will instantiate; legacy implementation home (`modules/` subproject) deleted in v1.0.17.
+- `api/src/main/java/infinity/sim/ArenaModule.java` (renamed from `BaseGameModule` per [ADR-0008](./0008-arena-composition-and-modules.md)) — arena-composition contract the module loader will instantiate; legacy implementation home (`modules/` subproject) deleted in v1.0.17.
 - Groovy [`SecureASTCustomizer`](https://docs.groovy-lang.org/latest/html/api/org/codehaus/groovy/control/customizers/SecureASTCustomizer.html) — used for both settings and modules; upstream documents the "not a sandbox" caveat that this ADR's Trust model encodes.
 - Cédric Champeau, "[Improved sandboxing of Groovy scripts](https://melix.github.io/blog/2015/03/sandboxing.html)" — alternative approaches for the deferred sandbox-against-malice question.

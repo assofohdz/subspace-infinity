@@ -9,6 +9,7 @@ A JMonkeyEngine 3 multiplayer game using Entity-Component-System architecture.
 | Component | `api/src/main/java/infinity/es/` | `EntityComponent` |
 | System | `infinity-server/src/main/java/infinity/systems/` | `AbstractGameSystem` |
 | App State | `infinity-client/src/main/java/infinity/` | `BaseAppState` |
+| Arena Module | `infinity-server/src/main/java/infinity/modules/` *(planned)* | `ArenaModule` (per [ADR-0008](docs/adr/0008-arena-composition-and-modules.md); fold into `BaseInfinitySystem` until loader lands) |
 
 ## Always-on Rules
 
@@ -86,7 +87,7 @@ See `.claude/skills/` for detailed patterns. Library-prefixed where applicable:
 **Subspace Infinity (project-specific):**
 - `project-overview/` - Project structure, tech stack, conventions
 - `infinity-architecture/` - api ↔ server ↔ client layering, data flow, "where does X go?"
-- `create-module/` - `BaseGameModule` server extensions
+- `create-module/` - `ArenaModule` arena-composition contract ([ADR-0008](docs/adr/0008-arena-composition-and-modules.md)); fold into `BaseInfinitySystem` until loader lands
 - `arena-settings/` - Per-arena `arena.conf` INI settings, `SettingsSystem`
 - `lvl-format/` - Subspace .lvl binary format: BMP tileset, eLVL metadata
 

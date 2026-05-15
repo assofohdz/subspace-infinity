@@ -15,7 +15,7 @@ Three Gradle modules, one package namespace (`infinity.*`). Layer = which module
 | `infinity-server` | `infinity.systems.*`, `infinity.server.*`, `infinity.ai.*`, `infinity.map.*`, `infinity.settings.*`, `infinity.tools.*`, parts of `infinity.sim.*` | Authoritative game state + systems |
 | `infinity-client` | `infinity.client.*` + `Main.java` | Rendering, input, UI, view |
 
-Note: `infinity.sim` is split — interfaces in `api` (including `BaseGameModule`), implementations in `infinity-server`. The former `modules/` Gradle subproject was deleted in v1.0.17; a future guardrailed Groovy module loader (no PRD yet) will resurrect that deployment path.
+Note: `infinity.sim` is split — interfaces in `api` (including `ArenaModule`, renamed from `BaseGameModule` per [ADR-0008](../../../docs/adr/0008-arena-composition-and-modules.md)), implementations in `infinity-server`. The former `modules/` Gradle subproject was deleted in v1.0.17; a future guardrailed Groovy module loader will resurrect that deployment path against the `ArenaModule` contract.
 
 ## Data flow
 
@@ -55,7 +55,7 @@ Note: `infinity.sim` is split — interfaces in `api` (including `BaseGameModule
 | New RMI interface (client ↔ server contract) | `api/src/main/java/infinity/sim/` |
 | Server-side logic (`AbstractGameSystem`) | `infinity-server/src/main/java/infinity/systems/` |
 | Server-only helpers (chat, net dispatch) | `infinity-server/src/main/java/infinity/server/` |
-| New `BaseGameModule` impl | _no current home — `modules/` subproject was deleted in v1.0.17; the interface stays in `api/src/main/java/infinity/sim/` pending a future Groovy module loader (no PRD yet). Until then, build the feature as a regular `BaseInfinitySystem` and revisit when the loader lands._ |
+| New `ArenaModule` impl | _Compositional model designed in [ADR-0008](../../../docs/adr/0008-arena-composition-and-modules.md); concrete impls will live in `infinity-server/src/main/java/infinity/modules/` (per arena category). Loader not yet implemented — until then, build the feature as a regular `BaseInfinitySystem` (per `sio2-system` skill) and revisit when the loader lands._ |
 | Client `BaseAppState` (UI, input, rendering) | `infinity-client/src/main/java/infinity/client/states/` |
 | Client view/spatial factory | `infinity-client/src/main/java/infinity/client/view/` |
 | Lemur UI | `infinity-client/src/main/java/infinity/client/` |
@@ -74,6 +74,6 @@ See path-scoped rules for detail: [`.claude/rules/api-contracts.md`](../../rules
 
 - `sio2-system` — writing server systems (`AbstractGameSystem`)
 - `jme-appstate` — writing client app states (`BaseAppState`)
-- `create-module` — adding a new server module (`BaseGameModule`)
+- `create-module` — adding a new arena module (`ArenaModule`, per ADR-0008)
 - `zay-es-component` — writing immutable components
 - `sim-ethereal` — client↔server state sync

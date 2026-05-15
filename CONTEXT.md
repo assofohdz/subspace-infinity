@@ -97,12 +97,12 @@ Team / role spawn locations are declared in `arena.groovy` via the `spawnPlaceme
 
 **Module implementation model**:
 Hybrid (Option C): engine ships a fixed Java catalog of module types; `arena.groovy` is pure data referencing types by string identifier with inline kwargs. No code execution in arena.groovy. A future external-author loader will compile Groovy modules dropped under `zone/<author-modules>/` and extend the catalog — same contracts, same DSL, new identifiers. Decided 2026-05-15.
-- **Module type** = a Java class implementing `BaseGameModule`, declared in the `ModuleCatalog` registry under a string id. One per kind (`"kill-points"`, `"crowns"`, …).
+- **Module type** = a Java class implementing `ArenaModule`, declared in the `ModuleCatalog` registry under a string id. One per kind (`"kill-points"`, `"crowns"`, …).
 - **Module instance** = per-arena instantiation of a type with bound `*Config`. Each loaded arena gets its own set of module instances (no zone-singleton-with-filtering); cross-arena module instances never share state.
 - **Catalog** = explicit `ModuleCatalog` class in `infinity-server/` enumerating all built-in types. Discoverability > add-friction. Future external loader appends to this catalog at server start.
 
 **Module home (api/ vs server/)**:
-- `api/`: `BaseGameModule` interface, `ModuleCategory` enum, all module `*Config` records, all components modules write or read (`PlayerScore`, `TeamScore`, `RoundTimer`, `FlagOwnership`, `CrownOwnership`, `CarryFlag`, `OutsidePlayArea`, …), all transient components modules emit (`ScoreContribution`, `RoundReset`, `RoundTerminated`, …).
+- `api/`: `ArenaModule` interface, `ModuleCategory` enum, all module `*Config` records, all components modules write or read (`PlayerScore`, `TeamScore`, `RoundTimer`, `FlagOwnership`, `CrownOwnership`, `CarryFlag`, `OutsidePlayArea`, …), all transient components modules emit (`ScoreContribution`, `RoundReset`, `RoundTerminated`, …).
 - `infinity-server/`: concrete module implementations, `ModuleCatalog`, `ModuleLoader`, and **coordinator systems** that drain layered module contributions into canonical components (e.g. `ScoreCoordinatorSystem` drains `ScoreContribution` → writes `PlayerScore`, preserving ADR-0001 single-writer discipline).
 - `infinity-client/`: never instantiates modules; reads the components modules produce (already covered by client-read-only rule).
 Decided 2026-05-15.

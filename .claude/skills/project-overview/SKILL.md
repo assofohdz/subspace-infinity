@@ -18,7 +18,7 @@ description: Overview of Subspace Infinity project structure, tech stack, and co
 ```
 api/src/main/java/infinity/            # Shared components, interfaces
   es/                        # ECS components (ArenaId, ArenaMap, ArenaSettings, ...)
-  sim/                       # Base classes (BaseGameModule)
+  sim/                       # Base contracts (ArenaModule per ADR-0008)
   net/                       # Network contracts
   util/                      # Shared utilities
 infinity-server/src/main/java/infinity/

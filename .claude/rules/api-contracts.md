@@ -4,7 +4,7 @@ paths:
 ---
 # API Layer Rules
 
-Formalised by [ADR-0005](../../docs/adr/0005-layered-architecture.md). The `api/` module is the shared contract layer — data and interfaces only. Both server (`infinity/`, `modules/`) and client (`infinity.client.*`) depend on it, so anything added here becomes a cross-layer commitment.
+Formalised by [ADR-0005](../../docs/adr/0005-layered-architecture.md). The `api/` module is the shared contract layer — data and interfaces only. Both server (`infinity-server/`, including the planned `infinity.modules.*` package per [ADR-0008](../../docs/adr/0008-arena-composition-and-modules.md)) and client (`infinity.client.*`) depend on it, so anything added here becomes a cross-layer commitment.
 
 - **Data + interfaces only.** No business logic, no system implementations, no state mutation logic. Exception: see "Module-facing entity-construction ABI" below.
 - **Components live in `infinity.es.*`** and must be immutable (see [components.md](./components.md)).
@@ -14,9 +14,9 @@ Formalised by [ADR-0005](../../docs/adr/0005-layered-architecture.md). The `api/
 
 ## Module-facing entity-construction ABI
 
-External modules (under `infinity/modules/**`) need to construct standard game entities — bombs, ships, prizes, doors, asteroids, effects — without depending on `infinity.systems.*` (forbidden by the rule above). The api-side factory methods that compose those entities on `EntityData` are part of that ABI and are an **interface for purposes of "data + interfaces only."** They live in `infinity.sim.*` ([`ShipFactory`](../../api/src/main/java/infinity/sim/ShipFactory.java), [`WeaponFactory`](../../api/src/main/java/infinity/sim/WeaponFactory.java), [`MapFactory`](../../api/src/main/java/infinity/sim/MapFactory.java)) and may freely call `EntityData.createEntity()` + `setComponent(...)`.
+Arena modules (the `ArenaModule` implementations planned under `infinity-server/src/main/java/infinity/modules/**` per [ADR-0008](../../docs/adr/0008-arena-composition-and-modules.md), and the future external-author Groovy modules under `zone/<author-modules>/`) need to construct standard game entities — bombs, ships, prizes, doors, asteroids, effects — without depending on `infinity.systems.*` (forbidden by the rule above). The api-side factory methods that compose those entities on `EntityData` are part of that ABI and are an **interface for purposes of "data + interfaces only."** They live in `infinity.sim.*` ([`ShipFactory`](../../api/src/main/java/infinity/sim/ShipFactory.java), [`WeaponFactory`](../../api/src/main/java/infinity/sim/WeaponFactory.java), [`MapFactory`](../../api/src/main/java/infinity/sim/MapFactory.java)) and may freely call `EntityData.createEntity()` + `setComponent(...)`.
 
-The same exception extends to **Change-entity emit helpers** — thin api/-side utilities that create the `ChangeTarget` + `*Change` holder entity on behalf of callers outside the server package. Like the entity-construction factories, they compose only api/-side types, import no server-side packages, and exist so that external modules can emit mutations without depending on server internals.
+The same exception extends to **Change-entity emit helpers** — thin api/-side utilities that create the `ChangeTarget` + `*Change` holder entity on behalf of callers outside the server package. Like the entity-construction factories, they compose only api/-side types, import no server-side packages, and exist so that arena modules can emit mutations without depending on server internals.
 
 Constraints on both the entity-construction factories and the intent-dispatch routers:
 
