@@ -11,6 +11,8 @@ A cross-platform [Subspace Continuum](https://store.steampowered.com/app/352700/
 
 [Subspace Continuum](https://store.steampowered.com/app/352700/Subspace_Continuum/) is a 2D massively-multiplayer online game from the late 1990s, where anyone can host their own zone (server) and let clients connect.
 
+**Note:** Subspace Infinity is a fan reimplementation of Subspace Continuum. Players are responsible for owning the original game to access its graphics, sounds, and other assets.
+
 Subspace Infinity is a from-scratch Java reimplementation of both the client and the server, built on the [JMonkeyEngine](https://jmonkeyengine.org/) game engine and the [Simsilica](https://github.com/Simsilica) ecosystem.
 
 ## Status
