@@ -41,9 +41,9 @@ public final class WelcomeService extends BaseInfinitySystem {
 
   /** EventBus reflective dispatch — name pattern is {@code on<EventTypeName>}. */
   public void onPlayerEnteredSession(final PlayerEnteredSession event) {
-    if (log.isInfoEnabled()) {
-      log.info(
-          "WelcomeService.onPlayerEnteredSession player={} name={} → publishing TargetedEvent(welcome)",
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "onPlayerEnteredSession player={} name={} → publishing TargetedEvent(welcome)",
           event.getPlayer(),
           event.getPlayerName());
     }

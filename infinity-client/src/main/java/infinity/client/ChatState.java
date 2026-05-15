@@ -111,8 +111,8 @@ public class ChatState extends BaseAppState {
 
     /** EventBus reflective dispatch — method name must match the EventType name (TargetedLocal). */
     public void onTargetedLocal(final TargetedEvent event) {
-        if (log.isInfoEnabled()) {
-            log.info("CHATSTATE onTargetedLocal tag={} payload={}", event.getTag(), event.getPayload());
+        if (log.isDebugEnabled()) {
+            log.debug("onTargetedLocal tag={} payload={}", event.getTag(), event.getPayload());
         }
         if ("welcome".equals(event.getTag())) {
             getState(MessageState.class).addMessage("System> Welcome, " + event.getPayload() + "!", ColorRGBA.Yellow);

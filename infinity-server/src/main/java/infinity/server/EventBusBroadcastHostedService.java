@@ -101,18 +101,15 @@ public class EventBusBroadcastHostedService extends AbstractHostedConnectionServ
 
   /** Test seam — visible-for-testing zone-wide fan-out of {@link PlayerEnteredSession}. */
   protected void broadcastPlayerEntered(final PlayerEnteredSession event) {
-    if (log.isInfoEnabled()) {
-      log.info(
-          "Bridge.broadcastPlayerEntered player={} name={} connections={}",
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "broadcastPlayerEntered player={} name={} connections={}",
           event.getPlayer(),
           event.getPlayerName(),
           connections.size());
     }
     for (final HostedConnection conn : connections) {
       final EventBusBroadcastListener listener = getListener(conn);
-      if (log.isInfoEnabled()) {
-        log.info("  → conn {} listener={}", conn.getId(), listener);
-      }
       if (listener != null) {
         listener.onPlayerEnteredSession(event.getPlayer(), event.getPlayerName());
       }
@@ -121,21 +118,18 @@ public class EventBusBroadcastHostedService extends AbstractHostedConnectionServ
 
   /** Test seam — sends to only the recipients whose connections are currently hosted; recipient set is server-side only, never crosses the wire. */
   protected void broadcastTargeted(final TargetedEvent event) {
-    if (log.isInfoEnabled()) {
-      log.info(
-          "Bridge.broadcastTargeted tag={} payload={} recipients={}",
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "broadcastTargeted tag={} payload={} recipients={}",
           event.getTag(),
           event.getPayload(),
           event.getRecipients());
     }
     for (final EntityId recipient : event.getRecipients()) {
       final HostedConnection conn = lookupConnection(recipient);
-      if (log.isInfoEnabled()) {
-        log.info("  → recipient {} conn={}", recipient, conn);
-      }
       if (conn == null) {
-        if (log.isInfoEnabled()) {
-          log.info("No hosted connection for recipient {} (offline or wrong arena)", recipient);
+        if (log.isDebugEnabled()) {
+          log.debug("No hosted connection for recipient {} (offline or wrong arena)", recipient);
         }
         continue;
       }

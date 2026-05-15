@@ -45,9 +45,9 @@ public final class PlayerLifecycleSystem extends BaseInfinitySystem {
 
   /** EventBus reflective dispatch — login is the canonical "fully up" boundary. */
   public void onPlayerLoggedOn(final AccountEvent event) {
-    if (log.isInfoEnabled()) {
-      log.info(
-          "PlayerLifecycleSystem.onPlayerLoggedOn player={} name={} → publishing PlayerEnteredSession",
+    if (log.isDebugEnabled()) {
+      log.debug(
+          "onPlayerLoggedOn player={} name={} → publishing PlayerEnteredSession",
           event.getPlayerEntity(),
           event.getPlayerName());
     }

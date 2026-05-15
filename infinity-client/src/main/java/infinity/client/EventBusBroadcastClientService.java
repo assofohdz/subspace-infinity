@@ -83,8 +83,8 @@ public final class EventBusBroadcastClientService extends AbstractClientService 
 
     @Override
     public void onTargetedEvent(final String tag, final String payload) {
-      if (log.isInfoEnabled()) {
-        log.info("CLIENT BRIDGE onTargetedEvent tag={} payload={}", tag, payload);
+      if (log.isDebugEnabled()) {
+        log.debug("onTargetedEvent tag={} payload={}", tag, payload);
       }
       final TargetedEvent ev = new TargetedEvent(Set.of(), tag, payload);
       // Queue first so late-binding consumers (ChatState) can drain on init,
@@ -95,8 +95,8 @@ public final class EventBusBroadcastClientService extends AbstractClientService 
 
     @Override
     public void onPlayerEnteredSession(final EntityId player, final String playerName) {
-      if (log.isInfoEnabled()) {
-        log.info("CLIENT BRIDGE onPlayerEnteredSession: {} ({})", playerName, player);
+      if (log.isDebugEnabled()) {
+        log.debug("onPlayerEnteredSession player={} name={}", player, playerName);
       }
       EventBus.publish(
           PlayerEnteredSession.playerEnteredSessionLocal,
