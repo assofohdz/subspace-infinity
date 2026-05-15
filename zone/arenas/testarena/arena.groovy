@@ -44,6 +44,14 @@ arena {
     // the AoE path (bombs damage teammates within blast radius; bullets,
     // burst, mines still pass through teammates safely).
     friendlyFire 1
+    // Per-arena ship restrictions (Infinity-only, no Subspace canon). DSL is
+    // parsed by GroovyShipRestrictionsAdapter; consumed by ConfigShipRestrictor
+    // at requestShipChange / requestFreqChange time. allow-list wins over deny.
+    shipRestrictions {
+        // No allow-list authored → every ship in the deny set is blocked, the
+        // rest are permitted. Example: cap WARBIRD at 4 per freq for testbed.
+        maxPerTeam Ship.WARBIRD, 4
+    }
     spawners {
         // Slice 8d C3 opt-in: Centre spawner exercises additive count +
         // radius scaling and burst regen. With 4 active players,

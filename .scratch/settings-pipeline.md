@@ -445,6 +445,14 @@ canon "Freq 4 → Team0, Freq 5 → Team1, …" wraparound to N teams.
 | ⚠️ | `HideFlags` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `NoXRadar` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 
+## [Thor]
+
+Infinity divergence — no Subspace canon (`[Thor]` section does not exist in REFERENCE.md).
+
+| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
+|---|---|---|---|---|---|---|---|
+| ✅ | `launchVelocity` (Infinity-native; jME world-units/sec) | ✅ thor.groovy | `ThorAdapter` (typed DSL) | `ThorConfig.launchVelocity` | — | `ConsumableSystem.getActionPosition` (FIRETHOR branch) | ✅ `ThorAdapterTest` |
+
 ## [Toggle]
 
 | C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
@@ -457,6 +465,22 @@ canon "Freq 4 → Team0, Freq 5 → Team1, …" wraparound to N teams.
 |---|---|---|---|---|---|---|---|
 | ⚠️ | `GravityBombs` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `SwitchTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
+
+## Per-arena ship restrictions (Infinity-only)
+
+No `[Team]` section in REFERENCE.md, no `EnterShipEnergy` canon — full Infinity
+divergence. The DSL block lives in `arena.groovy` (parsed by
+`GroovyShipRestrictionsAdapter`, projected into `ConfigRegistry`'s
+`ShipRestrictionsConfig` slot, consumed by `ConfigShipRestrictor` from
+`AvatarSystem.requestShipChange` / `requestFreqChange`). Full-energy gate is
+enforced inline by `AvatarSystem.hasFullEnergy` (current `Energy` ≥
+`EnergyStats.max`).
+
+| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
+|---|---|---|---|---|---|---|---|
+| ✅ | `allow <Ship,…>` (allow-list) | ✅ testarena/arena.groovy | `GroovyShipRestrictionsAdapter` | `ShipRestrictionsConfig.allowed` | — | `ConfigShipRestrictor.canSwitch` (`AvatarSystem.requestShipChange` / `requestFreqChange`) | ✅ `GroovyShipRestrictionsAdapterTest` + `AvatarSystemRestrictionTest` |
+| ✅ | `deny <Ship,…>` (deny-list) | ✅ (DSL available, not used in trench) | `GroovyShipRestrictionsAdapter` | `ShipRestrictionsConfig.denied` | — | `ConfigShipRestrictor.canSwitch` | ✅ `GroovyShipRestrictionsAdapterTest` + `AvatarSystemRestrictionTest` |
+| ✅ | `maxPerTeam Ship, N` (per-ship cap) | ✅ testarena/arena.groovy | `GroovyShipRestrictionsAdapter` | `ShipRestrictionsConfig.maxPerTeam` | — | `ConfigShipRestrictor.canSwitch` (uses `AvatarSystem.getShipCount`) | ✅ `GroovyShipRestrictionsAdapterTest` + `ShipRestrictionsConfigTest` |
 
 ---
 

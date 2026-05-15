@@ -17,6 +17,7 @@ import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
 import infinity.config.ShipConfig;
+import infinity.config.ShipRestrictionsConfig;
 import infinity.config.SpawnConfig;
 import infinity.config.ThorConfig;
 import java.util.Collections;
@@ -42,11 +43,8 @@ public final class ConfigRegistry {
   private static final String SLOT_TYPE = "slotType";
 
   // Declared BEFORE EMPTY: EMPTY = builder().build() iterates SLOTS at <clinit>.
-  // GravBombConfig + ThorConfig have no dedicated fragment adapters and fall
-  // back to DEFAULTS — intentional: GravBomb hasn't diverged from Bomb yet
-  // (revisit when canon adds GravBomb-specific knobs); Thor tunables are
-  // per-ship via ships.groovy (ThorStats), not arena-global. Adding a fragment
-  // adapter for either today would never load.
+  // GravBombConfig has no fragment adapter yet — falls back to DEFAULTS (revisit
+  // when canon adds GravBomb-specific knobs). ThorConfig has ThorAdapter / thor.groovy.
   public static final List<Slot<?>> SLOTS =
       List.of(
           Slot.of(BulletConfig.class, BulletConfig.DEFAULTS),
@@ -62,7 +60,8 @@ public final class ConfigRegistry {
           Slot.of(ThorConfig.class, ThorConfig.DEFAULTS),
           Slot.of(PrizeConfig.class, PrizeConfig.DEFAULTS),
           Slot.of(PrizeWeightsConfig.class, PrizeWeightsConfig.DEFAULTS),
-          Slot.of(SpawnConfig.class, SpawnConfig.DEFAULTS));
+          Slot.of(SpawnConfig.class, SpawnConfig.DEFAULTS),
+          Slot.of(ShipRestrictionsConfig.class, ShipRestrictionsConfig.DEFAULTS));
 
   public static final ConfigRegistry EMPTY = builder().build();
 
@@ -155,6 +154,10 @@ public final class ConfigRegistry {
 
   public SpawnConfig spawn() {
     return get(SpawnConfig.class);
+  }
+
+  public ShipRestrictionsConfig shipRestrictions() {
+    return get(ShipRestrictionsConfig.class);
   }
 
   public static Builder builder() {

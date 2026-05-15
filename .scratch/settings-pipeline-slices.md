@@ -1060,6 +1060,39 @@ finishes loader → Config → consumer wiring.
 🔲 Per-ship TurretThrustPenalty, TurretSpeedPenalty, TurretLimit.
 Whole turret-attachment feature.
 
+## Slice T1 — Thor launchVelocity
+
+✅ Thor launchVelocity promoted to typed `ThorConfig.launchVelocity` (Infinity divergence; no Subspace canon). `ThorAdapter` + `thor.groovy` per active preset (trench + deva); legacy inline `50` literal in `ConsumableSystem.getActionPosition` replaced with `ThorConfig.launchVelocity` lookup. Test: `ThorAdapterTest`.
+
+## Slice T2 — Per-arena ship restrictions DSL
+
+✅ Landed. WIP=1 conflict note: P2 Physics is already ⏳ in this file, so per
+rule #6 this slice could not be flipped to ⏳ during in-flight work. Marker
+is ✅ landed; this slice ran alongside P2 by carving out a small, independent
+seam (Infinity-only divergence, no overlap with the physics audit).
+
+New `ShipRestrictionsConfig` record in `api/src/main/java/infinity/config/`
+(immutable `allowed` / `denied` Sets + `maxPerTeam` Map; defensive-copy on
+construction; allow-list wins over deny-list). Registered as a
+`ConfigRegistry` slot; populated from a new `shipRestrictions { allow …;
+deny …; maxPerTeam Ship, N }` block inside `arena.groovy` (parsed by
+`GroovyShipRestrictionsAdapter`). `ConfigShipRestrictor` (a thin
+`ShipRestrictor` impl) reads the per-arena config + counts via
+`AvatarSystem.getShipCount` for the `maxPerTeam` gate.
+
+`AvatarSystem`:
+- `requestShipChange` now requires full energy (Subspace canon
+  `EnterShipEnergy=100%` — Infinity divergence, no canon key) AND
+  `ConfigShipRestrictor.canSwitch` AND the existing per-team `ShipRestrictor`.
+- `requestFreqChange` validates the new freq against `canSwitch` so a
+  saturated freq can't be joined silently.
+- `reset(int team)` emits `FrequencyChange(0)` for every entity currently on
+  `team`, draining via the canonical writer next tick.
+
+Tests: `ShipRestrictionsConfigTest` (api/), `GroovyShipRestrictionsAdapterTest`
++ `AvatarSystemRestrictionTest` (server). Example DSL block landed in
+`zone/arenas/testarena/arena.groovy`.
+
 ## Slice 16 — Tricky stub appliers (catch-all)
 
 🔲 Three remaining stub prize appliers that don't fit the slices

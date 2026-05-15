@@ -468,7 +468,8 @@ public class ConsumableSystem extends BaseInfinitySystem
     }
 
     if (weaponFlag == ConsumableTypeId.FIRETHOR) {
-      projectileVelocity.addLocal(0, 0, 50);
+      final ThorConfig cfg = ConsumableLogic.thorConfigFor(ed, configRegistry, attacker);
+      projectileVelocity.addLocal(0, 0, cfg.launchVelocity());
     } else {
       throw new AssertionError("Action :" + weaponFlag + " not recognized");
     }

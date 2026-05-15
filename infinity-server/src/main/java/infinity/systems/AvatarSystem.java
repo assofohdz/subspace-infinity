@@ -21,11 +21,14 @@ import infinity.es.Frequency;
 import infinity.es.FrequencyChange;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
+import infinity.es.ship.Energy;
+import infinity.es.ship.EnergyStats;
 import infinity.es.ship.ResetLivePool;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.ShipTypeChange;
 import infinity.es.ship.actions.WarpToChange;
 import infinity.events.arena.ShipEvent;
+import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineConfigSystem;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +45,7 @@ public class AvatarSystem extends BaseInfinitySystem {
   // `ShipTypeId.fromWireId(byte)` for enum-level dispatch.
   private EntityData ed;
   private EngineConfigSystem engineConfigSystem;
+  private ConfigRegistrySystem configRegistry;
   private EntitySet frequencies;
   private EntitySet shipTypeChanges;
   private Map<Integer, ShipRestrictor> teamRestrictions;
@@ -56,6 +60,7 @@ public class AvatarSystem extends BaseInfinitySystem {
   protected void initialize() {
     ed = requireSystem(EntityData.class);
     engineConfigSystem = requireSystem(EngineConfigSystem.class);
+    configRegistry = requireSystem(ConfigRegistrySystem.class);
 
     frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
     captains = ed.getEntities(ShapeInfo.class, Captain.class);
@@ -121,61 +126,73 @@ public class AvatarSystem extends BaseInfinitySystem {
   }
 
   public void requestShipChange(final EntityId shipEntity, final byte shipType) {
-    // ships.groovy live-reload is handled by ArenaSystem's per-arena file watcher
-    // (fires on save, not on key press). Nothing to do here on ship change.
-
-    // Frequency-based ship restrictions are optional — human player ships don't carry
-    // a Frequency component today (only freq-aware spawn paths add it). Read directly
-    // via EntityData and treat missing as "no frequency known" → skip the restrictor
-    // check so basic ship change works end-to-end.
-    final Frequency freqComponent = ed.getComponent(shipEntity, Frequency.class);
-    final int freq = (freqComponent != null) ? freqComponent.getFrequency() : 0;
-    final ShipRestrictor restrictor = (freqComponent != null) ? getRestrictor(freq) : null;
-
-    // Allow ship change if no restrictions on frequency, or if restrictions allow it.
-    if (restrictor == null || restrictor.canSwitch(shipEntity, shipType, freq)) {
-
-      final String shapeName = shapeNameForShipType(shipType);
-      if (shapeName != null) {
-        ed.setComponent(
-            shipEntity,
-            ShapeInfo.create(shapeName, engineConfigSystem.get().shipRadius(), ed));
-      }
-
-      // ShipType + ResetLivePool atomicity: the canonical writer (drainShipTypeChanges below)
-      // stamps both via setComponents in the same flush, so ShipSpawnSystem's reproject sees
-      // the new type and the respawn marker together. Without the marker, swapping to a
-      // weapon-equipped ship from a non-equipped one leaves the *CurrentLevel components
-      // never written and the weapon EntitySet membership filter excludes the ship → no fire.
-      final EntityId h = ed.createEntity();
-      ed.setComponents(
-          h,
-          ChangeTarget.self(shipEntity),
-          new ShipTypeChange(Ship.getShip(shipType)));
-
-      // Teleport to the ship's *current* arena's configured spawn point.
-      // ArenaId is maintained by ArenaMembershipSystem (sensor contacts) +
-      // WarpSystem (post-teleport reconcile) + spawn-time seeding in
-      // GameSessionHostedService / BasicEnvironment. A null ArenaId (or
-      // unloaded arena) means there's no spawn coord to teleport to —
-      // skip the warp and let the ship-change happen in place.
-      // ArenaSystem.getArenaSpawn(arenaName, freq) reads Pattern 4 typed
-      // SpawnConfig (per-team) when the arena has a spawn.groovy authored;
-      // falls back to legacy ArenaConfig.spawnX/spawnZ otherwise.
-      final ArenaId arena = ed.getComponent(shipEntity, ArenaId.class);
-      if (arena != null) {
-        final Vec3d target = getSystem(ArenaSystem.class).getArenaSpawn(arena.getArena(), freq);
-        if (target != null) {
-          final EntityId warpHolder = ed.createEntity();
-          ed.setComponents(
-              warpHolder,
-              ChangeTarget.self(shipEntity),
-              new WarpToChange(target));
-        }
-      }
-
-      EventBus.publish(ShipEvent.shipSpawned, new ShipEvent(shipEntity));
+    // ships.groovy live-reload is handled by ArenaSystem's per-arena file watcher.
+    // Subspace canon EnterShipEnergy=100% — Infinity divergence: enforce full energy
+    // (current Energy ≥ EnergyStats.max) before allowing a ship swap. No EnterShipEnergy
+    // key in REFERENCE.md; the full-energy gate is the Infinity rule.
+    final int freq = readFrequency(shipEntity);
+    if (!hasFullEnergy(shipEntity) || !canSwitchAllGates(shipEntity, shipType, freq)) {
+      return;
     }
+
+    final String shapeName = shapeNameForShipType(shipType);
+    if (shapeName != null) {
+      ed.setComponent(
+          shipEntity,
+          ShapeInfo.create(shapeName, engineConfigSystem.get().shipRadius(), ed));
+    }
+
+    // ShipType + ResetLivePool atomicity: the canonical writer (drainShipTypeChanges below)
+    // stamps both via setComponents in the same flush.
+    final EntityId h = ed.createEntity();
+    ed.setComponents(
+        h,
+        ChangeTarget.self(shipEntity),
+        new ShipTypeChange(Ship.getShip(shipType)));
+
+    emitWarpToArenaSpawn(shipEntity, freq);
+    EventBus.publish(ShipEvent.shipSpawned, new ShipEvent(shipEntity));
+  }
+
+  private int readFrequency(final EntityId shipEntity) {
+    final Frequency f = ed.getComponent(shipEntity, Frequency.class);
+    return f == null ? 0 : f.getFrequency();
+  }
+
+  /** Per-arena {@link ShipRestrictionsConfig} + optional per-team {@link ShipRestrictor}; both must allow. */
+  private boolean canSwitchAllGates(final EntityId shipEntity, final byte shipType, final int freq) {
+    final ShipRestrictor arenaRestrictor =
+        new ConfigShipRestrictor(configRegistry, this, ed, shipEntity);
+    if (!arenaRestrictor.canSwitch(shipEntity, shipType, freq)) {
+      return false;
+    }
+    final ShipRestrictor teamRestrictor = getRestrictor(freq);
+    return teamRestrictor == null || teamRestrictor.canSwitch(shipEntity, shipType, freq);
+  }
+
+  /** Teleport to the entity's current arena's configured spawn point; no-op if no {@link ArenaId} or arena has no spawn. */
+  private void emitWarpToArenaSpawn(final EntityId shipEntity, final int freq) {
+    final ArenaId arena = ed.getComponent(shipEntity, ArenaId.class);
+    if (arena == null) {
+      return;
+    }
+    final Vec3d target = getSystem(ArenaSystem.class).getArenaSpawn(arena.getArena(), freq);
+    if (target == null) {
+      return;
+    }
+    final EntityId warpHolder = ed.createEntity();
+    ed.setComponents(warpHolder, ChangeTarget.self(shipEntity), new WarpToChange(target));
+  }
+
+  /** Subspace canon: full energy (current ≥ {@link EnergyStats#max()}) to switch ships. A ship with no {@link EnergyStats} (e.g. SPEC) is treated as eligible. */
+  private boolean hasFullEnergy(final EntityId shipEntity) {
+    final EnergyStats stats = ed.getComponent(shipEntity, EnergyStats.class);
+    if (stats == null) {
+      return true;
+    }
+    final Energy energy = ed.getComponent(shipEntity, Energy.class);
+    final int current = energy == null ? 0 : energy.getEnergy();
+    return current >= stats.max();
   }
 
   /**
@@ -226,6 +243,17 @@ public class AvatarSystem extends BaseInfinitySystem {
    * @param newFreq the new freuency
    */
   public void requestFreqChange(final EntityId entityId, final int newFreq) {
+    // Gate against per-arena ShipRestrictionsConfig — moving to a freq whose
+    // configured max-per-team is already saturated for the entity's current ship
+    // is denied. Spec ships (no ShipType) skip the gate (no ship to validate).
+    final ShipType currentShip = ed.getComponent(entityId, ShipType.class);
+    if (currentShip != null && currentShip.getType() != null) {
+      final ShipRestrictor arenaRestrictor =
+          new ConfigShipRestrictor(configRegistry, this, ed, entityId);
+      if (!arenaRestrictor.canSwitch(entityId, currentShip.getType().getId(), newFreq)) {
+        return;
+      }
+    }
     final EntityId h = ed.createEntity();
     ed.setComponents(h, ChangeTarget.self(entityId), new FrequencyChange(newFreq));
   }
@@ -273,6 +301,22 @@ public class AvatarSystem extends BaseInfinitySystem {
    * @param team the team to clear and reset
    */
   public void reset(final int team) {
+    // Emit FrequencyChange(0) for every entity currently on `team` — drains via
+    // the canonical FrequencySystem writer next tick. Per-team caps re-evaluate
+    // against the new freq 0 (default). Ship slots are inherently refreshed by
+    // the freq move (members leave `team`); no separate slot clearing needed.
+    final ComponentFilter<Frequency> filter =
+        FieldFilter.create(Frequency.class, "freq", Integer.valueOf(team));
+    final EntitySet members = ed.getEntities(filter, Frequency.class);
+    try {
+      members.applyChanges();
+      for (final Entity e : members) {
+        final EntityId h = ed.createEntity();
+        ed.setComponents(h, ChangeTarget.self(e.getId()), new FrequencyChange(0));
+      }
+    } finally {
+      members.release();
+    }
   }
 
   /**

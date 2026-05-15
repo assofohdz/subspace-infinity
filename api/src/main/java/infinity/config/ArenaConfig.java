@@ -24,10 +24,19 @@ public record ArenaConfig(
     List<String> fragmentIncludes,
     double wallFriction,
     List<SpawnerSpec> spawners,
-    int friendlyFire) {
+    int friendlyFire,
+    ShipRestrictionsConfig shipRestrictions) {
 
   /** Empty fallback — spawn at arena center, frictionless walls, friendly-fire off. */
   public static final ArenaConfig EMPTY =
       new ArenaConfig(
-          "", "", 512, 512, List.of(), PhysicsDefaults.DEFAULT_WALL_FRICTION, List.of(), 0);
+          "",
+          "",
+          512,
+          512,
+          List.of(),
+          PhysicsDefaults.DEFAULT_WALL_FRICTION,
+          List.of(),
+          0,
+          ShipRestrictionsConfig.DEFAULTS);
 }

@@ -111,6 +111,7 @@ public class LayerDependencyTest {
                   + "|ArenaSpatialIndex"
                   + "|ArenaSystem|ArenaSystem\\$.*"
                   + "|AvatarSystem"
+                  + "|ConfigShipRestrictor"
                   + "|LegacyMapProjector|LegacyMapProjector\\$.*"
                   + "|MapSystem"
                   + "|PrizeSpawnerSystem|PrizeSpawnerSystem\\$.*"

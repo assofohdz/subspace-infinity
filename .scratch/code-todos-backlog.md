@@ -7,30 +7,42 @@ Each row: actionable item + source file:line + brief context.
 
 ## Backlog
 
-### Settings pipeline / gameplay knobs
+### Cross-tier comms
 
-- [ ] **Wire Thor projectile launch velocity / radius offset to typed
-  settings (move literal `50` z-thrust and `thorRadius` lookup behind
-  a typed `ThorStats`/`ConsumableConfig` field).** Source:
-  `infinity-server/src/main/java/infinity/systems/ship/ConsumableSystem.java:470`
-  (formerly `// TODO: Look these settings up in SettingsSystem.`).
-  Pair with the settings-pipeline tracker once a slice is opened.
-- [ ] **Ship-change request should require full energy (Subspace
-  canonical `EnterShipEnergy=100%`).** Source:
-  `infinity-server/src/main/java/infinity/systems/AvatarSystem.java:124`
-  (formerly `// TODO: Check for energy (full energy to switch ships)`).
-- [ ] **Frequency-change request should validate against per-team
-  ship-restrictor / max-team-size before granting.** Source:
-  `infinity-server/src/main/java/infinity/systems/AvatarSystem.java:231`
-  (formerly `// TODO: Check the ship restrictor in place to make sure
-  the new frequency is allowed`). `ShipRestrictor` already exists and is
-  applied on `*setship`; freq change bypasses it.
-- [ ] **Team reset (`AvatarSystem.reset(int team)`) is unimplemented —
-  clear players, refresh ship slots.** Source:
-  `infinity-server/src/main/java/infinity/systems/AvatarSystem.java:280`
-  (formerly `// TODO: implement team reset (clear players, refresh ship
-  slots).`). May fold into the `.scratch/squadrons/` PRD if that lands
-  first.
+- [ ] **Server→client `EventBus` bridge.** `com.simsilica.event.EventBus` is a
+  local in-process bus — events published server-side don't reach client
+  subscribers. `PlayerKilledEvent` (api/events/arena) was authored as a
+  cross-tier payload, but the publish in `EnergySystem.handleDeath` only fans
+  out to server-side listeners. Client kill-feed UI / audio / scoreboard need
+  either a network adapter that re-publishes selected `EventType`s over the
+  wire (RMI broadcast), or a SimEthereal-synced marker component the client
+  observes. Decide per use-case which mechanism fits; the api/-side payload
+  shape (`PlayerKilledEvent`) is reusable for both.
+
+### Architecture
+
+- [ ] **Project `ShipRestrictionsConfig` to a per-arena component** instead
+  of granting `ConfigShipRestrictor` an `infinity.config` exception in
+  `LayerDependencyTest`. Per `.claude/rules/config-pattern.md`, "Hot-path
+  consumers must not import from `infinity.config`. Spawn systems are the
+  only boundary." `ConfigShipRestrictor` is a request-time gate, not a spawn
+  system, but currently sits in the spawn-tier allow-list. A
+  `ShipRestrictions` component projected at arena-load time would let
+  `ConfigShipRestrictor` read the component and drop the template import.
+  Defer until another arena-scoped gate appears with the same shape — single
+  case may not justify the projection.
+
+### ECS — components on entities
+
+- [ ] **Player ships should carry a `Frequency` component.** Today, human
+  player ships don't carry `Frequency` (only freq-aware spawn paths add it),
+  so `AvatarSystem.requestShipChange` defaults to freq=0 when absent. The
+  `FrequencySystem` already exists as the canonical writer for
+  `FrequencyChange` intents — needs the spawn-time stamp at `ShipFactory` /
+  `ShipSpawnSystem` (whichever owns initial ship membership). Without this,
+  per-team `ShipRestrictor` and `ConfigShipRestrictor.maxPerTeam` silently
+  treat all players as team 0. Surface: see comment removed from
+  `AvatarSystem.requestShipChange` in the per-arena ship-restrictions slice.
 
 ### Test coverage gaps
 
@@ -76,11 +88,3 @@ Each row: actionable item + source file:line + brief context.
   selective per-component reproject is future work (consistent with
   the broader fragment hot-reload story per ADR-0004).** Source:
   `api/src/main/java/infinity/es/ship/weapons/BombSafetyRadius.java:19`.
-
-### Client view
-
-- [ ] **`ShipLightControl` does not track the body-position pipeline
-  (`BodyPosition` from SimEthereal) — currently uses the spatial's
-  world translation directly. Update to consume `BodyPosition` so the
-  ship-attached light stays in sync with the authoritative position.**
-  Source: `infinity-client/src/main/java/infinity/client/view/ShipLightControl.java:11`.

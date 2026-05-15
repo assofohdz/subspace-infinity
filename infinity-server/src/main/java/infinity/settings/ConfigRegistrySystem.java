@@ -16,7 +16,9 @@ import infinity.config.PrizeConfig;
 import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
+import infinity.config.ShipRestrictionsConfig;
 import infinity.config.SpawnConfig;
+import infinity.config.ThorConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
 import java.util.LinkedHashMap;
@@ -52,6 +54,7 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
           FragmentBinding.of("brick.groovy", BrickConfig.class, BrickAdapter.INSTANCE),
           FragmentBinding.of("decoy.groovy", DecoyConfig.class, DecoyAdapter.INSTANCE),
           FragmentBinding.of("portal.groovy", PortalConfig.class, PortalAdapter.INSTANCE),
+          FragmentBinding.of("thor.groovy", ThorConfig.class, ThorAdapter.INSTANCE),
           FragmentBinding.of("prize.groovy", PrizeConfig.class, PrizeAdapter.INSTANCE),
           FragmentBinding.of(
               "prize-weights.groovy",
@@ -170,6 +173,9 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
         current = binding.install(current, path);
       }
     }
+
+    // Phase 4: arena-level inline blocks (parsed from arena.groovy, not a fragment include).
+    current = current.with(ShipRestrictionsConfig.class, arenaConfig.shipRestrictions());
 
     replace(arenaId, current);
   }

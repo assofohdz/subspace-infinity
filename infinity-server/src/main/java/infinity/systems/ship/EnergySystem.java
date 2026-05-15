@@ -9,6 +9,7 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
+import com.simsilica.event.EventBus;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.SimTime;
 import infinity.es.ChangeTarget;
@@ -19,6 +20,8 @@ import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyChange;
 import infinity.es.ship.EnergyStats;
 import infinity.es.ship.Player;
+import infinity.es.ship.weapons.WeaponType;
+import infinity.events.arena.PlayerKilledEvent;
 import infinity.systems.BaseInfinitySystem;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -100,11 +103,18 @@ public class EnergySystem extends BaseInfinitySystem {
 
   private void drainEnergyChanges() {
     final Map<EntityId, Integer> deltaByTarget = new HashMap<>();
+    // Last lethal-leaning DamageSource per target — folded change carries the most-recent negative
+    // attribution. Reactors that need every-hit attribution must read pre-reap (see DamageSource test).
+    final Map<EntityId, DamageSource> lastSourceByTarget = new HashMap<>();
     final List<EntityId> oneShotHolders = new ArrayList<>();
     for (final Entity added : changes.getAddedEntities()) {
       final ChangeTarget ct = added.get(ChangeTarget.class);
       final int delta = added.get(EnergyChange.class).delta();
       deltaByTarget.merge(ct.target(), delta, Integer::sum);
+      final DamageSource src = ed.getComponent(added.getId(), DamageSource.class);
+      if (src != null && delta < 0) {
+        lastSourceByTarget.put(ct.target(), src);
+      }
       final Decay decay = ed.getComponent(added.getId(), Decay.class);
       if (decay == null) {
         oneShotHolders.add(added.getId());
@@ -113,7 +123,7 @@ public class EnergySystem extends BaseInfinitySystem {
       }
     }
     for (final Map.Entry<EntityId, Integer> e : deltaByTarget.entrySet()) {
-      applyDelta(e.getKey(), e.getValue());
+      applyDelta(e.getKey(), e.getValue(), lastSourceByTarget.get(e.getKey()));
     }
     for (final EntityId id : oneShotHolders) {
       ed.removeEntity(id);
@@ -123,11 +133,11 @@ public class EnergySystem extends BaseInfinitySystem {
       if (applied == null) {
         continue;
       }
-      applyDelta(applied.target(), -applied.delta());
+      applyDelta(applied.target(), -applied.delta(), null);
     }
   }
 
-  private void applyDelta(final EntityId target, final int delta) {
+  private void applyDelta(final EntityId target, final int delta, final DamageSource lethalSrc) {
     final Entity targetEntity = living.getEntity(target);
     if (targetEntity == null) {
       return;
@@ -140,15 +150,17 @@ public class EnergySystem extends BaseInfinitySystem {
     }
     ed.setComponent(target, new Energy(clamped));
     if (clamped <= 0) {
-      handleDeath(targetEntity);
+      handleDeath(targetEntity, lethalSrc);
     }
   }
 
-  /** Mark dead (idempotent) + emit a Channel A {@link PrizeSpawnIntent} for {@link Player} ships; drained by {@code DeathPrizeSystem}. */
-  private void handleDeath(final Entity target) {
+  /** Mark dead (idempotent), emit a Channel A {@link PrizeSpawnIntent} (kill-credit on {@link ChangeTarget#source}), publish {@code playerKilled} for non-ECS consumers. */
+  private void handleDeath(final Entity target, final DamageSource lethalSrc) {
     final long now = System.nanoTime();
+    final EntityId killer = lethalSrc == null ? null : lethalSrc.getSource();
+    final byte weaponFlag = lethalSrc == null ? WeaponType.NONE : lethalSrc.getWeaponFlag();
     if (log.isInfoEnabled()) {
-      log.info("Entity {} died", target.getId());
+      log.info("Entity {} died (killer={}, weapon={})", target.getId(), killer, weaponFlag);
     }
     if (ed.getComponent(target.getId(), Dead.class) != null) {
       return;
@@ -157,15 +169,21 @@ public class EnergySystem extends BaseInfinitySystem {
     if (ed.getComponent(target.getId(), Player.class) == null) {
       return;
     }
+    // Publish before the BodyPosition check — death is a fact regardless of drop-position availability.
+    EventBus.publish(
+        PlayerKilledEvent.playerKilled,
+        new PlayerKilledEvent(target.getId(), killer, weaponFlag));
     final BodyPosition bp = ed.getComponent(target.getId(), BodyPosition.class);
     if (bp == null) {
       return;
     }
     final Vec3d deathPosition = bp.getLastLocation();
     final EntityId holder = ed.createEntity();
+    // Kill-credit: ChangeTarget.source carries the killer EntityId (self when unattributed).
+    final EntityId source = killer == null ? target.getId() : killer;
     ed.setComponents(
         holder,
-        ChangeTarget.self(target.getId()),
+        new ChangeTarget(target.getId(), source),
         new PrizeSpawnIntent(deathPosition, now));
   }
 

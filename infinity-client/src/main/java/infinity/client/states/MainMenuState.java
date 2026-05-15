@@ -27,7 +27,6 @@ import com.simsilica.lemur.style.ElementId;
 import com.simsilica.state.CommandConsoleState;
 
 import infinity.client.ClientEvent;
-import infinity.client.GameSessionState;
 
 /** Main menu UI (single-player / multiplayer / options / exit). */
 public class MainMenuState extends BaseAppState {
@@ -87,9 +86,7 @@ public class MainMenuState extends BaseAppState {
             host = new HostState(8969, "private server");
             getStateManager().attach(host);
 
-            // Add our listener that we can use to clean up the host state when
-            // the client is disconnected
-            EventBus.addListener(this, ClientEvent.clientConnected);
+            // Listener cleans up HostState on transport drop; ConnectionState owns GameSessionState attach.
             EventBus.addListener(this, ClientEvent.clientDisconnected);
 
             // Disable ourselves
@@ -103,13 +100,6 @@ public class MainMenuState extends BaseAppState {
             }
             showError("Hosting", message);
         }
-    }
-
-    protected void onClientConnected(final ClientEvent event) {
-
-        log.info("onClientConnected({})", event);
-
-        getStateManager().attach(new GameSessionState());
     }
 
     protected void onClientDisconnected(@SuppressWarnings("unused") final ClientEvent event) {

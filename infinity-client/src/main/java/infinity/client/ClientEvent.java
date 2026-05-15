@@ -1,59 +1,69 @@
-/*
- * $Id$
- *
- * Copyright (c) 2018, Simsilica, LLC
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in
- *    the documentation and/or other materials provided with the
- *    distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its
- *    contributors may be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
- * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
- * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
- * OF THE POSSIBILITY OF SUCH DAMAGE.
- */
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2018-2026 Asser Fahrenholz
 
 package infinity.client;
 
 import com.google.common.base.MoreObjects;
 
+import com.simsilica.es.EntityId;
 import com.simsilica.event.EventType;
 
-/** Event-bus events for client-side state changes (connect/disconnect, session start/end). */
+/** Client-side event-bus payload for transport + session lifecycle. Mirrors {@code AccountEvent} shape. */
 public class ClientEvent {
+
+    /** Placeholder account id until account-resolution is wired client-side. */
+    public static final String UNRESOLVED_ACCOUNT_ID = "unresolved";
 
     public static final EventType<ClientEvent> clientConnected = EventType.create("ClientConnected", ClientEvent.class);
     public static final EventType<ClientEvent> sessionStarted = EventType.create("SessionStarted", ClientEvent.class);
     public static final EventType<ClientEvent> sessionEnded = EventType.create("SessionEnded", ClientEvent.class);
     public static final EventType<ClientEvent> clientDisconnected = EventType.create("ClientDisconnected", ClientEvent.class);
 
-    public ClientEvent() {
-        // no-op: marker payload; identity is the EventType, not instance state
+    private final String accountId;
+    private final EntityId playerEntity;
+    private final int sessionId;
+    private final long timestampMillis;
+
+    private ClientEvent(final String accountId, final EntityId playerEntity, final int sessionId) {
+        this.accountId = accountId;
+        this.playerEntity = playerEntity;
+        this.sessionId = sessionId;
+        this.timestampMillis = System.currentTimeMillis();
+    }
+
+    /** Pre-login transport-up / transport-down event; player entity not yet resolved. */
+    public static ClientEvent forTransport(final int sessionId) {
+        return new ClientEvent(UNRESOLVED_ACCOUNT_ID, null, sessionId);
+    }
+
+    /** Post-login session event with the resolved player entity. */
+    public static ClientEvent forSession(final EntityId playerEntity, final int sessionId) {
+        return new ClientEvent(UNRESOLVED_ACCOUNT_ID, playerEntity, sessionId);
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public EntityId getPlayerEntity() {
+        return playerEntity;
+    }
+
+    public int getSessionId() {
+        return sessionId;
+    }
+
+    public long getTimestampMillis() {
+        return timestampMillis;
     }
 
     @Override
     public String toString() {
-        return MoreObjects.toStringHelper(getClass().getSimpleName()).toString();
+        return MoreObjects.toStringHelper(getClass().getSimpleName())
+                .add("accountId", accountId)
+                .add("playerEntity", playerEntity)
+                .add("sessionId", sessionId)
+                .add("timestampMillis", timestampMillis)
+                .toString();
     }
 }

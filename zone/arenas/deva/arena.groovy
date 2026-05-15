@@ -26,6 +26,7 @@ arena {
     includeFragment '/conf/deva-04-2026/brick.groovy'
     includeFragment '/conf/deva-04-2026/decoy.groovy'
     includeFragment '/conf/deva-04-2026/portal.groovy'
+    includeFragment '/conf/deva-04-2026/thor.groovy'
     includeFragment '/conf/deva-04-2026/prize.groovy'
     // Slice 9a — friendly-fire policy: 0=off (default), 1=bomb splash only,
     // 2=all weapons. Deva keeps the safe default.

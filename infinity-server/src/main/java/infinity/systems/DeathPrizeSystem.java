@@ -88,6 +88,8 @@ public class DeathPrizeSystem extends BaseInfinitySystem {
     final ChangeTarget ct = intentEntity.get(ChangeTarget.class);
     final PrizeSpawnIntent intent = intentEntity.get(PrizeSpawnIntent.class);
     final EntityId dyingShipId = ct.target();
+    // Kill-credit: ct.source() == dyingShipId for unattributed deaths, else the killer EntityId.
+    final EntityId killerId = ct.source();
     final Vec3d position = intent.position();
     if (position == null) {
       log.warn("PrizeSpawnIntent for {} has null position; skipping drop", dyingShipId);
@@ -116,8 +118,9 @@ public class DeathPrizeSystem extends BaseInfinitySystem {
             engineConfigSystem.get().prizeRadius()));
     if (log.isInfoEnabled()) {
       log.info(
-          "Death-drop: ship {} died in arena '{}' at {} → spawned {} (lifetime={} ms)",
+          "Death-drop: ship {} died (killer={}) in arena '{}' at {} → spawned {} (lifetime={} ms)",
           dyingShipId,
+          killerId,
           arenaName,
           position,
           prizeType,

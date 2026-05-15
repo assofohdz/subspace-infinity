@@ -1,9 +1,5 @@
-/*
- * $Id$
- *
- * Copyright (c) 2017, Simsilica, LLC
- * All rights reserved.
- */
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2018-2026 Asser Fahrenholz
 
 package infinity.client;
 
@@ -16,9 +12,11 @@ import com.jme3.network.ClientStateListener.DisconnectInfo;
 import com.jme3.network.ErrorListener;
 import com.jme3.network.service.ClientService;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.client.EntityDataClientService;
 import com.simsilica.ethereal.EtherealClient;
 import com.simsilica.ethereal.TimeSource;
+import com.simsilica.event.EventBus;
 import com.simsilica.lemur.Action;
 import com.simsilica.lemur.Button;
 import com.simsilica.lemur.OptionPanel;
@@ -75,6 +73,10 @@ public class ConnectionState extends CompositeAppState {
         log.info("disconnect()");
         closing = true;
         log.info("Detaching ConnectionState");
+        // Clean logout — carry the player entity if a session was bound (mirrors sessionStarted shape).
+        final GameSessionClientService sessionSvc = client.getService(GameSessionClientService.class);
+        final EntityId playerEntity = sessionSvc != null ? sessionSvc.getPlayer() : null;
+        EventBus.publish(ClientEvent.sessionEnded, ClientEvent.forSession(playerEntity, getClientId()));
         getStateManager().detach(this);
     }
 
@@ -102,6 +104,8 @@ public class ConnectionState extends CompositeAppState {
     protected void onLoggedOn( final boolean loggedIn ) {
         // No error path yet — login currently can't fail server-side.
         addChild(new GameSessionState(), true);
+        final EntityId playerEntity = client.getService(GameSessionClientService.class).getPlayer();
+        EventBus.publish(ClientEvent.sessionStarted, ClientEvent.forSession(playerEntity, getClientId()));
     }
 
     @Override
@@ -195,6 +199,9 @@ public class ConnectionState extends CompositeAppState {
         log.info("onConnected()");
         closeConnectingPanel();
 
+        // Publish transport-up event before LoginState attaches so listeners can wire dependent state.
+        EventBus.publish(ClientEvent.clientConnected, ClientEvent.forTransport(client.getClient().getId()));
+
         // Add our client listeners
         AccountObserver obs = new AccountObserver();
         AccountClientService serv = client.getService(AccountClientService.class);
@@ -210,6 +217,7 @@ public class ConnectionState extends CompositeAppState {
     protected void onDisconnected( final DisconnectInfo info ) {
         log.info("onDisconnected({})", info);
         closeConnectingPanel();
+        EventBus.publish(ClientEvent.clientDisconnected, ClientEvent.forTransport(getClientId()));
         if( closing ) {
             return;
         }

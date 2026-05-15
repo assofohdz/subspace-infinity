@@ -4,15 +4,10 @@
 package infinity.config;
 
 /**
- * Per-arena Thor projectile tuning. Read at projectile-creation time by
- * {@code ConsumableSystem.createProjectileThor}.
- *
- * @param damage damage applied on Thor hit (legacy default {@code 10})
- * @param decayMs Thor projectile lifetime in ms (legacy default
- *     {@code 1500} — split out from a previously-shared bullet-decay
- *     reference to allow independent tuning)
+ * Per-arena Thor projectile tuning; populated from {@code thor.groovy} via {@code ThorAdapter}.
+ * Infinity divergence — no Subspace canon ({@code [Thor]} section does not exist in REFERENCE.md).
  */
-public record ThorConfig(int damage, long decayMs) {
+public record ThorConfig(int damage, long decayMs, int launchVelocity) {
 
-  public static final ThorConfig DEFAULTS = new ThorConfig(10, 1500L);
+  public static final ThorConfig DEFAULTS = new ThorConfig(10, 1500L, 50);
 }

@@ -13,6 +13,7 @@ import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.sim.GameSystemManager;
 import infinity.Ship;
 import infinity.config.ArenaConfig;
+import infinity.config.ShipRestrictionsConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
 import java.util.List;
@@ -75,7 +76,8 @@ public class ConfigRegistrySystemLoadTest {
                   "/conf/trench-04-2026/spawn.groovy"),
               0.0,
               List.of(),
-              0);
+              0,
+              ShipRestrictionsConfig.DEFAULTS);
 
       registry.load(arenaId, arenaConfig);
 

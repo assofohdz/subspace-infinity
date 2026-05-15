@@ -6,9 +6,9 @@ package infinity.settings;
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import infinity.config.ArenaConfig;
+import infinity.config.ShipRestrictionsConfig;
 import infinity.config.SpawnerSpec;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -64,7 +64,8 @@ public final class GroovyArenaLoader {
 
     @Override
     public List<String> allowedImports() {
-      return Collections.emptyList();
+      // Ship enum lets shipRestrictions{…} refer to e.g. Ship.WARBIRD without an import line.
+      return List.of("infinity.Ship");
     }
 
     @Override
@@ -117,6 +118,7 @@ public final class GroovyArenaLoader {
     private double wallFriction = ArenaConfig.EMPTY.wallFriction();
     private final List<SpawnerSpec> spawners = new ArrayList<>();
     private int friendlyFire = ArenaConfig.EMPTY.friendlyFire();
+    private ShipRestrictionsConfig shipRestrictions = ShipRestrictionsConfig.DEFAULTS;
 
     ArenaConfigBuilder() {}
 
@@ -182,6 +184,11 @@ public final class GroovyArenaLoader {
       body.call();
     }
 
+    /** {@code shipRestrictions { allow …; deny …; maxPerTeam … }} — Infinity-only. */
+    public void shipRestrictions(final Closure<?> body) {
+      this.shipRestrictions = GroovyShipRestrictionsAdapter.evaluate(body);
+    }
+
     ArenaConfig build() {
       return new ArenaConfig(
           mapFile,
@@ -191,7 +198,8 @@ public final class GroovyArenaLoader {
           List.copyOf(fragmentIncludes),
           wallFriction,
           List.copyOf(spawners),
-          friendlyFire);
+          friendlyFire,
+          shipRestrictions);
     }
   }
 
