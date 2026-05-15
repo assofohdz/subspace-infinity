@@ -77,8 +77,9 @@ Modules group into three composition shapes:
 - **Layered** — zero or more modules per slot, contributions merged by
   category-specific semantics. No declaration-order guarantee. Anything
   order-sensitive must be reshaped as an additive contribution.
-  Categories: `scoring` (contributions sum); `winCondition` (triggers
-  OR, first to fire ends the round).
+  Categories: `scoring` (contributions sum); `winCondition` (two-role
+  — see *Win condition* below; terminator-triggers OR, winner-vote
+  first-declared wins).
 - **Opt-in mechanics** — independently included gameplay objects, each
   carrying its own placement/config inline. Each is a binary
   include/exclude. Catalog: `crowns`, `carryFlags`, `staticFlags`,
@@ -87,6 +88,23 @@ Modules group into three composition shapes:
 Mechanics *publish state* (e.g. `CrownOwnership`, `FlagOwnership`,
 `OutsidePlayArea`) that layered modules read. Missing-mechanic with
 dependent-scoring is a load-time error.
+
+### System-name glossary
+
+The composition framework introduces several systems whose names overlap conceptually; the table disambiguates them.
+
+| Name | Layer | Owns | Lifetime |
+|---|---|---|---|
+| `ArenaSystem` | `infinity-server` | Arena lifecycle (load/unload/swap), `ArenaRecord` cache, canonical writer of `ArenaEntity` creation/destruction. Handles `~loadArena`/`~swapMap`/`~unloadMap` chat commands. | Zone singleton |
+| `ArenaManager` | `api/sim/` interface | api-side façade for modules to read arena state without depending on `infinity-server`. Thin pass-through to `ArenaSystem`. | Zone singleton, injected into `ModuleContext` |
+| `ArenaModuleSystem` | `infinity-server` | Per-arena module-set registry; runs tick phases 1+2; orchestrates `ArenaModule` instantiation via `ModuleLoader`. | Zone singleton holding `Map<ArenaId, ArenaModuleSet>` |
+| `ScoreCoordinatorSystem`, `WinConditionCoordinatorSystem` | `infinity-server` | Phase 3 canonical writers — drain `*Change` transients into canonical components per ADR-0001. | Zone singletons; filter by `ArenaId` |
+| `ArenaLifecycleDispatcherSystem` | `infinity-server` | Phase 4 — fires `onRoundEnd` / `onMatchEnd` / `onMatchStart` / `onRoundStart` on modules in registration order; aggregates winCondition winner-votes; emits `ScoreReset` transient for coordinator next-tick reset. | Zone singleton |
+| `ArenaModule` | `api/sim/` interface | Per-arena instance of one module type — implements the lifecycle interface. | Per-arena (created on `onArenaLoad`, destroyed on `onArenaUnload`) |
+| `ArenaEntity` | Zay-ES entity | Per-arena state holder: `ArenaId`, `RoundNumber`, `MatchNumber`, `Arena*Score`. Different components have different canonical writers (see *Different writer per component on shared entity* below). | Per-arena, created by `ArenaSystem` on load |
+| `TeamEntity` | Zay-ES entity | Per-team-per-arena state holder: `ArenaId`, `Frequency`, `Team*Score`, `TeamMemberCount`. | Per-team-per-arena, created by the `teamSetup` module |
+
+`Frequency` on a player entity *is* the team-membership signal — no separate `TeamMembership` component. The mapping `(ArenaId, freq) → TeamEntity` is maintained in the `teamSetup` module.
 
 ### Module implementations
 
@@ -131,6 +149,22 @@ record (per [ADR-0002](./0002-config-component-projection.md) Config-
 Component Projection — `*Config` records are immutable templates that
 spawn systems project into per-entity components).
 
+**Service injection via `ModuleContext`.** Every module type takes a single-arg constructor receiving a `ModuleContext` record carrying everything a module might need: `ArenaId`, the arena's `EntityData`, the per-arena `EventBus`, plus the five services the prior `BaseGameModule` injected (`PhysicsManager`, `ChatHostedPoster`, `AccountManager`, `ArenaManager`, `TimeManager`) and `SettingsSystem` for typed-fragment reads. `ModuleLoader` builds the context once per arena, passes it to every module constructor. Modules use what they need, ignore the rest. The context is extensible — adding a service is a `ModuleContext` field addition; no per-module signature change.
+
+**Two-phase `ModuleLoader`.** Loading runs validation entirely before instantiation:
+
+```java
+public final class ModuleLoader {
+  // Phase 1 — pure validation, no side effects
+  public ValidationResult validate(ArenaConfig arenaConfig);
+
+  // Phase 2 — runs only if validate() returned OK; cannot fail by construction
+  public ArenaModuleSet build(ArenaConfig arenaConfig, ModuleContext context);
+}
+```
+
+If validation fails, the arena refuses to load and the operator sees a precise error. Because build is fail-free by construction, no instantiated-modules rollback path is needed.
+
 ### Per-arena instances
 
 When an arena loads, the framework instantiates each declared module
@@ -142,6 +176,16 @@ fine in practice (modest arena counts, modest module counts per
 arena); the alternative (zone-singleton with arena-filtering inside
 every module) was rejected for the friction it adds to module
 authoring.
+
+Alongside the module instances, `ArenaSystem` creates a per-arena
+`ArenaEntity` (the canonical state holder for round/match counters
+and arena-scope scores), and the `teamSetup` module creates per-team
+`TeamEntity` instances. Two-fixed-teams setups create both team
+entities at `onArenaLoad`; FFA-style setups create them lazily on
+first player-join per freq. Both entity classes are real Zay-ES
+entities — their components flow to clients via the existing sync
+pipeline, so the HUD reads team and arena scores via `watchEntity`
+like any other entity state.
 
 ### `ArenaModule` interface
 
@@ -184,7 +228,9 @@ and the round resets every 10 minutes.
 - `roundStructure` answers "what is one round?" Variants:
   `continuous`, `timed`, `elimination`, `score-threshold`,
   `crown-reset`, `hold-flag-for`, `lap-based`. Fires `onRoundStart`
-  and `onRoundEnd`.
+  and `onRoundEnd`. *Continuous* = "no time-based round boundary; rely
+  on `winCondition` terminator-triggers to end rounds" — NOT "rounds
+  never end".
 - `matchStructure` answers "how do rounds compose into a match?"
   Variants: `continuous`, `single-round`, `best-of(N)`,
   `period-based(N)`, `round-robin`. Fires `onMatchStart` and
@@ -201,6 +247,45 @@ costs little and lets nested-match shapes — best-of-N, tournament
 brackets, round-robin — land as new `matchStructure` variants without
 schema migration.
 
+### Win condition — two-role interface
+
+`winCondition` modules carry two distinct optional responsibilities; the same module can perform either, both, or neither:
+
+- **Terminator role** — emit a `RoundEndPending` signal when world state says the round should end *right now* (e.g. `first-to-N-points` hit, `last-team-standing` detected, `last-crown-standing`). Aggregated with OR semantics — any terminator firing ends the round. The active `roundStructure` may ALSO emit `RoundEndPending` on its own (e.g. `timed(10min)` emits when the timer expires) — both sources funnel through the same signal.
+- **Decider role** — invoked at end-of-round (after a terminator has fired) to vote on the winning `Frequency` by reading current world state. Used for arenas where the round-end *trigger* and the *winner determination* are separable (e.g. Trench: `roundStructure 'timed(10min)'` ends the round; `winCondition 'most-flag-occupancy'` declares the winner based on flag-hold state).
+
+```java
+public interface WinConditionModule extends ArenaModule {
+  default Optional<RoundEndTrigger> checkTermination(ArenaId arenaId) { return Optional.empty(); }
+  WinnerDeclaration declareWinner(ArenaId arenaId);
+}
+```
+
+**Vote aggregation when multiple winConditions vote:** v1 ships *first-declared wins* — arena.groovy author orders the list; the first non-`UNDECIDED` declaration becomes `RoundOutcome.winningFreq`. Alternative aggregation policies (priority, majority, weighted) are deferred until a real arena needs them. Arenas with zero `winCondition` modules produce `RoundOutcome.winningFreq = -1` (no winner); their `roundStructure` must be self-terminating (e.g. `timed`).
+
+### Three-tier score model
+
+Score lives at three temporal scopes on each scoring entity (Player, Team, Arena), all written by `ScoreCoordinatorSystem` from drained `*Change` transient components:
+
+| Component | Reset on | Notes |
+|---|---|---|
+| `*RoundScore` | `onRoundEnd` | The "this round" score; resets every round |
+| `*MatchScore` | `onMatchEnd` | The "this match" score; resets every match. **Omitted entirely** when `matchStructure` is `continuous` (there's no match-end ever, so the field would never reset — be visibly absent rather than misleadingly equal to TotalScore) |
+| `*TotalScore` | never (in-arena-session) | Accumulates across rounds and matches for the arena's lifetime; resets at arena unload (in-memory only per state-persistence decision) |
+
+Score `*Change` transient components carry `(target, delta)` and the coordinator applies the delta to all THREE tiers in one drain pass. Reset is **next-tick**: the dispatcher emits `ScoreReset(arenaId, scope)` at phase 4 of the round-end / match-end tick; the coordinator drains it during phase 3 of the next tick and zeros the appropriate tier components. This relaxes "same-tick atomicity" for *bulk component resets* (a minor narrowing); lifecycle method dispatch (`onRoundEnd` etc.) remains same-tick.
+
+### Map-loaded game-element drain pattern
+
+Game elements that the `.lvl` map embeds (turf flags, soccer goals, spawn regions) follow a transient-entity drain pattern that mirrors ADR-0001's `*Change`-entity flow:
+
+1. The map loader detects the embedded data (flag tiles, goal regions, etc.) at map load and creates **transient game-element entities** carrying a marker component (e.g. `Flag` + `Position` + `Spawned` marker).
+2. The mechanic responsible for that game element (`StaticFlag`, `Goals`, `spawnPlacement`, …) drains these transients on `onArenaLoad` — for each, it adds the canonical state components (`FlagOwnership`, `GoalState`, …) and removes the `Spawned` marker. The transient becomes a permanent game-element entity owned (canonically, for its state component) by the mechanic.
+3. On `onArenaUnload`, the mechanic removes only the components it added (`FlagOwnership` etc.); the underlying game-element entity is destroyed by the map-unload path.
+4. If no mechanic consumes the transients (e.g., a turf map loaded into an FFA arena that doesn't load `StaticFlag`), a post-load sweeper logs a warning and the entities remain inert markers until map unload.
+
+This generalises beyond flags: any per-map game element that a mechanic might own follows the same shape. Map = canonical writer of entity *lifecycle*; mechanic = canonical writer of the *state components* it adds. Different writers, same entity — consistent with the "different component, different writer" pattern on `ArenaEntity` (round/match counters).
+
 ### Four-phase tick
 
 Each arena tick runs modules in four ordered phases, an application of
@@ -211,22 +296,42 @@ scoped to module categories:
    tick canonical state and publishes its mechanic-state components
    (`CrownOwnership`, `FlagOwnership`, `BallPossession`,
    `OutsidePlayArea`, …).
-2. **Module-contribution phase.** `scoring` and `winCondition`
-   modules read mechanic state from phase 1 plus game-event signals
-   (kill, death, capture) and emit *transient* contribution components
-   (`ScoreContribution`, `WinConditionTrigger`). Modules never write
-   canonical components.
-3. **Coordinator phase.** Core systems drain contributions and write
-   canonical components — `ScoreCoordinatorSystem` sums
-   `ScoreContribution`s into `PlayerScore` and `TeamScore`;
-   `WinConditionCoordinatorSystem` ORs `WinConditionTrigger`s; if any
-   fires, it signals the active `roundStructure`.
+2. **Module-contribution phase.** `scoring` modules emit
+   `*ScoreChange` transients (per-player / per-team / per-arena).
+   `winCondition` modules in their *terminator* role emit
+   `RoundEndPending` transients if their condition fires (the active
+   `roundStructure` also emits the same transient on its own
+   triggers, e.g. timer expiry). `winCondition` modules in their
+   *decider* role do nothing this phase — they only run at round-end
+   in phase 4. *Game-event signals* (kill, death, capture) flow via
+   the per-arena `EventBus`, not through new transient components.
+   Modules never write canonical components.
+3. **Coordinator phase.** `ScoreCoordinatorSystem` drains
+   `*ScoreChange` transients and writes the three-tier canonical
+   components (`*RoundScore` + `*MatchScore` + `*TotalScore` per
+   target). `WinConditionCoordinatorSystem` drains `RoundEndPending`
+   transients (OR — any one firing terminates the round); if at
+   least one fired this tick, sets the arena's pending-round-end
+   marker for phase 4.
 4. **Lifecycle dispatch phase** *(only on round-end or match-end
-   tick)*. The framework directly calls lifecycle hooks on all loaded
-   modules — `onRoundEnd` first, then optionally `onMatchEnd`, then
-   `onMatchStart` / `onRoundStart` for the next iteration. All within
-   the same tick. The historical `RoundReset` event is replaced by
-   direct method dispatch.
+   tick)*. `ArenaLifecycleDispatcherSystem` calls winConditions'
+   `declareWinner()` and aggregates votes (first-declared wins) into
+   `RoundOutcome`. Then fires `onRoundEnd(arenaId, n, outcome)` on
+   every module, in registration order. If the active
+   `matchStructure` decides the match also ends, fires
+   `onMatchEnd(arenaId, matchOutcome)`. Then fires `onMatchStart` /
+   `onRoundStart` for the next iteration (synthetic outcomes for
+   degenerate cases). Finally emits `ScoreReset(arenaId, scope)`
+   transient components for the coordinator's *next-tick* drain
+   (round-only reset, or round+match if match also ended).
+
+All four phases run in the same server tick. The only deferred
+operation is the *bulk score-reset* (zeroing `*RoundScore` /
+`*MatchScore` on N player + team + arena entities) which lands one
+tick later via the standard `*Change`-transient drain — accepted as
+a minor narrowing of same-tick atomicity in exchange for keeping
+the coordinator's writer path uniform with every other drain it
+performs.
 
 ### Coordinator pattern
 
@@ -462,34 +567,26 @@ clear message; player-facing impact is the same.
 ## Resolved decisions
 
 - **Frame:** horizontal modules; gametypes are emergent compositions.
-- **Pluggability boundary:** behavioural variation = module; numeric
-  variation = core system tuned by `*Config`.
+- **Pluggability boundary:** behavioural variation = module; numeric variation = core system tuned by `*Config`.
 - **Composition shapes:** single-pick, layered, opt-in mechanic.
-- **Implementation:** Java module classes registered in an explicit
-  `ModuleCatalog`; `arena.groovy` is pure data.
+- **Implementation:** Java module classes registered in an explicit `ModuleCatalog`; `arena.groovy` is pure data.
 - **Instance scope:** per-arena.
-- **Lifecycle interface:** unified `ArenaModule` with default no-op
-  hooks (load, match-start, round-start, round-end, match-end, unload,
-  config-reload). Renamed from `BaseGameModule`.
-- **Round/match structure:** two-level, both single-pick, degenerate
-  `continuous` variants supported.
-- **Tick discipline:** four phases — Mechanics → Module-contribution
-  → Coordinator → Lifecycle-dispatch.
-- **Coordinator pattern:** core systems are the canonical writers of
-  components fed by layered modules; modules emit transient
-  contributions.
-- **DSL shape:** top-level statements, no `extends`, single-pick
-  later-wins, layered later-appends, no remove operator. Settings
-  fragments and module presets are separate file pipelines.
-- **Hot-reload:** config-diff, module-set-diff (with cleanup contract),
-  map-swap (separate). All in v1 scope.
+- **Service injection:** every module takes a `ModuleContext` record at construction (`ArenaId`, `EntityData`, per-arena `EventBus`, `PhysicsManager`, `ChatHostedPoster`, `AccountManager`, `ArenaManager`, `TimeManager`, `SettingsSystem`).
+- **Lifecycle interface:** unified `ArenaModule` with default no-op hooks (load, match-start, round-start, round-end, match-end, unload, config-reload). Renamed from `BaseGameModule`.
+- **Per-arena entities:** `ArenaEntity` (created by `ArenaSystem`) and one `TeamEntity` per (arena, freq) (created by the `teamSetup` module) are real Zay-ES entities. Player → team link is the existing `Frequency` component on the player; no new `TeamMembership` component.
+- **Different writer per component on shared entity:** `ArenaEntity`'s `ArenaId` is written by `ArenaSystem`; its `RoundNumber` by `roundStructure`; `MatchNumber` by `matchStructure`; `Arena*Score` by `ScoreCoordinatorSystem`. ADR-0001's "one writer per component" rule is per-component, not per-entity.
+- **Round/match structure:** two-level, both single-pick, degenerate `continuous` variants supported. `continuous` = "no time-based round boundary; rely on winCondition terminator-triggers"; not "rounds never end".
+- **WinCondition two-role:** every `winCondition` module exposes an optional `checkTermination()` (terminator role) and a required `declareWinner()` (decider role). Terminator triggers OR; decider votes aggregate by first-declared-wins (v1 policy).
+- **Three-tier score model:** `*RoundScore` (resets on `onRoundEnd`), `*MatchScore` (resets on `onMatchEnd`; omitted entirely when `matchStructure` is `continuous`), `*TotalScore` (in-arena-session accumulating). All written by `ScoreCoordinatorSystem`. Reset is next-tick via `ScoreReset` transient drain.
+- **Map-loaded game-element drain:** `.lvl`-embedded game elements (flags, goals, …) are emitted by the map loader as transient entities with a `Spawned` marker; the consuming mechanic drains them on `onArenaLoad` by adding canonical state components and removing the marker. Map owns the entity *lifecycle*; mechanic owns its added *state components*.
+- **Tick discipline:** four phases — Mechanics → Module-contribution → Coordinator → Lifecycle-dispatch. All same-tick except bulk score-reset (next-tick).
+- **Coordinator pattern:** core systems are the canonical writers of components fed by layered modules; modules emit transient contributions.
+- **DSL shape:** top-level statements, no `extends`, single-pick later-wins, layered later-appends, no remove operator. Settings fragments and module presets are separate file pipelines.
+- **Hot-reload:** config-diff, module-set-diff (with cleanup contract), map-swap (separate). All in v1 scope.
 - **State persistence:** in-memory only for v1.
-- **Module → game events:** ECS transient components + per-arena
-  EventBus; no game-event hooks on `ArenaModule`.
-- **Extensibility principle:** safe frame, wacky content. Hand
-  modules powerful tools (`EntityData`, EventBus, services) and trust
-  them.
-- **Loader posture:** fail-fast on every load-time inconsistency.
+- **Module → game events:** ECS transient components for in-tick mutation requests; per-arena `EventBus` for kill / death / spawn / capture / flag-touch / etc. No game-event hooks on `ArenaModule`. **Legacy `FrequencySystem` flag-touch handler is removed** as part of the StaticFlag mechanic landing.
+- **Loader posture:** two-phase — `validate()` runs entirely before `build()`. Validation rejects unknown ids, duplicate single-pick declarations, missing `requires:` mechanics, cyclic mechanic dependencies, `*Config` validation errors. Build is fail-free by construction; no rollback path needed.
+- **Extensibility principle:** safe frame, wacky content. Hand modules powerful tools (`EntityData`, EventBus, services) and trust them.
 
 ## Open work (PRD-scope)
 

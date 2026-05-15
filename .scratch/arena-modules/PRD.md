@@ -70,11 +70,64 @@ public enum ModuleCategory {
   SPAWN_PLACEMENT, SHOP, SCORING, WIN_CONDITION, MECHANIC
 }
 
-public record RoundOutcome(/* winner freq, scoring breakdown, …  */) { }
-public record MatchOutcome(/* … */) { }
+// Carries everything a module might need at construction time.
+public record ModuleContext(
+    ArenaId arenaId,
+    EntityData ed,
+    EventBus arenaEventBus,         // per-arena per ADR-0008 decision
+    PhysicsManager physics,
+    ChatHostedPoster chat,
+    AccountManager accounts,
+    ArenaManager arenas,
+    TimeManager time,
+    SettingsSystem settings
+) {}
+
+public record ModuleSpec(String moduleId, Map<String, Object> kwargs) {}
+
+// What GroovyArenaLoader produces from arena.groovy's module statements.
+public record ArenaModuleDeclarations(
+    Optional<ModuleSpec> teamSetup,
+    Optional<ModuleSpec> roster,
+    Optional<ModuleSpec> respawnPolicy,
+    Optional<ModuleSpec> roundStructure,
+    Optional<ModuleSpec> matchStructure,
+    Optional<ModuleSpec> spawnPlacement,
+    Optional<ModuleSpec> shop,
+    List<ModuleSpec> scoring,
+    List<ModuleSpec> winConditions,
+    Map<String, ModuleSpec> mechanics
+) {}
+
+public record RoundOutcome(
+    int winningFreq,                    // -1 = no winner (UNDECIDED)
+    String triggeringId,                // module id that triggered termination
+    Map<Integer, Long> teamScores,      // freq -> final round-local score
+    Map<String, Object> details         // free-form for module-specific data
+) {}
+
+public record MatchOutcome(
+    int winningFreq,
+    Map<Integer, Long> teamScores,      // freq -> final match-local score
+    Map<String, Object> details
+) {}
+
+public record WinnerDeclaration(
+    int winningFreq,                    // -1 = UNDECIDED (this winCondition abstains)
+    String reason
+) {
+  public static final WinnerDeclaration UNDECIDED = new WinnerDeclaration(-1, "");
+}
 ```
 
-`ArenaModule` is the interface every concrete module implements; the category-specific interfaces (`ScoringModule`, `MechanicModule`, …) extend it with optional category-specific contracts (mostly empty in v1; reserved for future specialization).
+`ArenaModule` is the interface every concrete module implements; category-specific interfaces (`ScoringModule`, `MechanicModule`, `WinConditionModule`, …) extend it with optional category-specific contracts. The non-trivial extension is `WinConditionModule`'s two-role interface (per ADR-0008):
+
+```java
+public interface WinConditionModule extends ArenaModule {
+  default Optional<RoundEndTrigger> checkTermination(ArenaId arenaId) { return Optional.empty(); }
+  WinnerDeclaration declareWinner(ArenaId arenaId);
+}
+```
 
 ### Helpers (infinity-server/, not registered as systems)
 
@@ -98,13 +151,49 @@ public final class ModuleCatalog {
 
 The catalog is **the** answer to "what modules can I reference in arena.groovy?". One file, greppable. The future external Groovy loader appends to this catalog at server start (Phase 3).
 
-**`ModuleLoader`** — stateless helper. Given an `ArenaConfig` (the typed-loaded form of `arena.groovy`) plus the injected services, it:
+**`ModuleLoader`** — stateless, **two-phase** helper. Validation runs entirely before instantiation, so a failed load never leaves half-instantiated modules behind (no rollback path).
 
-1. Walks the `arena.modules` declarations from `ArenaConfig`.
-2. For each declaration: look up in `ModuleCatalog`, validate kwargs against the paired `*Config` record (ADR-0002 CCP), instantiate the module with services + bound config.
-3. Run cross-module validation: duplicate single-pick check, mechanic dependency check, cyclic-mechanic check.
-4. On any failure: throw `ModuleLoadException` with a precise message (per ADR-0008 fail-fast posture). Caller surfaces it to the arena-load chat output.
-5. On success: return a fully-built `ArenaModuleSet`.
+```java
+public final class ModuleLoader {
+  // Phase 1 — pure, no side effects, no instantiation. Returns either
+  // a clean OK or a list of validation errors.
+  public ValidationResult validate(ArenaConfig arenaConfig);
+
+  // Phase 2 — runs ONLY if validate() returned OK. By construction
+  // cannot fail (modulo programming bugs).
+  public ArenaModuleSet build(ArenaConfig arenaConfig, ModuleContext context);
+}
+
+public record ValidationResult(
+    boolean ok,
+    List<String> errors       // human-readable, surfaced to operator on arena-load
+) {}
+```
+
+**Phase 1 (`validate`) checks:**
+1. Every `moduleId` exists in `ModuleCatalog`.
+2. No single-pick category has more than one declaration.
+3. Every `requires:` mechanic dep on every loaded scoring/winCondition is satisfied by an actually-loaded mechanic.
+4. The mechanic `requires:` graph is acyclic.
+5. Each declaration's kwargs validate against the descriptor's `configType` (compact-constructor validation; e.g., `perKill: -50` rejected).
+
+**Phase 2 (`build`) steps:**
+1. Walk declarations in topological order (mechanics first, by `requires:` DAG; then single-pick categories; then layered).
+2. For each declaration: look up `ModuleDescriptor` in `ModuleCatalog`, bind kwargs to `*Config` record, instantiate via single-arg `ModuleContext` constructor.
+3. Compose into an `ArenaModuleSet` and return.
+
+Caller (`ArenaModuleSystem.onArenaLoad`) handles the two phases:
+
+```java
+var result = loader.validate(arenaConfig);
+if (!result.ok()) {
+  arenaSystem.refuseLoad(arenaId, result.errors());     // operator sees precise error
+  return;
+}
+var moduleSet = loader.build(arenaConfig, context);
+modulesByArena.put(arenaId, moduleSet);
+// then: onArenaLoad, onMatchStart, onRoundStart on each module
+```
 
 ### Systems (infinity-server/, registered with `GameSystemManager`)
 
@@ -130,11 +219,46 @@ public void update(SimTime time) {
 }
 ```
 
-**`ScoreCoordinatorSystem`** — `BaseInfinitySystem`. Canonical writer of `PlayerScore` / `TeamScore` (per ADR-0001). Drains `ScoreContribution` transient component entities each tick, sums per-target, writes the canonical components. Always loaded, regardless of which scoring modules are active in any arena.
+**`ScoreCoordinatorSystem`** — `BaseInfinitySystem`. Canonical writer of all three score tiers on all three scopes (per ADR-0001): `PlayerRoundScore` / `PlayerMatchScore` / `PlayerTotalScore`, `TeamRoundScore` / `TeamMatchScore` / `TeamTotalScore`, `ArenaRoundScore` / `ArenaMatchScore` / `ArenaTotalScore`. Drains `PlayerScoreChange` / `TeamScoreChange` / `ArenaScoreChange` transient entities each tick; applies each delta to ALL three tiers in one drain pass. Also drains `ScoreReset(arenaId, scope)` transients (emitted by dispatcher in phase 4 of prior tick) and zeros the appropriate tier components. **`*MatchScore` is omitted** for arenas whose `matchStructure` is `continuous` (no match-end will ever fire). Always loaded, regardless of which scoring modules are active in any arena.
 
-**`WinConditionCoordinatorSystem`** — `BaseInfinitySystem`. Drains `WinConditionTrigger` transient component entities, ORs them per arena. If any fires, sets a `RoundEndPending(arenaId)` marker that the lifecycle dispatcher picks up.
+**`WinConditionCoordinatorSystem`** — `BaseInfinitySystem`. Drains `RoundEndPending` transient component entities, ORs them per arena. If any fires for arena X, sets a per-arena pending-round-end marker that the lifecycle dispatcher consumes in phase 4 (same tick).
 
-**`ArenaLifecycleDispatcherSystem`** — `BaseInfinitySystem`. Runs **phase 4**. Reads `RoundEndPending` markers from the coordinator, calls `onRoundEnd(arenaId, roundNum, outcome)` on every module in the arena's set; consults `matchStructure` to decide if `onMatchEnd` should also fire; dispatches `onMatchStart` / `onRoundStart` for the next iteration. Removes the `RoundEndPending` marker.
+**`ArenaLifecycleDispatcherSystem`** — `BaseInfinitySystem`. Runs **phase 4**. For each arena with a pending-round-end this tick:
+1. Calls `declareWinner()` on each loaded `winCondition` module; aggregates votes (**first non-`UNDECIDED` wins** for v1) into `RoundOutcome.winningFreq`.
+2. Fires `onRoundEnd(arenaId, roundNumber, outcome)` on every module in registration order.
+3. Asks the active `matchStructure` whether the match also ends. If yes: fires `onMatchEnd(arenaId, matchOutcome)`.
+4. Emits `ScoreReset(arenaId, scope=ROUND)` transient component (and `scope=MATCH` if match ended). The score coordinator drains these next tick.
+5. Fires `onMatchStart` (if a new match should start) + `onRoundStart(arenaId, roundNumber+1)` for the next round iteration.
+6. Clears the pending-round-end marker.
+
+**Score reset cascade ordering** on a match-end tick:
+- Tick N, phase 4: dispatcher fires `onRoundEnd` → matchStructure detects match ending → `onMatchEnd` fires → dispatcher emits BOTH `ScoreReset(ROUND)` and `ScoreReset(MATCH)` → dispatcher fires `onMatchStart` + `onRoundStart` for next match.
+- Tick N+1, phase 3: coordinator drains both `ScoreReset` transients in one pass; zeros `*RoundScore` and `*MatchScore` for the arena.
+
+This means scores on the HUD show the *post-reset* values one tick after `onRoundEnd` fires. Accepted narrowing of same-tick atomicity in exchange for keeping the coordinator's writer path uniform with every other drain.
+
+### Canonical-writer ledger
+
+ADR-0001 requires exactly one writer per component. The new components introduced by this framework, each mapped to its writer and what drives the write:
+
+| Component | Canonical writer | Drives the write |
+|---|---|---|
+| `ArenaEntity` lifecycle, `ArenaId` (on arena entity) | `ArenaSystem` | Arena load/unload |
+| `RoundNumber` (on arena entity) | active `roundStructure` module | Increment in `onRoundStart` |
+| `MatchNumber` (on arena entity) | active `matchStructure` module | Increment in `onMatchStart` |
+| `TeamEntity` lifecycle, `Frequency` (on team entity), `TeamMemberCount` | active `teamSetup` module | Arena load + player freq-change events |
+| `PlayerRoundScore`, `PlayerMatchScore`, `PlayerTotalScore` | `ScoreCoordinatorSystem` | Drains `PlayerScoreChange` transients (+ `ScoreReset` for zero) |
+| `TeamRoundScore`, `TeamMatchScore`, `TeamTotalScore` | `ScoreCoordinatorSystem` | Drains `TeamScoreChange` transients |
+| `ArenaRoundScore`, `ArenaMatchScore`, `ArenaTotalScore` | `ScoreCoordinatorSystem` | Drains `ArenaScoreChange` transients |
+| `FlagOwnership` (on map-loaded flag entities) | `StaticFlag` mechanic | Drain `Spawned`-marked flags + freq-touch events |
+| `FlagCarrier`, carry-flag pickup state | `CarryFlag` mechanic | Pickup/drop events |
+| `CrownOwnership` (on player entities) | `Crowns` mechanic | Spawn at `onRoundStart`; transfer on death |
+| `BallPossession` (on ball entities) | `Balls` mechanic | Touch events |
+| `OutsidePlayArea` (on player entities) | `ShrinkingZone` mechanic | Per-tick position check vs current zone radius |
+| `RoundEndPending` transient | `WinConditionCoordinatorSystem` | Drains `RoundEndTrigger` from terminator-role winCondition modules + roundStructure |
+| `ScoreReset(arenaId, scope)` transient | `ArenaLifecycleDispatcherSystem` | Emit at phase 4 of round/match-end tick |
+
+`PlayerScoreChange` / `TeamScoreChange` / `ArenaScoreChange` are *transient* components — emitted by any scoring module that targets the corresponding scope; the coordinator drains and destroys per the ADR-0001 one-shot pattern. The coordinator is the only system that *writes* the canonical `*Score` components; modules only emit `*Change` transients.
 
 ### System registration order
 
@@ -192,20 +316,20 @@ Acceptance: `./gradlew build` clean; existing arenas continue to load and play e
 
 Implements the minimum module catalog to ship one arena composition end to end:
 
-- `KillPointsScoring` — emits `ScoreContribution` on kill, configurable `perKill`.
-- `FfaPrivateFreqsTeamSetup` — assigns each player their own freq on spawn.
+- `KillPointsScoring` — emits `PlayerScoreChange` on kill (`PerKill` configurable). Listener on per-arena `EventBus` for kill events.
+- `FfaPrivateFreqsTeamSetup` — assigns each player their own freq on spawn; lazily creates per-freq `TeamEntity` per player; canonical writer of `Frequency`-on-team-entity and `TeamMemberCount`.
 - `AllShipsRoster` — no roster restriction.
 - `InstantRespawn` — drains death components, re-spawns immediately.
-- `TimedRoundStructure` — emits `WinConditionTrigger` after N minutes.
-- `ContinuousMatchStructure` — degenerate: emits `onMatchStart` at arena-load, never fires `onMatchEnd` until arena-unload.
-- `RandomRadiusSpawnPlacement` — places players within a radius of a center point.
+- `TimedRoundStructure` — terminator: emits `RoundEndPending` after N minutes.
+- `ContinuousMatchStructure` — degenerate: emits `onMatchStart` at arena-load; never fires `onMatchEnd` until arena-unload; `*MatchScore` components are omitted under this matchStructure.
+- `RandomRadiusSpawnPlacement` — places players within a radius of a center point (same algorithm as today's `spawn.groovy` fragment, module-owned).
 - `FlatShop` — basic shop (matches Subspace canon defaults).
-- `HighestScoreAfterTimeWinCondition` — emits trigger when round timer expires; the winner is the freq with highest `PlayerScore`.
-- `ScoreCoordinatorSystem` writes `PlayerScore` from contributions.
+- `HighestScoreWinCondition` — decider only (no terminator role): `declareWinner()` reads `TeamRoundScore` and returns highest freq.
+- `ScoreCoordinatorSystem` writes `PlayerRoundScore` / `PlayerMatchScore` / `PlayerTotalScore` (and team / arena tiers) from drained `*Change` transients. `*MatchScore` omitted because `matchStructure 'continuous'`.
 
-Plus: `GroovyArenaLoader` accepts the new `arena.groovy` module statements; `ArenaConfig` gains a `modules()` field with all category lists.
+Plus: `GroovyArenaLoader` accepts the new `arena.groovy` module statements; `ArenaConfig` gains an `ArenaModuleDeclarations` field via `modules()` accessor.
 
-Plus: `zone/arenas/ffa/arena.groovy` composes the above into a playable FFA arena. `~loadArena ffa` works. `PlayerScore` updates on the HUD. Round ends after the configured timer with a chat announcement.
+Plus: `zone/arenas/ffa/arena.groovy` composes the above into a playable FFA arena. `~loadArena ffa` works. `PlayerRoundScore` + `TeamRoundScore` update on HUD via `watchEntity` (clients watch the player + team entities). Round ends after the configured timer with a chat announcement; round score resets next tick.
 
 Acceptance: manually launch + play FFA arena; kills award points; round ends after timer; scores reset; new round starts.
 
@@ -215,24 +339,60 @@ Acceptance: manually launch + play FFA arena; kills award points; round ends aft
 - Extend the arena-groovy file-watcher to compute module-set diffs and apply per `ModuleLoader`.
 - Test: edit `ffa/arena.groovy` while the arena is running (add `scoring 'bonus-points'` — a no-op-but-loaded second scoring module). Verify the running arena picks it up without restart.
 
-### Slice F4 — KOTH second consumer
+### Slice F4 — Trench (Turf-shaped) — second consumer + legacy rip-out
 
-Adds opt-in mechanic + layered scoring + lockout-respawn variants:
+Adds the StaticFlag mechanic, two-team setup, and Trench-canonical winCondition. Rips out the legacy `FrequencySystem` flag-touch handler in the same slice (the new mechanic supersedes it).
 
-- `Crowns` mechanic — publishes `CrownOwnership` component on spawn; transfers on death by crown-holder.
-- `CrownKillBonus` scoring — additive contribution; emits extra `ScoreContribution` when killer holds a crown.
+New modules:
+- `StaticFlag` mechanic — drains map-loaded transient flag entities (per the map-loaded game-element drain pattern); canonical writer of `FlagOwnership`. Subscribes to per-arena flag-touch events; updates `FlagOwnership` on touch.
+- `TwoFixedTeamsTeamSetup` — eagerly creates 2 `TeamEntity` instances at `onArenaLoad`. Assigns freqs (0 + 1) to joining players via emit `FrequencyChange` (drained by existing `FrequencySystem`, which retains its `Frequency`-canonical-writer role minus the flag-touch handler).
+- `FlagHoldTimeScoring` — per-tick: for each flag, looks up owning team, emits `TeamScoreChange(freq, +N)` for that team. `PerSecondPerFlag` configurable.
+- `MostFlagOccupancyWinCondition` — decider only (no terminator). `declareWinner()` reads cumulative flag-hold time per team across the round and returns the highest. (Requires tracking flag-hold ticks per team across the round; stored on the mechanic's state or on the team entity.)
+- (Reused from F2) `TimedRoundStructure 'timed(minutes: 10)'` — terminates the round on timer.
+
+Plus: rip out `FrequencySystem.flagTouchHandler` and `MapFactory.createTurfStationaryFlag` legacy path. Migrate `deva/arena.groovy` to the new module pipeline in the same change (deva composes `mechanic 'staticFlags'` reading the same flag positions deva used today).
+
+Plus: `zone/arenas/trench/arena.groovy` composes:
+```groovy
+arena {
+  map 'trench/your-map.lvl'
+  teamSetup      '2-fixed-teams'
+  roster         'all-ships'
+  respawnPolicy  'instant'
+  roundStructure 'timed', minutes: 10
+  matchStructure 'continuous'
+  spawnPlacement 'random-radius', center: [512, 512], radius: 200
+  shop           'flat'
+
+  mechanic 'staticFlags'      // consumes map-loaded flag entities
+
+  scoring 'kill-points', perKill: 100
+  scoring 'flag-hold-time', perSecondPerFlag: 5
+
+  winCondition 'most-flag-occupancy'
+}
+```
+
+Acceptance: manually launch + play Trench arena. Flags are owned by the team last touching them. Both teams accumulate flag-hold time. Kill points accumulate normally. After 10 minutes the round ends; the team with more flag-hold time wins; scores reset; new round starts.
+
+### Slice F5 — KOTH third consumer (validates two-role winCondition + opt-in mechanic)
+
+Adds opt-in mechanic + layered scoring + lockout-respawn variants. Validates the two-role winCondition design (terminator + decider together).
+
+- `Crowns` mechanic — spawns crown entities at `onRoundStart` (one per active player); transfers `CrownOwnership` on death by crown-holder.
+- `CrownKillBonus` scoring — additive contribution; emits extra `PlayerScoreChange` when killer holds a crown.
 - `LockoutNoCrownRespawnPolicy` — respawn requires arena to have ≥1 crown-holder remaining; otherwise queue.
-- `LastCrownStandingWinCondition` — emits trigger when crown-count reaches 1.
-- `CrownResetRoundStructure` — single round per crown distribution; resets on `onRoundEnd`.
+- `LastCrownStandingWinCondition` — **both roles**: terminator emits `RoundEndPending` when crown-count drops to 1; decider returns the surviving crown-holder's freq.
+- `CrownResetRoundStructure` — single round per crown distribution; despawns crowns on `onRoundEnd`; respawns on next `onRoundStart`.
 
 Plus: `zone/arenas/koth/arena.groovy` composing the above with the existing FFA modules.
 
 Acceptance: KOTH plays through a round end-to-end; crown drops on death; round resets; new crowns distributed.
 
-### Slice F5+ — Module preset bundles + remaining catalog
+### Slice F6+ — Module preset bundles + remaining catalog
 
-- `usePreset` directive support; `zone/presets/koth-base/koth-base.groovy` as the first preset.
-- Add remaining gametype modules per `subspace-module-archetypes/PRD.md` (Turf, CTF, Powerball, Speed Zone, Dueling). One slice per gametype.
+- `usePreset` directive support; `zone/presets/trench-base/trench-base.groovy` as the first preset (extract the Trench composition from F4).
+- Add remaining gametype modules per `subspace-module-archetypes/PRD.md` (CTF, Powerball, Speed Zone, Dueling, Jackpot variants). One slice per gametype.
 
 ### Phase 3 — external-author Groovy module loader (separate PRD)
 

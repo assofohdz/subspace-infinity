@@ -89,8 +89,11 @@ The arena.groovy DSL supports three module shapes — picking the right one per 
 
 Decided 2026-05-15.
 
-**Win condition** *(refined)*:
-Not just an end-detector — a **round terminator + reset trigger**. When a winCondition fires, it (a) optionally contributes final points (winner bonus, last-standing bounty), and (b) broadcasts a `RoundReset` signal that other modules listen to: mechanics revert to initial state (crown drops, flag positions reset, ball respawns), the spawnPlacement module re-places players, scoring modules reset round-local counters. Multiple winConditions can be loaded; whichever fires first terminates the round. Zero winConditions = continuous play (Jackpot, free-roam Turf). Decided 2026-05-15.
+**Win condition** *(two-role)*:
+A `winCondition` module carries two distinct optional responsibilities; the same module can perform either, both, or neither.
+- **Terminator role** — emit a `RoundEndPending` signal when world state says the round should end *right now* (e.g. `first-to-N-points`, `last-team-standing`, `last-crown-standing`). Aggregated OR across all loaded winConditions. The active `roundStructure` may also emit `RoundEndPending` on its own (e.g. `timed(10min)` on timer expiry). Both sources funnel through the same signal.
+- **Decider role** — invoked at end-of-round (after a terminator fired) to vote on the winning `Frequency` by reading current world state. Used for arenas where round-end *trigger* and *winner determination* are separable (e.g. Trench: `roundStructure 'timed(10min)'` ends the round; `winCondition 'most-flag-occupancy'` declares the winner from flag-hold state).
+Vote aggregation across multiple winConditions: **first-declared wins** (arena.groovy author orders the list). Zero winConditions = no winner (`RoundOutcome.winningFreq = -1`); `roundStructure` must be self-terminating in that case. Decided 2026-05-15.
 
 **Spawn placement (arena-owned, not map-owned)**:
 Team / role spawn locations are declared in `arena.groovy` via the `spawnPlacement` module, not embedded in the `.lvl` map file. Maps provide *geometry*; arenas compose *behaviour* including spawn algorithms (random-radius, team-side-points, start-line, named-region-list). This keeps "same map, different gametype" easy (one map can back FFA-Deathmatch and team-Turf arenas with different spawn rules). Decided 2026-05-15.
@@ -108,8 +111,27 @@ Hybrid (Option C): engine ships a fixed Java catalog of module types; `arena.gro
 Decided 2026-05-15.
 
 **Module coordinator system**:
-A core (always-loaded) server-side system that owns the canonical writer for a component fed by layered modules. Scoring is the motivating case: many scoring modules emit `ScoreContribution` transient components; `ScoreCoordinatorSystem` drains them and writes the per-tick consolidated `PlayerScore` / `TeamScore`. This bridges the "layered modules" composition shape with ADR-0001's "one canonical writer per component" rule — modules never write the canonical component directly; they contribute, the coordinator integrates. Decided 2026-05-15.
+A core (always-loaded) server-side system that owns the canonical writer for a component fed by layered modules. Scoring is the motivating case: many scoring modules emit `*ScoreChange` transient components; `ScoreCoordinatorSystem` drains them and writes the per-tick consolidated *three-tier* score components: `*RoundScore` (resets on `onRoundEnd`), `*MatchScore` (resets on `onMatchEnd`, omitted when `matchStructure` is `continuous`), `*TotalScore` (in-arena-session accumulating). Reset is *next-tick* via a `ScoreReset(arenaId, scope)` transient emitted in phase 4. This bridges the "layered modules" composition shape with ADR-0001's "one canonical writer per component" rule — modules never write the canonical component directly; they contribute, the coordinator integrates. Decided 2026-05-15.
 _Avoid_: "score system" (too narrow — the pattern generalises to any layered-contribution → canonical-component flow).
+
+**ArenaEntity, TeamEntity**:
+Per-arena and per-(arena,freq) Zay-ES entities holding aggregate state. `ArenaEntity` carries `ArenaId`, `RoundNumber`, `MatchNumber`, `Arena*Score`; created/destroyed by `ArenaSystem` at arena load/unload. `TeamEntity` carries `ArenaId`, `Frequency`, `Team*Score`, `TeamMemberCount`; created/destroyed by the `teamSetup` module. Different components on these entities have **different canonical writers** (`RoundNumber` ← `roundStructure`; `Arena*Score` ← `ScoreCoordinatorSystem`; `Frequency` on team entity ← `teamSetup` module; etc.) — ADR-0001's "one writer per component" is per-component, not per-entity. Player → team lookup uses the existing `Frequency` component on the player; no `TeamMembership` component. Decided 2026-05-15.
+
+**System-name glossary** (arena composition framework):
+Several similarly-named systems collaborate; the table disambiguates.
+- **`ArenaSystem`** (`infinity-server`, zone singleton) — arena lifecycle: load/unload/swap; canonical writer of `ArenaEntity` creation/destruction; handles `~loadArena`, `~swapMap`, `~unloadMap` chat.
+- **`ArenaManager`** (`api/sim/` interface, injected into `ModuleContext`) — api-side façade for modules to read arena state without depending on `infinity-server`. Thin pass-through over `ArenaSystem`.
+- **`ArenaModuleSystem`** (`infinity-server`, zone singleton) — owns `Map<ArenaId, ArenaModuleSet>`; runs tick phases 1+2; orchestrates `ArenaModule` instantiation via `ModuleLoader`.
+- **`ScoreCoordinatorSystem`** / **`WinConditionCoordinatorSystem`** (`infinity-server`, zone singletons) — phase 3 canonical writers; drain `*Change` transients into canonical components per ADR-0001.
+- **`ArenaLifecycleDispatcherSystem`** (`infinity-server`, zone singleton) — phase 4: fires lifecycle hooks on modules in registration order; aggregates winCondition winner-votes; emits `ScoreReset` for coordinator next-tick drain.
+- **`ArenaModule`** (`api/sim/` interface) — per-arena instance of one module type; implements the lifecycle interface; constructed with a `ModuleContext`.
+Decided 2026-05-15.
+
+**Map-loaded game-element drain pattern**:
+`.lvl`-embedded game elements (turf flags, soccer goals, spawn regions) follow a transient-entity drain that mirrors ADR-0001's `*Change`-entity flow. The map loader creates transient entities carrying a `Spawned` marker (plus `Flag`/`Position`/etc.); the consuming mechanic (`StaticFlag`, `Goals`, …) drains them on `onArenaLoad` by adding canonical state components (`FlagOwnership`, …) and removing the `Spawned` marker. Map owns the entity *lifecycle*; mechanic owns the *state components it adds*. If no mechanic consumes the transients (e.g., a turf map loaded into an FFA arena that doesn't load `StaticFlag`), the entities remain inert markers until map unload. Decided 2026-05-15.
+
+**Two-phase `ModuleLoader`**:
+Arena load runs validation entirely before instantiation. Phase 1 (`validate`) is pure and side-effect-free — checks unknown ids, duplicate single-pick, missing `requires:` mechanics, cyclic mechanic dependencies, `*Config` validation errors. Phase 2 (`build`) runs only if validate returned OK; by construction it cannot fail (modulo programming bugs). No rollback path needed; the arena either fails to load with a precise error, or loads cleanly. Decided 2026-05-15.
 
 **Module tick discipline (4-phase, per category role)**:
 Each arena tick runs modules in four ordered phases so coordinators always read fully-published state and ADR-0001 single-writer discipline is preserved without per-module bookkeeping.
@@ -122,10 +144,10 @@ Within a category, no declaration-order guarantee — contributions are merged w
 
 **Two-level round/match structure**:
 Two single-pick categories instead of one. Every arena composes both (degenerate variants exist for arenas that don't need a level).
-- `roundStructure` defines "what is one round?" — `continuous`, `timed(minutes)`, `elimination`, `score-threshold(N)`, `crown-reset`, `hold-flag-for(minutes)`, `lap-based(laps)`, etc. Emits `onRoundStart` / `onRoundEnd`.
-- `matchStructure` defines "how do rounds compose into a match?" — `continuous`, `single-round`, `best-of(N)`, `period-based(N)`, `round-robin`, etc. Emits `onMatchStart` / `onMatchEnd`.
+- `roundStructure` defines "what is one round?" — `continuous`, `timed(minutes)`, `elimination`, `score-threshold(N)`, `crown-reset`, `hold-flag-for(minutes)`, `lap-based(laps)`, etc. Emits `onRoundStart` / `onRoundEnd`. *Continuous* means "no time-based round boundary; rely entirely on `winCondition` terminator-triggers to end rounds" — NOT "rounds never end".
+- `matchStructure` defines "how do rounds compose into a match?" — `continuous`, `single-round`, `best-of(N)`, `period-based(N)`, `round-robin`, etc. Emits `onMatchStart` / `onMatchEnd`. *Continuous* means "no match boundary"; `*MatchScore` is omitted entirely under this variant (rather than written-but-never-reset).
 
-`winCondition` triggers signal the active `roundStructure`'s decision logic (not the matchStructure directly); the round-structure decides when to fire `onRoundEnd`. The match-structure then decides whether to also fire `onMatchEnd` or continue to the next round. Decided 2026-05-15.
+The active `roundStructure` decides when to fire `onRoundEnd` based on its own logic plus `winCondition` terminator triggers. The active `matchStructure` decides whether `onRoundEnd` also implies `onMatchEnd`. Decided 2026-05-15.
 
 **Module lifecycle interface (`ArenaModule`)**:
 Single unified interface with default-no-op hooks. Every module type implements it; modules override only what they care about.
