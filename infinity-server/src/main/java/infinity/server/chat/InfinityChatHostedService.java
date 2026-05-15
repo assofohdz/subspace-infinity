@@ -67,7 +67,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Per-client {@link ChatSession} RMI host + command-pattern dispatch table. */
-public final class InfinityChatHostedService extends AbstractHostedConnectionService
+public class InfinityChatHostedService extends AbstractHostedConnectionService
     implements ChatHostedPoster {
 
   private static final String PREPEND_CHAT = "chat> ";
@@ -94,6 +94,7 @@ public final class InfinityChatHostedService extends AbstractHostedConnectionSer
   }
 
   /** Creates a new chat service that will use the specified channel for reliable communication. */
+  @SuppressWarnings("PMD.ConstructorCallsOverridableMethod") // setAutoHost is the framework's wiring API.
   public InfinityChatHostedService(final int channel) {
     this.channel = channel;
     patternTriConsumer = new ConcurrentHashMap<>();
@@ -280,8 +281,36 @@ public final class InfinityChatHostedService extends AbstractHostedConnectionSer
       final int messageType,
       final EntityId targetEntityId,
       final String message) {
-    throw new UnsupportedOperationException(
-        NOT_SUPPORTED_YET); // To change body of generated methods, choose Tools | Templates.
+    final HostedConnection conn = lookupConnection(targetEntityId);
+    if (conn == null) {
+      log.debug("postPrivateMessage: no hosted connection for {} (offline)", targetEntityId);
+      return;
+    }
+    // Wire shape: ChatSessionListener.newMessage(clientId, playerName, message) has no
+    // messageType slot; pre-decorating `from` is the wire-stable way to mark PMs without
+    // a protocol bump. `messageType` is kept on the API for future protocol expansion.
+    final String decoratedFrom = "[PM from " + from + "]";
+    deliverPrivate(conn, decoratedFrom, message);
+  }
+
+  /** Test seam — EntityId → HostedConnection cross-lookup; overridden in tests to skip the AccountHostedService dep. */
+  protected HostedConnection lookupConnection(final EntityId targetEntityId) {
+    final AccountHostedService accounts = getService(AccountHostedService.class);
+    if (accounts == null) {
+      return null;
+    }
+    return accounts.getHostedConnection(targetEntityId);
+  }
+
+  /** Test seam — drops the message into the chat session attached to {@code conn}; no-op if no session. */
+  protected void deliverPrivate(final HostedConnection conn, final String from, final String message) {
+    final ChatSessionImpl session = getChatSession(conn);
+    if (session == null) {
+      log.debug("postPrivateMessage: no chat session attached to {}", conn);
+      return;
+    }
+    log.info("{}{} -> {}: {}", PREPEND_CHAT, from, session.name, message);
+    session.newMessage(0, from, message);
   }
 
   @Override

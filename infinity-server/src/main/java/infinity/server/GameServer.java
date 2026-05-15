@@ -384,6 +384,11 @@ public class GameServer {
     // check.
     // Game systems.
     systems.register(AvatarSystem.class, new AvatarSystem());
+    // PlayerLifecycleSystem listens to ShipEvent.shipSpawned (published by AvatarSystem
+    // above) and gates first-spawn → PlayerEnteredSession publish; WelcomeService listens
+    // for that and emits the welcome TargetedEvent. Order: AvatarSystem → lifecycle → welcome.
+    systems.register(infinity.systems.PlayerLifecycleSystem.class, new infinity.systems.PlayerLifecycleSystem());
+    systems.register(infinity.systems.WelcomeService.class, new infinity.systems.WelcomeService());
     systems.register(MovementInputSystem.class, new MovementInputSystem());
     systems.register(MobSystem.class, new MobSystem());
     // WeaponsReaperSystem must register BEFORE WeaponsImpactSystem — Impact.initialize() looks it up.

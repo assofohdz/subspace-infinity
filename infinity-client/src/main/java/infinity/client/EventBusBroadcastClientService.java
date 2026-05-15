@@ -7,22 +7,35 @@ import com.jme3.network.service.ClientServiceManager;
 import com.jme3.network.service.rmi.RmiClientService;
 import com.simsilica.es.EntityId;
 import com.simsilica.event.EventBus;
+import infinity.events.arena.PlayerEnteredSession;
 import infinity.events.arena.PlayerKilledEvent;
 import infinity.events.arena.TargetedEvent;
 import infinity.net.EventBusBroadcastListener;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Receives server-fan-out {@code EventBus} events over RMI and republishes them on the local client {@link EventBus}; informational only (ADR-0005). */
+/**
+ * Receives server-fan-out {@code EventBus} events over RMI and republishes them on the local client {@link EventBus}; informational only (ADR-0005).
+ * Reserved for low-frequency lifecycle events (kill, join, leave). Tick-rate state goes through SimEthereal, not this bridge.
+ * Do NOT use these events to derive roster / player list — late joiners miss prior events. Build that from Zay-ES component visibility.
+ * Late-binding consumers (AppStates that initialize AFTER login) drain the pending queue on attach — see {@link #drainPendingTargeted(Consumer)}.
+ */
 public final class EventBusBroadcastClientService extends AbstractClientService {
 
   static Logger log = LoggerFactory.getLogger(EventBusBroadcastClientService.class);
 
-  private final BroadcastCallback callback = new BroadcastCallback();
+  /** Cap to prevent unbounded growth if no consumer ever drains; in practice the queue holds a single welcome at most. */
+  private static final int MAX_PENDING = 50;
+
+  private final Queue<TargetedEvent> pendingTargeted = new ConcurrentLinkedQueue<>();
+  private final BroadcastCallback callback;
 
   public EventBusBroadcastClientService() {
-    // no-op: stateless wiring; RMI share happens in onInitialize
+    this.callback = new BroadcastCallback(this);
   }
 
   @Override
@@ -35,8 +48,29 @@ public final class EventBusBroadcastClientService extends AbstractClientService 
     rmiService.share(callback, EventBusBroadcastListener.class);
   }
 
-  /** Server-side RMI target — republishes on the local client EventBus on the networking thread. */
+  /** Late-binding consumers (e.g. ChatState attached AFTER login) call this in initialize() to catch up on welcomes that arrived before they subscribed. Drains all queued events. */
+  public void drainPendingTargeted(final Consumer<TargetedEvent> consumer) {
+    TargetedEvent ev;
+    while ((ev = pendingTargeted.poll()) != null) {
+      consumer.accept(ev);
+    }
+  }
+
+  private void enqueueTargeted(final TargetedEvent ev) {
+    pendingTargeted.add(ev);
+    while (pendingTargeted.size() > MAX_PENDING) {
+      pendingTargeted.poll();
+    }
+  }
+
+  /** Server-side RMI target — republishes on the local client EventBus on the networking thread, plus queues for late-binding consumers. */
   private static final class BroadcastCallback implements EventBusBroadcastListener {
+
+    private final EventBusBroadcastClientService owner;
+
+    BroadcastCallback(final EventBusBroadcastClientService owner) {
+      this.owner = owner;
+    }
 
     @Override
     public void onPlayerKilled(final EntityId victim, final EntityId killer, final byte weaponFlag) {
@@ -48,16 +82,25 @@ public final class EventBusBroadcastClientService extends AbstractClientService 
     }
 
     @Override
-    public void onTargetedEvent(
-        final Set<EntityId> recipients, final String tag, final String payload) {
-      // MVP welcome wire-check: log the welcome message at INFO so manual smoke-tests can verify
-      // end-to-end without booting a HUD AppState. Future UI rendering subscribes via EventBus.
-      if ("welcome".equals(tag) && log.isInfoEnabled()) {
-        log.info("Welcome, {}!", payload);
-      } else if (log.isTraceEnabled()) {
-        log.trace("onTargetedEvent(recipients={}, tag={}, payload={})", recipients, tag, payload);
+    public void onTargetedEvent(final String tag, final String payload) {
+      if (log.isInfoEnabled()) {
+        log.info("CLIENT BRIDGE onTargetedEvent tag={} payload={}", tag, payload);
       }
-      EventBus.publish(TargetedEvent.targeted, new TargetedEvent(recipients, tag, payload));
+      final TargetedEvent ev = new TargetedEvent(Set.of(), tag, payload);
+      // Queue first so late-binding consumers (ChatState) can drain on init,
+      // then publish for live subscribers that are already attached.
+      owner.enqueueTargeted(ev);
+      EventBus.publish(TargetedEvent.targetedLocal, ev);
+    }
+
+    @Override
+    public void onPlayerEnteredSession(final EntityId player, final String playerName) {
+      if (log.isInfoEnabled()) {
+        log.info("CLIENT BRIDGE onPlayerEnteredSession: {} ({})", playerName, player);
+      }
+      EventBus.publish(
+          PlayerEnteredSession.playerEnteredSessionLocal,
+          new PlayerEnteredSession(player, playerName));
     }
   }
 }

@@ -2,7 +2,6 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.server;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -25,7 +24,6 @@ import com.simsilica.es.Name;
 import com.simsilica.es.server.EntityDataHostedService;
 import com.simsilica.event.EventBus;
 
-import infinity.events.arena.TargetedEvent;
 import infinity.net.AccountEvent;
 import infinity.net.AccountSession;
 import infinity.net.AccountSessionListener;
@@ -199,11 +197,6 @@ public class AccountHostedService extends AbstractHostedConnectionService implem
             log.debug("publishing playerLoggedOn event for:{}", conn);
             // Notify 'logged in' only after we've told the player themselves
             EventBus.publish(AccountEvent.playerLoggedOn, new AccountEvent(conn, playerName, player));
-
-            // MVP: per-recipient welcome — only this player's client receives the RMI.
-            EventBus.publish(
-                TargetedEvent.targeted,
-                new TargetedEvent(Collections.singleton(player), "welcome", playerName));
         }
 
         public void dispose() {

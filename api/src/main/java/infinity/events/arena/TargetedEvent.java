@@ -9,8 +9,13 @@ import java.util.Set;
 /** Per-recipient fan-out: server resolves {@code recipients} to HostedConnections, RMIs only those. */
 public final class TargetedEvent {
 
+  /** Server-side publish: bridge fans out to recipient HostedConnections via RMI. */
   public static final EventType<TargetedEvent> targeted =
       EventType.create("Targeted", TargetedEvent.class);
+
+  /** Client-side local-bus republish: distinct type so the server's EventBus listener doesn't loop in single-JVM dev mode (com.simsilica.event.EventBus is a static singleton). */
+  public static final EventType<TargetedEvent> targetedLocal =
+      EventType.create("TargetedLocal", TargetedEvent.class);
 
   private final Set<EntityId> recipients;
   private final String tag;

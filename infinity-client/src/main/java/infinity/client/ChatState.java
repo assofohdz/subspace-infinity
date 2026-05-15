@@ -43,6 +43,7 @@ import com.jme3.app.Application;
 import com.jme3.app.state.BaseAppState;
 import com.jme3.math.ColorRGBA;
 
+import com.simsilica.event.EventBus;
 import com.simsilica.lemur.GuiGlobals;
 import com.simsilica.lemur.input.InputMapper;
 import com.simsilica.state.CommandConsoleState;
@@ -50,6 +51,7 @@ import com.simsilica.state.CommandEntry;
 import com.simsilica.state.MessageState;
 
 import infinity.client.chat.ChatClientService;
+import infinity.events.arena.TargetedEvent;
 import infinity.net.chat.ChatSessionListener;
 
 /** Manages the chat entry and toggle. */
@@ -79,6 +81,15 @@ public class ChatState extends BaseAppState {
         originalCommandEntry = getState(CommandConsoleState.class).getCommandEntry();
         getState(CommandConsoleState.class).setCommandEntry(chatEntry);
 
+        // EventBusBroadcastClientService republishes server TargetedEvent onto TargetedEvent.targetedLocal;
+        // the *Local type prevents the server's listener (running in the same JVM during dev) from looping.
+        // Drain any pending events that arrived before this state initialized (the welcome typically
+        // fires at server-login time, ~1s before GameSessionState → ChatState attaches).
+        getState(ConnectionState.class)
+                .getService(EventBusBroadcastClientService.class)
+                .drainPendingTargeted(this::onTargetedLocal);
+        EventBus.addListener(this, TargetedEvent.targetedLocal);
+
         final InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.activateGroup(MainGameFunctions.IN_GAME);
         inputMapper.addDelegate(MainGameFunctions.F_CHAT_CONSOLE, getState(CommandConsoleState.class), "toggleConsole");
@@ -87,6 +98,8 @@ public class ChatState extends BaseAppState {
     @Override
     protected void cleanup(final Application app) {
 
+        EventBus.removeListener(this, TargetedEvent.targetedLocal);
+
         final InputMapper inputMapper = GuiGlobals.getInstance().getInputMapper();
         inputMapper.deactivateGroup(MainGameFunctions.IN_GAME);
         inputMapper.removeDelegate(MainGameFunctions.F_CHAT_CONSOLE, getState(CommandConsoleState.class),
@@ -94,6 +107,16 @@ public class ChatState extends BaseAppState {
 
         getState(MessageState.class).addMessage("> You have left the game.", ColorRGBA.Yellow);
         getState(CommandConsoleState.class).setCommandEntry(originalCommandEntry);
+    }
+
+    /** EventBus reflective dispatch — method name must match the EventType name (TargetedLocal). */
+    public void onTargetedLocal(final TargetedEvent event) {
+        if (log.isInfoEnabled()) {
+            log.info("CHATSTATE onTargetedLocal tag={} payload={}", event.getTag(), event.getPayload());
+        }
+        if ("welcome".equals(event.getTag())) {
+            getState(MessageState.class).addMessage("System> Welcome, " + event.getPayload() + "!", ColorRGBA.Yellow);
+        }
     }
 
     @Override

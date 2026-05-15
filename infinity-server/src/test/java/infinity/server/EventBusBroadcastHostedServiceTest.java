@@ -11,6 +11,7 @@ import com.jme3.network.HostedConnection;
 import com.simsilica.es.EntityId;
 import com.simsilica.event.EventBus;
 import infinity.es.ship.weapons.WeaponType;
+import infinity.events.arena.PlayerEnteredSession;
 import infinity.events.arena.PlayerKilledEvent;
 import infinity.events.arena.TargetedEvent;
 import infinity.net.EventBusBroadcastListener;
@@ -35,6 +36,8 @@ import org.junit.Test;
  */
 public final class EventBusBroadcastHostedServiceTest {
 
+  private static final String ALICE = "Alice";
+
   private CapturingService service;
 
   @Before
@@ -45,12 +48,14 @@ public final class EventBusBroadcastHostedServiceTest {
     // in a unit-test context.
     EventBus.addListener(service, PlayerKilledEvent.playerKilled);
     EventBus.addListener(service, TargetedEvent.targeted);
+    EventBus.addListener(service, PlayerEnteredSession.playerEnteredSession);
   }
 
   @After
   public void tearDown() {
     EventBus.removeListener(service, PlayerKilledEvent.playerKilled);
     EventBus.removeListener(service, TargetedEvent.targeted);
+    EventBus.removeListener(service, PlayerEnteredSession.playerEnteredSession);
   }
 
   @Test
@@ -81,18 +86,17 @@ public final class EventBusBroadcastHostedServiceTest {
     service.register(bob, bobListener);
 
     EventBus.publish(
-        TargetedEvent.targeted, new TargetedEvent(Set.of(alice), "welcome", "Alice"));
+        TargetedEvent.targeted, new TargetedEvent(Set.of(alice), "welcome", ALICE));
 
     assertEquals("Alice receives exactly one call", 1, aliceListener.calls.size());
     assertTrue("Bob receives nothing", bobListener.calls.isEmpty());
     final FakeListener.Call call = aliceListener.calls.get(0);
     assertEquals("welcome", call.tag);
-    assertEquals("Alice", call.payload);
-    assertTrue("recipients arg propagated", call.recipients.contains(alice));
+    assertEquals(ALICE, call.payload);
   }
 
   @Test
-  public void targetedEvent_multiRecipient_dispatchesToEachListedConnection() {
+  public void targetedEvent_multiRecipient_doesNotLeakRecipientSetOverWire() {
     final EntityId alice = new EntityId(1L);
     final EntityId bob = new EntityId(2L);
     final EntityId carol = new EntityId(3L);
@@ -110,10 +114,38 @@ public final class EventBusBroadcastHostedServiceTest {
         TargetedEvent.targeted,
         new TargetedEvent(Set.of(alice, bob, carol), "achievement", "FirstBlood"));
 
+    // Per-recipient delivery — each gets exactly one call; the recipient SET is
+    // server-side targeting metadata and is NOT included in the RMI args.
     assertEquals(1, aliceL.calls.size());
     assertEquals(1, bobL.calls.size());
     assertEquals(1, carolL.calls.size());
     assertTrue("Dave is not in the recipient set", daveL.calls.isEmpty());
+    // The wire-arity is (tag, payload) — no peer EntityIds leak across the bridge.
+    final FakeListener.Call aCall = aliceL.calls.get(0);
+    assertEquals("achievement", aCall.tag);
+    assertEquals("FirstBlood", aCall.payload);
+  }
+
+  @Test
+  public void playerEnteredSession_broadcastsToEveryConnectedListener() {
+    final EntityId alice = new EntityId(1L);
+    final EntityId bob = new EntityId(2L);
+    final EntityId carol = new EntityId(3L);
+    final FakeListener aliceL = new FakeListener();
+    final FakeListener bobL = new FakeListener();
+    final FakeListener carolL = new FakeListener();
+    service.register(alice, aliceL);
+    service.register(bob, bobL);
+    service.register(carol, carolL);
+
+    EventBus.publish(
+        PlayerEnteredSession.playerEnteredSession, new PlayerEnteredSession(alice, ALICE));
+
+    assertEquals("every connected client receives", 1, aliceL.enteredCalls.size());
+    assertEquals(1, bobL.enteredCalls.size());
+    assertEquals(1, carolL.enteredCalls.size());
+    assertEquals(ALICE, aliceL.enteredCalls.get(0).playerName);
+    assertEquals(alice, aliceL.enteredCalls.get(0).player);
   }
 
   @Test
@@ -158,6 +190,14 @@ public final class EventBusBroadcastHostedServiceTest {
     }
 
     @Override
+    protected void broadcastPlayerEntered(final PlayerEnteredSession event) {
+      // Test seam: iterate registered listeners directly (production iterates `connections`).
+      for (final FakeListener listener : listenersByConn.values()) {
+        listener.onPlayerEnteredSession(event.getPlayer(), event.getPlayerName());
+      }
+    }
+
+    @Override
     protected HostedConnection lookupConnection(final EntityId recipient) {
       final HostedConnection conn = connsByRecipient.get(recipient);
       if (conn == null) {
@@ -172,10 +212,11 @@ public final class EventBusBroadcastHostedServiceTest {
     }
   }
 
-  /** Captures RMI calls so tests can assert exact recipients and payload. */
+  /** Captures RMI calls so tests can assert exact tag/payload — and that the recipient SET never crosses the bridge. */
   private static final class FakeListener implements EventBusBroadcastListener {
 
     final List<Call> calls = new ArrayList<>();
+    final List<EnteredCall> enteredCalls = new ArrayList<>();
 
     @Override
     public void onPlayerKilled(final EntityId victim, final EntityId killer, final byte flag) {
@@ -183,20 +224,32 @@ public final class EventBusBroadcastHostedServiceTest {
     }
 
     @Override
-    public void onTargetedEvent(
-        final Set<EntityId> recipients, final String tag, final String payload) {
-      calls.add(new Call(recipients, tag, payload));
+    public void onTargetedEvent(final String tag, final String payload) {
+      calls.add(new Call(tag, payload));
+    }
+
+    @Override
+    public void onPlayerEnteredSession(final EntityId player, final String playerName) {
+      enteredCalls.add(new EnteredCall(player, playerName));
     }
 
     static final class Call {
-      final Set<EntityId> recipients;
       final String tag;
       final String payload;
 
-      Call(final Set<EntityId> recipients, final String tag, final String payload) {
-        this.recipients = recipients;
+      Call(final String tag, final String payload) {
         this.tag = tag;
         this.payload = payload;
+      }
+    }
+
+    static final class EnteredCall {
+      final EntityId player;
+      final String playerName;
+
+      EnteredCall(final EntityId player, final String playerName) {
+        this.player = player;
+        this.playerName = playerName;
       }
     }
   }

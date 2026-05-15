@@ -9,6 +9,7 @@ import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
 import com.simsilica.es.EntityId;
 import com.simsilica.event.EventBus;
+import infinity.events.arena.PlayerEnteredSession;
 import infinity.events.arena.PlayerKilledEvent;
 import infinity.events.arena.TargetedEvent;
 import infinity.net.EventBusBroadcastListener;
@@ -18,7 +19,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Bridges server {@link EventBus} events to client subscribers over RMI; informational fan-out, never a write channel (ADR-0005). */
+/**
+ * Bridges server {@link EventBus} events to client subscribers over RMI; informational fan-out, never a write channel (ADR-0005).
+ * Reserved for low-frequency lifecycle events (kill, join, leave). NEVER subscribe tick-rate events here — reliable RMI buffer floods.
+ * For per-tick state, use SimEthereal component sync. DO NOT use this bridge for state derivable via SimEthereal — late joiners miss prior events.
+ */
 public class EventBusBroadcastHostedService extends AbstractHostedConnectionService {
 
   private static final String ATTRIBUTE_LISTENER = "eventbus.broadcastListener";
@@ -40,14 +45,19 @@ public class EventBusBroadcastHostedService extends AbstractHostedConnectionServ
           "EventBusBroadcastHostedService requires an RMI service.");
     }
     // Subscribe to the curated set of EventTypes; extend here as new cross-tier events land.
+    // WHY: Informational fan-out for transient UI reactions (toasts, kill feed). DO NOT use this
+    // bridge for state derivable via SimEthereal — late joiners miss prior events. Roster /
+    // player list should be built from Zay-ES component visibility (arena-membership).
     EventBus.addListener(this, PlayerKilledEvent.playerKilled);
     EventBus.addListener(this, TargetedEvent.targeted);
+    EventBus.addListener(this, PlayerEnteredSession.playerEnteredSession);
   }
 
   @Override
   public void terminate(final HostedServiceManager serviceManager) {
     EventBus.removeListener(this, PlayerKilledEvent.playerKilled);
     EventBus.removeListener(this, TargetedEvent.targeted);
+    EventBus.removeListener(this, PlayerEnteredSession.playerEnteredSession);
     super.terminate(serviceManager);
   }
 
@@ -74,6 +84,11 @@ public class EventBusBroadcastHostedService extends AbstractHostedConnectionServ
     broadcastTargeted(event);
   }
 
+  /** EventBus reflective dispatch — zone-wide fan-out, every connection receives. */
+  public void onPlayerEnteredSession(final PlayerEnteredSession event) {
+    broadcastPlayerEntered(event);
+  }
+
   /** Test seam — visible-for-testing fan-out body, callable without a HostedConnection. */
   protected void broadcastPlayerKilled(final PlayerKilledEvent event) {
     for (final HostedConnection conn : connections) {
@@ -84,17 +99,50 @@ public class EventBusBroadcastHostedService extends AbstractHostedConnectionServ
     }
   }
 
-  /** Test seam — sends to only the recipients whose connections are currently hosted. */
+  /** Test seam — visible-for-testing zone-wide fan-out of {@link PlayerEnteredSession}. */
+  protected void broadcastPlayerEntered(final PlayerEnteredSession event) {
+    if (log.isInfoEnabled()) {
+      log.info(
+          "Bridge.broadcastPlayerEntered player={} name={} connections={}",
+          event.getPlayer(),
+          event.getPlayerName(),
+          connections.size());
+    }
+    for (final HostedConnection conn : connections) {
+      final EventBusBroadcastListener listener = getListener(conn);
+      if (log.isInfoEnabled()) {
+        log.info("  → conn {} listener={}", conn.getId(), listener);
+      }
+      if (listener != null) {
+        listener.onPlayerEnteredSession(event.getPlayer(), event.getPlayerName());
+      }
+    }
+  }
+
+  /** Test seam — sends to only the recipients whose connections are currently hosted; recipient set is server-side only, never crosses the wire. */
   protected void broadcastTargeted(final TargetedEvent event) {
+    if (log.isInfoEnabled()) {
+      log.info(
+          "Bridge.broadcastTargeted tag={} payload={} recipients={}",
+          event.getTag(),
+          event.getPayload(),
+          event.getRecipients());
+    }
     for (final EntityId recipient : event.getRecipients()) {
       final HostedConnection conn = lookupConnection(recipient);
+      if (log.isInfoEnabled()) {
+        log.info("  → recipient {} conn={}", recipient, conn);
+      }
       if (conn == null) {
-        log.debug("No hosted connection for recipient {} (offline or wrong arena)", recipient);
+        if (log.isInfoEnabled()) {
+          log.info("No hosted connection for recipient {} (offline or wrong arena)", recipient);
+        }
         continue;
       }
       final EventBusBroadcastListener listener = getListener(conn);
       if (listener != null) {
-        listener.onTargetedEvent(event.getRecipients(), event.getTag(), event.getPayload());
+        // The full recipient set is server-side targeting metadata; do NOT include it on the wire.
+        listener.onTargetedEvent(event.getTag(), event.getPayload());
       }
     }
   }

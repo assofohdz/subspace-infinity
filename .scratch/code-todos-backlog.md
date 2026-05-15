@@ -20,6 +20,22 @@ Each row: actionable item + source file:line + brief context.
 
 ### Architecture
 
+- [ ] **Roster / player list UI must be state-replicated (Zay-ES + SimEthereal),
+  not built by subscribing to `PlayerEnteredSession` events on the client.**
+  Late-joiner blindness: a client connecting after others entered the session
+  will not receive past `PlayerEnteredSession` events through
+  `EventBusBroadcastClientService` (Photon-style `AddToRoomCache` does not
+  apply here). When the roster slice lands, build it from arena-membership
+  component visibility — the entity-sync framework handles late-joiner
+  correctness for free.
+
+- [ ] **Bridge throughput discipline:** keep `EventBusBroadcastHostedService`
+  for low-frequency lifecycle events only (kill, join, leave, achievements).
+  Any new event added to the bridge needs an explicit publish-rate review and
+  should be bounded at < 1/sec/connection. Tick-rate state goes through
+  SimEthereal component sync, not RMI — reliable RMI buffer flood is an
+  Unreal-canon anti-pattern.
+
 - [ ] **Project `ShipRestrictionsConfig` to a per-arena component** instead
   of granting `ConfigShipRestrictor` an `infinity.config` exception in
   `LayerDependencyTest`. Per `.claude/rules/config-pattern.md`, "Hot-path
