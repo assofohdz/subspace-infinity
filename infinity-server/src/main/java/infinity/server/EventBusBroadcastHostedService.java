@@ -7,8 +7,10 @@ import com.jme3.network.service.AbstractHostedConnectionService;
 import com.jme3.network.service.HostedServiceManager;
 import com.jme3.network.service.rmi.RmiHostedService;
 import com.jme3.network.service.rmi.RmiRegistry;
+import com.simsilica.es.EntityId;
 import com.simsilica.event.EventBus;
 import infinity.events.arena.PlayerKilledEvent;
+import infinity.events.arena.TargetedEvent;
 import infinity.net.EventBusBroadcastListener;
 import infinity.sim.util.InfinityRunTimeException;
 import java.util.List;
@@ -39,11 +41,13 @@ public class EventBusBroadcastHostedService extends AbstractHostedConnectionServ
     }
     // Subscribe to the curated set of EventTypes; extend here as new cross-tier events land.
     EventBus.addListener(this, PlayerKilledEvent.playerKilled);
+    EventBus.addListener(this, TargetedEvent.targeted);
   }
 
   @Override
   public void terminate(final HostedServiceManager serviceManager) {
     EventBus.removeListener(this, PlayerKilledEvent.playerKilled);
+    EventBus.removeListener(this, TargetedEvent.targeted);
     super.terminate(serviceManager);
   }
 
@@ -65,6 +69,11 @@ public class EventBusBroadcastHostedService extends AbstractHostedConnectionServ
     broadcastPlayerKilled(event);
   }
 
+  /** EventBus reflective dispatch — per-recipient filter happens here. */
+  public void onTargeted(final TargetedEvent event) {
+    broadcastTargeted(event);
+  }
+
   /** Test seam — visible-for-testing fan-out body, callable without a HostedConnection. */
   protected void broadcastPlayerKilled(final PlayerKilledEvent event) {
     for (final HostedConnection conn : connections) {
@@ -75,7 +84,31 @@ public class EventBusBroadcastHostedService extends AbstractHostedConnectionServ
     }
   }
 
-  private EventBusBroadcastListener getListener(final HostedConnection conn) {
+  /** Test seam — sends to only the recipients whose connections are currently hosted. */
+  protected void broadcastTargeted(final TargetedEvent event) {
+    for (final EntityId recipient : event.getRecipients()) {
+      final HostedConnection conn = lookupConnection(recipient);
+      if (conn == null) {
+        log.debug("No hosted connection for recipient {} (offline or wrong arena)", recipient);
+        continue;
+      }
+      final EventBusBroadcastListener listener = getListener(conn);
+      if (listener != null) {
+        listener.onTargetedEvent(event.getRecipients(), event.getTag(), event.getPayload());
+      }
+    }
+  }
+
+  /** EntityId → HostedConnection lookup via the sibling {@code AccountHostedService} session map. */
+  protected HostedConnection lookupConnection(final EntityId recipient) {
+    final AccountHostedService accounts = getService(AccountHostedService.class);
+    if (accounts == null) {
+      return null;
+    }
+    return accounts.getHostedConnection(recipient);
+  }
+
+  protected EventBusBroadcastListener getListener(final HostedConnection conn) {
     EventBusBroadcastListener listener = conn.getAttribute(ATTRIBUTE_LISTENER);
     if (listener == null) {
       // Lazy resolve — the client shares its callback during its own onInitialize,

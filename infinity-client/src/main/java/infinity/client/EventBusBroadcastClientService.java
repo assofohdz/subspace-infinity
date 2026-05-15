@@ -8,7 +8,9 @@ import com.jme3.network.service.rmi.RmiClientService;
 import com.simsilica.es.EntityId;
 import com.simsilica.event.EventBus;
 import infinity.events.arena.PlayerKilledEvent;
+import infinity.events.arena.TargetedEvent;
 import infinity.net.EventBusBroadcastListener;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +45,19 @@ public final class EventBusBroadcastClientService extends AbstractClientService 
       }
       EventBus.publish(
           PlayerKilledEvent.playerKilled, new PlayerKilledEvent(victim, killer, weaponFlag));
+    }
+
+    @Override
+    public void onTargetedEvent(
+        final Set<EntityId> recipients, final String tag, final String payload) {
+      // MVP welcome wire-check: log the welcome message at INFO so manual smoke-tests can verify
+      // end-to-end without booting a HUD AppState. Future UI rendering subscribes via EventBus.
+      if ("welcome".equals(tag) && log.isInfoEnabled()) {
+        log.info("Welcome, {}!", payload);
+      } else if (log.isTraceEnabled()) {
+        log.trace("onTargetedEvent(recipients={}, tag={}, payload={})", recipients, tag, payload);
+      }
+      EventBus.publish(TargetedEvent.targeted, new TargetedEvent(recipients, tag, payload));
     }
   }
 }
