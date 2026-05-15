@@ -13,6 +13,7 @@ ADRs are mostly independent but some build on each other. Suggested read order f
 5. [**0004** — `zone/` extension surface](./0004-settings-pipeline.md) — settings pipeline + Groovy module loader. How operators + community authors extend the game.
 6. [**0006** — Tuning knobs vs. magic numbers](./0006-tuning-knobs-vs-magic-numbers.md) — the literal-promotion decision rule. Feeds 0004.
 7. [**0007** — Entity TTL via `Decay`](./0007-entity-ttl-decay.md) — single mechanism, deadline-shaped, multi-writer exception.
+8. [**0008** — Arena composition & modules](./0008-arena-composition-and-modules.md) — gametypes as emergent compositions of horizontal modules; `ArenaModule` lifecycle + 4-phase tick + coordinator pattern; arena.groovy as pure data over a fixed Java module catalog.
 
 ## Index
 
@@ -25,6 +26,7 @@ ADRs are mostly independent but some build on each other. Suggested read order f
 | [0005](./0005-layered-architecture.md) | Layered architecture: api purity, server authority, client read-only | Proposed | 2026-05-13 |
 | [0006](./0006-tuning-knobs-vs-magic-numbers.md) | Tuning knobs vs. magic numbers: the literal-promotion decision | Proposed | 2026-05-13 |
 | [0007](./0007-entity-ttl-decay.md) | Entity TTL: one mechanism, deadline-shaped (`Decay`) | Proposed | 2026-05-13 |
+| [0008](./0008-arena-composition-and-modules.md) | Arena composition: gametypes as compositions of horizontal modules | Proposed | 2026-05-15 |
 
 ## Backlog
 

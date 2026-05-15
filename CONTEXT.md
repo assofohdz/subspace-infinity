@@ -70,6 +70,105 @@ _Avoid_: "meta event", "global event", "server event".
 A Simsilica `EventBus` event whose scope is a single arena — ship lifecycle, weapon firing, future flag/score/KOTH events. Lives in `infinity.events.arena.*` (e.g. `ShipEvent`). Today the same `EventBus` instance carries both zone and arena events; listeners filter by event type and (when needed) by `ArenaId` in the payload. If arena scoping later becomes load-bearing — e.g. a HUD in arena B starts seeing events from arena A — the runtime split into per-arena bus instances comes with the first concrete consumer that demands it.
 _Avoid_: "game event", "in-game event".
 
+### Arena composition (in design)
+
+The vocabulary below is being resolved in an active grilling session — entries land as the design decides them.
+
+**Module** (a.k.a. *ArenaModule*):
+A horizontally-scoped, arena-swappable concern with an orthogonal slice of game state — e.g. scoring, win condition, team setup, roster restriction, spawn-placement, shop, and opt-in mechanics (crowns, flags, balls, shrinking-zone, …). *Not* a whole gametype. Gametypes (KOTH, Jackpot, Turf, CTF, Powerball, Speed Zone, Dueling) are *emergent* compositions of modules; humans give the composition a name, the runtime sees only orthogonal modules. The implementing Java interface is `ArenaModule` (renamed from `BaseGameModule`, which has zero implementations today). Decided 2026-05-15.
+_Avoid_: "gametype", "game mode", "rule set" for the module itself — those name *compositions*. "BaseGameModule" (the old name) is retired in favour of `ArenaModule` once the design lands.
+
+**Pluggability boundary (Module vs Core system)**:
+A concern is a **Module** if its variation across arenas is *behavioural*. A concern is a **Core system** if its variation is purely *numeric* (tuneable via `*Config`). Worked examples: `EnergySystem` is core (regen-toward-max algorithm is universal; `EnergyMax` varies numerically). Scoring is a module (kill-pot vs hold-time-points vs no scoring are different *algorithms*, not different numbers). Boundary can move over time — a core system can be split into "always-on infrastructure" + "behavioural module" when a second arena demands it. Confirmed module-eligible: scoring, win condition, team setup, roster restriction, spawn-placement, respawn policy, round/match structure, shop, plus *opt-in gameplay mechanics* (crowns, carry-flags, static-flags, balls/goals, region-triggers/laps). Decided 2026-05-15.
+
+**Module composition shapes**:
+The arena.groovy DSL supports three module shapes — picking the right one per category is part of the module's contract.
+- **Single-pick** — exactly one per slot per arena. Categories: `teamSetup`, `roster`, `respawnPolicy`, `roundStructure`, `spawnPlacement`, `shop`. Loader must reject duplicates.
+- **Layered** — zero-or-more, additive contributions. Categories: `scoring` (multiple simultaneous scoring contributions can coexist; no implicit base — `kill-points` must be loaded explicitly when desired), `winCondition` (zero-or-more round-terminators; default semantics = OR, first to trigger ends the current round). Order-of-include = order-of-application unless a module declares explicit ordering.
+- **Opt-in mechanics** — independently included gameplay objects, each carrying its own placement/config inline. Catalog: Crowns, CarryFlags, StaticFlags, Balls + Goals, RegionTriggers, LapDetector, ShrinkingZone. Mechanics *publish state* that layered scoring/win-condition modules read; missing-mechanic + dependent-scoring = fail-fast at arena load.
+
+Decided 2026-05-15.
+
+**Win condition** *(refined)*:
+Not just an end-detector — a **round terminator + reset trigger**. When a winCondition fires, it (a) optionally contributes final points (winner bonus, last-standing bounty), and (b) broadcasts a `RoundReset` signal that other modules listen to: mechanics revert to initial state (crown drops, flag positions reset, ball respawns), the spawnPlacement module re-places players, scoring modules reset round-local counters. Multiple winConditions can be loaded; whichever fires first terminates the round. Zero winConditions = continuous play (Jackpot, free-roam Turf). Decided 2026-05-15.
+
+**Spawn placement (arena-owned, not map-owned)**:
+Team / role spawn locations are declared in `arena.groovy` via the `spawnPlacement` module, not embedded in the `.lvl` map file. Maps provide *geometry*; arenas compose *behaviour* including spawn algorithms (random-radius, team-side-points, start-line, named-region-list). This keeps "same map, different gametype" easy (one map can back FFA-Deathmatch and team-Turf arenas with different spawn rules). Decided 2026-05-15.
+
+**Module implementation model**:
+Hybrid (Option C): engine ships a fixed Java catalog of module types; `arena.groovy` is pure data referencing types by string identifier with inline kwargs. No code execution in arena.groovy. A future external-author loader will compile Groovy modules dropped under `zone/<author-modules>/` and extend the catalog — same contracts, same DSL, new identifiers. Decided 2026-05-15.
+- **Module type** = a Java class implementing `BaseGameModule`, declared in the `ModuleCatalog` registry under a string id. One per kind (`"kill-points"`, `"crowns"`, …).
+- **Module instance** = per-arena instantiation of a type with bound `*Config`. Each loaded arena gets its own set of module instances (no zone-singleton-with-filtering); cross-arena module instances never share state.
+- **Catalog** = explicit `ModuleCatalog` class in `infinity-server/` enumerating all built-in types. Discoverability > add-friction. Future external loader appends to this catalog at server start.
+
+**Module home (api/ vs server/)**:
+- `api/`: `BaseGameModule` interface, `ModuleCategory` enum, all module `*Config` records, all components modules write or read (`PlayerScore`, `TeamScore`, `RoundTimer`, `FlagOwnership`, `CrownOwnership`, `CarryFlag`, `OutsidePlayArea`, …), all transient components modules emit (`ScoreContribution`, `RoundReset`, `RoundTerminated`, …).
+- `infinity-server/`: concrete module implementations, `ModuleCatalog`, `ModuleLoader`, and **coordinator systems** that drain layered module contributions into canonical components (e.g. `ScoreCoordinatorSystem` drains `ScoreContribution` → writes `PlayerScore`, preserving ADR-0001 single-writer discipline).
+- `infinity-client/`: never instantiates modules; reads the components modules produce (already covered by client-read-only rule).
+Decided 2026-05-15.
+
+**Module coordinator system**:
+A core (always-loaded) server-side system that owns the canonical writer for a component fed by layered modules. Scoring is the motivating case: many scoring modules emit `ScoreContribution` transient components; `ScoreCoordinatorSystem` drains them and writes the per-tick consolidated `PlayerScore` / `TeamScore`. This bridges the "layered modules" composition shape with ADR-0001's "one canonical writer per component" rule — modules never write the canonical component directly; they contribute, the coordinator integrates. Decided 2026-05-15.
+_Avoid_: "score system" (too narrow — the pattern generalises to any layered-contribution → canonical-component flow).
+
+**Module tick discipline (4-phase, per category role)**:
+Each arena tick runs modules in four ordered phases so coordinators always read fully-published state and ADR-0001 single-writer discipline is preserved without per-module bookkeeping.
+1. **Mechanics phase** — every loaded `mechanic` module reads last-tick canonical state (positions, freqs, kills) and publishes its mechanic-state components (CrownOwnership, FlagOwnership, BallPossession, OutsidePlayArea, etc.).
+2. **Module-contribution phase** — every `scoring` and `winCondition` module reads mechanic state from phase 1 plus game-event signals (kill, death, capture) and emits *transient* contribution components (`ScoreContribution`, `TeamScoreContribution`, `WinConditionTrigger`). Modules never write canonical components.
+3. **Coordinator phase** — `ScoreCoordinatorSystem`, `WinConditionCoordinatorSystem`, etc. drain contributions and write canonical components (`PlayerScore`, `TeamScore`, `RoundTimer`). If any winCondition trigger fired, signal the active `roundStructure` module.
+4. **Lifecycle dispatch phase** *(only on round-end or match-end tick)* — the framework directly calls lifecycle hooks on all loaded modules (`onRoundEnd`, optionally `onMatchEnd`, then `onMatchStart`/`onRoundStart` for next iteration). All within the same tick.
+
+Within a category, no declaration-order guarantee — contributions are merged with category semantics: **scoring contributions sum; winCondition triggers OR**. Anything order-sensitive must be reshaped as additive contributions (e.g., a "flagger kill multiplier" emits a separate `ScoreContribution` delta, not a transformation of the base contribution). Mechanic-vs-mechanic dependencies declare `requires: [...]` and are topo-sorted at arena load. Decided 2026-05-15.
+
+**Two-level round/match structure**:
+Two single-pick categories instead of one. Every arena composes both (degenerate variants exist for arenas that don't need a level).
+- `roundStructure` defines "what is one round?" — `continuous`, `timed(minutes)`, `elimination`, `score-threshold(N)`, `crown-reset`, `hold-flag-for(minutes)`, `lap-based(laps)`, etc. Emits `onRoundStart` / `onRoundEnd`.
+- `matchStructure` defines "how do rounds compose into a match?" — `continuous`, `single-round`, `best-of(N)`, `period-based(N)`, `round-robin`, etc. Emits `onMatchStart` / `onMatchEnd`.
+
+`winCondition` triggers signal the active `roundStructure`'s decision logic (not the matchStructure directly); the round-structure decides when to fire `onRoundEnd`. The match-structure then decides whether to also fire `onMatchEnd` or continue to the next round. Decided 2026-05-15.
+
+**Module lifecycle interface (`ArenaModule`)**:
+Single unified interface with default-no-op hooks. Every module type implements it; modules override only what they care about.
+- `onArenaLoad(arenaId, config)` — arena loaded, module instance bound to its config record.
+- `onMatchStart(arenaId)` — emitted by `matchStructure` module (fires once for `continuous`, multiple times for nested-match shapes).
+- `onRoundStart(arenaId, roundNumber)` — emitted by `roundStructure` module.
+- `onRoundEnd(arenaId, roundNumber, RoundOutcome)` — emitted by `roundStructure` module; mechanics revert their state, round-local counters reset.
+- `onMatchEnd(arenaId, MatchOutcome)` — emitted by `matchStructure` module after the final round.
+- `onArenaUnload(arenaId)` — arena tearing down; **mechanics MUST remove the components/entities they own** (rule enforced for hot-reload safety per Q7-β).
+- `onConfigReloaded(newConfig)` — config-diff hot-reload landed (per Q7-α).
+
+Dispatch is direct method-call by the framework's module loop in phase 4, not via EventBus. Atomicity within a tick is preserved. Decided 2026-05-15.
+
+**Module hot-reload model**:
+Three flavours, all in v1 scope:
+- **(α) Config-diff hot-reload** — Groovy file mtime change → modified kwargs → `onConfigReloaded(newConfig)`. No teardown, no player disruption. Direct extension of existing settings hot-reload.
+- **(β) Module-set-diff hot-reload** — arena.groovy adds/removes modules → diff computed → new modules get `onArenaLoad`, removed modules get `onArenaUnload`. **Cleanup contract**: every mechanic module's `onArenaUnload` MUST remove the components/entities it owns; orphaned state on removal is the failure mode to prevent. Same contract is the test bed for the future external-Groovy modules loader.
+- **(γ) Map swap** — separate concern; existing `~swapMap` flow. If arena.groovy's `map '…'` line changes during hot-reload, map swap fires as a consequence; modules are *not* torn down (state survives the swap; `spawnPlacement` re-runs to place players on the new map).
+Decided 2026-05-15.
+
+**State persistence (v1)**:
+Per-arena module state is in-memory only. Server restart = clean slate (scores, round timers, flag positions, match wins all reset). Module configs are read from arena.groovy at boot — runtime never writes back to groovy. Durable persistence is deferred to a follow-up ADR pending a real consumer (league play, ranked stats). Decided 2026-05-15.
+
+**Module extensibility principle**:
+*"The game should be easily extensible in a safe frame. Wacky modules are fine."* The **safe frame** is the architectural commitments: per-arena instances, lifecycle interface (`ArenaModule`), 4-phase tick with coordinators preserving ADR-0001 single-writer discipline, fail-fast loader, cleanup contract on unload. **Wacky content** is what authors put inside that frame — any algorithm, any subscription, any combination of services. The framework hands modules powerful tools (`EntityData`, the per-arena `EventBus`, `PhysicsManager`, `ChatHostedPoster`, `AccountManager`, `ArenaManager`, `TimeManager`) at instantiation and trusts them to use those tools sensibly. Decided 2026-05-15.
+
+**Module → game event channels**:
+Modules consume game events via the same channels as core systems — no extra hooks on `ArenaModule`. Two pre-existing channels cover this:
+- **ECS transient components** (per CONTEXT.md Events section) — for in-tick, atomic, queryable state changes (e.g. a `KillEvent` transient component drained by scoring modules in phase 2).
+- **Arena event subscription** — the per-arena `EventBus` is injected into each module at instantiation; modules call `eventBus.addListener(EventType, listener)` in `onArenaLoad` and remove in `onArenaUnload`. Standard listener pattern, scoped to the module's arena.
+
+`ArenaModule` itself stays minimal — *only* lifecycle hooks (load/match-start/round-start/round-end/match-end/unload/config-reload). Game-event subscriptions are not first-class methods on the interface; they are *uses* of the injected EventBus service. Decided 2026-05-15.
+
+**Loader fail-fast diagnostics**:
+The module loader rejects an arena at load time (not at first tick) for: unknown module identifier; duplicate single-pick category; required mechanic missing for a scoring/winCondition; cyclic mechanic `requires:` graph; `*Config` record validation error. Soft-degrade is explicitly rejected — a silently-broken gametype is much harder to debug than an arena that refuses to start with a clear message. Decided 2026-05-15.
+
+**Arena.groovy DSL shape**:
+- **Top-level statements**, no wrapping `arena { }` block. Matches today's `zone.groovy` and existing arena files. Zero migration cost for existing arenas.
+- **Settings fragments vs module presets** are *separate file pipelines*: `includeFragment` (existing) contributes Subspace-canonical settings (`section('Ship') { ... }`); a new `usePreset` pulls in a bundle of module statements (`scoring '…'; mechanic '…'`). A single fragment file may *not* mix the two — settings fragments live where they live today (`zone/conf/<preset>/`); module presets live in a new tier (location TBD, likely `zone/presets/<name>/`).
+- **No `extends`** — only flat composition. Arenas list their `usePreset` calls and their own statements; resolution is declaration-order.
+- **Override semantics**: single-pick categories let a later declaration *replace* (preset says `teamSetup 'ffa-private'`, arena says `teamSetup '2-fixed-teams'`, arena wins). Layered categories *append*; **no remove operator** — if a preset hands you the wrong bundle, skip the preset and compose primitives.
+Decided 2026-05-15.
+
 ## Relationships
 
 - A **Settings host** is generic over result type `T`; one host class serves all adapters.

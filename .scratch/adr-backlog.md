@@ -39,6 +39,25 @@ Identified from a wider-lens architectural pass on 2026-05-13 (Nygard-style: "wo
   - Path-finding strategy (per-tick vs cached; per-arena vs zone-global).
 - **Trigger to draft.** First non-trivial AI extension by a module, or when mob types grow past a handful and the implicit pattern starts to creak.
 
+### Zone-tier composition story
+
+- **Implicit today.** [ADR-0008](../docs/adr/0008-arena-composition-and-modules.md) defined per-arena composition (`ArenaModule`, lifecycle, 4-phase tick, coordinator pattern). The *zone* tier — multi-arena structure: auth, accounts, admin, master-server, multi-arena lobbies, persistence boundaries, identity flow, the `~swapMap` / `~loadArena` command surface — has no analogous composition story. Today these are individual `HostedService` / `BaseInfinitySystem` classes wired into `GameServer` directly, with no pluggability framework.
+- **What an ADR would settle:**
+  - Are zone-level concerns compositional (analogous to ArenaModules) or monolithic infrastructure?
+  - If compositional: what categories? Auth providers (file / external billing / VIE-bot), account stores (in-memory / SQLite / external), admin command surfaces (built-in / extension), lobby behaviours, league/tournament shells.
+  - The identity-flow + persistence + module-trust intersections that the existing *Authentication* and *Persistence* backlog entries already gesture at — a zone-tier composition ADR would likely supersede or fold those.
+  - Where the boundary sits with [ADR-0008](../docs/adr/0008-arena-composition-and-modules.md): some concerns (squad, league, cross-arena stats) are zone-tier even though they touch gameplay; this ADR would clarify.
+- **Trigger to draft.** When cross-arena features land (league play, tournament shells, global stats, persistent squads); or when auth/admin needs significant rework; or when the user explicitly asks for the grill-with-docs design exercise that mirrors ADR-0008 at the zone tier. *"Arenas are the game. Zone is the structure"* — flagged 2026-05-15.
+
+### Engine-tier composition story
+
+- **Implicit today.** Below the arena tier sits the sim substrate — physics (Moss today), tick loop, coordinate system, telemetry sinks, the `engine.groovy` config tier (see [`.claude/rules/`](../.claude/rules/) for `feedback-engine-tier-for-physics-constants` semantics). These are *monolithic infrastructure*: every arena and zone gets the same physics, the same tick frequency, the same coordinate system. No pluggability framework today.
+- **What an ADR would settle:**
+  - Is anything at the engine tier genuinely compositional, or is it all load-bearing universal substrate? (Likely the latter, but worth verifying via grilling rather than assuming.)
+  - If anything is compositional: physics flavour swapping (Moss-Box vs alt), telemetry sink composition (console / file / external metrics), tick-loop variants (fixed-step vs variable, lockstep vs free), coordinate-system extensions.
+  - Where `engine.groovy` config-tier knobs ([`feedback-engine-tier-for-physics-constants`](../.claude/rules/) in agent memory) stop and "engine modules" begin — i.e. what's tuning vs what's swap.
+- **Trigger to draft.** When proposing an alt-physics path; when the tick loop needs to be pluggable for a specific use case (e.g. deterministic replay); when the engine grows enough complexity that the monolith assumption breaks; or when the user explicitly asks for the grill-with-docs design exercise at the engine tier.
+
 ### Wire-compatibility / component-shape migration policy
 
 - **Implicit today.** Component shapes evolve in `api/src/main/java/infinity/es/...` as gameplay needs change. Some are wire-crossing (synced to client via Zay-ES `FieldSerializer`); changes to those fields must coordinate server + client + (future) modules. Coordination is currently negotiated per change, with no rule for "when can a component shape change without staged rollout?"
