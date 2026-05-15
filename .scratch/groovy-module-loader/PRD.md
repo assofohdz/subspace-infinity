@@ -1,9 +1,9 @@
 # Groovy module loader — implementation PRD
 
-Status: design-locked (per [ADR-0004](../../docs/adr/0004-settings-pipeline.md)); implementation gated on a first real consumer.
-Cross-ref: implements ADR-0004's *Module extensions* design; follows [`deprecate-adaptive-loader`](../../.scratch-archive/deprecate-adaptive-loader/PRD.md).
+Status: design-locked (per [ADR-0004](../../docs/adr/0004-settings-pipeline.md) and [ADR-0008](../../docs/adr/0008-arena-composition-and-modules.md)); implementation gated on (a) the Phase-1 in-tree framework landing per [`arena-modules/PRD.md`](../arena-modules/PRD.md), and (b) a first real external-author consumer.
+Cross-ref: depends on [`arena-modules/PRD.md`](../arena-modules/PRD.md) (Phase-1 framework — must land first); implements ADR-0004's *Module extensions* design as Phase 3 of that PRD; follows [`deprecate-adaptive-loader`](../../.scratch-archive/deprecate-adaptive-loader/PRD.md).
 
-The legacy `AdaptiveLoader` (custom `ClassLoader` + reflection-instantiation + `~startModule` chat command) was retired. The [`BaseGameModule`](../../api/src/main/java/infinity/sim/BaseGameModule.java) / [`BaseGameService`](../../api/src/main/java/infinity/sim/BaseGameService.java) abstractions in `api/` survive but currently have no runtime instantiator. ADR-0004 settles the design space; this PRD captures the concrete implementation sketch.
+The legacy `AdaptiveLoader` (custom `ClassLoader` + reflection-instantiation + `~startModule` chat command) was retired. The `ArenaModule` interface (renamed from `BaseGameModule` per [ADR-0008](../../docs/adr/0008-arena-composition-and-modules.md); lives at [`api/src/main/java/infinity/sim/ArenaModule.java`](../../api/src/main/java/infinity/sim/ArenaModule.java) once Phase-1 lands) plus [`BaseGameService`](../../api/src/main/java/infinity/sim/BaseGameService.java) survive in `api/`. ADR-0004 + ADR-0008 settle the design space; the in-tree Java framework is being implemented per [`arena-modules/PRD.md`](../arena-modules/PRD.md). **This PRD covers the Groovy compile-on-load extension surface that builds on top of that framework** — Phase 3 in the broader arena-modules arc.
 
 ## Why a hot-module surface at all
 
@@ -13,19 +13,19 @@ The legacy `AdaptiveLoader` (custom `ClassLoader` + reflection-instantiation + `
 
 ## Why this is `ready-for-human`, not `ready-for-agent`
 
-The design is locked. The implementation is still gated on a real consumer: until someone wants to ship a behaviour change as a Groovy module, building the loader for nothing is the same YAGNI trap that motivated deleting `AdaptiveLoader`. **Pull this PRD into work the moment a module wants to ship.** Until then it's an implementation sketch.
+The design is locked. The implementation is gated on **two** things now: (1) [`arena-modules/PRD.md`](../arena-modules/PRD.md) Phase-1 framework lands first (`ArenaModule` interface, `ModuleCatalog`, `ArenaModuleSystem`, coordinators); (2) a real external-author consumer wants to ship a Groovy module. Building the Groovy loader before either is the same YAGNI trap that motivated deleting `AdaptiveLoader`. **Pull this PRD into work after Phase-1 lands AND a Groovy module wants to ship.** Until then it's an implementation sketch.
 
-Current guidance from [`.claude/skills/create-module/SKILL.md`](../../.claude/skills/create-module/SKILL.md) — "fold the logic into a regular `BaseInfinitySystem` until the loader exists" — stands until the loader lands.
+Current guidance from [`.claude/skills/create-module/SKILL.md`](../../.claude/skills/create-module/SKILL.md) — "fold the logic into a regular `BaseInfinitySystem` until the loader exists" — stands until both the framework and this loader land.
 
 ## Decisions locked by ADR-0004
 
 The five "Open design questions" in the previous draft are now resolved:
 
-1. **What is a module?** A Groovy class (or set of classes) extending an api/-side base class — `BaseInfinitySystem` (or `BaseGameModule` for legacy modules needing `*Manager` accessors) on the server; `BaseAppState` on the client. Plus optional `EntityComponent` classes the module defines. Manifest `module.groovy` declares what each module ships.
+1. **What is a module?** A Groovy class (or set of classes) extending an api/-side base class — `BaseInfinitySystem` for plain server systems, **or implementing `ArenaModule`** per [ADR-0008](../../docs/adr/0008-arena-composition-and-modules.md) when the module opts into the arena lifecycle (load/match-start/round-start/round-end/match-end/unload). Plus optional `EntityComponent` classes the module defines. Manifest `module.groovy` declares what each module ships. When the Phase-1 framework lands, `ArenaModule`-implementing Groovy classes register their id into the shared `ModuleCatalog` so arena.groovy files reference them by string id like built-in modules.
 2. **Lifecycle hooks.** The base class's own lifecycle (`initialize` / `update` / `terminate` on server; `initialize` / `onEnable` / `onDisable` / `cleanup` on client). No new closure-DSL — modules write straight Groovy classes.
 3. **What the script sees.** All `api/` types (components, `*Config`, `ChangeTarget`, factories) plus the chosen base class. Imports go through `SecureASTCustomizer` whitelist; modules cannot import server-impl or client-impl packages.
 4. **Per-arena vs per-zone.** Modules load at zone start, before arenas, with their own `ClassLoader` per module. Arena-scoping is declared in the module manifest (or `arena.groovy` opt-in — detail pending in implementation, see "Remaining implementation questions" below).
-5. **Keep `BaseGameModule`?** Yes — kept as the legacy server-extension contract; new modules should prefer `BaseInfinitySystem` directly. Both shapes work.
+5. **Keep `BaseGameModule`?** Renamed to `ArenaModule` per [ADR-0008](../../docs/adr/0008-arena-composition-and-modules.md). New modules implementing the arena lifecycle use `ArenaModule`; modules that just need a vanilla server system extend `BaseInfinitySystem`. Both shapes work; the choice depends on whether the module participates in the 4-phase arena tick or runs as plain zone-wide infrastructure.
 
 Additional decisions ADR-0004 added that this PRD did not previously cover:
 
