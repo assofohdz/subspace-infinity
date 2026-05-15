@@ -57,7 +57,7 @@ A static `EventBus.publish(eventType, event)` call delivers to all registered li
 - *No atomic-apply requirement* — listeners run synchronously when published; if a listener fails, the failure doesn't roll back others.
 - *Cross-cutting* concerns — telemetry, logging, account services, UI lifecycle — that should not be load-bearing for game-state correctness.
 
-EventBus events are server-side only at runtime today (the `EventBus` static singleton lives inside the JVM); they do not cross the network. Clients that need to react to a server-side announcement do so by observing the resulting component state via SimEthereal sync, not by subscribing to a server-side bus.
+EventBus events are server-side only at runtime (the `EventBus` static singleton lives inside the JVM); they do not cross the network directly. For informational announcements that the client must also observe, `EventBusBroadcastHostedService` (server) + `EventBusBroadcastClientService` (client) bridge selected events over RMI callbacks: the server subscribes to the curated EventTypes, fans out via per-connection RMI calls, and the client republishes onto its own local-only EventBus. The client-side bus is a local notification bus; it does not feed back to the server (per ADR-0005).
 
 ### Scope tiers inside Channel B
 
@@ -106,12 +106,17 @@ Is the communication a request to mutate authoritative state?
                 │          ├─ Yes → zone event (infinity.events.zone.*)
                 │          └─ No  → arena event (infinity.events.arena.*)
                 └─ No, the client needs to react too
-                     → not a bus event. Either:
+                     → not a bus event on the shared server bus. Choose:
                        · the resulting state is a component the client
                          already observes via SimEthereal — react there;
                        · the trigger is a client request — use RMI
                          (see GameSession.java); RMI is the wire-crossing
-                         channel, not the bus.
+                         channel, not the bus;
+                       · informational announcement, no shared-state
+                         write — bridge via EventBusBroadcastHostedService
+                         (RMI callback → client republishes onto its own
+                         local EventBus; see ADR-0005 client-read-only
+                         constraint). Current: PlayerKilledEvent.
 ```
 
 ### Naming hygiene
@@ -136,7 +141,7 @@ Common mistake the two ADRs together prevent: publishing a "damage event" on the
 - **The one-tick lag has a home.** It's a property of intent components (per ADR-0001's accepted cost) and not of bus events. Code review can flag "you're using a bus event because you don't want the one-tick lag" — the right fix is usually to react to the component change directly, not to bypass the discipline.
 - **Bus surface is small and stays small.** The audit found three live publish sites. The naming hygiene rule keeps it that way: things that look like mutations are not allowed to enter the bus.
 - **Per-arena scope is encoded twice over** (event-type-by-package + `ArenaId` in payload). Listener bugs ("I'm seeing events from another arena") are findable by reading the payload, not by debugging runtime bus topology.
-- **Network surface stays unambiguous.** Bus events do not cross the wire. Clients use SimEthereal for state observation and RMI for intent submission. No third wire channel.
+- **Network surface stays unambiguous.** The server-side `EventBus` does not cross the wire directly. Clients use SimEthereal for state observation and RMI for intent submission. Informational server events reach the client via the `EventBusBroadcast` RMI bridge (one curated channel, read-only on the client side).
 
 ### Costs (accepted, not avoided)
 
@@ -167,7 +172,7 @@ Common mistake the two ADRs together prevent: publishing a "damage event" on the
 - **Channel B scope:** zone events server-global, arena events arena-scoped (payload-derived `ArenaId`); same `EventBus` instance today; per-arena split deferred.
 - **Channel C bar:** general primitives don't fit; one domain; one canonical owner; listener contract documented in dispatcher's Javadoc. Default is *don't add one*.
 - **Naming:** `*Change` / `*StatsChange` for intent components; `*Event` for bus events; "transient component" retired.
-- **Network:** Channel B is server-only. Clients observe via SimEthereal; submit via RMI.
+- **Network:** Channel B (server `EventBus`) is server-only. Clients observe component state via SimEthereal; submit intent via RMI. Informational server-side events can be bridged to the client's local-only EventBus via `EventBusBroadcastHostedService` + `EventBusBroadcastClientService` (RMI callback fan-out; no shared-state writes through this channel — ADR-0005).
 
 ## Open work
 
