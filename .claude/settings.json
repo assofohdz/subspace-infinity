@@ -72,7 +72,9 @@
       "Read(//home/assofohdz/github/assofohdz/subspace-infinity/=== Spawn /**)",
       "Edit(/.claude/skills/arena-settings/**)",
       "Edit(/.claude/skills/moss-physics/**)",
-      "Edit(/.claude/skills/project-overview/**)"
+      "Edit(/.claude/skills/project-overview/**)",
+      "Write(//home/assofohdz/github/assofohdz/subspace-infinity/.claude/worktrees/**)",
+      "Edit(//home/assofohdz/github/assofohdz/subspace-infinity/.claude/worktrees/**)"
     ],
     "additionalDirectories": [
       "/home/assofohdz/github/assofohdz/subspace-infinity/.claude",
