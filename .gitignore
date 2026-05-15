@@ -31,6 +31,10 @@ hs_err_pid*
 # Edit backup directories
 .backups/
 
+# Local-only reference snapshots (e.g. SubspaceServer config copies).
+# Not part of the build; kept handy for design comparison.
+.reference/
+
 # gradle related directories
 .gradle/
 build/
