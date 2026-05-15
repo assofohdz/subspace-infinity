@@ -212,6 +212,7 @@ public class GameServer {
             new RmiHostedService(),
             // new GameSessionHostedService(systems),
             new AccountHostedService(description),
+            new EventBusBroadcastHostedService(),
             // new WorldHostedService(DemoConstants.TERRAIN_CHANNEL),
             chp);
 

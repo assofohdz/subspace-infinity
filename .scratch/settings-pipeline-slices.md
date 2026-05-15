@@ -709,13 +709,53 @@ Same gap as splash damage's contact-path integration; deferred to the
 spawn-projection harness backlog.
 
 ### Slice 9c-JitterTime — bomb-hit screen jitter
-✅ `[Bomb] JitterTime` (cs→ms) — server stamps a `Jitter`
-deadline component on the victim of a bomb hit (both direct + splash
-paths in `WeaponsSystem.detonateProjectile`); client reads `Jitter`
-on the local avatar's id to camera-shake (ChaseCamera offset
-perturbation, or `FilterPostProcessor`-based screen shake). Greenfield
-on the client side — no `BombHitState`, no camera-shake AppState
-exists today. Land alongside the broader client visual-feedback queue.
+✅ Landed.
+
+- `BombConfig.jitterTimeMs` (cs×10→ms) added; `BombAdapter` exposes
+  `jitterTimeCs(int)` setter. Default `0L` disables jitter.
+- New api/-side server-only component `infinity.es.Jitter(startTime,
+  endTime)` (deadline-on-component shape, not Decay-driven — `Jitter`
+  is read by the client `JitterState` which needs both endpoints to
+  compute decaying amplitude, so a plain `Decay(start,end)` doesn't
+  fit the client read pattern).
+- New per-ship snapshot component `BombJitterTime(jitterMs)` projected
+  by `ShipWeaponsProjector.projectBombJitter` at ship spawn from
+  `BombConfig.jitterTimeMs` — keeps fire-time stamp local to the
+  attacker ship per ADR-0002 (no template lookup on the hot path).
+- `WeaponsDamageLogic.stampJitter` invoked from both
+  `applyDirectHitDamage` and `applySplashDamage` (after FF gate); takes
+  `max(existing, new)` to never shorten an in-flight shake.
+- Server reaper `JitterReaperSystem` (deadline-on-component, runs
+  alongside the `Decay` reaper but is its own scan because the
+  start/end shape diverges from `Decay`).
+- Serializer registration: `GameServer` registers `Jitter` with the
+  network kryo serializer so the component crosses the wire.
+- Client AppState `JitterState` (infinity-client) — lazy-resolves the
+  local avatar id in `update`, uses `ed.watchEntity(avatarId,
+  Jitter.class)` per `client-read-only.md`, releases the watch in
+  `cleanup` per `entity-sets.md`. Perturbs `Camera.location` by a
+  decaying-amplitude random offset (`MAX_OFFSET=0.5f`, scaled by
+  remaining-time fraction); CameraState rewrites location each frame
+  so the offset is non-accumulating. Attached after `InfinityCameraState`
+  in `GameSessionState`.
+- Active arenas: trench + deva author `jitterTimeCs 0` (disabled —
+  defer to player opt-in via per-arena groovy edit); testconf sets
+  `jitterTimeCs 100` (1 second) so smoke testers can exercise the
+  client camera shake.
+- Tests: server-side coverage in `WeaponsSystemSplashTest` exercises
+  `stampJitter`-adjacent paths; client `JitterState` is manual-launch
+  only (no harness for client AppStates yet — same gap as the broader
+  spawn-projection memory note).
+
+**Behaviour change on active arenas:** trench + deva keep jitter off
+(`jitterTimeCs 0`) so existing players aren't surprised by camera shake
+mid-tournament. Operators can opt in by editing `bomb.groovy`
+(`jitterTimeCs 72` = SVS canon). testconf has jitter at 1 second for
+QA.
+
+**Deviation from canon:** none documented; matches Subspace VIE
+semantics (cs→ms conversion at the loader; per-attacker per-ship
+snapshot; victim-side deadline; client renders the shake).
 
 ## Slice O1 — Operator-editable conf as external assets
 

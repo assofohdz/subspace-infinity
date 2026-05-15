@@ -81,6 +81,7 @@ public class GameClient {
             new RmiClientService(),
             new AccountClientService(),
             new GameSessionClientService(),
+            new EventBusBroadcastClientService(),
             new EntityDataClientService(InfinityConstants.ES_CHANNEL),
             new ChatClientService(InfinityConstants.CHAT_CHANNEL),
             new WorldClientService(InfinityConstants.TERRAIN_CHANNEL),

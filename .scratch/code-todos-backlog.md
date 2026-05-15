@@ -9,15 +9,14 @@ Each row: actionable item + source file:line + brief context.
 
 ### Cross-tier comms
 
-- [ ] **Server→client `EventBus` bridge.** `com.simsilica.event.EventBus` is a
-  local in-process bus — events published server-side don't reach client
-  subscribers. `PlayerKilledEvent` (api/events/arena) was authored as a
-  cross-tier payload, but the publish in `EnergySystem.handleDeath` only fans
-  out to server-side listeners. Client kill-feed UI / audio / scoreboard need
-  either a network adapter that re-publishes selected `EventType`s over the
-  wire (RMI broadcast), or a SimEthereal-synced marker component the client
-  observes. Decide per use-case which mechanism fits; the api/-side payload
-  shape (`PlayerKilledEvent`) is reusable for both.
+- [ ] **Extend the server→client `EventBus` bridge to additional EventTypes
+  as they're authored.** Framework lives in `EventBusBroadcastHostedService`
+  (server) ↔ `EventBusBroadcastListener` (api/) ↔ `EventBusBroadcastClientService`
+  (client). `PlayerKilledEvent.playerKilled` is wired end-to-end; add new
+  EventTypes by extending the RMI listener interface, the curated `addListener`
+  set in the hosted service's `onInitialize`, and the matching `onXxx` method
+  pair. Informational only — clients receive bus events but do not mutate
+  authoritative state through them (ADR-0005).
 
 ### Architecture
 
@@ -31,18 +30,6 @@ Each row: actionable item + source file:line + brief context.
   `ConfigShipRestrictor` read the component and drop the template import.
   Defer until another arena-scoped gate appears with the same shape — single
   case may not justify the projection.
-
-### ECS — components on entities
-
-- [ ] **Player ships should carry a `Frequency` component.** Today, human
-  player ships don't carry `Frequency` (only freq-aware spawn paths add it),
-  so `AvatarSystem.requestShipChange` defaults to freq=0 when absent. The
-  `FrequencySystem` already exists as the canonical writer for
-  `FrequencyChange` intents — needs the spawn-time stamp at `ShipFactory` /
-  `ShipSpawnSystem` (whichever owns initial ship membership). Without this,
-  per-team `ShipRestrictor` and `ConfigShipRestrictor.maxPerTeam` silently
-  treat all players as team 0. Surface: see comment removed from
-  `AvatarSystem.requestShipChange` in the per-arena ship-restrictions slice.
 
 ### Test coverage gaps
 

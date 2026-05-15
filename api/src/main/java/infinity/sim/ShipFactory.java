@@ -77,7 +77,9 @@ public final class ShipFactory {
     ed.setComponent(result, new Player());
     ed.setComponent(result, new Name("player"));
 
-    ed.setComponent(result, new Frequency(1));
+    // Seed freq=0 — default team for human players; freq-aware paths (chat
+    // `=N`, flag-touch via FrequencySystem) re-stamp via FrequencyChange.
+    ed.setComponent(result, new Frequency(0));
 
     ed.setComponent(
         result,
