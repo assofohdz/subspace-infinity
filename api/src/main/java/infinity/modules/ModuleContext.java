@@ -3,7 +3,13 @@
 package infinity.modules;
 
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import infinity.es.arena.ArenaId;
 
-/** Construction-time bundle for modules. F1 minimum; extend as concrete modules need services. */
-public record ModuleContext(ArenaId arenaId, EntityData ed) {}
+/**
+ * Construction-time bundle for modules. {@code arenaEntity} is the {@link EntityId}
+ * of the arena entity the module is hosted on — modules use it to stamp per-arena
+ * state ({@code RoundNumber}, {@code RoundEndPending}, {@code ScoreReset}). F1 minimum;
+ * extend as concrete modules need additional services.
+ */
+public record ModuleContext(ArenaId arenaId, EntityId arenaEntity, EntityData ed) {}

@@ -148,6 +148,7 @@ import infinity.systems.DeathPrizeSystem;
 import infinity.systems.PrizeConsumptionSystem;
 import infinity.systems.PrizeSpawnerSystem;
 import infinity.systems.ServerTelemetrySystem;
+import infinity.modules.ArenaLifecycleDispatcherSystem;
 import infinity.modules.ArenaModuleSystem;
 import infinity.modules.ScoreCoordinatorSystem;
 import infinity.settings.ConfigRegistrySystem;
@@ -456,6 +457,12 @@ public class GameServer {
     // emitted by scoring modules. Registers after ArenaModuleSystem so modules
     // have published their per-tick contributions before the drain runs.
     systems.register(ScoreCoordinatorSystem.class, new ScoreCoordinatorSystem());
+    // Phase-4 dispatcher: observes RoundEndPending on arena entities; fires
+    // onRoundEnd / onRoundStart on every loaded module and emits ScoreReset.
+    // Registers after ScoreCoordinator so ScoreReset transients land in the
+    // same tick's coordinator drain.
+    systems.register(
+        ArenaLifecycleDispatcherSystem.class, new ArenaLifecycleDispatcherSystem());
     systems.register(GroovyShipLoader.class, new GroovyShipLoader(configRegistry));
     systems.register(ShipSpawnSystem.class, new ShipSpawnSystem());
     systems.register(MapSystem.class, new MapSystem());

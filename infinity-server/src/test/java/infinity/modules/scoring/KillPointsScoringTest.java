@@ -33,7 +33,8 @@ public final class KillPointsScoringTest {
     ed = new DefaultEntityData();
     thisArena = new ArenaId("ffa", ed.createEntity());
     otherArena = new ArenaId("trench", ed.createEntity());
-    module = new KillPointsScoring(new ModuleContext(thisArena, ed), new KillPointsConfig(100));
+    module = new KillPointsScoring(
+        new ModuleContext(thisArena, ed.createEntity(), ed), new KillPointsConfig(100));
     changes = ed.getEntities(PlayerScoreChange.class, ChangeTarget.class);
     module.onArenaLoad(thisArena);
   }

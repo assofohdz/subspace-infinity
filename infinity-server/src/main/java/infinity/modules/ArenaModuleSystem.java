@@ -8,6 +8,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.SimTime;
 import infinity.es.arena.ArenaId;
+import infinity.es.arena.RoundNumber;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.sim.ArenaModule;
@@ -39,7 +40,12 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
   private final Map<EntityId, LoadedArena> loaded = new HashMap<>();
 
   /** Bundles the per-arena state {@link #handleAdded} captures + {@link #handleRemoved} unwinds. */
-  private record LoadedArena(ArenaId arenaId, ArenaModuleSet set) {}
+  public record LoadedArena(ArenaId arenaId, ArenaModuleSet set) {}
+
+  /** Look up the loaded module set for an arena entity; {@code null} if the arena hasn't been loaded. */
+  public LoadedArena loadedFor(final EntityId arenaEntity) {
+    return loaded.get(arenaEntity);
+  }
 
   @Override
   protected void initialize() {
@@ -65,6 +71,14 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
         handleRemoved(arenaEntity.getId());
       }
     }
+    tickRoundStructures(time);
+  }
+
+  /** Per-tick dispatch for the per-arena {@code roundStructure} module (if any). */
+  private void tickRoundStructures(final SimTime time) {
+    for (final LoadedArena entry : loaded.values()) {
+      entry.set().roundStructure().ifPresent(m -> m.tickRoundStructure(entry.arenaId(), time));
+    }
   }
 
   private void handleAdded(final Entity arenaEntity) {
@@ -75,23 +89,43 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
 
     final ValidationResult result = ModuleLoader.validate(decls);
     if (!result.ok()) {
-      if (log.isErrorEnabled()) {
-        for (final String error : result.errors()) {
-          log.error("Arena {} module validation failed: {}", arenaId.getArena(), error);
-        }
-      }
+      logValidationErrors(arenaId, result);
       loaded.put(entityId, new LoadedArena(arenaId, ArenaModuleSet.EMPTY));
       return;
     }
 
-    final ModuleContext context = new ModuleContext(arenaId, ed);
+    final ModuleContext context = new ModuleContext(arenaId, entityId, ed);
     final ArenaModuleSet set = ModuleLoader.build(decls, context);
     loaded.put(entityId, new LoadedArena(arenaId, set));
+    bootstrapLifecycle(entityId, arenaId, set);
+  }
 
-    for (final ArenaModule module : set.allModules()) {
+  private void logValidationErrors(final ArenaId arenaId, final ValidationResult result) {
+    for (final String error : result.errors()) {
+      if (log.isErrorEnabled()) {
+        log.error("Arena {} module validation failed: {}", arenaId.getArena(), error);
+      }
+    }
+  }
+
+  /** Fires {@code onArenaLoad} + bootstraps first match + first round on every loaded module. */
+  private void bootstrapLifecycle(
+      final EntityId entityId, final ArenaId arenaId, final ArenaModuleSet set) {
+    final List<ArenaModule> modules = set.allModules();
+    for (final ArenaModule module : modules) {
       module.onArenaLoad(arenaId);
     }
-    if (log.isDebugEnabled() && !set.equals(ArenaModuleSet.EMPTY)) {
+    if (modules.isEmpty()) {
+      return;
+    }
+    ed.setComponent(entityId, new RoundNumber(1));
+    for (final ArenaModule module : modules) {
+      module.onMatchStart(arenaId);
+    }
+    for (final ArenaModule module : modules) {
+      module.onRoundStart(arenaId, 1);
+    }
+    if (log.isDebugEnabled()) {
       log.debug("Arena {} loaded with module set: {}", arenaId.getArena(), set);
     }
   }

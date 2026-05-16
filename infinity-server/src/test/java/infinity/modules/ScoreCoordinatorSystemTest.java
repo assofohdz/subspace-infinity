@@ -10,8 +10,10 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.sim.GameSystemManager;
 import infinity.es.ChangeTarget;
+import infinity.es.arena.ArenaId;
 import infinity.es.score.PlayerRoundScore;
 import infinity.es.score.PlayerScoreChange;
+import infinity.es.score.ScoreReset;
 import org.junit.Test;
 
 /** Pins {@link ScoreCoordinatorSystem}'s drain semantics. */
@@ -68,6 +70,65 @@ public final class ScoreCoordinatorSystemTest {
       systems.update();
 
       assertEquals(125, ed.getComponent(player, PlayerRoundScore.class).getValue());
+    } finally {
+      stop(systems);
+    }
+  }
+
+  @Test
+  public void roundReset_zeroesAllArenaPlayers() {
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    registerSystems(systems, ed);
+    try {
+      final EntityId arenaEntity = ed.createEntity();
+      final ArenaId arenaId = new ArenaId("ffa", arenaEntity);
+      final EntityId p1 = ed.createEntity();
+      final EntityId p2 = ed.createEntity();
+      ed.setComponent(p1, arenaId);
+      ed.setComponent(p1, new PlayerRoundScore(300));
+      ed.setComponent(p2, arenaId);
+      ed.setComponent(p2, new PlayerRoundScore(150));
+
+      ed.setComponent(arenaEntity, arenaId);
+      ed.setComponent(arenaEntity, new ScoreReset(ScoreReset.Scope.ROUND));
+
+      systems.update();
+
+      assertEquals(0, ed.getComponent(p1, PlayerRoundScore.class).getValue());
+      assertEquals(0, ed.getComponent(p2, PlayerRoundScore.class).getValue());
+      assertNull("ScoreReset marker drained",
+          ed.getComponent(arenaEntity, ScoreReset.class));
+    } finally {
+      stop(systems);
+    }
+  }
+
+  @Test
+  public void roundReset_otherArenaPlayersUnaffected() {
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    registerSystems(systems, ed);
+    try {
+      final EntityId ffaEntity = ed.createEntity();
+      final EntityId trenchEntity = ed.createEntity();
+      final ArenaId ffa = new ArenaId("ffa", ffaEntity);
+      final ArenaId trench = new ArenaId("trench", trenchEntity);
+      final EntityId pFfa = ed.createEntity();
+      final EntityId pTrench = ed.createEntity();
+      ed.setComponent(pFfa, ffa);
+      ed.setComponent(pFfa, new PlayerRoundScore(500));
+      ed.setComponent(pTrench, trench);
+      ed.setComponent(pTrench, new PlayerRoundScore(700));
+
+      ed.setComponent(ffaEntity, ffa);
+      ed.setComponent(ffaEntity, new ScoreReset(ScoreReset.Scope.ROUND));
+
+      systems.update();
+
+      assertEquals(0, ed.getComponent(pFfa, PlayerRoundScore.class).getValue());
+      assertEquals("foreign arena untouched",
+          700, ed.getComponent(pTrench, PlayerRoundScore.class).getValue());
     } finally {
       stop(systems);
     }

@@ -3,6 +3,8 @@
 package infinity.modules;
 
 import infinity.config.KillPointsConfig;
+import infinity.config.TimedRoundStructureConfig;
+import infinity.modules.roundstructure.TimedRoundStructure;
 import infinity.modules.scoring.KillPointsScoring;
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +17,13 @@ public final class ModuleCatalog {
       Map.of(
           "kill-points",
           new ModuleDescriptor(
-              KillPointsScoring.class, KillPointsConfig.class, ModuleCategory.SCORING, Set.of()));
+              KillPointsScoring.class, KillPointsConfig.class, ModuleCategory.SCORING, Set.of()),
+          "timed-round",
+          new ModuleDescriptor(
+              TimedRoundStructure.class,
+              TimedRoundStructureConfig.class,
+              ModuleCategory.ROUND_STRUCTURE,
+              Set.of()));
 
   private ModuleCatalog() {}
 

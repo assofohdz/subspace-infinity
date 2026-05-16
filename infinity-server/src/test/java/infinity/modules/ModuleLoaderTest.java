@@ -89,6 +89,6 @@ public final class ModuleLoaderTest {
   }
 
   private static ModuleContext ctx() {
-    return new ModuleContext(null, null);
+    return new ModuleContext(null, null, null);
   }
 }
