@@ -10,19 +10,32 @@ import infinity.es.arena.ArenaId;
 import infinity.es.arena.RoundEndPending;
 import infinity.modules.ModuleContext;
 import infinity.modules.RoundStructureModule;
+import infinity.sim.ChatHostedPoster;
+import infinity.sim.MessageTypes;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 /**
  * Terminator-style round structure — emits {@link RoundEndPending} on the arena
  * entity once {@code minutes} have elapsed since the round started. Re-arms on
  * each {@code onRoundStart} so subsequent rounds re-time from their own start.
+ *
+ * <p>Posts a minute-countdown chat announcement every {@link #ANNOUNCE_INTERVAL_NANOS}
+ * via {@link ChatHostedPoster#postPublicMessage} (zone-wide today — see legacy-vs-
+ * infinity tracker; arena-scoped chat is deferred). No announcement fires at the
+ * round-end mark itself ({@code RoundEndPending} is the signal).
  */
 public final class TimedRoundStructure implements RoundStructureModule {
+
+  private static final long ANNOUNCE_INTERVAL_NANOS = TimeUnit.MINUTES.toNanos(1);
+  private static final String CHAT_SENDER = "round-timer";
 
   private final EntityData ed;
   private final EntityId arenaEntity;
   private final long durationNanos;
+  private final ChatHostedPoster chat;
   private long roundStartNanos = -1;
+  private long nextAnnounceNanos = -1;
   private boolean emitted;
 
   public TimedRoundStructure(
@@ -30,11 +43,13 @@ public final class TimedRoundStructure implements RoundStructureModule {
     this.ed = ctx.ed();
     this.arenaEntity = ctx.arenaEntity();
     this.durationNanos = TimeUnit.MINUTES.toNanos(config.minutes());
+    this.chat = ctx.chat();
   }
 
   @Override
   public void onRoundStart(final ArenaId arenaId, final int roundNumber) {
     roundStartNanos = -1;
+    nextAnnounceNanos = -1;
     emitted = false;
   }
 
@@ -46,12 +61,33 @@ public final class TimedRoundStructure implements RoundStructureModule {
     final long now = time.getTime();
     if (roundStartNanos < 0) {
       roundStartNanos = now;
+      nextAnnounceNanos = now + ANNOUNCE_INTERVAL_NANOS;
       return;
     }
-    if (now - roundStartNanos < durationNanos) {
+    final long elapsed = now - roundStartNanos;
+    if (elapsed >= durationNanos) {
+      ed.setComponent(arenaEntity, new RoundEndPending());
+      emitted = true;
       return;
     }
-    ed.setComponent(arenaEntity, new RoundEndPending());
-    emitted = true;
+    if (now >= nextAnnounceNanos) {
+      announceTimeRemaining(durationNanos - elapsed);
+      nextAnnounceNanos += ANNOUNCE_INTERVAL_NANOS;
+    }
+  }
+
+  /** Posts {@code "N minute(s) remaining"} via the chat poster (nullable in tests). */
+  private void announceTimeRemaining(final long remainingNanos) {
+    @Nullable final ChatHostedPoster poster = chat;
+    if (poster == null) {
+      return;
+    }
+    final long remainingMinutes = TimeUnit.NANOSECONDS.toMinutes(remainingNanos);
+    if (remainingMinutes <= 0) {
+      return;
+    }
+    final String unit = remainingMinutes == 1 ? "minute" : "minutes";
+    poster.postPublicMessage(
+        CHAT_SENDER, MessageTypes.MESSAGE, remainingMinutes + " " + unit + " remaining");
   }
 }

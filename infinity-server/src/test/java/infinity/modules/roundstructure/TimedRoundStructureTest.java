@@ -2,6 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.modules.roundstructure;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -12,19 +13,29 @@ import infinity.config.TimedRoundStructureConfig;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.RoundEndPending;
 import infinity.modules.ModuleContext;
+import infinity.sim.ChatHostedPoster;
+import infinity.sim.CommandBiFunction;
+import infinity.sim.CommandFunction;
+import infinity.sim.CommandTriFunction;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.Test;
 
 /** Pins {@link TimedRoundStructure}'s emit-on-elapsed semantics. */
 public final class TimedRoundStructureTest {
 
+  private static final String ARENA_NAME = "test";
+
   @Test
   public void elapsedBeforeDuration_doesNotEmit() {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId arenaEntity = ed.createEntity();
-    final ArenaId arenaId = new ArenaId("test", arenaEntity);
+    final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
     final TimedRoundStructure m = new TimedRoundStructure(
-        new ModuleContext(arenaId, arenaEntity, ed), new TimedRoundStructureConfig(5));
+        new ModuleContext(arenaId, arenaEntity, ed, null), new TimedRoundStructureConfig(5));
 
     m.onRoundStart(arenaId, 1);
     m.tickRoundStructure(arenaId, simTimeAt(0L));
@@ -37,9 +48,9 @@ public final class TimedRoundStructureTest {
   public void elapsedAtDuration_emitsRoundEndPending() {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId arenaEntity = ed.createEntity();
-    final ArenaId arenaId = new ArenaId("test", arenaEntity);
+    final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
     final TimedRoundStructure m = new TimedRoundStructure(
-        new ModuleContext(arenaId, arenaEntity, ed), new TimedRoundStructureConfig(5));
+        new ModuleContext(arenaId, arenaEntity, ed, null), new TimedRoundStructureConfig(5));
 
     m.onRoundStart(arenaId, 1);
     m.tickRoundStructure(arenaId, simTimeAt(0L));
@@ -52,9 +63,9 @@ public final class TimedRoundStructureTest {
   public void roundStartReArmsTimer() {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId arenaEntity = ed.createEntity();
-    final ArenaId arenaId = new ArenaId("test", arenaEntity);
+    final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
     final TimedRoundStructure m = new TimedRoundStructure(
-        new ModuleContext(arenaId, arenaEntity, ed), new TimedRoundStructureConfig(5));
+        new ModuleContext(arenaId, arenaEntity, ed, null), new TimedRoundStructureConfig(5));
 
     m.onRoundStart(arenaId, 1);
     m.tickRoundStructure(arenaId, simTimeAt(0L));
@@ -71,10 +82,96 @@ public final class TimedRoundStructureTest {
     assertNotNull("round 2 elapsed", ed.getComponent(arenaEntity, RoundEndPending.class));
   }
 
+  @Test
+  public void announcesRemainingTimeEveryMinute_skipsZeroMark() {
+    final DefaultEntityData ed = new DefaultEntityData();
+    final EntityId arenaEntity = ed.createEntity();
+    final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
+    final CapturingChat chat = new CapturingChat();
+    final TimedRoundStructure m = new TimedRoundStructure(
+        new ModuleContext(arenaId, arenaEntity, ed, chat), new TimedRoundStructureConfig(5));
+
+    m.onRoundStart(arenaId, 1);
+    m.tickRoundStructure(arenaId, simTimeAt(0L));
+    // T = 0: no announcement (just cached start).
+    assertEquals(0, chat.messages.size());
+
+    m.tickRoundStructure(arenaId, simTimeAt(TimeUnit.MINUTES.toNanos(1)));
+    m.tickRoundStructure(arenaId, simTimeAt(TimeUnit.MINUTES.toNanos(2)));
+    m.tickRoundStructure(arenaId, simTimeAt(TimeUnit.MINUTES.toNanos(3)));
+    m.tickRoundStructure(arenaId, simTimeAt(TimeUnit.MINUTES.toNanos(4)));
+    // T = 5min: round ends; no countdown announcement at the end mark.
+    m.tickRoundStructure(arenaId, simTimeAt(TimeUnit.MINUTES.toNanos(5)));
+
+    assertEquals(
+        List.of(
+            "4 minutes remaining",
+            "3 minutes remaining",
+            "2 minutes remaining",
+            "1 minute remaining"),
+        chat.messages);
+    assertNotNull("round emitted at the 5-min mark",
+        ed.getComponent(arenaEntity, RoundEndPending.class));
+  }
+
   private static SimTime simTimeAt(final long simNanos) {
     final SimTime t = new SimTime();
     t.setCurrentTime(simNanos);
     t.update(0L);
     return t;
+  }
+
+  /** Test-only chat poster — captures public-message bodies for assertion. */
+  private static final class CapturingChat implements ChatHostedPoster {
+    final List<String> messages = new ArrayList<>();
+
+    @Override
+    public void postPublicMessage(final String from, final int messageType, final String message) {
+      messages.add(message);
+    }
+
+    @Override
+    public void postPrivateMessage(
+        final String from, final int messageType, final EntityId targetEntityId, final String message) {
+      // not under test
+    }
+
+    @Override
+    public void postTeamMessage(
+        final String from, final int messageType, final int targetFrequency, final String message) {
+      // not under test
+    }
+
+    @Override
+    public void registerPatternTriConsumer(
+        final Pattern pattern,
+        final String description,
+        final CommandTriFunction<EntityId, EntityId, Matcher, String> c) {
+      // not under test
+    }
+
+    @Override
+    public void registerPatternBiConsumer(
+        final Pattern pattern,
+        final String description,
+        final CommandBiFunction<EntityId, Matcher, String> c) {
+      // not under test
+    }
+
+    @Override
+    public void removePatternConsumer(final Pattern pattern) {
+      // not under test
+    }
+
+    @Override
+    public void registerCommandConsumer(
+        final String cmd, final String helptext, final CommandFunction<Matcher, String> c) {
+      // not under test
+    }
+
+    @Override
+    public void removeCommandConsumer(final String cmd) {
+      // not under test
+    }
   }
 }

@@ -56,6 +56,7 @@ explicit design); **where** = the file or doc; **status** = `stable` /
 | canon | Infinity | why | where | status |
 |---|---|---|---|---|
 | Most config changes require server restart | `arena.groovy` + preset fragments hot-reload via mtime polling; ship templates re-project to ECS components on save; modules can opt-in to live config updates via `Reloadable<C>` | Tighter operator iteration loop; admin doesn't have to kick the server to nudge balance | [ADR-0004](../docs/adr/0004-settings-pipeline.md), Slice F1 (`Reloadable<C>`) | intentional |
+| Subspace canon chat is arena-scoped at the protocol level (each arena's public channel is isolated) | `ChatHostedPoster.postPublicMessage` is zone-wide — every connected client receives, regardless of arena | Arena-scoped chat broadcast not implemented yet; modules that want "tell everyone in MY arena" use `postPublicMessage` and rely on single-arena zone configurations | [`InfinityChatHostedService.postPublicMessage`](../infinity-server/src/main/java/infinity/server/chat/InfinityChatHostedService.java), [`TimedRoundStructure.announceTimeRemaining`](../infinity-server/src/main/java/infinity/modules/roundstructure/TimedRoundStructure.java) | **temporary** |
 | Map change requires arena reload (kicks all players) | `~swapMap <file>` swaps the `.lvl` mid-arena without unloading the arena entity; player ships persist | Lower-friction map iteration during arena tuning | [`ArenaLogic.java`](../infinity-server/src/main/java/infinity/systems/ArenaLogic.java) `swapMap` | intentional |
 
 ---

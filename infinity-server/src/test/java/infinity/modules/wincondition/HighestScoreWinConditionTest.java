@@ -69,7 +69,7 @@ public final class HighestScoreWinConditionTest {
   private static HighestScoreWinCondition build(
       final DefaultEntityData ed, final ArenaId arenaId) {
     return new HighestScoreWinCondition(
-        new ModuleContext(arenaId, arenaId.getOwner(), ed));
+        new ModuleContext(arenaId, arenaId.getOwner(), ed, null));
   }
 
   private static void scoredPlayer(

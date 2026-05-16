@@ -11,9 +11,11 @@ import infinity.es.arena.ArenaId;
 import infinity.es.arena.MatchNumber;
 import infinity.es.arena.RoundEndPending;
 import infinity.es.arena.RoundNumber;
+import infinity.server.chat.InfinityChatHostedService;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.sim.ArenaModule;
+import infinity.sim.ChatHostedPoster;
 import infinity.systems.BaseInfinitySystem;
 import java.util.HashMap;
 import java.util.List;
@@ -40,6 +42,7 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
   private EntityData ed;
   private EntitySet arenas;
   private ConfigRegistrySystem configRegistry;
+  private ChatHostedPoster chat;
   private final Map<EntityId, LoadedArena> loaded = new HashMap<>();
 
   /** Bundles the per-arena state {@link #handleAdded} captures + {@link #handleRemoved} unwinds. */
@@ -54,6 +57,7 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
   protected void initialize() {
     ed = requireSystem(EntityData.class);
     configRegistry = requireSystem(ConfigRegistrySystem.class);
+    chat = getSystem(InfinityChatHostedService.class); // nullable: tests register module system without chat
     arenas = ed.getEntities(ArenaId.class);
   }
 
@@ -116,7 +120,7 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
       return;
     }
 
-    final ModuleContext context = new ModuleContext(arenaId, entityId, ed);
+    final ModuleContext context = new ModuleContext(arenaId, entityId, ed, chat);
     final ArenaModuleSet set = ModuleLoader.build(decls, context);
     loaded.put(entityId, new LoadedArena(arenaId, set));
     bootstrapLifecycle(entityId, arenaId, set);
