@@ -6,7 +6,6 @@ import static org.junit.Assert.assertEquals;
 
 import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultEntityData;
-import infinity.config.HighestScoreWinConditionConfig;
 import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
 import infinity.es.score.PlayerRoundScore;
@@ -70,8 +69,7 @@ public final class HighestScoreWinConditionTest {
   private static HighestScoreWinCondition build(
       final DefaultEntityData ed, final ArenaId arenaId) {
     return new HighestScoreWinCondition(
-        new ModuleContext(arenaId, arenaId.getOwner(), ed),
-        new HighestScoreWinConditionConfig());
+        new ModuleContext(arenaId, arenaId.getOwner(), ed));
   }
 
   private static void scoredPlayer(

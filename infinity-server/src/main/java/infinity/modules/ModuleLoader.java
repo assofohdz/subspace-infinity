@@ -29,19 +29,34 @@ public final class ModuleLoader {
     final List<ModuleSpec> allSpecs = decls.allSpecs();
     final List<String> errors = new ArrayList<>();
 
-    // Check 1: every moduleId is registered in the catalog.
+    checkUnknownIds(allSpecs, errors);
+    if (!errors.isEmpty()) {
+      // Subsequent checks need resolved descriptors; bail if any id failed.
+      return new ValidationResult(errors);
+    }
+    checkRequiresSatisfied(allSpecs, decls.mechanics().keySet(), errors);
+    // Check: mechanic `requires:` graph is acyclic — skeleton; lands with first
+    // mechanic that has requires.
+    checkKwargsBind(allSpecs, errors);
+
+    return new ValidationResult(errors);
+  }
+
+  /** Check 1: every moduleId is registered in the catalog. */
+  private static void checkUnknownIds(
+      final List<ModuleSpec> allSpecs, final List<String> errors) {
     for (final ModuleSpec spec : allSpecs) {
       if (ModuleCatalog.descriptor(spec.moduleId()) == null) {
         errors.add("Unknown module id '" + spec.moduleId() + "'");
       }
     }
-    // Subsequent checks need resolved descriptors; bail if any id failed.
-    if (!errors.isEmpty()) {
-      return new ValidationResult(errors);
-    }
+  }
 
-    // Check 2: every `requires:` mechanic dep is satisfied by a loaded mechanic.
-    final Set<String> loadedMechanics = decls.mechanics().keySet();
+  /** Check 2: every {@code requires:} mechanic dep is satisfied by a loaded mechanic. */
+  private static void checkRequiresSatisfied(
+      final List<ModuleSpec> allSpecs,
+      final Set<String> loadedMechanics,
+      final List<String> errors) {
     for (final ModuleSpec spec : allSpecs) {
       final ModuleDescriptor desc = ModuleCatalog.descriptor(spec.moduleId());
       for (final String required : desc.requires()) {
@@ -55,22 +70,30 @@ public final class ModuleLoader {
         }
       }
     }
+  }
 
-    // Check 3: mechanic `requires:` graph is acyclic.
-    // Skeleton — F2+ when first mechanic with requires lands.
-
-    // Check 4: kwargs bind cleanly (Jackson convertValue invokes the record's
-    // canonical constructor; compact-constructor validation throws IAE).
+  /**
+   * Check: kwargs bind cleanly via Jackson + record compact-constructor validation.
+   * Zero-config modules ({@code configType == null}) reject any kwargs loudly.
+   */
+  private static void checkKwargsBind(
+      final List<ModuleSpec> allSpecs, final List<String> errors) {
     for (final ModuleSpec spec : allSpecs) {
       final ModuleDescriptor desc = ModuleCatalog.descriptor(spec.moduleId());
+      if (desc.configType() == null) {
+        if (!spec.kwargs().isEmpty()) {
+          errors.add(
+              "Module '" + spec.moduleId() + "' takes no config; unexpected kwargs "
+                  + spec.kwargs().keySet());
+        }
+        continue;
+      }
       try {
         MAPPER.convertValue(spec.kwargs(), desc.configType());
       } catch (final IllegalArgumentException e) {
         errors.add("Invalid config for '" + spec.moduleId() + "': " + e.getMessage());
       }
     }
-
-    return new ValidationResult(errors);
   }
 
   /**
@@ -110,6 +133,32 @@ public final class ModuleLoader {
 
   private static ArenaModule instantiate(final ModuleSpec spec, final ModuleContext context) {
     final ModuleDescriptor desc = ModuleCatalog.descriptor(spec.moduleId());
+    if (desc.configType() == null) {
+      return instantiateZeroConfig(desc, spec, context);
+    }
+    return instantiateWithConfig(desc, spec, context);
+  }
+
+  private static ArenaModule instantiateZeroConfig(
+      final ModuleDescriptor desc, final ModuleSpec spec, final ModuleContext context) {
+    try {
+      final Constructor<? extends ArenaModule> ctor =
+          desc.moduleClass().getDeclaredConstructor(ModuleContext.class);
+      return ctor.newInstance(context);
+    } catch (final NoSuchMethodException e) {
+      throw new IllegalStateException(
+          "Zero-config module class "
+              + desc.moduleClass().getName()
+              + " must declare a public (ModuleContext) constructor",
+          e);
+    } catch (final InstantiationException | IllegalAccessException | InvocationTargetException e) {
+      throw new IllegalStateException(
+          "Failed to instantiate module '" + spec.moduleId() + "'", e);
+    }
+  }
+
+  private static ArenaModule instantiateWithConfig(
+      final ModuleDescriptor desc, final ModuleSpec spec, final ModuleContext context) {
     final Object config = MAPPER.convertValue(spec.kwargs(), desc.configType());
     try {
       final Constructor<? extends ArenaModule> ctor =

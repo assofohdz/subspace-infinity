@@ -2,7 +2,6 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.modules;
 
-import infinity.config.HighestScoreWinConditionConfig;
 import infinity.config.KillPointsConfig;
 import infinity.config.TimedRoundStructureConfig;
 import infinity.modules.roundstructure.TimedRoundStructure;
@@ -29,7 +28,7 @@ public final class ModuleCatalog {
           "highest-score",
           new ModuleDescriptor(
               HighestScoreWinCondition.class,
-              HighestScoreWinConditionConfig.class,
+              null, // zero-config — no kwargs accepted at validate time
               ModuleCategory.WIN_CONDITION,
               Set.of()));
 

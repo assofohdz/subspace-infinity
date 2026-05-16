@@ -4,11 +4,18 @@ package infinity.modules;
 
 import infinity.sim.ArenaModule;
 import java.util.Set;
+import javax.annotation.Nullable;
 
-/** Catalog entry: single source of truth for module metadata (Q11). */
+/**
+ * Catalog entry: single source of truth for module metadata (Q11).
+ *
+ * <p>{@code configType == null} signals a zero-config module — the loader uses
+ * the {@code (ModuleContext)}-only constructor and rejects any kwargs at validate
+ * time.
+ */
 public record ModuleDescriptor(
     Class<? extends ArenaModule> moduleClass,
-    Class<? extends Record> configType,
+    @Nullable Class<? extends Record> configType,
     ModuleCategory category,
     Set<String> requires) {
 

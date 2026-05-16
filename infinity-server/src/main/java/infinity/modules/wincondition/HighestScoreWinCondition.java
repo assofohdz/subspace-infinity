@@ -5,7 +5,6 @@ package infinity.modules.wincondition;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntitySet;
-import infinity.config.HighestScoreWinConditionConfig;
 import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
 import infinity.es.score.PlayerRoundScore;
@@ -24,9 +23,7 @@ public final class HighestScoreWinCondition implements WinConditionModule {
   private final ArenaId arenaId;
   private final EntitySet scoredPlayers;
 
-  @SuppressWarnings("PMD.UnusedFormalParameter") // config is intentionally empty; ctor shape is the Module-loader ABI.
-  public HighestScoreWinCondition(
-      final ModuleContext ctx, final HighestScoreWinConditionConfig config) {
+  public HighestScoreWinCondition(final ModuleContext ctx) {
     this.arenaId = ctx.arenaId();
     final EntityData ed = ctx.ed();
     this.scoredPlayers =
