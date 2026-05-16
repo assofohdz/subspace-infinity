@@ -86,10 +86,13 @@ public class MyState extends BaseAppState {
 ```
 
 ### Module Pattern
-Game modules extend `BaseGameModule` (from api):
+Arena modules implement `ArenaModule` (from `api/src/main/java/infinity/modules/`) per [ADR-0008](../docs/adr/0008-arena-composition-and-modules.md). The interface is purely behavioural (six default no-op lifecycle hooks); module metadata (id, category, configType, requires) lives on `ModuleDescriptor` in `ModuleCatalog`. Hot-reload is opt-in via the `Reloadable<C>` companion interface.
 ```java
-public class MyModule extends BaseGameModule {
-    // Module-specific initialization
+public final class MyScoring implements ScoringModule {
+    private final MyScoringConfig config;
+    public MyScoring(ModuleContext ctx, MyScoringConfig config) { this.config = config; }
+    @Override public void onArenaLoad(ArenaId arenaId) { /* register listeners etc. */ }
+    @Override public void onArenaUnload(ArenaId arenaId) { /* clean up */ }
 }
 ```
 

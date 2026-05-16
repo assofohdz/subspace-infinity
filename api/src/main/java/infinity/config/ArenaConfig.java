@@ -3,6 +3,7 @@
 
 package infinity.config;
 
+import infinity.modules.ArenaModuleDeclarations;
 import java.util.List;
 
 /**
@@ -25,7 +26,8 @@ public record ArenaConfig(
     double wallFriction,
     List<SpawnerSpec> spawners,
     int friendlyFire,
-    ShipRestrictionsConfig shipRestrictions) {
+    ShipRestrictionsConfig shipRestrictions,
+    ArenaModuleDeclarations modules) {
 
   /** Empty fallback — spawn at arena center, frictionless walls, friendly-fire off. */
   public static final ArenaConfig EMPTY =
@@ -38,5 +40,6 @@ public record ArenaConfig(
           PhysicsDefaults.DEFAULT_WALL_FRICTION,
           List.of(),
           0,
-          ShipRestrictionsConfig.DEFAULTS);
+          ShipRestrictionsConfig.DEFAULTS,
+          ArenaModuleDeclarations.EMPTY);
 }

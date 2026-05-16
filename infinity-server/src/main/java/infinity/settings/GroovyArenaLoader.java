@@ -8,6 +8,7 @@ import groovy.lang.Closure;
 import infinity.config.ArenaConfig;
 import infinity.config.ShipRestrictionsConfig;
 import infinity.config.SpawnerSpec;
+import infinity.modules.ArenaModuleDeclarations;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -199,7 +200,8 @@ public final class GroovyArenaLoader {
           wallFriction,
           List.copyOf(spawners),
           friendlyFire,
-          shipRestrictions);
+          shipRestrictions,
+          ArenaModuleDeclarations.EMPTY);
     }
   }
 

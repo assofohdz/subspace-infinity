@@ -379,7 +379,8 @@ public final class ArenaLogic {
         oldConfig.wallFriction(),
         oldConfig.spawners(),
         oldConfig.friendlyFire(),
-        oldConfig.shipRestrictions());
+        oldConfig.shipRestrictions(),
+        oldConfig.modules());
     return SwapMapOutcome.success(
         nextConfig,
         ARENA_PREFIX + arenaName + " map swapped from " + oldMap + " to " + newMap);
