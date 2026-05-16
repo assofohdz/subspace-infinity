@@ -189,32 +189,42 @@ like any other entity state.
 
 ### `ArenaModule` interface
 
-Single unified interface in `api/src/main/java/infinity/sim/` with
-default no-op hooks. Module types override only what they care about.
+Single unified interface in `api/src/main/java/infinity/sim/` —
+**purely behavioural**. Six default-no-op lifecycle hooks; no
+identity methods (id / category / configType live on
+`ModuleDescriptor` in the catalog, single source of truth) and no
+config parameter on hooks (modules hold their `*Config` in a final
+field set by their constructor).
 
 ```java
 public interface ArenaModule {
-  String moduleType();                 // catalog id, e.g. "kill-points"
-  ModuleCategory category();           // SCORING, WIN_CONDITION, MECHANIC, …
-  Class<?> configType();               // paired *Config record class
-
-  default void onArenaLoad(ArenaId arenaId, Object config)         {}
-  default void onConfigReloaded(Object newConfig)                  {}
-  default void onMatchStart(ArenaId arenaId)                       {}
-  default void onRoundStart(ArenaId arenaId, int roundNumber)      {}
+  default void onArenaLoad(ArenaId arenaId)                                 {}
+  default void onMatchStart(ArenaId arenaId)                                {}
+  default void onRoundStart(ArenaId arenaId, int roundNumber)               {}
   default void onRoundEnd(ArenaId arenaId, int roundNumber, RoundOutcome o) {}
-  default void onMatchEnd(ArenaId arenaId, MatchOutcome o)         {}
-  default void onArenaUnload(ArenaId arenaId)                      {}
+  default void onMatchEnd(ArenaId arenaId, MatchOutcome o)                  {}
+  default void onArenaUnload(ArenaId arenaId)                               {}
+}
+```
+
+Hot-reload is opt-in via a separate companion interface — modules
+that want live config updates implement `Reloadable<C>` (where `C`
+is the module's `*Config` type); modules that don't, stay simple.
+
+```java
+public interface Reloadable<C> {
+  void onConfigReloaded(C newConfig);
 }
 ```
 
 The five service interfaces the prior `BaseGameModule` injected
 (`PhysicsManager`, `ChatHostedPoster`, `AccountManager`,
-`ArenaManager`, `TimeManager`) are retained — modules get them
-constructor-injected, alongside the arena's `EntityData` and the per-
-arena `EventBus`. This is the **extensibility principle**: hand
-modules powerful tools and trust them. The framework provides the safe
-frame (lifecycle, coordinators, fail-fast loader); the module decides
+`ArenaManager`, `TimeManager`) remain available — modules that need
+them get them constructor-injected via `ModuleContext`, alongside
+the arena's `EntityData`. This is the **extensibility principle**:
+hand modules powerful tools and trust them. The framework provides
+the safe frame (lifecycle, coordinators, fail-fast loader); the
+module decides
 what to do inside it.
 
 ### Two-level round / match structure
@@ -571,8 +581,13 @@ clear message; player-facing impact is the same.
 - **Composition shapes:** single-pick, layered, opt-in mechanic.
 - **Implementation:** Java module classes registered in an explicit `ModuleCatalog`; `arena.groovy` is pure data.
 - **Instance scope:** per-arena.
-- **Service injection:** every module takes a `ModuleContext` record at construction (`ArenaId`, `EntityData`, per-arena `EventBus`, `PhysicsManager`, `ChatHostedPoster`, `AccountManager`, `ArenaManager`, `TimeManager`, `SettingsSystem`).
-- **Lifecycle interface:** unified `ArenaModule` with default no-op hooks (load, match-start, round-start, round-end, match-end, unload, config-reload). Renamed from `BaseGameModule`.
+- **Service injection:** every module takes a `ModuleContext` record at construction. v1 minimum is `(ArenaId, EntityData)`; additional service fields (`PhysicsManager`, `ChatHostedPoster`, `AccountManager`, `ArenaManager`, `TimeManager`, per-arena `EventBus`) are added when the first concrete module needs them. Per-arena `EventBus` deferred to its own slice/ADR; today the codebase uses Simsilica's process-global static `EventBus` with content-based filtering.
+- **Lifecycle interface:** unified `ArenaModule` with six default no-op hooks (load, match-start, round-start, round-end, match-end, unload). Hot-reload is opt-in via a separate `Reloadable<C>` companion interface. `ArenaModule` is purely behavioural — no identity methods on the interface; id / category / configType live on `ModuleDescriptor` (catalog single source of truth). Renamed from `BaseGameModule`.
+- **Module metadata:** `ModuleDescriptor(Class<? extends ArenaModule> moduleClass, Class<? extends Record> configType, ModuleCategory category, Set<String> requires)` is the catalog entry. Phase-1 validate queries the descriptor without instantiating modules.
+- **DSL shape (statement-level):** each module statement is a Groovy method call with named-arg map (`scoring 'kill-points', perKill: 100`). Bare statements (no kwargs) work via empty-map default. Nested values bind as `List<X>` / `Map<String, Object>` in the `*Config` record.
+- **kwargs binding:** Jackson `ObjectMapper.convertValue(kwargs, configType)` for record construction; validation runs in the record's compact constructor (e.g. `if (perKill <= 0) throw new IllegalArgumentException(...)`). Binder surfaces IAE as `ValidationResult` errors.
+- **`ArenaModuleSystem` ↔ `ArenaSystem` channel:** `ArenaModuleSystem` watches `EntitySet<ArenaId>`; `addedEntities` triggers `onArenaLoad`, `removedEntities` triggers `onArenaUnload`. Zero new API surface on `ArenaSystem`. `ArenaConfig` is read from `ConfigRegistry.forArena(arenaId).get(ArenaModuleDeclarations.class)` (declarations live as a `ConfigRegistry` slot).
+- **`ArenaModuleSet` shape:** single-pick fields are `Optional<X>` (e.g. `Optional<TeamSetupModule>`); layered fields are `List<>` / `Map<>`. `ArenaModuleSet.EMPTY` is the all-empty instance produced for arenas that declare no module statements (backwards-compat with every existing arena).
 - **Per-arena entities:** `ArenaEntity` (created by `ArenaSystem`) and one `TeamEntity` per (arena, freq) (created by the `teamSetup` module) are real Zay-ES entities. Player → team link is the existing `Frequency` component on the player; no new `TeamMembership` component.
 - **Different writer per component on shared entity:** `ArenaEntity`'s `ArenaId` is written by `ArenaSystem`; its `RoundNumber` by `roundStructure`; `MatchNumber` by `matchStructure`; `Arena*Score` by `ScoreCoordinatorSystem`. ADR-0001's "one writer per component" rule is per-component, not per-entity.
 - **Round/match structure:** two-level, both single-pick, degenerate `continuous` variants supported. `continuous` = "no time-based round boundary; rely on winCondition terminator-triggers"; not "rounds never end".

@@ -4,6 +4,24 @@ Status: ready-for-agent (Phase 1); ready-for-human (later phases)
 Cross-ref: implements [ADR-0008](../../docs/adr/0008-arena-composition-and-modules.md); upstream of [`subspace-module-archetypes/PRD.md`](../subspace-module-archetypes/PRD.md) (content) and [`groovy-module-loader/PRD.md`](../groovy-module-loader/PRD.md) (Phase 2 — external-author extension).
 Labels: area:modules, area:arena, framework
 
+## Resolved decisions (grilled 2026-05-16)
+
+Eleven F1-load-bearing decisions resolved in a grilling session against the design tree. Two refined ADR-0008's `ArenaModule` interface (recorded in the ADR's Resolved decisions section); the rest pin PRD-level implementation choices.
+
+| # | Decision | Outcome |
+|---|---|---|
+| Q1 | `ArenaModuleSystem` ↔ `ArenaSystem` channel | `EntitySet<ArenaId>`. No new `ArenaSystem` API. `ArenaConfig` read via `ConfigRegistry.forArena(arenaId).get(ArenaModuleDeclarations.class)`. |
+| Q2 | Category sub-interface surface in F1 | 10 empty marker sub-interfaces (`interface ScoringModule extends ArenaModule {}` etc.). Each category-specific method lands with first concrete impl. |
+| Q3 | Config in lifecycle hooks (refines ADR-0008) | Drop `Object config` from `onArenaLoad`. Hot-reload moves to opt-in `Reloadable<C>` companion interface. |
+| Q4 | `ModuleContext` shape in F1 | Minimum: `(ArenaId, EntityData)`. Other services added when first concrete module needs them. Per-arena `EventBus` deferred to its own slice/ADR. |
+| Q5 | Which NEW systems land in F1 | Only `ArenaModuleSystem`. `ScoreCoordinatorSystem` + `WinConditionCoordinatorSystem` + `ArenaLifecycleDispatcherSystem` land in F2 alongside the Score component types and first scoring module. |
+| Q6 | Empty-state semantics | `ArenaModuleSet` uses `Optional<X>` for single-pick fields, `List<>` / `Map<>` for layered. `ArenaConfig.modules()` returns non-null `ArenaModuleDeclarations` defaulting to `EMPTY` for legacy arenas. |
+| Q7 | `ArenaModuleDeclarations` plumbing | Add as a `ConfigRegistry` slot (one line in `SLOTS`, one `with(...)` call in `ConfigRegistrySystem.load`). |
+| Q8 | DSL parser scope in F1 | Full DSL parser + `ModuleLoader.validate` wired in F1. Fail-fast paths exercised (catalog is empty → every module-id rejected). |
+| Q9 | DSL syntax | Method-call + named-arg map (`scoring 'kill-points', perKill: 100`). Bare statements work via empty-map default. |
+| Q10 | kwargs → `*Config` binding | Jackson `ObjectMapper.convertValue(kwargs, configType)`. New `jackson-databind` dep on `infinity-server`. Validation runs in record compact constructors. |
+| Q11 | Module metadata (refines ADR-0008) | All metadata on `ModuleDescriptor(class, configType, category, requires)` in the catalog. `ArenaModule` drops identity methods (`moduleType` / `category` / `configType`) — purely behavioural. |
+
 ## Background
 
 [ADR-0008](../../docs/adr/0008-arena-composition-and-modules.md) landed the design for arena composition: arenas are made of horizontal `ArenaModule` instances (single-pick / layered / opt-in mechanic shapes); gametypes are emergent compositions; coordinators bridge layered modules to ADR-0001's one-canonical-writer rule; a 4-phase tick discipline orchestrates them; lifecycle hooks dispatch round/match-end. The ADR is the **decision shape**; this PRD is the **implementation sketch** and **slice plan**.
@@ -51,18 +69,21 @@ Mirrors the existing `ConfigRegistry` / `ConfigRegistrySystem` shape (data-class
 ```java
 // api/src/main/java/infinity/modules/
 public record ArenaModuleSet(
-    TeamSetupModule teamSetup,                  // single-pick (exactly one)
-    RosterModule roster,
-    RespawnPolicyModule respawnPolicy,
-    RoundStructureModule roundStructure,
-    MatchStructureModule matchStructure,
-    SpawnPlacementModule spawnPlacement,
-    ShopModule shop,
+    Optional<TeamSetupModule> teamSetup,        // single-pick (zero or one — absence is valid)
+    Optional<RosterModule> roster,
+    Optional<RespawnPolicyModule> respawnPolicy,
+    Optional<RoundStructureModule> roundStructure,
+    Optional<MatchStructureModule> matchStructure,
+    Optional<SpawnPlacementModule> spawnPlacement,
+    Optional<ShopModule> shop,
     List<ScoringModule> scoring,                // layered (zero or more)
     List<WinConditionModule> winConditions,
     Map<String, MechanicModule> mechanics       // opt-in, keyed by module type id
 ) {
-  public static final ArenaModuleSet EMPTY = /* … */;
+  public static final ArenaModuleSet EMPTY = new ArenaModuleSet(
+      Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty(),
+      Optional.empty(), Optional.empty(), Optional.empty(),
+      List.of(), List.of(), Map.of());
 }
 
 public enum ModuleCategory {
@@ -70,17 +91,13 @@ public enum ModuleCategory {
   SPAWN_PLACEMENT, SHOP, SCORING, WIN_CONDITION, MECHANIC
 }
 
-// Carries everything a module might need at construction time.
+// Minimum F1 surface. Add services (ChatHostedPoster, PhysicsManager, etc.)
+// as concrete modules need them. Per-arena EventBus deferred to its own
+// slice/ADR; today the codebase uses Simsilica's process-global static
+// EventBus with content-based filtering.
 public record ModuleContext(
     ArenaId arenaId,
-    EntityData ed,
-    EventBus arenaEventBus,         // per-arena per ADR-0008 decision
-    PhysicsManager physics,
-    ChatHostedPoster chat,
-    AccountManager accounts,
-    ArenaManager arenas,
-    TimeManager time,
-    SettingsSystem settings
+    EntityData ed
 ) {}
 
 public record ModuleSpec(String moduleId, Map<String, Object> kwargs) {}
@@ -120,7 +137,32 @@ public record WinnerDeclaration(
 }
 ```
 
-`ArenaModule` is the interface every concrete module implements; category-specific interfaces (`ScoringModule`, `MechanicModule`, `WinConditionModule`, …) extend it with optional category-specific contracts. The non-trivial extension is `WinConditionModule`'s two-role interface (per ADR-0008):
+`ArenaModule` is the interface every concrete module implements (six default-no-op lifecycle hooks; **purely behavioural** — no identity methods, no config arg, per Q3 + Q11). Category-specific interfaces extend it with category-specific contracts when their first concrete impl lands (per Q2: F1 ships them as empty markers).
+
+```java
+// F1 shape (per Q3 + Q11; refines ADR-0008)
+public interface ArenaModule {
+  default void onArenaLoad(ArenaId arenaId)                                 {}
+  default void onMatchStart(ArenaId arenaId)                                {}
+  default void onRoundStart(ArenaId arenaId, int roundNumber)               {}
+  default void onRoundEnd(ArenaId arenaId, int roundNumber, RoundOutcome o) {}
+  default void onMatchEnd(ArenaId arenaId, MatchOutcome o)                  {}
+  default void onArenaUnload(ArenaId arenaId)                               {}
+}
+
+// Opt-in hot-reload companion (per Q3)
+public interface Reloadable<C> {
+  void onConfigReloaded(C newConfig);
+}
+
+// F1 marker shape (per Q2). Category-specific methods land with first impl.
+public interface ScoringModule extends ArenaModule {}
+public interface MechanicModule extends ArenaModule {}
+// ...etc for TeamSetup, Roster, RespawnPolicy, RoundStructure,
+//          MatchStructure, SpawnPlacement, Shop, WinCondition.
+```
+
+When `WinConditionModule` gets its first impl (F2's `HighestScoreWinCondition`), it grows the two-role interface (per ADR-0008):
 
 ```java
 public interface WinConditionModule extends ArenaModule {
@@ -134,15 +176,21 @@ public interface WinConditionModule extends ArenaModule {
 **`ModuleCatalog`** — static-ish registry of available module types. Authored as an explicit Java class, not an SPI scan (ADR-0008 decision):
 
 ```java
+// api/src/main/java/infinity/modules/ — descriptor lives in api so module impls can reference it.
+public record ModuleDescriptor(
+    Class<? extends ArenaModule> moduleClass,
+    Class<? extends Record> configType,
+    ModuleCategory category,
+    Set<String> requires        // mechanic deps; empty for modules with no deps (per Q11)
+) {}
+
 // infinity-server/src/main/java/infinity/modules/
 public final class ModuleCatalog {
+  // F1: empty. F2+: appended as concrete modules land.
   private static final Map<String, ModuleDescriptor> CATALOG = Map.of(
-    "kill-points",        new ModuleDescriptor(KillPointsScoring.class, KillPointsConfig.class, SCORING),
-    "ffa-private-freqs",  new ModuleDescriptor(FfaPrivateFreqsTeamSetup.class, FfaTeamSetupConfig.class, TEAM_SETUP),
-    "all-ships",          new ModuleDescriptor(AllShipsRoster.class, AllShipsRosterConfig.class, ROSTER),
-    "instant-respawn",    new ModuleDescriptor(InstantRespawn.class, InstantRespawnConfig.class, RESPAWN_POLICY),
-    "continuous",         new ModuleDescriptor(ContinuousRound.class, ContinuousConfig.class, ROUND_STRUCTURE),
-    /* …etc… */
+    // F2 example:
+    // "kill-points",        new ModuleDescriptor(KillPointsScoring.class, KillPointsConfig.class, SCORING, Set.of()),
+    // "flag-captures",      new ModuleDescriptor(FlagCapturesScoring.class, FlagCapturesConfig.class, SCORING, Set.of("carryFlags")),
   );
   public static ModuleDescriptor descriptor(String moduleId) { … }
   public static Set<String> allIds() { … }
@@ -304,11 +352,28 @@ Each slice is independently mergeable and corresponds to one or more issues.
 
 ### Slice F1 — Framework skeleton
 
-- Rename `BaseGameModule` → `ArenaModule` in `api/`. Replace the existing fields with the unified lifecycle interface from ADR-0008.
-- Add `ModuleCategory` enum, `RoundOutcome` / `MatchOutcome` records, `ArenaModuleSet` record in `api/`.
-- Add the empty `ModuleCatalog` class, `ModuleLoader` helper, and the four NEW systems in `infinity-server/` (no concrete modules yet; the catalog is empty, the systems no-op when no modules are loaded).
-- Register the four systems in `GameServer` in the order above.
-- Wire `ArenaModuleSystem` to subscribe to `ArenaSystem` load/unload events (or poll via shared `ArenaRecord` state).
+Per the Resolved decisions section above (grilled 2026-05-16):
+
+**api/ (`infinity.sim.ArenaModule` + new `infinity.modules.*` package):**
+- Delete `BaseGameModule.java` (free — zero implementations). Create `ArenaModule` interface per Q3/Q11: six default-no-op lifecycle hooks; no identity methods; no config arg.
+- `Reloadable<C>` opt-in companion interface (per Q3).
+- 10 empty marker sub-interfaces (per Q2).
+- `ModuleCategory` enum, `ModuleContext(ArenaId, EntityData)` record (per Q4), `ModuleSpec`, `ArenaModuleDeclarations`, `ArenaModuleSet` (Optional<X> single-pick + List/Map layered; `EMPTY` static — per Q6).
+- `ModuleDescriptor(moduleClass, configType, category, requires)` record (per Q11).
+- `RoundOutcome`, `MatchOutcome`, `WinnerDeclaration` records.
+- Extend `ArenaConfig` with `ArenaModuleDeclarations modules` field (defaults to EMPTY).
+
+**infinity-server/ (`infinity.modules.*` package):**
+- `ModuleCatalog` static class with empty `CATALOG` map.
+- `ModuleLoader` with `validate(ArenaConfig)` + `build(ArenaConfig, ModuleContext)`. Validate runs all 5 phase-1 checks. Build uses Jackson `ObjectMapper.convertValue` for kwargs binding (per Q10).
+- `ArenaModuleSystem` extends `BaseInfinitySystem`; watches `EntitySet<ArenaId>` (per Q1); reads `ArenaModuleDeclarations` from `ConfigRegistry` slot (per Q7).
+- Add `ArenaModuleDeclarations` slot to `ConfigRegistry.SLOTS`; populate from `arenaConfig.modules()` in `ConfigRegistrySystem.load`.
+- Extend `GroovyArenaLoader.ArenaClosure` with 10 new DSL methods (per Q8 + Q9); populates `ArenaModuleDeclarations` via builder.
+- Register `ArenaModuleSystem` in `GameServer` between `ConfigRegistrySystem` and `DecaySystem`.
+
+**NOT in F1** (deferred to F2 per Q5): `ScoreCoordinatorSystem`, `WinConditionCoordinatorSystem`, `ArenaLifecycleDispatcherSystem`, `Score*` components, `*ScoreChange` transients, `RoundEndPending` / `ScoreReset` transients. Each lands alongside its first real work.
+
+**Build:** add `com.fasterxml.jackson.core:jackson-databind` (2.18.x for record support) to `infinity-server`.
 
 Acceptance: `./gradlew build` clean; existing arenas continue to load and play exactly as today (no module statements yet, no behavioural change).
 
@@ -424,14 +489,12 @@ Manual launch remains the only end-to-end gameplay verification per the existing
 
 ## Remaining implementation questions
 
-These are detail-level — not blockers for landing the framework, but worth recording:
+Detail-level — resolved at code-time, not blockers for F1:
 
-- **`ArenaModuleSystem` ↔ `ArenaSystem` integration shape.** Two patterns work: (a) `ArenaSystem` emits a `ArenaLoaded` / `ArenaUnloaded` arena event that `ArenaModuleSystem` subscribes to; (b) `ArenaModuleSystem` polls `ArenaSystem.getActiveArenas()` against its internal set. Pattern (a) matches ADR-0003 communication channels better; pattern (b) is simpler. Decide based on whether `ArenaSystem` already emits such events.
-- **`ModuleDescriptor` shape.** Currently sketched as `(class, configType, category)`. May need to grow a `requires: List<String>` for mechanic dependencies (e.g. `flag-captures` scoring `requires: ["carryFlags"]`) — keep it on the descriptor or on the module's `*Config` record? Module class is cleaner (descriptor stays a pure shape).
-- **`*Config` validation surface.** Use Bean Validation, manual checks in the record's compact constructor, or a `Validated` interface modules implement? Lean toward compact constructors — keeps validation inside the record, no annotation pile-up.
-- **Spawning module instances when arena has the module but config is empty.** E.g. `scoring 'kill-points'` with no kwargs — does the loader use defaults from the `KillPointsConfig` record or fail? Record defaults are the natural answer.
-- **Are coordinators "always-loaded" globally or per-arena?** Per ADR-0008 they're core systems. They run globally but filter `EntitySet` by `ArenaId` — same pattern as today's energy / damage systems.
-- **Where do module HUD elements live?** Some scoring modules want a HUD score display. The client side of arena modules is unscoped here; probably a Phase 5+ concern requiring a `ClientArenaModule` companion interface in api/.
+- **Validate-failure plumbing into `ArenaSystem.fail()`.** Where does `ModuleLoader.validate()` get called in the load sequence — inside `ConfigRegistrySystem.load` (throws → `ArenaSystem` catches) or as a separate `ArenaSystem.doLoad` phase before entity creation? Both work; pick at scaffold time.
+- **`*Config` empty-kwargs handling.** `scoring 'kill-points'` with no kwargs — Jackson uses canonical-constructor defaults; works if the record has a no-arg constructor or all fields are nullable. F1 doesn't have to decide universally; per-module call.
+- **Are coordinators "always-loaded" globally or per-arena?** Per ADR-0008 they're core systems. They run globally but filter `EntitySet` by `ArenaId` — same pattern as today's energy / damage systems. F2 concern (coordinators not in F1 per Q5).
+- **Where do module HUD elements live?** Client side of arena modules is unscoped; likely needs a `ClientArenaModule` companion interface in api/. Phase 5+ concern.
 
 ## Comments
 
