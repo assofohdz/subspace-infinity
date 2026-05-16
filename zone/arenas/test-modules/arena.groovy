@@ -33,6 +33,11 @@
 //         timed-round elapses without anyone hitting 500: dispatcher
 //         polls winConditions in order; FirstToX returns UNDECIDED;
 //         HighestScore returns the top scorer's freq.
+//   F2d — matchStructure 'continuous'
+//         ContinuousMatchStructure — degenerate; never declares
+//         match-end. Match counter stays at 1; rounds iterate forever.
+//         Each PlayerScoreChange writes Round + Match + Total tiers in
+//         one drain pass (ScoreCoordinatorSystem).
 //
 // Smoke recipe:
 //   1. ./gradlew :infinity-client:runX11 (or runMac)
@@ -82,6 +87,7 @@ arena {
     // ADR-0008 arena-module DSL — exercised end-to-end as F2 sub-slices land.
     scoring        'kill-points',   perKill: 100
     roundStructure 'timed-round',   minutes: 5
+    matchStructure 'continuous'      // rounds iterate; match never ends
     winCondition   'first-to-x',    target:  500
     winCondition   'highest-score'   // fallback if timer fires first
 }
