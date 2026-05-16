@@ -4,9 +4,11 @@ package infinity.modules;
 
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.SimTime;
 import infinity.es.arena.ArenaId;
+import infinity.es.arena.MatchNumber;
 import infinity.es.arena.RoundEndPending;
 import infinity.es.arena.RoundNumber;
 import infinity.es.score.ScoreReset;
@@ -15,17 +17,17 @@ import infinity.sim.ArenaModule;
 import infinity.systems.BaseInfinitySystem;
 import java.util.List;
 import java.util.Map;
-
+import java.util.Optional;
 
 /**
- * Phase-4 dispatcher per ADR-0008. Watches the arena entity for {@link RoundEndPending}
+ * Phase-4 dispatcher per ADR-0008. Watches arena entities for {@link RoundEndPending}
  * markers (set by a {@code roundStructure} or {@code winCondition} terminator); on each:
- * fires {@code onRoundEnd} on every loaded module in registration order, emits a
- * {@link ScoreReset} for the round tier, fires {@code onRoundStart} for the next round,
- * increments {@link RoundNumber}, and clears the marker.
- *
- * <p>F2b: {@code RoundOutcome} carries empty {@code teamScores} (no aggregation yet);
- * match-end + winner aggregation land in F2c / F2d.
+ * aggregates the {@link WinnerDeclaration}, fires {@code onRoundEnd}, queries the
+ * arena's {@code matchStructure} via {@link MatchStructureModule#shouldMatchEnd},
+ * runs the match-end cycle ({@code onMatchEnd} + {@link ScoreReset#scope() MATCH}
+ * reset + {@code onMatchStart} + {@link MatchNumber} bump) when applicable, then
+ * always runs the round-start cycle ({@code ScoreReset(ROUND)} + {@code RoundNumber}
+ * bump + {@code onRoundStart}) and clears the marker.
  */
 public final class ArenaLifecycleDispatcherSystem extends BaseInfinitySystem {
 
@@ -55,31 +57,74 @@ public final class ArenaLifecycleDispatcherSystem extends BaseInfinitySystem {
   }
 
   private void dispatch(final Entity arenaEntity) {
-    final LoadedArena entry = moduleSystem.loadedFor(arenaEntity.getId());
+    final EntityId arenaEntityId = arenaEntity.getId();
+    final LoadedArena entry = moduleSystem.loadedFor(arenaEntityId);
     if (entry == null) {
-      ed.removeComponent(arenaEntity.getId(), RoundEndPending.class);
+      ed.removeComponent(arenaEntityId, RoundEndPending.class);
       return;
     }
     final ArenaId arenaId = entry.arenaId();
-    final RoundNumber current = ed.getComponent(arenaEntity.getId(), RoundNumber.class);
-    final int finishedRound = current == null ? 1 : current.getValue();
-    final WinnerDeclaration winner = aggregateWinner(entry.set(), arenaId);
-    final RoundOutcome outcome =
-        new RoundOutcome(winner.winningFreq(), winner.reason(), Map.of(), Map.of());
+    final ArenaModuleSet set = entry.set();
+    final List<ArenaModule> modules = set.allModules();
 
-    final List<ArenaModule> modules = entry.set().allModules();
+    final int finishedRound = currentRound(arenaEntityId);
+    final RoundOutcome roundOutcome = buildRoundOutcome(set, arenaId);
     for (final ArenaModule module : modules) {
-      module.onRoundEnd(arenaId, finishedRound, outcome);
+      module.onRoundEnd(arenaId, finishedRound, roundOutcome);
     }
 
-    ed.setComponent(arenaEntity.getId(), new ScoreReset(ScoreReset.Scope.ROUND));
+    // Match-end cascade implies round-end; coordinator zeros both tiers on
+    // MATCH scope. Pick the higher-tier reset; emitting both would overwrite
+    // on the same arena-entity component slot.
+    final boolean matchEnded =
+        runMatchEndIfRequested(arenaEntityId, arenaId, set, modules, roundOutcome);
+    final ScoreReset.Scope scope = matchEnded ? ScoreReset.Scope.MATCH : ScoreReset.Scope.ROUND;
+    ed.setComponent(arenaEntityId, new ScoreReset(scope));
 
     final int nextRound = finishedRound + 1;
-    ed.setComponent(arenaEntity.getId(), new RoundNumber(nextRound));
+    ed.setComponent(arenaEntityId, new RoundNumber(nextRound));
     for (final ArenaModule module : modules) {
       module.onRoundStart(arenaId, nextRound);
     }
-    ed.removeComponent(arenaEntity.getId(), RoundEndPending.class);
+    ed.removeComponent(arenaEntityId, RoundEndPending.class);
+  }
+
+  private boolean runMatchEndIfRequested(
+      final EntityId arenaEntityId,
+      final ArenaId arenaId,
+      final ArenaModuleSet set,
+      final List<ArenaModule> modules,
+      final RoundOutcome roundOutcome) {
+    final Optional<MatchStructureModule> matchStructure = set.matchStructure();
+    if (matchStructure.isEmpty() || !matchStructure.get().shouldMatchEnd(arenaId, roundOutcome)) {
+      return false;
+    }
+    final MatchOutcome matchOutcome = new MatchOutcome(
+        roundOutcome.winningFreq(), Map.of(), Map.of());
+    for (final ArenaModule module : modules) {
+      module.onMatchEnd(arenaId, matchOutcome);
+    }
+    final int nextMatch = currentMatch(arenaEntityId) + 1;
+    ed.setComponent(arenaEntityId, new MatchNumber(nextMatch));
+    for (final ArenaModule module : modules) {
+      module.onMatchStart(arenaId);
+    }
+    return true;
+  }
+
+  private int currentRound(final EntityId arenaEntityId) {
+    final RoundNumber current = ed.getComponent(arenaEntityId, RoundNumber.class);
+    return current == null ? 1 : current.getValue();
+  }
+
+  private int currentMatch(final EntityId arenaEntityId) {
+    final MatchNumber current = ed.getComponent(arenaEntityId, MatchNumber.class);
+    return current == null ? 1 : current.getValue();
+  }
+
+  private static RoundOutcome buildRoundOutcome(final ArenaModuleSet set, final ArenaId arenaId) {
+    final WinnerDeclaration winner = aggregateWinner(set, arenaId);
+    return new RoundOutcome(winner.winningFreq(), winner.reason(), Map.of(), Map.of());
   }
 
   /** First-non-UNDECIDED-wins per ADR-0008 § Win condition two-role (v1 policy). */

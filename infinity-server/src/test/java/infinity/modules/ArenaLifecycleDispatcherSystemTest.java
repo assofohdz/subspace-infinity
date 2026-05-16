@@ -11,6 +11,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.sim.GameSystemManager;
 import infinity.es.arena.ArenaId;
+import infinity.es.arena.MatchNumber;
 import infinity.es.arena.RoundEndPending;
 import infinity.es.arena.RoundNumber;
 import infinity.es.score.ScoreReset;
@@ -97,6 +98,63 @@ public final class ArenaLifecycleDispatcherSystemTest {
           "dispatcher passes aggregated winningFreq into onRoundEnd's RoundOutcome",
           42,
           scoringSpy.lastOutcome.winningFreq());
+    } finally {
+      systems.stop();
+      systems.terminate();
+    }
+  }
+
+  @Test
+  public void matchStructureRequestsEnd_firesOnMatchEnd_bumpsMatchNumber_emitsScoreResetMatch() {
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    final ArenaModuleSystem moduleSystem = new ArenaModuleSystem();
+    final ArenaLifecycleDispatcherSystem dispatcher = new ArenaLifecycleDispatcherSystem();
+    systems.register(EntityData.class, ed);
+    systems.register(infinity.settings.ConfigRegistrySystem.class, stubRegistry());
+    systems.register(ArenaModuleSystem.class, moduleSystem);
+    systems.register(ArenaLifecycleDispatcherSystem.class, dispatcher);
+    systems.initialize();
+    systems.start();
+    try {
+      final EntityId arenaEntity = ed.createEntity();
+      final ArenaId arenaId = new ArenaId("ffa", arenaEntity);
+      ed.setComponent(arenaEntity, arenaId);
+      ed.setComponent(arenaEntity, new RoundNumber(2));
+      ed.setComponent(arenaEntity, new MatchNumber(1));
+      systems.update();
+
+      final SpyLifecycle spy = new SpyLifecycle();
+      final TerminatingMatch ms = new TerminatingMatch();
+      installSet(
+          moduleSystem,
+          arenaEntity,
+          arenaId,
+          new ArenaModuleSet(
+              Optional.empty(),
+              Optional.empty(),
+              Optional.empty(),
+              Optional.empty(),
+              Optional.of(ms),
+              Optional.empty(),
+              Optional.empty(),
+              java.util.List.of(spy),
+              java.util.List.of(),
+              java.util.Map.of()));
+      ed.setComponent(arenaEntity, new RoundEndPending());
+
+      systems.update();
+
+      assertEquals(
+          "lifecycle order: onRoundEnd → onMatchEnd → onMatchStart → onRoundStart",
+          List.of("onRoundEnd:2", "onMatchEnd", "onMatchStart", "onRoundStart:3"),
+          spy.events);
+      assertEquals("MatchNumber bumped", 2, ed.getComponent(arenaEntity, MatchNumber.class).getValue());
+      final ScoreReset reset = ed.getComponent(arenaEntity, ScoreReset.class);
+      assertNotNull("dispatcher emitted some ScoreReset", reset);
+      // Dispatcher picks the higher-tier scope when match also ends; coordinator
+      // semantics treat MATCH as cascade-zeroing both match + round tiers.
+      assertEquals(ScoreReset.Scope.MATCH, reset.scope());
     } finally {
       systems.stop();
       systems.terminate();
@@ -206,6 +264,39 @@ public final class ArenaLifecycleDispatcherSystemTest {
     @Override
     public WinnerDeclaration declareWinner(final ArenaId arenaId) {
       return vote;
+    }
+  }
+
+  /** Records the full set of lifecycle calls (round + match) in fire order. */
+  private static final class SpyLifecycle implements ScoringModule {
+    final List<String> events = new ArrayList<>();
+
+    @Override
+    public void onMatchStart(final ArenaId arenaId) {
+      events.add("onMatchStart");
+    }
+
+    @Override
+    public void onRoundStart(final ArenaId arenaId, final int roundNumber) {
+      events.add("onRoundStart:" + roundNumber);
+    }
+
+    @Override
+    public void onRoundEnd(final ArenaId arenaId, final int roundNumber, final infinity.modules.RoundOutcome outcome) {
+      events.add("onRoundEnd:" + roundNumber);
+    }
+
+    @Override
+    public void onMatchEnd(final ArenaId arenaId, final infinity.modules.MatchOutcome outcome) {
+      events.add("onMatchEnd");
+    }
+  }
+
+  /** matchStructure that always declares match-end on round-end. */
+  private static final class TerminatingMatch implements infinity.modules.MatchStructureModule {
+    @Override
+    public boolean shouldMatchEnd(final ArenaId arenaId, final infinity.modules.RoundOutcome outcome) {
+      return true;
     }
   }
 }

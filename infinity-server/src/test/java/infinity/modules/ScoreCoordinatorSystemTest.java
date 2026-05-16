@@ -11,8 +11,10 @@ import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.sim.GameSystemManager;
 import infinity.es.ChangeTarget;
 import infinity.es.arena.ArenaId;
+import infinity.es.score.PlayerMatchScore;
 import infinity.es.score.PlayerRoundScore;
 import infinity.es.score.PlayerScoreChange;
+import infinity.es.score.PlayerTotalScore;
 import infinity.es.score.ScoreReset;
 import org.junit.Test;
 
@@ -20,7 +22,7 @@ import org.junit.Test;
 public final class ScoreCoordinatorSystemTest {
 
   @Test
-  public void emptyPriorScore_writesDelta() {
+  public void emptyPriorScore_writesAllThreeTiers() {
     final GameSystemManager systems = new GameSystemManager();
     final DefaultEntityData ed = new DefaultEntityData();
     registerSystems(systems, ed);
@@ -31,6 +33,8 @@ public final class ScoreCoordinatorSystemTest {
       systems.update();
 
       assertEquals(100, ed.getComponent(player, PlayerRoundScore.class).getValue());
+      assertEquals(100, ed.getComponent(player, PlayerMatchScore.class).getValue());
+      assertEquals(100, ed.getComponent(player, PlayerTotalScore.class).getValue());
       assertNull("one-shot drain destroyed the change entity",
           ed.getComponent(change, PlayerScoreChange.class));
     } finally {
@@ -99,6 +103,36 @@ public final class ScoreCoordinatorSystemTest {
       assertEquals(0, ed.getComponent(p2, PlayerRoundScore.class).getValue());
       assertNull("ScoreReset marker drained",
           ed.getComponent(arenaEntity, ScoreReset.class));
+    } finally {
+      stop(systems);
+    }
+  }
+
+  @Test
+  public void matchReset_zeroesMatchAndRound_preservesTotal() {
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    registerSystems(systems, ed);
+    try {
+      final EntityId arenaEntity = ed.createEntity();
+      final ArenaId arenaId = new ArenaId("ffa", arenaEntity);
+      final EntityId player = ed.createEntity();
+      ed.setComponent(player, arenaId);
+      ed.setComponent(player, new PlayerRoundScore(120));
+      ed.setComponent(player, new PlayerMatchScore(420));
+      ed.setComponent(player, new PlayerTotalScore(900));
+
+      ed.setComponent(arenaEntity, arenaId);
+      ed.setComponent(arenaEntity, new ScoreReset(ScoreReset.Scope.MATCH));
+
+      systems.update();
+
+      assertEquals("MATCH reset zeros match score",
+          0, ed.getComponent(player, PlayerMatchScore.class).getValue());
+      assertEquals("MATCH reset cascades to round (match contains round)",
+          0, ed.getComponent(player, PlayerRoundScore.class).getValue());
+      assertEquals("MATCH reset preserves total score (totals never reset)",
+          900, ed.getComponent(player, PlayerTotalScore.class).getValue());
     } finally {
       stop(systems);
     }

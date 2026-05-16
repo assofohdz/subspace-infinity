@@ -5,6 +5,7 @@ package infinity.modules;
 import infinity.config.FirstToXWinConditionConfig;
 import infinity.config.KillPointsConfig;
 import infinity.config.TimedRoundStructureConfig;
+import infinity.modules.matchstructure.ContinuousMatchStructure;
 import infinity.modules.roundstructure.TimedRoundStructure;
 import infinity.modules.scoring.KillPointsScoring;
 import infinity.modules.wincondition.FirstToXWinCondition;
@@ -26,6 +27,12 @@ public final class ModuleCatalog {
               TimedRoundStructure.class,
               TimedRoundStructureConfig.class,
               ModuleCategory.ROUND_STRUCTURE,
+              Set.of()),
+          "continuous",
+          new ModuleDescriptor(
+              ContinuousMatchStructure.class,
+              null, // zero-config
+              ModuleCategory.MATCH_STRUCTURE,
               Set.of()),
           "highest-score",
           new ModuleDescriptor(

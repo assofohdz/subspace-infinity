@@ -8,6 +8,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.SimTime;
 import infinity.es.arena.ArenaId;
+import infinity.es.arena.MatchNumber;
 import infinity.es.arena.RoundEndPending;
 import infinity.es.arena.RoundNumber;
 import infinity.settings.ConfigRegistry;
@@ -139,6 +140,7 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
     if (modules.isEmpty()) {
       return;
     }
+    ed.setComponent(entityId, new MatchNumber(1));
     ed.setComponent(entityId, new RoundNumber(1));
     for (final ArenaModule module : modules) {
       module.onMatchStart(arenaId);
