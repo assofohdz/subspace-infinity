@@ -55,8 +55,7 @@ If a mechanic listed here becomes in-scope:
 
 1. Move its row(s) out of this file.
 2. Add a row to [`settings-pipeline.md`](settings-pipeline.md) with state ❌
-   (in-scope but unstarted), and add a slice to
-   [`settings-pipeline-slices.md`](settings-pipeline-slices.md).
+   (in-scope but unstarted).
 3. Author the keys in a typed `.groovy` block (per the migration in
    progress) — not as `section('X') { Key Value }` INI-mirror DSL.
 4. Look canonical defaults + units up in

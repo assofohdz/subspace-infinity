@@ -38,9 +38,9 @@
 //
 // Omit a stat to leave it at ShipStat(0, 0, 0). Omit an inventory block to
 // disallow that item (= null in ShipConfig; per-ship *Max component not
-// projected; prize applier no-ops on pickup). Per the B2 grilled-through plan
-// (.scratch/settings-pipeline-slices.md), authored Subspace `*Max 0`
-// values were translated to "omit block" during the B2-Migration commit.
+// projected; prize applier no-ops on pickup). Per the B2 grilled-through
+// plan, authored Subspace `*Max 0` values were translated to "omit block"
+// during the B2-Migration commit.
 //
 // Status-family blocks (cloak, stealth) follow the same convention: omit
 // when CloakStatus / StealthStatus is 0 (= forbidden, prize applier no-ops).

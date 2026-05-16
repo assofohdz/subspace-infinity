@@ -18,13 +18,11 @@ roll-up (Complete) and a coverage column (Test).
 ## Target architecture (post-migration)
 
 Decided 2026-05-03. Source: grilling session resolving option (b) of
-the typed-record migration in
-[`settings-pipeline-slices.md`](settings-pipeline-slices.md) (slices
-B0–B4). The end state for the settings pipeline is a single typed
-`ConfigRegistry` per arena, owned by `ConfigRegistrySystem`, populated
-from typed Groovy fragments (one fragment file per typed slot, one
-adapter per fragment). The `Ini`-mirror DSL and `SettingsSystem` are
-deleted in B4.
+the typed-record migration (slices B0–B4). The end state for the
+settings pipeline is a single typed `ConfigRegistry` per arena, owned
+by `ConfigRegistrySystem`, populated from typed Groovy fragments (one
+fragment file per typed slot, one adapter per fragment). The
+`Ini`-mirror DSL and `SettingsSystem` are deleted in B4.
 
 Reference this section when authoring new fragment keys, designing a
 new `*Config` record, or deciding which file a tunable belongs in.

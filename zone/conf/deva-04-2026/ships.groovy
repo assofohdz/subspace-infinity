@@ -11,9 +11,8 @@
 // Inventory blocks (B2-Migration): each block declares an inventory item the
 // ship can carry. Omit the block to disallow that item entirely (= null in
 // ShipConfig; per-ship *Max component not projected; prize applier no-ops on
-// pickup). Per Q6 of the B2 grilled-through plan
-// (.scratch/settings-pipeline-slices.md), authored Subspace `*Max 0` values
-// translate to "omit block."
+// pickup). Per Q6 of the B2 grilled-through plan, authored Subspace
+// `*Max 0` values translate to "omit block."
 //
 // Status-family blocks (cloak, stealth) follow the inventory-block
 // convention: omit when CloakStatus / StealthStatus is 0 (= forbidden).

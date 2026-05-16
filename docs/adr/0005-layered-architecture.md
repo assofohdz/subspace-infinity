@@ -158,14 +158,6 @@ New exceptions should be rare and documented at the rule site.
 - **`LayerDependencyTest` is the enforcement.** Three ArchUnit rules; documented exceptions for co-hosting (`HostState`, `MobDebugState`).
 - **Client-side prediction is a non-goal today.** SimEthereal interpolation is the responsiveness story; adding prediction is a future-game-mode decision.
 
-## Open work
-
-The decision is fully described above. Enforcement and migration items live in `.scratch/architectural-review-2026-05-13.md`:
-
-- **Add `infinity.config..` import guard** to `LayerDependencyTest` for the hot-path discipline per ADR-0002 (architectural review P1-d).
-- **Mechanise the canonical-writer guard** per ADR-0001 — same ArchUnit infrastructure (architectural review P1-a).
-- **Decide module package convention** — `modules.<module-name>..` is suggested in ADR-0004; once the loader lands, add it to `LayerDependencyTest` Rule 2's forbidden-for-server-imports list so modules cannot accidentally bleed into core server systems.
-
 ## References
 
 - [`docs/adr/0001-ecs-component-model.md`](./0001-ecs-component-model.md) — the canonical-writer discipline that makes "server-authoritative" structural rather than aspirational.

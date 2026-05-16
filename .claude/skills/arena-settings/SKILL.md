@@ -262,7 +262,7 @@ MyMode mode = s.getEnum(arenaName, "Soccer", "Mode", MyMode.DEFAULT);
 
 Edits to a fragment file (e.g. `misc.groovy`) are picked up automatically by the file watcher in `ArenaSystem` — default poll interval 5s, configurable via `zone.groovy`'s `scriptPollIntervalNanos`. On change, `ConfigRegistrySystem.load` re-runs the full two-phase orchestration and atomic-swaps a fresh snapshot. Consumers re-read on next consumption — no event/callback fires (the listener API was retired pre-B0). For ship config (`ships.groovy`), the watcher additionally calls `ShipSpawnSystem.reprojectAll()` so live ships pick up the new stats without respawning.
 
-For mid-session ad-hoc tuning without editing files, the typed `~set` admin command is planned as a follow-on slice (B5 in `.scratch/settings-pipeline-slices.md`); not available today.
+For mid-session ad-hoc tuning without editing files, the typed `~set` admin command is planned as a future follow-on; not available today.
 
 The arena-scope core (map / shipsScript / spawn / wallFriction) lives on the typed `ArenaConfig` and is set at load-time only. `~swapMap` is the chat command for changing the map of an already-open arena; it updates `ArenaConfig` directly without re-running the fragment loader.
 

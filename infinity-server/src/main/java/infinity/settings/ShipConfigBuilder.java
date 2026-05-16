@@ -84,9 +84,9 @@ final class ShipConfigBuilder {
   private double turnResponsiveness = DEFAULT_TURN_RESPONSIVENESS;
   private double bounceRestitution = DEFAULT_BOUNCE_RESTITUTION;
   private double radarRange = DEFAULT_RADAR_RANGE;
-  // Inventory fields default to null per the Q6 grilled-through decision
-  // (.scratch/settings-pipeline-slices.md): an explicit `ship(Ship.X) { … }`
-  // block disallows any inventory type whose block isn't declared. The
+  // Inventory fields default to null per the Q6 grilled-through decision:
+  // an explicit `ship(Ship.X) { … }` block disallows any inventory type
+  // whose block isn't declared. The
   // permissive `DEFAULT_*` constants on ShipFallback remain in use only by
   // FALLBACK (the snapshot installed when ships.groovy is missing or fails
   // to parse).

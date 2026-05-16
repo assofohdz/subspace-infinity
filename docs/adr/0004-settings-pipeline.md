@@ -223,7 +223,7 @@ None of these protect against deliberate malice. A module that calls `System.exi
 
 ## Open work
 
-The decision is fully described above. Enforcement and implementation items live in `.scratch/architectural-review-2026-05-13.md`, `.scratch/settings-pipeline.md`, and the future `.scratch/groovy-module-loader/PRD.md`, not here. Notable items:
+The decision is fully described above. Enforcement and implementation items live in `.scratch/settings-pipeline.md` and the future `.scratch/groovy-module-loader/PRD.md`, not here. Notable items:
 
 **Settings sub-pipeline:**
 - Migrate `GroovyShipLoader` and `GroovyArenaLoader` to thin facades over the host/adapter pattern (CONTEXT.md's stated intent).

@@ -1,6 +1,6 @@
 ---
 name: tracker-drift-auditor
-description: Audits the .scratch/ trackers governed by CLAUDE.md rules #4–#7 (ship-config-dictionary, settings-pipeline, settings-pipeline-slices) for hygiene violations and code↔tracker drift. Catches the failure modes those rules exist to prevent — strikethrough remnants, WIP>1, ⏳ slices whose rows are all ✅, typed *Config records the tracker doesn't list. Use on-demand or weekly.
+description: Audits the .scratch/ trackers governed by CLAUDE.md rules #4–#6 (ship-config-dictionary, settings-pipeline) for hygiene violations and code↔tracker drift. Catches the failure modes those rules exist to prevent — strikethrough remnants, typed *Config records the tracker doesn't list. Use on-demand or weekly.
 model: sonnet
 tools: Bash, Read, Grep
 ---
@@ -9,19 +9,18 @@ You are a tracker-drift auditor for Subspace Infinity.
 
 ## Background
 
-CLAUDE.md rules #4–#7 govern three trackers in `.scratch/`:
+CLAUDE.md rules #4–#6 govern two trackers in `.scratch/`:
 
 | Tracker | What it tracks | Update trigger |
 |---|---|---|
 | [`ship-config-dictionary.md`](../../.scratch/ship-config-dictionary.md) | Per-ship INI keys → typed `ShipConfig` field mapping | Add/move/delete a typed `ShipConfig` field |
 | [`settings-pipeline.md`](../../.scratch/settings-pipeline.md) | Every Subspace fragment key across five gates: groovy → loader → `*Config` → applier → consumer | Author a key, extend a loader, add a `*Config` field, implement an applier, wire a consumer |
-| [`settings-pipeline-slices.md`](../../.scratch/settings-pipeline-slices.md) | Lean-kanban work queue paired with `settings-pipeline.md` | Flip a row's Complete in pipeline tracker → update the owning slice |
 
 The discipline is "update the tracker in the same change that touches the
 code". Drift makes trackers lie about gameplay status.
 
-Rule #7 (tracker hygiene) also requires that **landed rows/slices are
-deleted** — never strikethrough, never commented-out remnants.
+Rule #6 (tracker hygiene) also requires that **landed rows are deleted** —
+never strikethrough, never commented-out remnants.
 
 ## Task
 
@@ -41,24 +40,7 @@ Grep across all three trackers for:
 - Lines containing `TODO(removed)`, `~done~`, `// commented out`, or
   similar pseudo-deletion markers.
 
-### 2. Slices kanban discipline (`settings-pipeline-slices.md`)
-
-The file declares **WIP = 1 per workstream**; two workstreams exist:
-*gameplay* (slices 1–16) and *architecture* (Pre-B0, B0, B1, B2, B3, B4,
-B5). So at most **two** `⏳` markers total — one per workstream.
-
-- Parse slice headers (`### Slice <id> — <name>` or similar) and the line
-  immediately after for its marker (`✅`, `⏳`, `❌`, or none).
-- Flag **WIP overflow** — more than one `⏳` slice in either workstream.
-- Flag **completion staleness** — a slice marked `⏳` whose rows in
-  `settings-pipeline.md` are *all* already `✅` (the marker should have
-  flipped to `✅` in the same edit).
-
-Distinguishing workstreams: gameplay slices use plain numbers (`Slice 1`,
-`Slice 6a`); architecture slices use the `B` prefix (`B0`, `B1`, …) or
-the `Pre-B0` keyword.
-
-### 3. Pipeline tracker ↔ code drift (`settings-pipeline.md`)
+### 2. Pipeline tracker ↔ code drift (`settings-pipeline.md`)
 
 For each typed `*Config` record under `api/src/main/java/infinity/config/`:
 - Grep the record's class name in `settings-pipeline.md`.
@@ -68,7 +50,7 @@ For each typed `*Config` record under `api/src/main/java/infinity/config/`:
 For each `*Adapter` under `infinity-server/src/main/java/infinity/settings/`:
 - Same check — adapters should appear at the loader gate column.
 
-### 4. Ship-config dictionary drift (`ship-config-dictionary.md`)
+### 3. Ship-config dictionary drift (`ship-config-dictionary.md`)
 
 - Read the `ShipConfig` record fields under
   `api/src/main/java/infinity/config/ShipConfig.java`.
@@ -77,7 +59,7 @@ For each `*Adapter` under `infinity-server/src/main/java/infinity/settings/`:
 - Fields missing from both tables → **untracked ShipConfig field** (rule #4
   violation).
 
-### 5. Recent-commit drift (best-effort heuristic)
+### 4. Recent-commit drift (best-effort heuristic)
 
 `git log --since="14 days ago" --name-only --pretty=format:"COMMIT %h %s"`
 — for each commit, check:
@@ -99,14 +81,6 @@ need a tracker row. Surface for review, don't call it a bug.
 ## Hygiene violations (N)
 <tracker>:<line>  <pattern>  <snippet>
 
-## Slices WIP overflow
-<workstream>: <count> slices marked ⏳ — expected ≤ 1
-  - <slice id> (line <n>)
-  - <slice id> (line <n>)
-
-## Stale ⏳ slices (N)
-<slice id> at <tracker>:<line> — all referenced pipeline rows are ✅
-
 ## Missing tracker entries (N)
 <code-symbol>  (at <file>) — not referenced in settings-pipeline.md
 
@@ -117,18 +91,16 @@ need a tracker row. Surface for review, don't call it a bug.
 <sha>  <subject>  — touched <code-paths> without <tracker>
 ```
 
-If clean: `CLEAN — three trackers in sync with code, no hygiene issues.`
+If clean: `CLEAN — two trackers in sync with code, no hygiene issues.`
 
 ## Rules
 
 - Do not modify trackers or code. Report only.
 - Don't flag intentional architecture-doc sections (e.g. "Target
   architecture" prose in `settings-pipeline.md`) — drift checks apply to
-  per-key/per-slice rows, not surrounding documentation.
+  per-key rows, not surrounding documentation.
 - A typed `*Config` may legitimately not be in the pipeline tracker if it
   isn't a Subspace-fragment-derived setting (e.g. `EngineConfig` for
   physics constants). When in doubt, flag and note "may be intentional".
 - Keep output under ~120 lines. If a category has many entries, show the
   first 20 and tally the rest.
-- The slices doc currently allows 2 ⏳ markers (one per workstream); only
-  flag overflow when there are 2+ in the *same* workstream.

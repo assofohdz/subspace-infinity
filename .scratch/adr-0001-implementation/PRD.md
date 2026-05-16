@@ -294,7 +294,7 @@ Per-aspect rows that flip ✅ when the canonical writer + all emit sites + tests
 
 - The work is a sequence of vertical slices, one per aspect (Energy first, per locked pilot decision). Each slice is independently mergeable: it lands the Continuous + Stats split, the `*Change` / `*StatsChange` types, the canonical writer, the emit-site rewires, the test additions, and updates the rule's snapshot. The universal `Intent` / `CapBump` / `CapField` wrapper and the `Buff` / `HealthChange` pair persist until the final cleanup slice — both shapes coexist during migration.
 - The migration tracker below is the source of truth for "what's done." Flip the row ✅ in the same PR that lands the slice (per the "tracker hygiene" CLAUDE.md rule).
-- The slice queue under [`.scratch/settings-pipeline-slices.md`](../settings-pipeline-slices.md) is for settings work specifically; this PRD's tracker is independent — there's no overlap to keep in sync.
+- The settings pipeline tracker (`.scratch/settings-pipeline.md`) is for settings work specifically; this PRD's tracker is independent — there's no overlap to keep in sync.
 - The wire-stability audit's positive surprise (only `Decay` + `Frequency` cross the wire among the affected types) means most renames are server-side mechanical refactors. Plan accordingly — the Energy rename is the only one with player-observable risk (HUD reads `Health` indirectly through `BodyPosition` / RMI today; client-side bar widgets need a re-read pass).
 - The deletion of `Intent` / `CapBump` / `CapField` should land *after* the five already-migrated appliers (Energy, Recharge, Rotation, Thruster, TopSpeed) are converted off the wrapper — otherwise the cleanup slice has to migrate them and delete the wrapper in one large PR.
 

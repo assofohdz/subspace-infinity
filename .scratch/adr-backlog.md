@@ -84,5 +84,4 @@ Identified from a wider-lens architectural pass on 2026-05-13 (Nygard-style: "wo
 ## See also
 
 - [`docs/adr/`](../docs/adr/) — landed ADRs (0001–0007).
-- [`architectural-review-2026-05-13.md`](./architectural-review-2026-05-13.md) — actionable code-level findings; the prioritized P0 / P1 / P2 punch list.
 - [Joel Parker Henderson's ADR examples repo](https://github.com/joelparkerhenderson/architecture-decision-record) — catalog of example ADR topics from other projects for comparison.
