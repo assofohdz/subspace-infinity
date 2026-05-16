@@ -10,7 +10,7 @@ Subspace Infinity's arena model now mirrors a canonical SVS (Standard VIE Settin
 
 What's missing: the **behavior** those configs reference. Each canonical SVS arena turns on one or more server **modules** that implement the actual gameplay — scoring, matchmaking, ship enforcement, territory control. Without those modules, arena configs are data-only: the settings load but nothing acts on them.
 
-This parent tracks implementing each module as an Infinity game system or `BaseGameModule` extension. Sub-issues live under `issues/`, one per module.
+This parent tracks implementing each module as an Infinity game system or `ArenaModule` implementation. Sub-issues live under `issues/`, one per module.
 
 ## Arena archetype → module map
 
