@@ -2,10 +2,12 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.modules;
 
+import infinity.config.FirstToXWinConditionConfig;
 import infinity.config.KillPointsConfig;
 import infinity.config.TimedRoundStructureConfig;
 import infinity.modules.roundstructure.TimedRoundStructure;
 import infinity.modules.scoring.KillPointsScoring;
+import infinity.modules.wincondition.FirstToXWinCondition;
 import infinity.modules.wincondition.HighestScoreWinCondition;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +31,12 @@ public final class ModuleCatalog {
           new ModuleDescriptor(
               HighestScoreWinCondition.class,
               null, // zero-config — no kwargs accepted at validate time
+              ModuleCategory.WIN_CONDITION,
+              Set.of()),
+          "first-to-x",
+          new ModuleDescriptor(
+              FirstToXWinCondition.class,
+              FirstToXWinConditionConfig.class,
               ModuleCategory.WIN_CONDITION,
               Set.of()));
 

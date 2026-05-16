@@ -8,6 +8,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.SimTime;
 import infinity.es.arena.ArenaId;
+import infinity.es.arena.RoundEndPending;
 import infinity.es.arena.RoundNumber;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
@@ -16,6 +17,7 @@ import infinity.systems.BaseInfinitySystem;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,12 +74,31 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
       }
     }
     tickRoundStructures(time);
+    tickWinConditions();
   }
 
   /** Per-tick dispatch for the per-arena {@code roundStructure} module (if any). */
   private void tickRoundStructures(final SimTime time) {
     for (final LoadedArena entry : loaded.values()) {
       entry.set().roundStructure().ifPresent(m -> m.tickRoundStructure(entry.arenaId(), time));
+    }
+  }
+
+  /**
+   * Per-tick dispatch for {@code winCondition.checkTermination}. First module
+   * to return present causes {@code RoundEndPending} to be stamped on the
+   * arena entity; subsequent modules in the same arena are skipped this tick.
+   */
+  private void tickWinConditions() {
+    for (final Map.Entry<EntityId, LoadedArena> e : loaded.entrySet()) {
+      final ArenaId arenaId = e.getValue().arenaId();
+      for (final WinConditionModule wc : e.getValue().set().winConditions()) {
+        final Optional<String> reason = wc.checkTermination(arenaId);
+        if (reason.isPresent()) {
+          ed.setComponent(e.getKey(), new RoundEndPending());
+          break;
+        }
+      }
     }
   }
 
