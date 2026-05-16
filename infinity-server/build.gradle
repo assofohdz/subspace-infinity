@@ -82,6 +82,10 @@ dependencies {
     // Groovy for settings/preset loaders + arena scripts
     implementation "org.codehaus.groovy:groovy-all:${groovyVersion}"
 
+    // Jackson — binds Map<String, Object> kwargs from the module DSL into typed
+    // *Config records (ModuleLoader). 2.18.x has first-class record support.
+    implementation "com.fasterxml.jackson.core:jackson-databind:2.18.2"
+
     // jMonkeyEngine — only the headless-friendly modules (no rendering / lwjgl3).
     // jme3-desktop is required for the JmeSystem delegate (AssetLoaderService
     // boots an AssetManager via JmeSystem.newAssetManager which needs a

@@ -2,6 +2,8 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.modules;
 
+import infinity.sim.ArenaModule;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +25,22 @@ public record ArenaModuleSet(
     scoring = List.copyOf(scoring);
     winConditions = List.copyOf(winConditions);
     mechanics = Map.copyOf(mechanics);
+  }
+
+  /** Every loaded module, in registration order — single-pick, layered, then mechanics. */
+  public List<ArenaModule> allModules() {
+    final List<ArenaModule> all = new ArrayList<>();
+    teamSetup.ifPresent(all::add);
+    roster.ifPresent(all::add);
+    respawnPolicy.ifPresent(all::add);
+    roundStructure.ifPresent(all::add);
+    matchStructure.ifPresent(all::add);
+    spawnPlacement.ifPresent(all::add);
+    shop.ifPresent(all::add);
+    all.addAll(scoring);
+    all.addAll(winConditions);
+    all.addAll(mechanics.values());
+    return List.copyOf(all);
   }
 
   public static final ArenaModuleSet EMPTY =

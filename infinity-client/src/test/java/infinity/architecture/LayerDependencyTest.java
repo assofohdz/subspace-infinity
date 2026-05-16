@@ -50,13 +50,17 @@ public class LayerDependencyTest {
 
   /**
    * api/ (components + events + sim factories + config records) must not leak into
-   * server/client/modules/ai/settings.
+   * server/client/ai/settings.
    *
-   * <p>Note: the {@code infinity.sim..} package prefix matches BOTH api-side
-   * (factories, manager interfaces — the module-facing ABI) and server-side
-   * {@code infinity.sim.internal..} (concrete impls relocated per ADR-0005). The
-   * latter is server-tier and legitimately depends on server-tier classes; the
-   * {@code .and().resideOutsideOfPackage} clause excludes it from this rule.
+   * <p>{@code infinity.modules..} is NOT in either list: the package splits across api/
+   * (value types — records, enums, marker interfaces) and infinity-server/ (concrete impls)
+   * under the same package name per ADR-0008. Gradle's module boundary (api/ has no compile
+   * dep on infinity-server/) is what actually prevents api/-side classes from importing
+   * server-side classes in the same package; ArchUnit can't distinguish by source-set.
+   *
+   * <p>The same applies to {@code infinity.sim..} — but there the legacy
+   * {@code infinity.sim.internal..} sub-package was introduced for server impls. The exclusion
+   * clause below carries that historical split forward.
    */
   @ArchTest
   static final ArchRule api_must_not_depend_on_server_client_or_modules =
@@ -71,13 +75,7 @@ public class LayerDependencyTest {
           .resideOutsideOfPackage("infinity.sim.internal..")
           .should()
           .dependOnClassesThat()
-          .resideInAnyPackage(
-              PKG_SYSTEMS,
-              PKG_SERVER,
-              PKG_CLIENT,
-              PKG_MODULES,
-              PKG_AI,
-              PKG_SETTINGS);
+          .resideInAnyPackage(PKG_SYSTEMS, PKG_SERVER, PKG_CLIENT, PKG_AI, PKG_SETTINGS);
 
   /** Server, modules, and AI must not reach into client code. */
   @ArchTest

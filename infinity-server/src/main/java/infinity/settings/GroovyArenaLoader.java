@@ -9,6 +9,9 @@ import infinity.config.ArenaConfig;
 import infinity.config.ShipRestrictionsConfig;
 import infinity.config.SpawnerSpec;
 import infinity.modules.ArenaModuleDeclarations;
+import infinity.modules.ModuleSpec;
+import java.util.LinkedHashMap;
+import java.util.Optional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -120,6 +123,7 @@ public final class GroovyArenaLoader {
     private final List<SpawnerSpec> spawners = new ArrayList<>();
     private int friendlyFire = ArenaConfig.EMPTY.friendlyFire();
     private ShipRestrictionsConfig shipRestrictions = ShipRestrictionsConfig.DEFAULTS;
+    private final ModuleDeclarationsBuilder modules = new ModuleDeclarationsBuilder();
 
     ArenaConfigBuilder() {}
 
@@ -190,6 +194,93 @@ public final class GroovyArenaLoader {
       this.shipRestrictions = GroovyShipRestrictionsAdapter.evaluate(body);
     }
 
+    // -- ADR-0008 module DSL --------------------------------------------------
+    // Each statement: `<category> '<id>', kw: v, ...` (kwargs map first per
+    // Groovy's named-arg convention) OR `<category> '<id>'` (bare). Single-pick
+    // categories last-wins (per ADR-0008 DSL decision); layered append;
+    // mechanics keyed by module id.
+
+    public void teamSetup(final Map<String, Object> kwargs, final String id) {
+      modules.teamSetup = Optional.of(new ModuleSpec(id, kwargs));
+    }
+
+    public void teamSetup(final String id) {
+      teamSetup(Map.of(), id);
+    }
+
+    public void roster(final Map<String, Object> kwargs, final String id) {
+      modules.roster = Optional.of(new ModuleSpec(id, kwargs));
+    }
+
+    public void roster(final String id) {
+      roster(Map.of(), id);
+    }
+
+    public void respawnPolicy(final Map<String, Object> kwargs, final String id) {
+      modules.respawnPolicy = Optional.of(new ModuleSpec(id, kwargs));
+    }
+
+    public void respawnPolicy(final String id) {
+      respawnPolicy(Map.of(), id);
+    }
+
+    public void roundStructure(final Map<String, Object> kwargs, final String id) {
+      modules.roundStructure = Optional.of(new ModuleSpec(id, kwargs));
+    }
+
+    public void roundStructure(final String id) {
+      roundStructure(Map.of(), id);
+    }
+
+    public void matchStructure(final Map<String, Object> kwargs, final String id) {
+      modules.matchStructure = Optional.of(new ModuleSpec(id, kwargs));
+    }
+
+    public void matchStructure(final String id) {
+      matchStructure(Map.of(), id);
+    }
+
+    public void spawnPlacement(final Map<String, Object> kwargs, final String id) {
+      modules.spawnPlacement = Optional.of(new ModuleSpec(id, kwargs));
+    }
+
+    public void spawnPlacement(final String id) {
+      spawnPlacement(Map.of(), id);
+    }
+
+    public void shop(final Map<String, Object> kwargs, final String id) {
+      modules.shop = Optional.of(new ModuleSpec(id, kwargs));
+    }
+
+    public void shop(final String id) {
+      shop(Map.of(), id);
+    }
+
+    public void scoring(final Map<String, Object> kwargs, final String id) {
+      modules.scoring.add(new ModuleSpec(id, kwargs));
+    }
+
+    public void scoring(final String id) {
+      scoring(Map.of(), id);
+    }
+
+    public void winCondition(final Map<String, Object> kwargs, final String id) {
+      modules.winConditions.add(new ModuleSpec(id, kwargs));
+    }
+
+    public void winCondition(final String id) {
+      winCondition(Map.of(), id);
+    }
+
+    public void mechanic(final Map<String, Object> kwargs, final String id) {
+      modules.mechanics.put(id, new ModuleSpec(id, kwargs));
+    }
+
+    public void mechanic(final String id) {
+      mechanic(Map.of(), id);
+    }
+    // -------------------------------------------------------------------------
+
     ArenaConfig build() {
       return new ArenaConfig(
           mapFile,
@@ -201,7 +292,35 @@ public final class GroovyArenaLoader {
           List.copyOf(spawners),
           friendlyFire,
           shipRestrictions,
-          ArenaModuleDeclarations.EMPTY);
+          modules.build());
+    }
+  }
+
+  /** Internal collector for {@code ArenaConfigBuilder}'s module DSL statements. */
+  private static final class ModuleDeclarationsBuilder {
+    Optional<ModuleSpec> teamSetup = Optional.empty();
+    Optional<ModuleSpec> roster = Optional.empty();
+    Optional<ModuleSpec> respawnPolicy = Optional.empty();
+    Optional<ModuleSpec> roundStructure = Optional.empty();
+    Optional<ModuleSpec> matchStructure = Optional.empty();
+    Optional<ModuleSpec> spawnPlacement = Optional.empty();
+    Optional<ModuleSpec> shop = Optional.empty();
+    final List<ModuleSpec> scoring = new ArrayList<>();
+    final List<ModuleSpec> winConditions = new ArrayList<>();
+    final Map<String, ModuleSpec> mechanics = new LinkedHashMap<>();
+
+    ArenaModuleDeclarations build() {
+      return new ArenaModuleDeclarations(
+          teamSetup,
+          roster,
+          respawnPolicy,
+          roundStructure,
+          matchStructure,
+          spawnPlacement,
+          shop,
+          scoring,
+          winConditions,
+          mechanics);
     }
   }
 

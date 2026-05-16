@@ -25,6 +25,22 @@ public record ArenaModuleDeclarations(
     mechanics = Map.copyOf(mechanics);
   }
 
+  /** Every declared spec, flattened in registration order — single-pick, layered, then mechanics. */
+  public List<ModuleSpec> allSpecs() {
+    final List<ModuleSpec> all = new java.util.ArrayList<>();
+    teamSetup.ifPresent(all::add);
+    roster.ifPresent(all::add);
+    respawnPolicy.ifPresent(all::add);
+    roundStructure.ifPresent(all::add);
+    matchStructure.ifPresent(all::add);
+    spawnPlacement.ifPresent(all::add);
+    shop.ifPresent(all::add);
+    all.addAll(scoring);
+    all.addAll(winConditions);
+    all.addAll(mechanics.values());
+    return List.copyOf(all);
+  }
+
   public static final ArenaModuleDeclarations EMPTY =
       new ArenaModuleDeclarations(
           Optional.empty(),

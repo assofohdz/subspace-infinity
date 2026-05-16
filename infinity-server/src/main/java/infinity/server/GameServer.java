@@ -148,6 +148,7 @@ import infinity.systems.DeathPrizeSystem;
 import infinity.systems.PrizeConsumptionSystem;
 import infinity.systems.PrizeSpawnerSystem;
 import infinity.systems.ServerTelemetrySystem;
+import infinity.modules.ArenaModuleSystem;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineConfigSystem;
 import infinity.settings.GroovyShipLoader;
@@ -446,6 +447,10 @@ public class GameServer {
     systems.register(EngineConfigSystem.class, new EngineConfigSystem());
     final ConfigRegistrySystem configRegistry = new ConfigRegistrySystem();
     systems.register(ConfigRegistrySystem.class, configRegistry);
+    // ADR-0008 arena-module framework. Registers after ConfigRegistry (reads
+    // ArenaModuleDeclarations slot) and before DecaySystem (per the canonical-
+    // writer ordering rule the F2 coordinators will inherit).
+    systems.register(ArenaModuleSystem.class, new ArenaModuleSystem());
     systems.register(GroovyShipLoader.class, new GroovyShipLoader(configRegistry));
     systems.register(ShipSpawnSystem.class, new ShipSpawnSystem());
     systems.register(MapSystem.class, new MapSystem());

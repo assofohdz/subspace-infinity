@@ -11,9 +11,12 @@ import static org.junit.Assert.assertTrue;
 
 import infinity.config.ArenaConfig;
 import infinity.config.SpawnerSpec;
+import infinity.modules.ArenaModuleDeclarations;
+import infinity.modules.ModuleSpec;
 import infinity.settings.GroovyArenaLoader.ArenaConfigBuilder;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 
 /**
@@ -234,6 +237,41 @@ public class GroovyArenaLoaderTest {
     final ArenaConfig cfg = new GroovyArenaLoader().evaluateSourceForTest(source, "t.groovy");
 
     assertEquals(1, cfg.friendlyFire());
+  }
+
+  @Test
+  public void builder_emptyModuleDeclarations_byDefault() {
+    final ArenaConfigBuilder builder = new ArenaConfigBuilder();
+    final ArenaConfig cfg = build(builder);
+    assertEquals(ArenaModuleDeclarations.EMPTY, cfg.modules());
+  }
+
+  @Test
+  public void builder_capturesSinglePickAndLayeredAndMechanic() {
+    final ArenaConfigBuilder builder = new ArenaConfigBuilder();
+    builder.teamSetup(Map.of(), "ffa-private-freqs");
+    builder.roster("all-ships");
+    builder.scoring(Map.of("perKill", 100), "kill-points");
+    builder.scoring("flag-points");
+    builder.mechanic(Map.of("count", 1), "crowns");
+
+    final ArenaModuleDeclarations decls = build(builder).modules();
+    assertEquals("ffa-private-freqs", decls.teamSetup().orElseThrow().moduleId());
+    assertEquals("all-ships", decls.roster().orElseThrow().moduleId());
+    assertEquals(2, decls.scoring().size());
+    assertEquals("kill-points", decls.scoring().get(0).moduleId());
+    assertEquals(100, decls.scoring().get(0).kwargs().get("perKill"));
+    assertEquals(1, decls.mechanics().size());
+    assertEquals("crowns", decls.mechanics().get("crowns").moduleId());
+  }
+
+  @Test
+  public void builder_singlePickLastWins() {
+    final ArenaConfigBuilder builder = new ArenaConfigBuilder();
+    builder.teamSetup("first");
+    builder.teamSetup("second");
+    final ModuleSpec spec = build(builder).modules().teamSetup().orElseThrow();
+    assertEquals("second", spec.moduleId());
   }
 
   /** Reflective bridge to package-private build() — same trick as GroovyZoneLoaderTest. */

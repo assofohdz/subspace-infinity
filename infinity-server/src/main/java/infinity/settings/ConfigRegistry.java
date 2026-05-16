@@ -20,6 +20,7 @@ import infinity.config.ShipConfig;
 import infinity.config.ShipRestrictionsConfig;
 import infinity.config.SpawnConfig;
 import infinity.config.ThorConfig;
+import infinity.modules.ArenaModuleDeclarations;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -61,7 +62,8 @@ public final class ConfigRegistry {
           Slot.of(PrizeConfig.class, PrizeConfig.DEFAULTS),
           Slot.of(PrizeWeightsConfig.class, PrizeWeightsConfig.DEFAULTS),
           Slot.of(SpawnConfig.class, SpawnConfig.DEFAULTS),
-          Slot.of(ShipRestrictionsConfig.class, ShipRestrictionsConfig.DEFAULTS));
+          Slot.of(ShipRestrictionsConfig.class, ShipRestrictionsConfig.DEFAULTS),
+          Slot.of(ArenaModuleDeclarations.class, ArenaModuleDeclarations.DEFAULTS));
 
   public static final ConfigRegistry EMPTY = builder().build();
 
