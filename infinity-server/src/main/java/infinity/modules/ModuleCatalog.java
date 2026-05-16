@@ -2,10 +2,12 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.modules;
 
+import infinity.config.FillUpXTeamsConfig;
 import infinity.config.FirstToXWinConditionConfig;
 import infinity.config.KillPointsConfig;
 import infinity.config.TimedRoundStructureConfig;
 import infinity.modules.matchstructure.ContinuousMatchStructure;
+import infinity.modules.mechanic.FillUpXTeams;
 import infinity.modules.roundstructure.TimedRoundStructure;
 import infinity.modules.scoring.KillPointsScoring;
 import infinity.modules.wincondition.FirstToXWinCondition;
@@ -33,6 +35,12 @@ public final class ModuleCatalog {
               ContinuousMatchStructure.class,
               null, // zero-config
               ModuleCategory.MATCH_STRUCTURE,
+              Set.of()),
+          "fill-up-x-teams",
+          new ModuleDescriptor(
+              FillUpXTeams.class,
+              FillUpXTeamsConfig.class,
+              ModuleCategory.MECHANIC,
               Set.of()),
           "highest-score",
           new ModuleDescriptor(

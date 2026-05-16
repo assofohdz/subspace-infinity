@@ -35,7 +35,7 @@ public final class TimedRoundStructureTest {
     final EntityId arenaEntity = ed.createEntity();
     final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
     final TimedRoundStructure m = new TimedRoundStructure(
-        new ModuleContext(arenaId, arenaEntity, ed, null), new TimedRoundStructureConfig(5));
+        new ModuleContext(arenaId, arenaEntity, ed, null, null), new TimedRoundStructureConfig(5));
 
     m.onRoundStart(arenaId, 1);
     m.tickRoundStructure(arenaId, simTimeAt(0L));
@@ -50,7 +50,7 @@ public final class TimedRoundStructureTest {
     final EntityId arenaEntity = ed.createEntity();
     final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
     final TimedRoundStructure m = new TimedRoundStructure(
-        new ModuleContext(arenaId, arenaEntity, ed, null), new TimedRoundStructureConfig(5));
+        new ModuleContext(arenaId, arenaEntity, ed, null, null), new TimedRoundStructureConfig(5));
 
     m.onRoundStart(arenaId, 1);
     m.tickRoundStructure(arenaId, simTimeAt(0L));
@@ -65,7 +65,7 @@ public final class TimedRoundStructureTest {
     final EntityId arenaEntity = ed.createEntity();
     final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
     final TimedRoundStructure m = new TimedRoundStructure(
-        new ModuleContext(arenaId, arenaEntity, ed, null), new TimedRoundStructureConfig(5));
+        new ModuleContext(arenaId, arenaEntity, ed, null, null), new TimedRoundStructureConfig(5));
 
     m.onRoundStart(arenaId, 1);
     m.tickRoundStructure(arenaId, simTimeAt(0L));
@@ -89,7 +89,7 @@ public final class TimedRoundStructureTest {
     final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
     final CapturingChat chat = new CapturingChat();
     final TimedRoundStructure m = new TimedRoundStructure(
-        new ModuleContext(arenaId, arenaEntity, ed, chat), new TimedRoundStructureConfig(5));
+        new ModuleContext(arenaId, arenaEntity, ed, chat, null), new TimedRoundStructureConfig(5));
 
     m.onRoundStart(arenaId, 1);
     m.tickRoundStructure(arenaId, simTimeAt(0L));

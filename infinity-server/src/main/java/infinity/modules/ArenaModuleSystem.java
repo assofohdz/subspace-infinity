@@ -16,6 +16,8 @@ import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.sim.ArenaModule;
 import infinity.sim.ChatHostedPoster;
+import infinity.sim.PhysicsManager;
+import infinity.sim.internal.InfinityPhysicsManager;
 import infinity.systems.BaseInfinitySystem;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +45,7 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
   private EntitySet arenas;
   private ConfigRegistrySystem configRegistry;
   private ChatHostedPoster chat;
+  private PhysicsManager physics;
   private final Map<EntityId, LoadedArena> loaded = new HashMap<>();
 
   /** Bundles the per-arena state {@link #handleAdded} captures + {@link #handleRemoved} unwinds. */
@@ -58,6 +61,7 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
     ed = requireSystem(EntityData.class);
     configRegistry = requireSystem(ConfigRegistrySystem.class);
     chat = getSystem(InfinityChatHostedService.class); // nullable: tests register module system without chat
+    physics = getSystem(InfinityPhysicsManager.class); // nullable for the same reason
     arenas = ed.getEntities(ArenaId.class);
   }
 
@@ -80,6 +84,16 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
     }
     tickRoundStructures(time);
     tickWinConditions();
+    tickMechanics(time);
+  }
+
+  /** Per-tick dispatch for opt-in {@code mechanic} modules (state-publishing phase). */
+  private void tickMechanics(final SimTime time) {
+    for (final LoadedArena entry : loaded.values()) {
+      for (final MechanicModule m : entry.set().mechanics().values()) {
+        m.tickMechanic(entry.arenaId(), time);
+      }
+    }
   }
 
   /** Per-tick dispatch for the per-arena {@code roundStructure} module (if any). */
@@ -120,7 +134,7 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
       return;
     }
 
-    final ModuleContext context = new ModuleContext(arenaId, entityId, ed, chat);
+    final ModuleContext context = new ModuleContext(arenaId, entityId, ed, chat, physics);
     final ArenaModuleSet set = ModuleLoader.build(decls, context);
     loaded.put(entityId, new LoadedArena(arenaId, set));
     bootstrapLifecycle(entityId, arenaId, set);

@@ -98,7 +98,7 @@ public final class FirstToXWinConditionTest {
   private static FirstToXWinCondition build(
       final DefaultEntityData ed, final ArenaId arenaId, final int target) {
     return new FirstToXWinCondition(
-        new ModuleContext(arenaId, arenaId.getOwner(), ed, null),
+        new ModuleContext(arenaId, arenaId.getOwner(), ed, null, null),
         new FirstToXWinConditionConfig(target));
   }
 

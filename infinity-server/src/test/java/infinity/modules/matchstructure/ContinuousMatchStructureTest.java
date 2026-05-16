@@ -19,7 +19,7 @@ public final class ContinuousMatchStructureTest {
     final DefaultEntityData ed = new DefaultEntityData();
     final ArenaId arenaId = new ArenaId("ffa", ed.createEntity());
     final ContinuousMatchStructure m = new ContinuousMatchStructure(
-        new ModuleContext(arenaId, arenaId.getOwner(), ed, null));
+        new ModuleContext(arenaId, arenaId.getOwner(), ed, null, null));
 
     assertFalse("round-end never escalates to match-end",
         m.shouldMatchEnd(arenaId, new RoundOutcome(7, "any", Map.of(), Map.of())));
