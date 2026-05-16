@@ -65,30 +65,101 @@ public final class ArenaLifecycleDispatcherSystemTest {
     }
   }
 
+  @Test
+  public void dispatcherAggregatesWinner_firstNonUndecidedWins() {
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    final ArenaModuleSystem moduleSystem = new ArenaModuleSystem();
+    final ArenaLifecycleDispatcherSystem dispatcher = new ArenaLifecycleDispatcherSystem();
+    systems.register(EntityData.class, ed);
+    systems.register(infinity.settings.ConfigRegistrySystem.class, stubRegistry());
+    systems.register(ArenaModuleSystem.class, moduleSystem);
+    systems.register(ArenaLifecycleDispatcherSystem.class, dispatcher);
+    systems.initialize();
+    systems.start();
+    try {
+      final EntityId arenaEntity = ed.createEntity();
+      final ArenaId arenaId = new ArenaId("ffa", arenaEntity);
+      ed.setComponent(arenaEntity, arenaId);
+      systems.update();
+
+      final SpyScoring scoringSpy = new SpyScoring();
+      final SpyWinCondition abstaining =
+          new SpyWinCondition(WinnerDeclaration.UNDECIDED);
+      final SpyWinCondition deciding = new SpyWinCondition(new WinnerDeclaration(42, "test"));
+      installModuleSetWithWinConditions(
+          moduleSystem, arenaEntity, arenaId, scoringSpy, abstaining, deciding);
+      ed.setComponent(arenaEntity, new RoundEndPending());
+
+      systems.update();
+
+      assertEquals(
+          "dispatcher passes aggregated winningFreq into onRoundEnd's RoundOutcome",
+          42,
+          scoringSpy.lastOutcome.winningFreq());
+    } finally {
+      systems.stop();
+      systems.terminate();
+    }
+  }
+
   /** Inserts a LoadedArena into ArenaModuleSystem via reflection — bypasses EntitySet plumbing for the dispatcher's lookup path. */
   private static void installModuleSet(
       final ArenaModuleSystem moduleSystem,
       final EntityId arenaEntity,
       final ArenaId arenaId,
       final SpyModule spy) {
+    installSet(
+        moduleSystem,
+        arenaEntity,
+        arenaId,
+        new ArenaModuleSet(
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            java.util.List.of((infinity.modules.ScoringModule) spy),
+            java.util.List.of(),
+            java.util.Map.of()));
+  }
+
+  private static void installModuleSetWithWinConditions(
+      final ArenaModuleSystem moduleSystem,
+      final EntityId arenaEntity,
+      final ArenaId arenaId,
+      final SpyScoring scoring,
+      final infinity.modules.WinConditionModule... winConditions) {
+    installSet(
+        moduleSystem,
+        arenaEntity,
+        arenaId,
+        new ArenaModuleSet(
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            Optional.empty(),
+            java.util.List.of(scoring),
+            java.util.List.of(winConditions),
+            java.util.Map.of()));
+  }
+
+  private static void installSet(
+      final ArenaModuleSystem moduleSystem,
+      final EntityId arenaEntity,
+      final ArenaId arenaId,
+      final ArenaModuleSet set) {
     try {
       final var loadedField = ArenaModuleSystem.class.getDeclaredField("loaded");
       loadedField.setAccessible(true);
       @SuppressWarnings("unchecked")
       final java.util.Map<EntityId, LoadedArena> map =
           (java.util.Map<EntityId, LoadedArena>) loadedField.get(moduleSystem);
-      final ArenaModuleSet set =
-          new ArenaModuleSet(
-              Optional.empty(),
-              Optional.empty(),
-              Optional.empty(),
-              Optional.empty(),
-              Optional.empty(),
-              Optional.empty(),
-              Optional.empty(),
-              java.util.List.of((infinity.modules.ScoringModule) spy),
-              java.util.List.of(),
-              java.util.Map.of());
       map.put(arenaEntity, new LoadedArena(arenaId, set));
     } catch (final ReflectiveOperationException e) {
       throw new AssertionError(e);
@@ -111,6 +182,30 @@ public final class ArenaLifecycleDispatcherSystemTest {
     @Override
     public void onRoundStart(final ArenaId arenaId, final int roundNumber) {
       events.add("onRoundStart:" + roundNumber);
+    }
+  }
+
+  /** Captures the last {@code onRoundEnd} outcome for winner-aggregation assertions. */
+  private static final class SpyScoring implements ScoringModule {
+    infinity.modules.RoundOutcome lastOutcome;
+
+    @Override
+    public void onRoundEnd(final ArenaId arenaId, final int roundNumber, final infinity.modules.RoundOutcome outcome) {
+      this.lastOutcome = outcome;
+    }
+  }
+
+  /** Returns a canned {@link WinnerDeclaration} from {@code declareWinner}. */
+  private static final class SpyWinCondition implements infinity.modules.WinConditionModule {
+    private final WinnerDeclaration vote;
+
+    SpyWinCondition(final WinnerDeclaration vote) {
+      this.vote = vote;
+    }
+
+    @Override
+    public WinnerDeclaration declareWinner(final ArenaId arenaId) {
+      return vote;
     }
   }
 }

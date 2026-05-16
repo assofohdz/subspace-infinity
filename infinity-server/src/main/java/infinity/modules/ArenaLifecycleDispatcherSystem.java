@@ -16,6 +16,7 @@ import infinity.systems.BaseInfinitySystem;
 import java.util.List;
 import java.util.Map;
 
+
 /**
  * Phase-4 dispatcher per ADR-0008. Watches the arena entity for {@link RoundEndPending}
  * markers (set by a {@code roundStructure} or {@code winCondition} terminator); on each:
@@ -62,8 +63,9 @@ public final class ArenaLifecycleDispatcherSystem extends BaseInfinitySystem {
     final ArenaId arenaId = entry.arenaId();
     final RoundNumber current = ed.getComponent(arenaEntity.getId(), RoundNumber.class);
     final int finishedRound = current == null ? 1 : current.getValue();
+    final WinnerDeclaration winner = aggregateWinner(entry.set(), arenaId);
     final RoundOutcome outcome =
-        new RoundOutcome(-1, "", Map.of(), Map.of());
+        new RoundOutcome(winner.winningFreq(), winner.reason(), Map.of(), Map.of());
 
     final List<ArenaModule> modules = entry.set().allModules();
     for (final ArenaModule module : modules) {
@@ -78,6 +80,18 @@ public final class ArenaLifecycleDispatcherSystem extends BaseInfinitySystem {
       module.onRoundStart(arenaId, nextRound);
     }
     ed.removeComponent(arenaEntity.getId(), RoundEndPending.class);
+  }
+
+  /** First-non-UNDECIDED-wins per ADR-0008 § Win condition two-role (v1 policy). */
+  private static WinnerDeclaration aggregateWinner(
+      final ArenaModuleSet set, final ArenaId arenaId) {
+    for (final WinConditionModule wc : set.winConditions()) {
+      final WinnerDeclaration vote = wc.declareWinner(arenaId);
+      if (vote.winningFreq() != WinnerDeclaration.UNDECIDED.winningFreq()) {
+        return vote;
+      }
+    }
+    return WinnerDeclaration.UNDECIDED;
   }
 
   @Override

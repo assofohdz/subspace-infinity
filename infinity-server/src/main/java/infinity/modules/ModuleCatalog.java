@@ -2,10 +2,12 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.modules;
 
+import infinity.config.HighestScoreWinConditionConfig;
 import infinity.config.KillPointsConfig;
 import infinity.config.TimedRoundStructureConfig;
 import infinity.modules.roundstructure.TimedRoundStructure;
 import infinity.modules.scoring.KillPointsScoring;
+import infinity.modules.wincondition.HighestScoreWinCondition;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -23,6 +25,12 @@ public final class ModuleCatalog {
               TimedRoundStructure.class,
               TimedRoundStructureConfig.class,
               ModuleCategory.ROUND_STRUCTURE,
+              Set.of()),
+          "highest-score",
+          new ModuleDescriptor(
+              HighestScoreWinCondition.class,
+              HighestScoreWinConditionConfig.class,
+              ModuleCategory.WIN_CONDITION,
               Set.of()));
 
   private ModuleCatalog() {}
