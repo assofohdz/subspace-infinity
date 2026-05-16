@@ -2,14 +2,20 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.modules;
 
+import infinity.config.KillPointsConfig;
+import infinity.modules.scoring.KillPointsScoring;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 
-/** Authored registry of available module types. Empty in F1; appended as concrete modules land. */
+/** Authored registry of available module types. Appended as concrete modules land. */
 public final class ModuleCatalog {
 
-  private static final Map<String, ModuleDescriptor> CATALOG = Map.of();
+  private static final Map<String, ModuleDescriptor> CATALOG =
+      Map.of(
+          "kill-points",
+          new ModuleDescriptor(
+              KillPointsScoring.class, KillPointsConfig.class, ModuleCategory.SCORING, Set.of()));
 
   private ModuleCatalog() {}
 

@@ -149,6 +149,7 @@ import infinity.systems.PrizeConsumptionSystem;
 import infinity.systems.PrizeSpawnerSystem;
 import infinity.systems.ServerTelemetrySystem;
 import infinity.modules.ArenaModuleSystem;
+import infinity.modules.ScoreCoordinatorSystem;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineConfigSystem;
 import infinity.settings.GroovyShipLoader;
@@ -449,8 +450,12 @@ public class GameServer {
     systems.register(ConfigRegistrySystem.class, configRegistry);
     // ADR-0008 arena-module framework. Registers after ConfigRegistry (reads
     // ArenaModuleDeclarations slot) and before DecaySystem (per the canonical-
-    // writer ordering rule the F2 coordinators will inherit).
+    // writer ordering rule the coordinators inherit).
     systems.register(ArenaModuleSystem.class, new ArenaModuleSystem());
+    // Canonical writer of PlayerRoundScore; drains PlayerScoreChange transients
+    // emitted by scoring modules. Registers after ArenaModuleSystem so modules
+    // have published their per-tick contributions before the drain runs.
+    systems.register(ScoreCoordinatorSystem.class, new ScoreCoordinatorSystem());
     systems.register(GroovyShipLoader.class, new GroovyShipLoader(configRegistry));
     systems.register(ShipSpawnSystem.class, new ShipSpawnSystem());
     systems.register(MapSystem.class, new MapSystem());
