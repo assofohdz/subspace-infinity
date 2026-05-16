@@ -16,11 +16,14 @@ import infinity.es.Dead;
 import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
+import infinity.es.ship.Energy;
+import infinity.es.ship.EnergyStats;
 import infinity.modules.MechanicModule;
 import infinity.modules.ModuleContext;
 import infinity.sim.AIEntities;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -38,8 +41,18 @@ import java.util.Set;
  *
  * <p>Spawn loc: arena centre read from {@link ArenaMap}; first tick caches.
  * No spawn happens until {@code ArenaMap} is present (arena fully loaded).
+ *
+ * <p>Bots are nerfed after {@code ShipSpawnSystem} projects the canonical Ship
+ * stats: {@link Energy} clamped to {@link #BOT_HP} and {@link EnergyStats}
+ * rewritten so the cap can't recharge above {@code BOT_HP} and regen is zero
+ * (no self-heal between shots). Picks up the bot the tick after spawn via a
+ * {@code pendingNerf} drain. Tunable defaults to one-shot from a warbird
+ * bullet (~520 dmg) — adjust {@code BOT_HP} when testing other weapon damage.
  */
 public class FillUpXTeams implements MechanicModule {
+
+  /** Bot max energy after the post-spawn nerf — well below warbird bullet damage (~520). */
+  private static final int BOT_HP = 100;
 
   private final EntityData ed;
   private final EntityId arenaEntity;
@@ -47,6 +60,7 @@ public class FillUpXTeams implements MechanicModule {
   private final PhysicsSpace<?, ?> phys;
   private final int teams;
   private final List<EntityId> spawnedBots = new ArrayList<>();
+  private final Set<EntityId> pendingNerf = new HashSet<>();
   private EntitySet arenaShips;
   private Vec3d cachedSpawnCenter;
 
@@ -87,12 +101,28 @@ public class FillUpXTeams implements MechanicModule {
       }
     }
     arenaShips.applyChanges();
+    drainPendingNerf();
     final Set<Integer> presentFreqs = countOccupiedFreqs();
     for (int freq = 0; freq < teams; freq++) {
       if (presentFreqs.contains(freq)) {
         continue;
       }
       spawnBot(time.getTime(), freq);
+    }
+  }
+
+  /** Once {@link EnergyStats} is projected, clamp Energy + max so warbird bullets one-shot. */
+  private void drainPendingNerf() {
+    final Iterator<EntityId> it = pendingNerf.iterator();
+    while (it.hasNext()) {
+      final EntityId bot = it.next();
+      final EnergyStats existing = ed.getComponent(bot, EnergyStats.class);
+      if (existing == null) {
+        continue; // ShipSpawnSystem hasn't projected yet — retry next tick
+      }
+      ed.setComponent(bot, new Energy(BOT_HP));
+      ed.setComponent(bot, new EnergyStats(BOT_HP, BOT_HP, 0, 0.0, 0.0, 0.0));
+      it.remove();
     }
   }
 
@@ -136,6 +166,7 @@ public class FillUpXTeams implements MechanicModule {
     ed.setComponent(bot, arenaId);
     ed.setComponent(bot, new Frequency(freq));
     spawnedBots.add(bot);
+    pendingNerf.add(bot);
     return bot;
   }
 }
