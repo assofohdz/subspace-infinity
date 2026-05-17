@@ -303,6 +303,12 @@ public class GameServer {
     systems.register(infinity.systems.ship.ThorSystem.class, new infinity.systems.ship.ThorSystem());
     systems.register(infinity.systems.ship.GravBombSystem.class, new infinity.systems.ship.GravBombSystem());
 
+    // DeathSystem must register BEFORE DecaySystem: it converts `Dead` markers
+    // (stamped by EnergySystem.handleDeath) into `Decay(now, now)` so the SiO2
+    // reaper can despawn the entity in the same tick. Without it, dead bots
+    // (and human ships outside the AvatarSystem swap path) accumulate forever
+    // — wire-sync bloats, EntityUpdater starts dropping frames.
+    systems.addSystem(new infinity.systems.DeathSystem());
     // DecaySystem registers AFTER the ADR 0001 writers above (see ordering comment).
     systems.addSystem(new DecaySystem());
     // Per-component reaper for Jitter (deadline-on-component, not Decay-driven).
