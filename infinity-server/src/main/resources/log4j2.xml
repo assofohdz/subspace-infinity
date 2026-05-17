@@ -36,6 +36,19 @@
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>
+    <!-- AI + module packages: WARN keeps per-tick Brain.think / BrainScheduler.schedule /
+         MobBodyInitializer.apply chatter off the console while still surfacing real warnings
+         (e.g. BrainScheduler endless-loop). Bump to INFO when debugging AI/module wiring;
+         without these loggers everything in these packages falls through to Root=error and
+         even WARN goes missing — that's how the kill-event RMI loop hid for so long. -->
+    <Logger name="infinity.ai" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Logger>
+    <Logger name="infinity.modules" level="WARN" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Logger>
     <Logger name="infinity.client.states.LocalViewState" level="ALL" additivity="false">
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>

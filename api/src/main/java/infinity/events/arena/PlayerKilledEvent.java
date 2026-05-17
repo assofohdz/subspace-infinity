@@ -12,6 +12,16 @@ public class PlayerKilledEvent {
   public static final EventType<PlayerKilledEvent> playerKilled =
       EventType.create("PlayerKilled", PlayerKilledEvent.class);
 
+  /**
+   * Client-local re-broadcast variant. The client's RMI bridge republishes the server's
+   * {@link #playerKilled} on THIS type so server-side listeners (also subscribed to
+   * {@link #playerKilled}) do not re-fire in single-JVM dev mode. Per the rule in
+   * {@code .claude/rules/client-read-only.md}: client-side UI / HUD code should
+   * subscribe to {@code playerKilledLocal}, not {@link #playerKilled}.
+   */
+  public static final EventType<PlayerKilledEvent> playerKilledLocal =
+      EventType.create("PlayerKilledLocal", PlayerKilledEvent.class);
+
   private final EntityId victim;
   private final EntityId killer;
   private final byte weaponFlag;

@@ -8,6 +8,7 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.SimTime;
 import infinity.es.arena.ArenaId;
+import infinity.es.arena.ArenaMap;
 import infinity.es.arena.MatchNumber;
 import infinity.es.arena.RoundEndPending;
 import infinity.es.arena.RoundNumber;
@@ -62,7 +63,11 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
     configRegistry = requireSystem(ConfigRegistrySystem.class);
     chat = getSystem(InfinityChatHostedService.class); // nullable: tests register module system without chat
     physics = getSystem(InfinityPhysicsManager.class); // nullable for the same reason
-    arenas = ed.getEntities(ArenaId.class);
+    // Filter MUST include ArenaMap (stamped only on arena entities by ArenaLogic) — ArenaId
+    // alone matches every ship/bot/prize stamped by ArenaMembershipSystem, which would
+    // trigger module re-bootstrap on every ship respawn (observed: ~70K bounty entities/sec
+    // leak on 2nd kill before this filter was tightened).
+    arenas = ed.getEntities(ArenaId.class, ArenaMap.class);
   }
 
   @Override

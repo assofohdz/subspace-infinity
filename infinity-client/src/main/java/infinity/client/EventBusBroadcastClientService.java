@@ -80,8 +80,12 @@ public final class EventBusBroadcastClientService extends AbstractClientService 
       if (log.isTraceEnabled()) {
         log.trace("onPlayerKilled(victim={}, killer={}, flag={})", victim, killer, weaponFlag);
       }
+      // MUST publish on *Local* — server-side KillPointsScoring / EventBusBroadcastHostedService
+      // subscribe to PlayerKilledEvent.playerKilled, so republishing on the non-Local type creates
+      // an infinite RMI/EventBus loop in single-JVM dev mode (observed: ~16K PlayerScoreChange/sec
+      // entity churn that tanks FPS after first kill). See client-read-only.md.
       EventBus.publish(
-          PlayerKilledEvent.playerKilled, new PlayerKilledEvent(victim, killer, weaponFlag));
+          PlayerKilledEvent.playerKilledLocal, new PlayerKilledEvent(victim, killer, weaponFlag));
     }
 
     @Override
