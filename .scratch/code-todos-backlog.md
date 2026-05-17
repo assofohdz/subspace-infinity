@@ -12,11 +12,13 @@ Each row: actionable item + source file:line + brief context.
 - [ ] **Extend the server→client `EventBus` bridge to additional EventTypes
   as they're authored.** Framework lives in `EventBusBroadcastHostedService`
   (server) ↔ `EventBusBroadcastListener` (api/) ↔ `EventBusBroadcastClientService`
-  (client). `PlayerKilledEvent.playerKilled` is wired end-to-end; add new
-  EventTypes by extending the RMI listener interface, the curated `addListener`
-  set in the hosted service's `onInitialize`, and the matching `onXxx` method
-  pair. Informational only — clients receive bus events but do not mutate
-  authoritative state through them (ADR-0005).
+  (client). `PlayerKilledEvent` is wired end-to-end (server publishes on
+  `playerKilled`; client republishes on `playerKilledLocal` to avoid
+  single-JVM RMI loop — same pattern as `TargetedEvent` / `PlayerEnteredSession`).
+  Add new EventTypes by extending the RMI listener interface, the curated
+  `addListener` set in the hosted service's `onInitialize`, and the matching
+  `onXxx` method pair. Informational only — clients receive bus events but do
+  not mutate authoritative state through them (ADR-0005).
 
 ### Architecture
 

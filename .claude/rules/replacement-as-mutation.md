@@ -319,8 +319,7 @@ guards 32 component types against single-writer regressions
 - **`ConsumableSystem`** — `RepelSpeed`, `RepelDistance` (Pattern-4
   per-effect projection on the spawned repel-effect entity, not on
   the ship; sibling to the weapon-spawn projector).
-- **`EnergySystem`** — `Dead` (stamps on energy-pool death edge,
-  guarded against double-write at line ~206 of `EnergySystem.java`).
+- **`EnergySystem`** — `Dead` + `KilledBy` (stamps both on energy-pool death edge, guarded against double-write; `KilledBy` is a transient attribution sibling consumed and removed by `DeathSystem` next tick).
 - **`AvatarSystem`** — `Captain`, `ResetLivePool` (per-ship lifecycle
   markers; `ResetLivePool` is the spawn handshake into
   `ShipSpawnSystem` and the only writer of both markers).
