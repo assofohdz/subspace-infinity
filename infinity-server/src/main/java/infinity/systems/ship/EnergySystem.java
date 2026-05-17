@@ -19,7 +19,6 @@ import infinity.es.PrizeSpawnIntent;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyChange;
 import infinity.es.ship.EnergyStats;
-import infinity.es.ship.Player;
 import infinity.es.ship.weapons.WeaponType;
 import infinity.events.arena.PlayerKilledEvent;
 import infinity.systems.BaseInfinitySystem;
@@ -166,9 +165,9 @@ public class EnergySystem extends BaseInfinitySystem {
       return;
     }
     target.set(new Dead(now));
-    if (ed.getComponent(target.getId(), Player.class) == null) {
-      return;
-    }
+    // Death events fire for any ship (Player or Mob): bots count as kill targets per the
+    // arena-modules smoke pipeline. Subspace canon scopes kill events to player ships
+    // only — see legacy-vs-infinity.md (death-event scope).
     // Publish before the BodyPosition check — death is a fact regardless of drop-position availability.
     EventBus.publish(
         PlayerKilledEvent.playerKilled,
