@@ -65,6 +65,51 @@ public final class WeaponsDamageLogicTest {
   }
 
   @Test
+  public void deadEntity_doesNotTakeFurtherDamage_orRefireDeath() {
+    // Regression: BaseEnergyDrainSystem (status drain) was firing every tick on dead bots,
+    // re-entering handleDeath, spamming the death log, and thrashing Dead/Decay set+remove
+    // cycles. Fix: applyDelta gates on Dead → no-op after first death.
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    systems.register(EntityData.class, ed);
+    final EnergySystem energy = systems.register(EnergySystem.class, new EnergySystem());
+    systems.initialize();
+    systems.start();
+    try {
+      final EntityId victim = ed.createEntity();
+      ed.setComponent(victim, new Energy(50));
+      ed.setComponent(victim, new EnergyStats(100, 100, 0, 0.0, 0.0, 0.0));
+      ed.setComponent(victim, new Frequency(0));
+
+      final EntityId attacker = ed.createEntity();
+      ed.setComponent(attacker, new Frequency(1));
+      ed.setComponent(attacker, new FriendlyFireMode(0));
+
+      final EntityId damageEntity = ed.createEntity();
+      ed.setComponent(damageEntity, new Damage(0L, 75, null));
+      ed.setComponent(damageEntity, new Parent(attacker));
+      WeaponsDamageLogic.applyDirectHitDamage(
+          ed, energy, damageEntity, ed.getComponent(damageEntity, Damage.class), victim, 0L);
+      systems.update();
+      // Sanity: victim is dead.
+      assertNotNull(ed.getComponent(victim, Dead.class));
+      final int energyAfterDeath = ed.getComponent(victim, Energy.class).getEnergy();
+
+      // Simulate a status drain firing on the dead corpse before Decay reaps it.
+      energy.damage(victim, -10); // unattributed, sub-zero — historical death-loop trigger
+
+      systems.update();
+
+      assertEquals(
+          "Dead entity's Energy must not change from post-death state — second damage no-op'd",
+          energyAfterDeath, ed.getComponent(victim, Energy.class).getEnergy());
+    } finally {
+      systems.stop();
+      systems.terminate();
+    }
+  }
+
+  @Test
   public void directHit_killsVictim_whenEnergyDropsToZero() {
     final GameSystemManager systems = new GameSystemManager();
     final DefaultEntityData ed = new DefaultEntityData();

@@ -141,6 +141,12 @@ public class EnergySystem extends BaseInfinitySystem {
     if (targetEntity == null) {
       return;
     }
+    // Dead entities are inert until the Decay reaper removes them — drop further damage,
+    // recharge, and status-drain to prevent handleDeath being re-entered every tick (which
+    // would spam the log + thrash Dead/Decay set/remove until reap).
+    if (ed.getComponent(target, Dead.class) != null) {
+      return;
+    }
     final Energy current = targetEntity.get(Energy.class);
     final EnergyStats stats = targetEntity.get(EnergyStats.class);
     final int clamped = Math.min(current.getEnergy() + delta, stats.max());
@@ -158,11 +164,13 @@ public class EnergySystem extends BaseInfinitySystem {
     final long now = System.nanoTime();
     final EntityId killer = lethalSrc == null ? null : lethalSrc.getSource();
     final byte weaponFlag = lethalSrc == null ? WeaponType.NONE : lethalSrc.getWeaponFlag();
+    if (ed.getComponent(target.getId(), Dead.class) != null) {
+      // Already dead — applyDelta should have early-returned, but defend against an external
+      // caller invoking handleDeath directly. Skip the log + side effects.
+      return;
+    }
     if (log.isInfoEnabled()) {
       log.info("Entity {} died (killer={}, weapon={})", target.getId(), killer, weaponFlag);
-    }
-    if (ed.getComponent(target.getId(), Dead.class) != null) {
-      return;
     }
     target.set(new Dead(now));
     // Death events fire for any ship (Player or Mob): bots count as kill targets per the
