@@ -3,9 +3,11 @@
 package infinity.modules.mechanic;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.SimTime;
@@ -15,7 +17,9 @@ import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
 import infinity.es.ship.Energy;
+import infinity.es.ship.EnergyChange;
 import infinity.es.ship.EnergyStats;
+import infinity.es.ship.EnergyStatsChange;
 import infinity.modules.ModuleContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -124,7 +128,10 @@ public final class FillUpXTeamsTest {
   }
 
   @Test
-  public void pendingNerf_clampsEnergyAndStats_onceProjected() {
+  public void pendingNerf_emitsCanonicalChangeEntities_onceProjected() {
+    // Routes through ADR-0001 canonical writers (EnergySystem / EnergyStatsSystem)
+    // rather than direct setComponent. Verifies the emitted Change holders carry
+    // the right deltas; the drain itself is covered by the writers' own tests.
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId arenaEntity = ed.createEntity();
     final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
@@ -146,15 +153,39 @@ public final class FillUpXTeamsTest {
     ed.setComponent(bot, new Energy(1500));
     ed.setComponent(bot, new EnergyStats(1500, 1500, 0, 150.0, 150.0, 0.0));
 
-    // Tick 2: nerf drain sees EnergyStats present → clamps.
+    // Tick 2: nerf drain emits canonical Change-entity holders.
     m.tickMechanic(arenaId, simTimeAt(0L));
 
-    assertEquals("Energy clamped to BOT_HP", 100,
-        ed.getComponent(bot, Energy.class).getEnergy());
-    final EnergyStats clamped = ed.getComponent(bot, EnergyStats.class);
-    assertEquals("max clamped", 100, clamped.max());
-    assertEquals("recharge zeroed", 0.0, clamped.rechargePerSecond(), 0.001);
-    assertTrue("removed from pending after clamp", !m.isPendingNerf(bot));
+    assertTrue("removed from pending after emit", !m.isPendingNerf(bot));
+    // Find the emitted holders for this bot (ChangeTarget.target == bot).
+    final EntitySet energyChanges = ed.getEntities(
+        EnergyChange.class, infinity.es.ChangeTarget.class);
+    energyChanges.applyChanges();
+    final EnergyChange ec = findChangeFor(energyChanges, bot, EnergyChange.class);
+    assertNotNull("EnergyChange holder emitted for the bot", ec);
+    assertEquals("Energy delta = BOT_HP - currentEnergy (100 - 1500)", -1400, ec.delta());
+
+    final EntitySet statsChanges = ed.getEntities(
+        EnergyStatsChange.class, infinity.es.ChangeTarget.class);
+    statsChanges.applyChanges();
+    final EnergyStatsChange esc = findChangeFor(statsChanges, bot, EnergyStatsChange.class);
+    assertNotNull("EnergyStatsChange holder emitted", esc);
+    assertEquals("max delta = -1400", Integer.valueOf(-1400), esc.deltaMax());
+    assertEquals("rechargePerSecond delta = -150.0",
+        Double.valueOf(-150.0), esc.deltaRechargePerSecond());
+    energyChanges.release();
+    statsChanges.release();
+  }
+
+  private static <T extends com.simsilica.es.EntityComponent> T findChangeFor(
+      final EntitySet set, final EntityId target, final Class<T> componentClass) {
+    for (final com.simsilica.es.Entity e : set) {
+      final infinity.es.ChangeTarget ct = e.get(infinity.es.ChangeTarget.class);
+      if (target.equals(ct.target())) {
+        return e.get(componentClass);
+      }
+    }
+    return null;
   }
 
   @Test

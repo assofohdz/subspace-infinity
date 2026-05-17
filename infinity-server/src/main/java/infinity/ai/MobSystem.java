@@ -39,6 +39,7 @@ package infinity.ai;
 import java.util.HashMap;
 import java.util.Map;
 
+import infinity.es.Dead;
 import infinity.es.MobType;
 import infinity.es.ProbeInfo;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mathd.filter.SimpleMovingMean;
 import com.simsilica.sim.AbstractGameSystem;
@@ -76,6 +78,7 @@ public class MobSystem extends AbstractGameSystem {
     private PhysicsSpace<EntityId, MBlockShape> space;
     private BrainContainer brains;
     private DriverContainer drivers;
+    private EntitySet dyingMobs;
     private MobBodyInitializer initializer = new MobBodyInitializer();
 
     private BrainScheduler scheduler = new BrainScheduler();
@@ -180,6 +183,11 @@ public class MobSystem extends AbstractGameSystem {
         drivers = new DriverContainer(ed);
         brains.start();
         drivers.start();
+        // Watch (MobType, Dead): when a mob dies, evict its brain from the
+        // scheduler proactively so the corpse doesn't get a "think" tick
+        // before the Decay reaper removes the entity. Defense-in-depth with
+        // BrainContainer.removeObject (which handles the post-reap path).
+        dyingMobs = ed.getEntities(MobType.class, Dead.class);
     }
 
     @Override
@@ -187,6 +195,7 @@ public class MobSystem extends AbstractGameSystem {
 
         brains.update();
         drivers.update();
+        evictDyingBrains();
 
         detectEvents();
 
@@ -207,6 +216,25 @@ public class MobSystem extends AbstractGameSystem {
         brains = null;
         drivers.stop();
         drivers = null;
+        if (dyingMobs != null) {
+            dyingMobs.release();
+            dyingMobs = null;
+        }
+    }
+
+    /** Proactive eviction: any mob just stamped Dead has its brain unscheduled
+     *  before the next think tick. The brain object stays in BrainContainer
+     *  until the entity is fully reaped (MobType removed); only the scheduler
+     *  membership is cleared here. */
+    private void evictDyingBrains() {
+        if (dyingMobs.applyChanges()) {
+            for (final Entity e : dyingMobs.getAddedEntities()) {
+                final Brain brain = brains.getObject(e.getId());
+                if (brain != null) {
+                    scheduler.remove(brain);
+                }
+            }
+        }
     }
 
     protected void detectEvents() {
@@ -269,8 +297,16 @@ public class MobSystem extends AbstractGameSystem {
                 continue;
             }
 
+            // brains.getArray() can include terminated brains whose actor was nulled
+            // by Brain.terminate (called via scheduler.remove when entity reaped or
+            // Dead-evicted). Skip — terminated brains have no business consuming
+            // perception events.
+            final Actor actor = brain.getActor();
+            if (actor == null) {
+                continue;
+            }
             // Really need to define our own sphere primitive
-            Vec3d pos = brain.getActor().getPosition();
+            Vec3d pos = actor.getPosition();
             double perc = 2; // hard-coded perception radius; mirrors Actor.look() distance
                              // — consolidation tracked in code-todos-backlog.md.
 
@@ -344,8 +380,16 @@ public class MobSystem extends AbstractGameSystem {
         }
 
         @Override
-        protected void removeObject( final Brain driver, final Entity e ) {
-log.info("removeObject({})", e);
+        protected void removeObject( final Brain brain, final Entity e ) {
+            // Entity reaped (e.g. Decay → DecaySystem removed the bot). Unschedule
+            // the brain so BrainScheduler.update stops calling brain.think() — without
+            // this, the brain runs against a MobDriver whose RigidBody was set to null
+            // by AbstractControlDriver.terminate(body) when physics destroyed the body,
+            // and any actor.getPosition() / move() / search() call NPEs.
+            scheduler.remove(brain);
+            if (log.isInfoEnabled()) {
+                log.info("removeObject brain for {}", e);
+            }
         }
     }
 

@@ -612,6 +612,8 @@ public class GameServer {
     Serializer.registerClass(Speech.class, new FieldSerializer());
     Serializer.registerClass(infinity.es.Hidden.class, new FieldSerializer());
     Serializer.registerClass(infinity.es.Jitter.class, new FieldSerializer());
+    // Death-cycle: Dead is observable by clients (future death animations + HUD).
+    Serializer.registerClass(infinity.es.Dead.class, new FieldSerializer());
   }
 
   public Server getServer() {

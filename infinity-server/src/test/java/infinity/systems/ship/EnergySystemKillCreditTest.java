@@ -44,6 +44,9 @@ public class EnergySystemKillCreditTest {
     final DefaultEntityData ed = new DefaultEntityData();
     systems.register(EntityData.class, ed);
     systems.register(EnergySystem.class, new EnergySystem());
+    // DeathSystem owns the death-cycle side effects per ADR-0001 — must be registered
+    // for PrizeSpawnIntent + PlayerKilledEvent to fire.
+    systems.register(infinity.systems.DeathSystem.class, new infinity.systems.DeathSystem());
     systems.initialize();
     systems.start();
     return new Fixture(systems, ed);

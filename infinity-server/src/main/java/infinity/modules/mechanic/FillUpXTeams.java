@@ -12,19 +12,19 @@ import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.Ship;
 import infinity.config.FillUpXTeamsConfig;
+import infinity.es.ChangeTarget;
 import infinity.es.Dead;
 import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
-import infinity.es.ship.Energy;
+import infinity.es.ship.EnergyChange;
 import infinity.es.ship.EnergyStats;
+import infinity.es.ship.EnergyStatsChange;
 import infinity.modules.MechanicModule;
 import infinity.modules.ModuleContext;
 import infinity.sim.AIEntities;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -59,7 +59,8 @@ public class FillUpXTeams implements MechanicModule {
   private final ArenaId arenaId;
   private final PhysicsSpace<?, ?> phys;
   private final int teams;
-  private final List<EntityId> spawnedBots = new ArrayList<>();
+  /** Set (not List) so per-tick prune on bot reap is O(1). */
+  private final Set<EntityId> spawnedBots = new HashSet<>();
   private final Set<EntityId> pendingNerf = new HashSet<>();
   private EntitySet arenaShips;
   private Vec3d cachedSpawnCenter;
@@ -74,6 +75,9 @@ public class FillUpXTeams implements MechanicModule {
 
   @Override
   public void onArenaLoad(final ArenaId loadedArenaId) {
+    if (arenaShips != null) {
+      arenaShips.release();
+    }
     arenaShips = ed.getEntities(ArenaId.class, Frequency.class);
   }
 
@@ -100,7 +104,15 @@ public class FillUpXTeams implements MechanicModule {
         return; // ArenaMap not stamped yet
       }
     }
-    arenaShips.applyChanges();
+    if (arenaShips.applyChanges()) {
+      // Prune our bookkeeping for any bot whose entity was reaped this tick —
+      // their MobType + ArenaId + Frequency are gone, so they no longer
+      // satisfy this set's filter.
+      for (final Entity removed : arenaShips.getRemovedEntities()) {
+        spawnedBots.remove(removed.getId());
+        pendingNerf.remove(removed.getId());
+      }
+    }
     drainPendingNerf();
     final Set<Integer> presentFreqs = countOccupiedFreqs();
     for (int freq = 0; freq < teams; freq++) {
@@ -111,19 +123,71 @@ public class FillUpXTeams implements MechanicModule {
     }
   }
 
-  /** Once {@link EnergyStats} is projected, clamp Energy + max so warbird bullets one-shot. */
+  /**
+   * Once {@link EnergyStats} is projected, emit canonical-writer change-entities
+   * to clamp Energy + max so warbird bullets one-shot. Direct setComponent
+   * would violate ADR-0001's single-canonical-writer rule for Energy /
+   * EnergyStats (those are owned by EnergySystem / EnergyStatsSystem).
+   *
+   * <p>Skips Dead bots — their EnergyStats projection survives until reap, but
+   * applying changes to a corpse is wasted work + the EnergySystem.applyDelta
+   * Dead-gate would no-op anyway.
+   */
   private void drainPendingNerf() {
     final Iterator<EntityId> it = pendingNerf.iterator();
     while (it.hasNext()) {
       final EntityId bot = it.next();
+      if (ed.getComponent(bot, Dead.class) != null) {
+        it.remove();
+        continue;
+      }
       final EnergyStats existing = ed.getComponent(bot, EnergyStats.class);
       if (existing == null) {
         continue; // ShipSpawnSystem hasn't projected yet — retry next tick
       }
-      ed.setComponent(bot, new Energy(BOT_HP));
-      ed.setComponent(bot, new EnergyStats(BOT_HP, BOT_HP, 0, 0.0, 0.0, 0.0));
+      emitNerfChanges(bot, existing);
       it.remove();
     }
+  }
+
+  /** Emits one Change-entity per Energy / EnergyStats field needed to clamp the bot to {@link #BOT_HP}. */
+  private void emitNerfChanges(final EntityId bot, final EnergyStats existing) {
+    emitEnergyClamp(bot);
+    emitStatsClamp(bot, existing);
+  }
+
+  private void emitEnergyClamp(final EntityId bot) {
+    final infinity.es.ship.Energy current = ed.getComponent(bot, infinity.es.ship.Energy.class);
+    final int delta = BOT_HP - (current == null ? 0 : current.getEnergy());
+    if (delta == 0) {
+      return;
+    }
+    final EntityId h = ed.createEntity();
+    ed.setComponents(h, ChangeTarget.self(bot), new EnergyChange(delta));
+  }
+
+  private void emitStatsClamp(final EntityId bot, final EnergyStats existing) {
+    final Integer dMax = nonZeroOrNull(BOT_HP - existing.max());
+    final Integer dHardMax = nonZeroOrNull(BOT_HP - existing.hardMax());
+    final Double dRps = nonZeroOrNull(-existing.rechargePerSecond());
+    final Double dRmax = nonZeroOrNull(-existing.rechargeMax());
+    final Double dRup = nonZeroOrNull(-existing.rechargeUpgrade());
+    if (dMax == null && dHardMax == null && dRps == null && dRmax == null && dRup == null) {
+      return;
+    }
+    final EntityId h = ed.createEntity();
+    ed.setComponents(
+        h,
+        ChangeTarget.self(bot),
+        new EnergyStatsChange(dMax, dHardMax, null, dRps, dRmax, dRup));
+  }
+
+  private static Integer nonZeroOrNull(final int v) {
+    return v == 0 ? null : v;
+  }
+
+  private static Double nonZeroOrNull(final double v) {
+    return Double.compare(v, 0.0) == 0 ? null : v;
   }
 
   private Set<Integer> countOccupiedFreqs() {

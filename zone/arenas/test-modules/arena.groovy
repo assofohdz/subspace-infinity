@@ -38,16 +38,24 @@
 //         match-end. Match counter stays at 1; rounds iterate forever.
 //         Each PlayerScoreChange writes Round + Match + Total tiers in
 //         one drain pass (ScoreCoordinatorSystem).
+//   F2-bots — mechanic 'fill-up-x-teams', teams: 2
+//         FillUpXTeams — per tick, for each freq in 0..teams-1, if no
+//         non-Dead ship in this arena holds that freq, spawns a Javelin
+//         bot via AIEntities.createMobShip and stamps that freq. Auto-
+//         respawns after a bot is killed + Decay-reaped. Player on freq
+//         0 (default) → bot lands on freq 1 → friendly-fire irrelevant
+//         → kills count → KillPointsScoring fires.
 //
 // Smoke recipe:
 //   1. ./gradlew :infinity-client:runX11 (or runMac)
 //   2. Server autoloads this arena; client connects + spawns here
-//      (enterSpawn 'test-modules' in zone.groovy).
-//   3. Friendly-fire is on (mode 2) — single-client smoke: bomb
-//      yourself to self-frag; killer == victim still counts.
-//   4. Each self-frag awards 100 pts. 5 self-frags = 500 pts =
-//      FirstToX terminator fires → round-end log + scores reset.
-//      Or wait 5 min for the timer to fire → HighestScore wins.
+//      (enterSpawn 'test-modules' in zone.groovy). A Javelin bot is
+//      waiting at arena center on freq 1.
+//   3. Shoot the bot. Kill = +100 to your PlayerRoundScore (+ MatchScore
+//      + TotalScore).
+//   4. 5 kills = 500 pts = FirstToX terminator fires → round-end log +
+//      scores reset → bot respawns on freq 1. Or wait 5 min for the
+//      timer to fire → HighestScore wins.
 //   5. Inspect server log for module lifecycle events; PlayerRoundScore
 //      and RoundNumber on the arena entity will mutate visibly.
 
@@ -85,9 +93,10 @@ arena {
     friendlyFire 2
 
     // ADR-0008 arena-module DSL — exercised end-to-end as F2 sub-slices land.
-    scoring        'kill-points',   perKill: 100
-    roundStructure 'timed-round',   minutes: 5
-    matchStructure 'continuous'      // rounds iterate; match never ends
-    winCondition   'first-to-x',    target:  500
-    winCondition   'highest-score'   // fallback if timer fires first
+    scoring        'kill-points',     perKill: 100
+    roundStructure 'timed-round',     minutes: 5
+    matchStructure 'continuous'        // rounds iterate; match never ends
+    winCondition   'first-to-x',      target:  500
+    winCondition   'highest-score'     // fallback if timer fires first
+    mechanic       'fill-up-x-teams', teams:   2
 }

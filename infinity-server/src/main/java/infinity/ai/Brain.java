@@ -95,8 +95,24 @@ public class Brain {
     this.scheduler = scheduler;
   }
 
+  /**
+   * Clears every reference + per-tick state so a terminated brain is fully
+   * inert. Without this cleanup the brain retained {@code actor} (a now-released
+   * {@link MobDriver}), {@code action}, {@code currentGoal}, {@code currentStrategy},
+   * {@code pendingTouches}, and {@code failedGoals} — any callback that found the
+   * brain (e.g. via {@code MobDriver.brain} back-reference firing on a lingering
+   * physics contact) could re-enter {@code think()}-shaped code paths and NPE on
+   * the released driver's null body.
+   */
   public void terminate(final BrainScheduler scheduler) {
     this.scheduler = null;
+    this.actor = null;
+    this.action = null;
+    this.currentGoal = null;
+    this.currentStrategy = null;
+    this.forcedStatus = null;
+    this.pendingTouches.clear();
+    this.failedGoals.clear();
   }
 
   public EntityId getId() {

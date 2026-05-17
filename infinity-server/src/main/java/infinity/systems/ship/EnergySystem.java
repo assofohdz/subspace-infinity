@@ -3,24 +3,20 @@
 
 package infinity.systems.ship;
 
-import com.simsilica.bpos.BodyPosition;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.es.common.Decay;
-import com.simsilica.event.EventBus;
-import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.SimTime;
 import infinity.es.ChangeTarget;
 import infinity.es.DamageSource;
 import infinity.es.Dead;
-import infinity.es.PrizeSpawnIntent;
+import infinity.es.KilledBy;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyChange;
 import infinity.es.ship.EnergyStats;
 import infinity.es.ship.weapons.WeaponType;
-import infinity.events.arena.PlayerKilledEvent;
 import infinity.systems.BaseInfinitySystem;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -159,39 +155,27 @@ public class EnergySystem extends BaseInfinitySystem {
     }
   }
 
-  /** Mark dead (idempotent), emit a Channel A {@link PrizeSpawnIntent} (kill-credit on {@link ChangeTarget#source}), publish {@code playerKilled} for non-ECS consumers. */
+  /**
+   * Mark dead (idempotent) + stamp {@link KilledBy} attribution if known. Death-cycle
+   * side effects ({@code PlayerKilledEvent}, {@code PrizeSpawnIntent}, {@code Decay})
+   * fire from {@code DeathSystem} next tick — per ADR-0001 single-canonical-writer:
+   * EnergySystem owns Energy + Dead, DeathSystem owns the death-cycle side effects.
+   */
   private void handleDeath(final Entity target, final DamageSource lethalSrc) {
-    final long now = System.nanoTime();
-    final EntityId killer = lethalSrc == null ? null : lethalSrc.getSource();
-    final byte weaponFlag = lethalSrc == null ? WeaponType.NONE : lethalSrc.getWeaponFlag();
     if (ed.getComponent(target.getId(), Dead.class) != null) {
       // Already dead — applyDelta should have early-returned, but defend against an external
-      // caller invoking handleDeath directly. Skip the log + side effects.
+      // caller invoking handleDeath directly. Skip side effects.
       return;
     }
     if (log.isInfoEnabled()) {
-      log.info("Entity {} died (killer={}, weapon={})", target.getId(), killer, weaponFlag);
+      final EntityId logKiller = lethalSrc == null ? null : lethalSrc.getSource();
+      final byte logWeapon = lethalSrc == null ? WeaponType.NONE : lethalSrc.getWeaponFlag();
+      log.info("Entity {} died (killer={}, weapon={})", target.getId(), logKiller, logWeapon);
     }
-    target.set(new Dead(now));
-    // Death events fire for any ship (Player or Mob): bots count as kill targets per the
-    // arena-modules smoke pipeline. Subspace canon scopes kill events to player ships
-    // only — see legacy-vs-infinity.md (death-event scope).
-    // Publish before the BodyPosition check — death is a fact regardless of drop-position availability.
-    EventBus.publish(
-        PlayerKilledEvent.playerKilled,
-        new PlayerKilledEvent(target.getId(), killer, weaponFlag));
-    final BodyPosition bp = ed.getComponent(target.getId(), BodyPosition.class);
-    if (bp == null) {
-      return;
+    target.set(new Dead(System.nanoTime()));
+    if (lethalSrc != null) {
+      ed.setComponent(target.getId(), new KilledBy(lethalSrc.getSource(), lethalSrc.getWeaponFlag()));
     }
-    final Vec3d deathPosition = bp.getLastLocation();
-    final EntityId holder = ed.createEntity();
-    // Kill-credit: ChangeTarget.source carries the killer EntityId (self when unattributed).
-    final EntityId source = killer == null ? target.getId() : killer;
-    ed.setComponents(
-        holder,
-        new ChangeTarget(target.getId(), source),
-        new PrizeSpawnIntent(deathPosition, now));
   }
 
   public boolean hasEnergy(final EntityId entityId) {

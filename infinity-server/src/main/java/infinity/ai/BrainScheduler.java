@@ -76,10 +76,18 @@ public class BrainScheduler {
      *  Adds the brain to this scheduler for management.  The brain
      *  will be run at its next heartbeat and all subsequent heardbeats
      *  until removed.
+     *
+     *  <p>Idempotent: a duplicate-add silently no-ops. The two-prong
+     *  driver/brain wiring in {@code MobSystem.BrainContainer.addObject}
+     *  and {@code MobSystem.DriverContainer.addObject} both call
+     *  {@code scheduler.add(brain)} when the other side is already present,
+     *  so on a fresh spawn where both races land favorably we'd otherwise
+     *  throw and corrupt the scheduler state. Silent no-op is the safer
+     *  contract.
      */
     public void add( final Brain brain ) {
         if( !brains.add(brain) ) {
-            throw new IllegalArgumentException("Brain is already being managed:" + brain);
+            return;
         }
         brain.initialize(this);
         schedule(brain);
@@ -88,9 +96,20 @@ public class BrainScheduler {
     /**
      *  Forces the brain to get removed and readded to the schedule in case
      *  its next heartbeat time has changed.
+     *
+     *  <p>No-ops if the brain has been removed via {@link #remove}. Callers
+     *  ({@code Brain.touch / newGoal / goalFailed}) may run after the brain
+     *  is unscheduled (e.g. lingering physics contact events on a
+     *  just-released driver); a stale reschedule would re-insert a
+     *  terminated brain into the schedule via {@link #update}.
      */
     public void reschedule( final Brain brain ) {
-        log.info("reschedule({})", brain);
+        if (!brains.contains(brain)) {
+            return;
+        }
+        if (log.isInfoEnabled()) {
+            log.info("reschedule({})", brain);
+        }
         reschedule.add(brain);
     }
 
@@ -101,6 +120,10 @@ public class BrainScheduler {
     public boolean remove( final Brain brain ) {
         if( brains.remove(brain) ) {
             schedule.remove(brain);
+            // Also clean the reschedule queue so a remove-then-update-tick
+            // sequence doesn't re-insert the removed brain via the
+            // for(b : reschedule) schedule(b) loop in update().
+            reschedule.remove(brain);
             brain.terminate(this);
             return true;
         }

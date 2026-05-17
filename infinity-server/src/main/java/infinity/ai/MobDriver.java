@@ -191,7 +191,11 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   // From the actor interface
   @Override
   public Vec3d getPosition() {
-    return getBody().position;
+    // Defense-in-depth: BrainContainer.removeObject should have unscheduled this
+    // brain when its entity was reaped, but if a tick races the removal we'd NPE
+    // here. Return the last-known position via the snapshot, or a zero sentinel.
+    final RigidBody<EntityId, MBlockShape> body = getBody();
+    return body == null ? Vec3d.ZERO : body.position;
   }
 
   @Override
@@ -225,6 +229,13 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   }
 
   public Iterable<SeenObject> search(final Predicate<? super String> filter) {
+    // Defense-in-depth: trySeeRigidBody / trySeeStaticBody dereference getBody()
+    // unconditionally for distance computation. Bail with an empty set rather
+    // than NPE when the body has been torn down (entity reaped but search()
+    // raced the cleanup).
+    if (getBody() == null) {
+      return java.util.Collections.emptyList();
+    }
 
     // Linear scan over all objects — perception is a simple radius check (chickens
     // are near-sighted in this demo). Spatial-index / physics broadphase upgrade is
@@ -383,6 +394,12 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
       getBody().setControlDriver(null);
       // The callback to terminate will clear our body reference
     }
+    // Break the back-reference cycle: Brain.actor was us, MobDriver.brain was
+    // the brain. Without nulling here, a lingering physics newContact
+    // delivered after release would call brain.touch → scheduler.reschedule →
+    // NPE on terminated brain's null scheduler. Clear so newContact early-
+    // returns at the brain == null guard.
+    this.brain = null;
   }
 
   protected void killVerticalRotation(final RigidBody<EntityId, MBlockShape> body) {
@@ -411,6 +428,10 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
   @Override
   public void update(final long frameTime, final double step) {
     RigidBody<EntityId, MBlockShape> body = getBody();
+    if (body == null) {
+      // Physics torn down our body (entity reaped) — nothing to drive.
+      return;
+    }
     if (log.isTraceEnabled()) {
       log.trace("update(" + step + ")  temperature:" + body.getTemperature());
     }
@@ -543,6 +564,12 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
 
   @Override
   public void newContact(final Contact<EntityId, MBlockShape> contact) {
+    // Defense-in-depth: physics may deliver a lingering contact event after
+    // release() has nulled our brain back-reference. Without the guard the
+    // brain.isInterestingTouch / brain.touch calls below NPE.
+    if (brain == null) {
+      return;
+    }
     double push = -contact.contactNormal.dot(desiredVelocity);
     if (push > maxPushback) {
       mostBlocked = contact;
@@ -597,23 +624,31 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
     }
 
     public void reset() {
-      getBody().localToWorld(offset, position);
+      final RigidBody<EntityId, MBlockShape> body = getBody();
+      if (body == null) {
+        // Mob body torn down; probe has nothing to reset against.
+        return;
+      }
+      body.localToWorld(offset, position);
       this.minDistanceSq = Double.POSITIVE_INFINITY;
       this.closest = null;
-      getBody().orientation.mult(Vec3d.UNIT_Z, dir);
-      getBody().orientation.mult(Vec3d.UNIT_X, left);
+      body.orientation.mult(Vec3d.UNIT_Z, dir);
+      body.orientation.mult(Vec3d.UNIT_X, left);
       this.turn = 0;
     }
 
     public void newContact(final Contact<EntityId, MBlockShape> contact) {
       // See if it's a contact that we're even interested in
-
-      if (contact.body1 == getBody() || contact.body2 == getBody()) {
+      final RigidBody<EntityId, MBlockShape> body = getBody();
+      if (body == null) {
+        return;
+      }
+      if (contact.body1 == body || contact.body2 == body) {
         // Self contact
         return;
       }
 
-      relative.set(contact.contactPoint).subtractLocal(getBody().position);
+      relative.set(contact.contactPoint).subtractLocal(body.position);
 
       // 'facing' or not depends on relative position and not our
       // mob's facing dir.
@@ -627,7 +662,8 @@ public class MobDriver extends AbstractControlDriver<EntityId, MBlockShape> impl
 
       // Possible future "too close" check: relative.dot(dir) < threshold → return.
 
-      double distSq = contact.contactPoint.distanceSq(getBody().position);
+      // body already null-guarded at method entry; reuse the local.
+      double distSq = contact.contactPoint.distanceSq(body.position);
       if (distSq < minDistanceSq) {
         closest = contact;
         minDistanceSq = distSq;
