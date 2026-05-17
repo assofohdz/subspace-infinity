@@ -302,7 +302,9 @@ final class WeaponsEligibility {
         if (amount > energy.getHealth(id)) {
             return false;
         }
-        energy.damage(id, amount, id, weaponType);
+        // EnergyChange convention: positive = heal, negative = damage. Energy-cost is
+        // a SELF-DAMAGE deduction; negate at the call site.
+        energy.damage(id, -amount, id, weaponType);
         return true;
     }
 

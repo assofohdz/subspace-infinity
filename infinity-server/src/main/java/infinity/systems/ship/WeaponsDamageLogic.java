@@ -42,7 +42,9 @@ final class WeaponsDamageLogic {
             return;
         }
         final EntityId attackerShipId = attackerShipIdOf(ed, damageEntityId);
-        energy.damage(victimId, damage.getIntendedDamage(), attackerShipId, WeaponType.NONE);
+        // EnergyChange convention: positive = heal, negative = damage. Damage.intendedDamage
+        // is stored positive (canonical bullet/bomb damage values); negate at the call site.
+        energy.damage(victimId, -damage.getIntendedDamage(), attackerShipId, WeaponType.NONE);
         stampJitter(ed, damageEntityId, victimId, nowSimNanos);
     }
 
@@ -87,7 +89,8 @@ final class WeaponsDamageLogic {
             if (!shouldDamageVictim(ed, damageEntityId, victimId, true)) {
                 continue;
             }
-            energy.damage(victimId, damage.getIntendedDamage(), attackerShipId, WeaponType.NONE);
+            // EnergyChange convention: positive = heal, negative = damage; negate at the call site.
+            energy.damage(victimId, -damage.getIntendedDamage(), attackerShipId, WeaponType.NONE);
             stampJitter(ed, damageEntityId, victimId, nowSimNanos);
         }
     }
