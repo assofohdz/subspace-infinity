@@ -605,14 +605,16 @@ clear message; player-facing impact is the same.
 
 ## Open work (PRD-scope)
 
-- **Slice plan.** Land the framework first (`ArenaModule` interface,
-  `ModuleCatalog`, `ModuleLoader`, the two coordinator systems, the
-  4-phase scheduler), then the first slice of concrete modules
-  (`kill-points`, `ffa-private-freqs`, `all-ships`, `instant-respawn`,
-  `continuous` round + match, `random-radius` spawn, `flat` shop —
-  enough to ship a single FFA-Deathmatch arena as the first consumer).
-  Each subsequent gametype is its own slice, ordered by gameplay
-  priority.
+- **Slice plan.** Framework landed (F1): `ArenaModule` interface,
+  `ModuleCatalog`, `ModuleLoader`, `ArenaModuleSystem`, lifecycle
+  dispatcher, score coordinator. Initial concrete modules landed
+  through F2.5: `kill-points`, `timed-round`, `first-to-x`,
+  `highest-score`, `continuous` matchStructure, `fill-up-x-teams`
+  mechanic, `all-ships` roster. Remaining F2 modules (`instant-respawn`,
+  `random-radius` spawn, `ffa-private-freqs`, `flat` shop) land
+  sub-slice by sub-slice to ship a single FFA-Deathmatch arena as
+  the first consumer. Each subsequent gametype is its own slice,
+  ordered by gameplay priority.
 - **Module-author docs.** A short authoring guide alongside this ADR
   for "how do I write a new scoring module?". Covers the lifecycle
   interface, the contribution-emission pattern, the cleanup contract,

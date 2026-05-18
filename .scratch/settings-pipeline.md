@@ -464,22 +464,6 @@ Infinity divergence — no Subspace canon (`[Thor]` section does not exist in RE
 | ⚠️ | `GravityBombs` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `SwitchTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 
-## Per-arena ship restrictions (Infinity-only)
-
-No `[Team]` section in REFERENCE.md, no `EnterShipEnergy` canon — full Infinity
-divergence. The DSL block lives in `arena.groovy` (parsed by
-`GroovyShipRestrictionsAdapter`, projected into `ConfigRegistry`'s
-`ShipRestrictionsConfig` slot, consumed by `ConfigShipRestrictor` from
-`AvatarSystem.requestShipChange` / `requestFreqChange`). Full-energy gate is
-enforced inline by `AvatarSystem.hasFullEnergy` (current `Energy` ≥
-`EnergyStats.max`).
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| ✅ | `allow <Ship,…>` (allow-list) | ✅ testarena/arena.groovy | `GroovyShipRestrictionsAdapter` | `ShipRestrictionsConfig.allowed` | — | `ConfigShipRestrictor.canSwitch` (`AvatarSystem.requestShipChange` / `requestFreqChange`) | ✅ `GroovyShipRestrictionsAdapterTest` + `AvatarSystemRestrictionTest` |
-| ✅ | `deny <Ship,…>` (deny-list) | ✅ (DSL available, not used in trench) | `GroovyShipRestrictionsAdapter` | `ShipRestrictionsConfig.denied` | — | `ConfigShipRestrictor.canSwitch` | ✅ `GroovyShipRestrictionsAdapterTest` + `AvatarSystemRestrictionTest` |
-| ✅ | `maxPerTeam Ship, N` (per-ship cap) | ✅ testarena/arena.groovy | `GroovyShipRestrictionsAdapter` | `ShipRestrictionsConfig.maxPerTeam` | — | `ConfigShipRestrictor.canSwitch` (uses `AvatarSystem.getShipCount`) | ✅ `GroovyShipRestrictionsAdapterTest` + `ShipRestrictionsConfigTest` |
-
 ---
 
 ## Per-ship sections (`[All]`, `[Warbird]`, `[Javelin]`, `[Spider]`, `[Leviathan]`, `[Terrier]`, `[Weasel]`, `[Lancaster]`, `[Shark]`)
