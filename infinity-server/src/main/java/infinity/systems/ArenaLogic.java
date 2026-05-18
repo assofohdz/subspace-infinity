@@ -379,7 +379,6 @@ public final class ArenaLogic {
         oldConfig.wallFriction(),
         oldConfig.spawners(),
         oldConfig.friendlyFire(),
-        oldConfig.shipRestrictions(),
         oldConfig.modules());
     return SwapMapOutcome.success(
         nextConfig,

@@ -39,6 +39,11 @@ arena {
     //   2 = all weapons damage teammates
     // Trench stays at the safe default; testarena exercises mode 1.
     friendlyFire 0
+
+    // ADR-0008 module DSL — minimum surface (roster) so AvatarSystem can resolve
+    // a roster gate on ship-change requests in this arena.
+    roster 'all-ships'
+
     spawners {
         // Centre of the arena. No weights override → uses the typed
         // prize-weights.groovy via ConfigRegistry.prizeWeights().

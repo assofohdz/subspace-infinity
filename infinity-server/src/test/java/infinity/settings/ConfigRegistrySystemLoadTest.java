@@ -14,7 +14,6 @@ import com.simsilica.sim.GameSystemManager;
 import infinity.Ship;
 import infinity.config.ArenaConfig;
 import infinity.modules.ArenaModuleDeclarations;
-import infinity.config.ShipRestrictionsConfig;
 import infinity.es.arena.ArenaId;
 import infinity.systems.SettingsSystem;
 import java.util.List;
@@ -78,7 +77,6 @@ public class ConfigRegistrySystemLoadTest {
               0.0,
               List.of(),
               0,
-              ShipRestrictionsConfig.DEFAULTS,
               ArenaModuleDeclarations.EMPTY);
 
       registry.load(arenaId, arenaConfig);

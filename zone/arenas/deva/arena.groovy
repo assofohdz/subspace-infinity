@@ -31,4 +31,8 @@ arena {
     // Slice 9a — friendly-fire policy: 0=off (default), 1=bomb splash only,
     // 2=all weapons. Deva keeps the safe default.
     friendlyFire 0
+
+    // ADR-0008 module DSL — minimum surface (roster) so AvatarSystem can resolve
+    // a roster gate on ship-change requests in this arena.
+    roster 'all-ships'
 }

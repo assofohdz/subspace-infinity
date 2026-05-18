@@ -47,6 +47,11 @@ arena {
     // the AoE path (bombs damage teammates within blast radius; bullets,
     // burst, mines still pass through teammates safely).
     friendlyFire 1
+
+    // ADR-0008 module DSL — minimum surface (roster) so AvatarSystem can resolve
+    // a roster gate on ship-change requests in this arena.
+    roster 'all-ships'
+
     spawners {
         // Slice 8d C3 opt-in: Centre spawner exercises additive count +
         // radius scaling and burst regen. With 4 active players,

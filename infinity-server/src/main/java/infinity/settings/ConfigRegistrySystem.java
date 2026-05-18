@@ -16,7 +16,6 @@ import infinity.config.PrizeConfig;
 import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
-import infinity.config.ShipRestrictionsConfig;
 import infinity.config.SpawnConfig;
 import infinity.config.ThorConfig;
 import infinity.es.arena.ArenaId;
@@ -176,7 +175,6 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
     }
 
     // Phase 4: arena-level inline blocks (parsed from arena.groovy, not a fragment include).
-    current = current.with(ShipRestrictionsConfig.class, arenaConfig.shipRestrictions());
     current = current.with(ArenaModuleDeclarations.class, arenaConfig.modules());
 
     replace(arenaId, current);

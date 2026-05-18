@@ -14,7 +14,6 @@ import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.sim.SimTime;
 import com.simsilica.mathd.Vec3d;
 import infinity.Ship;
-import infinity.sim.ShipRestrictor;
 import infinity.es.Captain;
 import infinity.es.ChangeTarget;
 import infinity.es.Frequency;
@@ -28,16 +27,21 @@ import infinity.es.ship.ShipType;
 import infinity.es.ship.ShipTypeChange;
 import infinity.es.ship.actions.WarpToChange;
 import infinity.events.arena.ShipEvent;
-import infinity.settings.ConfigRegistrySystem;
+import infinity.modules.ArenaModuleSystem;
+import infinity.modules.RosterModule;
 import infinity.settings.EngineConfigSystem;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/** Manages avatar lifecycle (create/destroy on join/leave) + per-team ship restrictions. Drains {@link ShipTypeChange}. */
+/** Manages avatar lifecycle + drains {@link ShipTypeChange}; ship-type gating runs through the active {@link RosterModule}. */
 public class AvatarSystem extends BaseInfinitySystem {
+
+  private static final Logger log = LoggerFactory.getLogger(AvatarSystem.class);
 
   // Ship-type wire bytes (SPEC/WARBIRD/JAVELIN/SPIDER/LEVI/TERRIER/WEASEL/
   // LANCASTER/SHARK) live in api/ as `infinity.net.ShipTypeId`. The chat-side
@@ -45,10 +49,9 @@ public class AvatarSystem extends BaseInfinitySystem {
   // `ShipTypeId.fromWireId(byte)` for enum-level dispatch.
   private EntityData ed;
   private EngineConfigSystem engineConfigSystem;
-  private ConfigRegistrySystem configRegistry;
+  private ArenaModuleSystem arenaModules;
   private EntitySet frequencies;
   private EntitySet shipTypeChanges;
-  private Map<Integer, ShipRestrictor> teamRestrictions;
 
   private EntitySet captains;
 
@@ -60,13 +63,11 @@ public class AvatarSystem extends BaseInfinitySystem {
   protected void initialize() {
     ed = requireSystem(EntityData.class);
     engineConfigSystem = requireSystem(EngineConfigSystem.class);
-    configRegistry = requireSystem(ConfigRegistrySystem.class);
+    arenaModules = requireSystem(ArenaModuleSystem.class);
 
     frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
     captains = ed.getEntities(ShapeInfo.class, Captain.class);
     shipTypeChanges = ed.getEntities(ShipTypeChange.class, ChangeTarget.class);
-
-    teamRestrictions = new HashMap<>();
   }
 
   @Override
@@ -131,7 +132,7 @@ public class AvatarSystem extends BaseInfinitySystem {
     // (current Energy ≥ EnergyStats.max) before allowing a ship swap. No EnterShipEnergy
     // key in REFERENCE.md; the full-energy gate is the Infinity rule.
     final int freq = readFrequency(shipEntity);
-    if (!hasFullEnergy(shipEntity) || !canSwitchAllGates(shipEntity, shipType, freq)) {
+    if (!hasFullEnergy(shipEntity) || !rosterAllows(shipEntity, shipType)) {
       return;
     }
 
@@ -159,15 +160,29 @@ public class AvatarSystem extends BaseInfinitySystem {
     return f == null ? 0 : f.getFrequency();
   }
 
-  /** Per-arena {@link ShipRestrictionsConfig} + optional per-team {@link ShipRestrictor}; both must allow. */
-  private boolean canSwitchAllGates(final EntityId shipEntity, final byte shipType, final int freq) {
-    final ShipRestrictor arenaRestrictor =
-        new ConfigShipRestrictor(configRegistry, this, ed, shipEntity);
-    if (!arenaRestrictor.canSwitch(shipEntity, shipType, freq)) {
+  /**
+   * Delegate to the ship's arena's active {@link RosterModule}. Arenas with no roster
+   * module loaded refuse every change — surface a warn so the operator notices a
+   * missing {@code roster} statement in the arena's {@code arena.groovy}.
+   */
+  private boolean rosterAllows(final EntityId shipEntity, final byte shipType) {
+    final ArenaId arenaId = ed.getComponent(shipEntity, ArenaId.class);
+    final Optional<RosterModule> roster =
+        arenaId == null ? Optional.empty() : rosterFor(arenaId);
+    if (roster.isEmpty()) {
+      log.warn(
+          "Ship {} requesting type {} but arena {} has no roster module loaded; refusing",
+          shipEntity,
+          shipType,
+          arenaId);
       return false;
     }
-    final ShipRestrictor teamRestrictor = getRestrictor(freq);
-    return teamRestrictor == null || teamRestrictor.canSwitch(shipEntity, shipType, freq);
+    return roster.get().isShipAllowed(Ship.getShip(shipType));
+  }
+
+  private Optional<RosterModule> rosterFor(final ArenaId arenaId) {
+    final ArenaModuleSystem.LoadedArena entry = arenaModules.loadedFor(arenaId);
+    return entry == null ? Optional.empty() : entry.set().roster();
   }
 
   /** Teleport to the entity's current arena's configured spawn point; no-op if no {@link ArenaId} or arena has no spawn. */
@@ -237,74 +252,23 @@ public class AvatarSystem extends BaseInfinitySystem {
   }
 
   /**
-   * Requests a frequency change for an entity.
-   *
-   * @param entityId the entity to change frequency for
-   * @param newFreq the new freuency
+   * Requests a frequency change for an entity. F2.5 leaves this ungated; F2.8 reroutes
+   * through {@code FrequencyChangeRequestEvent} so the active {@code TeamSetupModule}
+   * can apply per-team policy.
    */
   public void requestFreqChange(final EntityId entityId, final int newFreq) {
-    // Gate against per-arena ShipRestrictionsConfig — moving to a freq whose
-    // configured max-per-team is already saturated for the entity's current ship
-    // is denied. Spec ships (no ShipType) skip the gate (no ship to validate).
-    final ShipType currentShip = ed.getComponent(entityId, ShipType.class);
-    if (currentShip != null && currentShip.getType() != null) {
-      final ShipRestrictor arenaRestrictor =
-          new ConfigShipRestrictor(configRegistry, this, ed, entityId);
-      if (!arenaRestrictor.canSwitch(entityId, currentShip.getType().getId(), newFreq)) {
-        return;
-      }
-    }
     final EntityId h = ed.createEntity();
     ed.setComponents(h, ChangeTarget.self(entityId), new FrequencyChange(newFreq));
   }
 
   /**
-   * Sets the ShipRestrictor this team uses to restrict ship access. If restrictor is null, the team
-   * will be set to use a Restrictor that allows full access to all ships.
-   *
-   * @param team Frequency
-   * @param restrict The new ShipRestrictor to use
-   */
-  public void setRestrictor(final int team, final ShipRestrictor restrict) {
-    if (!teamRestrictions.containsKey(Integer.valueOf(team))) {
-      teamRestrictions.put(
-          Integer.valueOf(team),
-          new ShipRestrictor() {
-            @Override
-            public boolean canSwitch(final EntityId p, final byte ship, final int t) {
-              return true;
-            }
-
-            @Override
-            public boolean canSwap(final EntityId p1, final EntityId p2, final int t) {
-              return true;
-            }
-
-            @Override
-            public byte fallbackShip() {
-              return 0;
-            }
-          });
-    } else {
-      teamRestrictions.put(Integer.valueOf(team), restrict);
-    }
-  }
-
-  public ShipRestrictor getRestrictor(final int team) {
-    return teamRestrictions.get(Integer.valueOf(team));
-  }
-
-  /**
-   * Resets this team to completely empty, just as when it was instantiated This does not change the
-   * ShipRestrictor, however.
+   * Sends every member of {@code team} back to freq 0 via the canonical drain.
    *
    * @param team the team to clear and reset
    */
   public void reset(final int team) {
     // Emit FrequencyChange(0) for every entity currently on `team` — drains via
-    // the canonical FrequencySystem writer next tick. Per-team caps re-evaluate
-    // against the new freq 0 (default). Ship slots are inherently refreshed by
-    // the freq move (members leave `team`); no separate slot clearing needed.
+    // the canonical FrequencySystem writer next tick.
     final ComponentFilter<Frequency> filter =
         FieldFilter.create(Frequency.class, "freq", Integer.valueOf(team));
     final EntitySet members = ed.getEntities(filter, Frequency.class);

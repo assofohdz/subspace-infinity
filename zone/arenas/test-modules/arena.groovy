@@ -93,6 +93,7 @@ arena {
     friendlyFire 2
 
     // ADR-0008 arena-module DSL — exercised end-to-end as F2 sub-slices land.
+    roster         'all-ships'         // F2.5 — global ship allow gate; permits every ship
     scoring        'kill-points',     perKill: 100
     roundStructure 'timed-round',     minutes: 5
     matchStructure 'continuous'        // rounds iterate; match never ends

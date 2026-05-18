@@ -17,7 +17,6 @@ import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
 import infinity.config.ShipConfig;
-import infinity.config.ShipRestrictionsConfig;
 import infinity.config.SpawnConfig;
 import infinity.config.ThorConfig;
 import infinity.modules.ArenaModuleDeclarations;
@@ -62,7 +61,6 @@ public final class ConfigRegistry {
           Slot.of(PrizeConfig.class, PrizeConfig.DEFAULTS),
           Slot.of(PrizeWeightsConfig.class, PrizeWeightsConfig.DEFAULTS),
           Slot.of(SpawnConfig.class, SpawnConfig.DEFAULTS),
-          Slot.of(ShipRestrictionsConfig.class, ShipRestrictionsConfig.DEFAULTS),
           Slot.of(ArenaModuleDeclarations.class, ArenaModuleDeclarations.DEFAULTS));
 
   public static final ConfigRegistry EMPTY = builder().build();
@@ -156,10 +154,6 @@ public final class ConfigRegistry {
 
   public SpawnConfig spawn() {
     return get(SpawnConfig.class);
-  }
-
-  public ShipRestrictionsConfig shipRestrictions() {
-    return get(ShipRestrictionsConfig.class);
   }
 
   public static Builder builder() {

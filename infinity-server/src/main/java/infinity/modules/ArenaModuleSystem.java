@@ -57,6 +57,19 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
     return loaded.get(arenaEntity);
   }
 
+  /** Find the loaded set by the {@link ArenaId} value type (the arena's name); {@code null} if none. */
+  public LoadedArena loadedFor(final ArenaId arenaId) {
+    if (arenaId == null) {
+      return null;
+    }
+    for (final LoadedArena entry : loaded.values()) {
+      if (arenaId.equals(entry.arenaId())) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
   @Override
   protected void initialize() {
     ed = requireSystem(EntityData.class);

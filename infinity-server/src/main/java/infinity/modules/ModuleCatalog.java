@@ -8,6 +8,7 @@ import infinity.config.KillPointsConfig;
 import infinity.config.TimedRoundStructureConfig;
 import infinity.modules.matchstructure.ContinuousMatchStructure;
 import infinity.modules.mechanic.FillUpXTeams;
+import infinity.modules.roster.AllShipsRoster;
 import infinity.modules.roundstructure.TimedRoundStructure;
 import infinity.modules.scoring.KillPointsScoring;
 import infinity.modules.wincondition.FirstToXWinCondition;
@@ -53,6 +54,12 @@ public final class ModuleCatalog {
               FirstToXWinCondition.class,
               FirstToXWinConditionConfig.class,
               ModuleCategory.WIN_CONDITION,
+              Set.of()),
+          "all-ships",
+          new ModuleDescriptor(
+              AllShipsRoster.class,
+              null, // zero-config
+              ModuleCategory.ROSTER,
               Set.of()));
 
   private ModuleCatalog() {}

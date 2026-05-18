@@ -6,7 +6,6 @@ package infinity.settings;
 import groovy.lang.Binding;
 import groovy.lang.Closure;
 import infinity.config.ArenaConfig;
-import infinity.config.ShipRestrictionsConfig;
 import infinity.config.SpawnerSpec;
 import infinity.modules.ArenaModuleDeclarations;
 import infinity.modules.ModuleSpec;
@@ -68,7 +67,7 @@ public final class GroovyArenaLoader {
 
     @Override
     public List<String> allowedImports() {
-      // Ship enum lets shipRestrictions{…} refer to e.g. Ship.WARBIRD without an import line.
+      // Ship enum lets module kwargs refer to e.g. Ship.WARBIRD without an import line.
       return List.of("infinity.Ship");
     }
 
@@ -122,7 +121,6 @@ public final class GroovyArenaLoader {
     private double wallFriction = ArenaConfig.EMPTY.wallFriction();
     private final List<SpawnerSpec> spawners = new ArrayList<>();
     private int friendlyFire = ArenaConfig.EMPTY.friendlyFire();
-    private ShipRestrictionsConfig shipRestrictions = ShipRestrictionsConfig.DEFAULTS;
     private final ModuleDeclarationsBuilder modules = new ModuleDeclarationsBuilder();
 
     ArenaConfigBuilder() {}
@@ -187,11 +185,6 @@ public final class GroovyArenaLoader {
       body.setDelegate(block);
       body.setResolveStrategy(Closure.DELEGATE_FIRST);
       body.call();
-    }
-
-    /** {@code shipRestrictions { allow …; deny …; maxPerTeam … }} — Infinity-only. */
-    public void shipRestrictions(final Closure<?> body) {
-      this.shipRestrictions = GroovyShipRestrictionsAdapter.evaluate(body);
     }
 
     // -- ADR-0008 module DSL --------------------------------------------------
@@ -291,7 +284,6 @@ public final class GroovyArenaLoader {
           wallFriction,
           List.copyOf(spawners),
           friendlyFire,
-          shipRestrictions,
           modules.build());
     }
   }

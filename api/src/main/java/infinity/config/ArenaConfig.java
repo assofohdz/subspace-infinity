@@ -26,7 +26,6 @@ public record ArenaConfig(
     double wallFriction,
     List<SpawnerSpec> spawners,
     int friendlyFire,
-    ShipRestrictionsConfig shipRestrictions,
     ArenaModuleDeclarations modules) {
 
   /** Empty fallback — spawn at arena center, frictionless walls, friendly-fire off. */
@@ -40,6 +39,5 @@ public record ArenaConfig(
           PhysicsDefaults.DEFAULT_WALL_FRICTION,
           List.of(),
           0,
-          ShipRestrictionsConfig.DEFAULTS,
           ArenaModuleDeclarations.EMPTY);
 }
