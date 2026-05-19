@@ -93,3 +93,23 @@ Each row: actionable item + source file:line + brief context.
   selective per-component reproject is future work (consistent with
   the broader fragment hot-reload story per ADR-0004).** Source:
   `api/src/main/java/infinity/es/ship/weapons/BombSafetyRadius.java:19`.
+
+### Client connection flow
+
+- [ ] **"Connect" button in the main menu is a no-op when a second
+  client instance tries to join a local host.** Repro: launch the
+  game twice on the same machine; first instance starts a local
+  server via "New game"; second instance enters the host/port and
+  clicks "Connect" → nothing happens (no transition, no error log,
+  no UI feedback). Likely the menu state never advances to
+  `ConnectionState` or the click handler is unwired. Source: client
+  HostState / ConnectionState / main-menu Lemur action wiring.
+- [ ] **"New game" when the bind port is already in use logs the
+  bind failure to the terminal but never surfaces it to the UI.**
+  Repro: start two local hosts back-to-back; the second prints
+  `address already in use` on stderr and silently leaves the user
+  on the menu. Catch the `BindException` (or equivalent) at the
+  host-server boot site and route it to a Lemur error dialog /
+  toast so the user knows the port is taken. Source: server boot
+  path on the client process (likely `infinity.client.states.HostState`
+  or the `GameServer.start()` invocation it wraps).
