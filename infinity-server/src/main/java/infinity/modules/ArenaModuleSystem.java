@@ -100,9 +100,17 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
         handleRemoved(arenaEntity.getId());
       }
     }
+    tickTeamSetups(time);
     tickRoundStructures(time);
     tickWinConditions();
     tickMechanics(time);
+  }
+
+  /** Per-tick dispatch for the per-arena {@code teamSetup} module (if any). */
+  private void tickTeamSetups(final SimTime time) {
+    for (final LoadedArena entry : loaded.values()) {
+      entry.set().teamSetup().ifPresent(m -> m.tickTeamSetup(entry.arenaId(), time));
+    }
   }
 
   /** Per-tick dispatch for opt-in {@code mechanic} modules (state-publishing phase). */

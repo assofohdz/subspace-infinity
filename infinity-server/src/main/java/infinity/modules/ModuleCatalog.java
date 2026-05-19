@@ -13,6 +13,7 @@ import infinity.modules.roster.AllShipsRoster;
 import infinity.modules.roundstructure.TimedRoundStructure;
 import infinity.modules.scoring.KillPointsScoring;
 import infinity.modules.spawnplacement.RandomRadiusSpawnPlacement;
+import infinity.modules.teamsetup.FfaPrivateFreqsTeamSetup;
 import infinity.modules.wincondition.FirstToXWinCondition;
 import infinity.modules.wincondition.HighestScoreWinCondition;
 import java.util.Map;
@@ -68,6 +69,12 @@ public final class ModuleCatalog {
               RandomRadiusSpawnPlacement.class,
               RandomRadiusConfig.class,
               ModuleCategory.SPAWN_PLACEMENT,
+              Set.of()),
+          "ffa-private-freqs",
+          new ModuleDescriptor(
+              FfaPrivateFreqsTeamSetup.class,
+              null, // zero-config
+              ModuleCategory.TEAM_SETUP,
               Set.of()));
 
   private ModuleCatalog() {}

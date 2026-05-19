@@ -382,7 +382,7 @@ Acceptance: `./gradlew build` clean; existing arenas continue to load and play e
 Implements the minimum module catalog to ship one arena composition end to end:
 
 - `KillPointsScoring` — emits `PlayerScoreChange` on kill (`PerKill` configurable). Listener on per-arena `EventBus` for kill events. **(landed F2a)**
-- `FfaPrivateFreqsTeamSetup` — assigns each player their own freq on spawn; lazily creates per-freq `TeamEntity` per player; canonical writer of `Frequency`-on-team-entity and `TeamMemberCount`.
+- `FfaPrivateFreqsTeamSetup` — assigns each player their own freq on spawn; lazily creates per-freq `TeamEntity` per player; canonical writer of `Frequency`-on-team-entity and `TeamMemberCount`. F2.7 added `TeamSetupModule.tickTeamSetup` per the Q2 "category-method-with-first-impl" rule, the `TeamEntity` + `TeamMemberCount` components, and the `tickTeamSetups` dispatcher in `ArenaModuleSystem`. Initial-assignment policy: subsequent `Frequency` changes (e.g. via the `=N` chat command) are NOT enforced. **(landed F2.7)**
 - `AllShipsRoster` — global ship-allow gate; permits every ship. `AvatarSystem.requestShipChange` delegates to the active `RosterModule.isShipAllowed`; arenas without a `roster` statement refuse ship-changes. F2.5 ripped the legacy `ShipRestrictionsConfig` + `ConfigShipRestrictor` + per-team `ShipRestrictor` machinery; per-team caps belong to `TeamSetupModule` (F2.8). **(landed F2.5)**
 - `InstantRespawn` — drains death components, re-spawns immediately.
 - `TimedRoundStructure` — terminator: emits `RoundEndPending` after N minutes.

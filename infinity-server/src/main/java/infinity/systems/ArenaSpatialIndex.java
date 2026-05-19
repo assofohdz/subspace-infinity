@@ -40,10 +40,10 @@ final class ArenaSpatialIndex {
     this.arenaSystem = arenaSystem;
   }
 
-  void initialize(final EntityData ed, final Supplier<ArenaModuleSystem> moduleSystemLookup) {
-    this.ed = ed;
-    this.moduleSystemLookup = moduleSystemLookup;
-    this.arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);
+  void initialize(final EntityData entityData, final Supplier<ArenaModuleSystem> moduleLookup) {
+    this.ed = entityData;
+    this.moduleSystemLookup = moduleLookup;
+    this.arenaEntities = entityData.getEntities(ArenaId.class, ArenaMap.class);
   }
 
   void terminate() {

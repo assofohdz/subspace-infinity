@@ -92,6 +92,7 @@ arena {
     friendlyFire 2
 
     // ADR-0008 arena-module DSL — exercised end-to-end as F2 sub-slices land.
+    teamSetup      'ffa-private-freqs'  // F2.7 — each player ship gets its own freq + TeamEntity
     roster         'all-ships'         // F2.5 — global ship allow gate; permits every ship
     spawnPlacement 'random-radius',   center: [512, 512], radius: 5  // F2.6 — replaces legacy spawn.groovy
     scoring        'kill-points',     perKill: 100
