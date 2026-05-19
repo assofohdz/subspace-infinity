@@ -136,10 +136,10 @@ Each `spawn` entry materializes into a real spawner entity at arena-load. `Prize
 | `spawnPlacement 'id', kwargs…` | Module declaration | `ArenaConfig.modules().spawnPlacement()` → `ArenaModuleDeclarations` | `ArenaModuleSystem` → `RandomRadiusSpawnPlacement.resolveSpawn` via `ArenaSpatialIndex.getArenaSpawn` (per-arena module, F2.6 / ADR-0008) |
 | `wallFriction N` | double [0,1] | `ArenaConfig.wallFriction()` | `ContactSystem` (body-vs-static contacts: damps tangential velocity; friction=0 prevents torque from off-center contacts) |
 | `includeFragment '...'` | String (repeatable) | `ArenaConfig.fragmentIncludes()` → forwarded to `SettingsSystem.loadFragments` | Anything that calls `SettingsSystem.getInt/getString(arenaName, section, key, default)` |
-| `roster 'id'`, `scoring 'id', …`, `roundStructure 'id', …`, `matchStructure 'id'`, `winCondition 'id', …`, `mechanic 'id', …` | Module declarations | `ArenaConfig.modules()` → `ArenaModuleDeclarations` | `ArenaModuleSystem` instantiates per `ModuleCatalog`; see [`create-module`](../create-module/SKILL.md) skill |
+| `teamSetup 'id'`, `roster 'id'`, `scoring 'id', …`, `roundStructure 'id', …`, `matchStructure 'id'`, `winCondition 'id', …`, `mechanic 'id', …` | Module declarations | `ArenaConfig.modules()` → `ArenaModuleDeclarations` | `ArenaModuleSystem` instantiates per `ModuleCatalog`; see [`create-module`](../create-module/SKILL.md) skill |
 | `spawners { spawn ... }` | Block (repeatable) | `ArenaConfig.spawners()` → `List<SpawnerSpec>` → materialized into spawner entities by `ArenaSystem.doLoad` | `PrizeSpawnerSystem` (picks prizes; reads per-spawner `PrizeWeightsOverride` merged atop arena `[PrizeWeight]` defaults) |
 
-> **Forward-ref:** [ADR-0008](../../../docs/adr/0008-arena-composition-and-modules.md) drives the arena-modules series. Live module categories above: `roster`, `scoring`, `roundStructure`, `matchStructure`, `spawnPlacement`, `winCondition`, `mechanic`. Still queued: `teamSetup`, `respawnPolicy`, `shop`, and `usePreset` module bundles — see [`arena-modules/PRD.md`](../../../.scratch/arena-modules/PRD.md).
+> **Forward-ref:** [ADR-0008](../../../docs/adr/0008-arena-composition-and-modules.md) drives the arena-modules series. Live module categories above: `teamSetup`, `roster`, `scoring`, `roundStructure`, `matchStructure`, `spawnPlacement`, `winCondition`, `mechanic`. Still queued: `respawnPolicy`, `shop`, and `usePreset` module bundles — see [`arena-modules/PRD.md`](../../../.scratch/arena-modules/PRD.md).
 
 ## Groovy fragment DSL
 

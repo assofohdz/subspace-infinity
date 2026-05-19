@@ -330,6 +330,17 @@ guards 32 component types against single-writer regressions
   ships/spawners (membership writes; both write `arenaId` instances
   but to disjoint entity sets — ships vs the arena entity itself —
   so no race).
+- **`FfaPrivateFreqsTeamSetup`** (and `TeamSetupModule` impls
+  generally, per ADR-0008) — `TeamEntity` (create/destroy per
+  arena-freq pair via `tickTeamSetup` + `onArenaUnload`),
+  `TeamMemberCount` (per-tick update), `Frequency` on team entities
+  (seed at team-entity creation). Distinct from `ShipFactory`'s
+  spawn-time seed of `Frequency` on ship entities and from
+  `FrequencySystem`'s runtime drain of `FrequencyChange` on ships —
+  disjoint entity sets (team entities vs ship entities), no race.
+  The module emits `FrequencyChange` intents to drive ship-side
+  freq assignment, preserving `FrequencySystem` as the canonical
+  writer of ship `Frequency`.
 - **`MapSystem`** — tile-cell components via
   `TileTypes.legacy(...)` / `TileTypes.wangblob(...)` (Pattern-4
   per-cell projection).

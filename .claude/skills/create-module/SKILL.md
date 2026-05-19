@@ -15,9 +15,11 @@ description: ArenaModule interface (api/) — arena-composition contract per ADR
 4. **Register in `ModuleCatalog`** (`infinity-server/src/main/java/infinity/modules/ModuleCatalog.java`): add a `ModuleDescriptor(MyModule.class, MyConfig.class, ModuleCategory.X, Set.of())` entry under a short DSL id.
 5. **Reference from `arena.groovy`** with the matching DSL statement (`scoring 'my-id', kw: v` for scoring, etc.).
 
-Canonical examples to mimic: `AllShipsRoster` (zero-config marker), `KillPointsScoring` (subscribes to `EventBus`, emits `*Change` transients), `TimedRoundStructure` (per-tick state machine), `FirstToXWinCondition` (dual-role terminator + decider), `RandomRadiusSpawnPlacement` (kwargs binding with conditional shape — single `center` or per-freq `centers` map).
+Canonical examples to mimic: `AllShipsRoster` (zero-config marker), `KillPointsScoring` (subscribes to `EventBus`, emits `*Change` transients), `TimedRoundStructure` (per-tick state machine), `FirstToXWinCondition` (dual-role terminator + decider), `RandomRadiusSpawnPlacement` (kwargs binding with conditional shape — single `center` or per-freq `centers` map), `FfaPrivateFreqsTeamSetup` (zero-config `TeamSetupModule` — EntitySet-based claim/release + per-tick team-entity lifecycle).
 
 ## Module lifecycle hooks
+
+Every module inherits these from `ArenaModule`:
 
 ```java
 default void onArenaLoad(ArenaId arenaId)                                 {}
@@ -27,6 +29,17 @@ default void onRoundEnd(ArenaId arenaId, int roundNumber, RoundOutcome o) {}
 default void onMatchEnd(ArenaId arenaId, MatchOutcome o)                  {}
 default void onArenaUnload(ArenaId arenaId)                               {}
 ```
+
+### Category-specific per-tick hooks
+
+Some categories add a per-tick dispatcher beyond the base lifecycle. `ArenaModuleSystem.update` calls these on every loaded impl each server tick (default no-op when not overridden):
+
+- `TeamSetupModule.tickTeamSetup(ArenaId, SimTime)` — observe ship arrivals/departures, maintain team entities.
+- `MechanicModule.tickMechanic(ArenaId, SimTime)` — opt-in mechanics' state-publishing phase.
+- `RoundStructureModule.tickRoundStructure(ArenaId, SimTime)` — terminator state machine.
+- `WinConditionModule.checkTermination(ArenaId)` — per-tick query (not a void hook).
+
+Implement only the hook(s) you need; the base lifecycle covers the rest.
 
 Cleanup contract (ADR-0008-β): `onArenaUnload` MUST remove every component / entity / EventBus listener / Decay token the module added during the arena's lifetime. Verified by `ArenaModuleContractTest` once F3 lands.
 
