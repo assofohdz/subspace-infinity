@@ -14,7 +14,6 @@
 arena {
     map '04-2026-trench/pub2025.lvl'
     shipsScript '/conf/testconf/ships.groovy'
-    includeFragment '/conf/testconf/spawn.groovy'
     includeFragment '/conf/testconf/prize-weights.groovy'
     includeFragment '/conf/testconf/ship-warbird.groovy'
     includeFragment '/conf/testconf/ship-javelin.groovy'
@@ -45,10 +44,11 @@ arena {
     // burst, mines still pass through teammates safely).
     friendlyFire 1
 
-    // ADR-0008 module DSL — minimum surface (roster) so AvatarSystem can resolve
-    // a roster gate. testarena keeps the rest legacy; module-rich smoke lives in
+    // ADR-0008 module DSL — minimum surface so AvatarSystem can gate ship-change
+    // and arena can resolve spawn positions. Module-rich smoke lives in
     // zone/arenas/test-modules/.
-    roster 'all-ships'
+    roster         'all-ships'
+    spawnPlacement 'random-radius', center: [512, 512], radius: 10
 
     spawners {
         // Slice 8d C3 opt-in: Centre spawner exercises additive count +

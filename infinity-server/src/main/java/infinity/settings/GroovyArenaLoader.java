@@ -41,14 +41,12 @@ public final class GroovyArenaLoader {
     }
     if (cfg != ArenaConfig.EMPTY && log.isInfoEnabled()) {
       log.info(
-          "Applied {} for arena {}: map='{}', ships='{}', spawn=({},{}), wallFriction={},"
+          "Applied {} for arena {}: map='{}', ships='{}', wallFriction={},"
               + " friendlyFire={}, fragments={}",
           classpathPath,
           arenaName,
           cfg.mapFile(),
           cfg.shipsScript(),
-          cfg.spawnX(),
-          cfg.spawnZ(),
           cfg.wallFriction(),
           cfg.friendlyFire(),
           cfg.fragmentIncludes());
@@ -114,9 +112,6 @@ public final class GroovyArenaLoader {
 
     private String mapFile = "";
     private String shipsScript = "";
-    // Default to arena centre (matches ArenaConfig.EMPTY) so an omitted `spawn` directive avoids the NW corner.
-    private int spawnX = ArenaConfig.EMPTY.spawnX();
-    private int spawnZ = ArenaConfig.EMPTY.spawnZ();
     private final List<String> fragmentIncludes = new ArrayList<>();
     private double wallFriction = ArenaConfig.EMPTY.wallFriction();
     private final List<SpawnerSpec> spawners = new ArrayList<>();
@@ -131,11 +126,6 @@ public final class GroovyArenaLoader {
 
     public void shipsScript(final String shipsScript) {
       this.shipsScript = shipsScript == null ? "" : shipsScript.trim();
-    }
-
-    public void spawn(final int x, final int z) {
-      this.spawnX = x;
-      this.spawnZ = z;
     }
 
     public void includeFragment(final String classpathPath) {
@@ -278,8 +268,6 @@ public final class GroovyArenaLoader {
       return new ArenaConfig(
           mapFile,
           shipsScript,
-          spawnX,
-          spawnZ,
           List.copyOf(fragmentIncludes),
           wallFriction,
           List.copyOf(spawners),

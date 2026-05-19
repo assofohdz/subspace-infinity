@@ -16,7 +16,6 @@ import infinity.config.PrizeConfig;
 import infinity.config.PrizeWeightsConfig;
 import infinity.config.RepelConfig;
 import infinity.config.RocketConfig;
-import infinity.config.SpawnConfig;
 import infinity.config.ThorConfig;
 import infinity.es.arena.ArenaId;
 import infinity.modules.ArenaModuleDeclarations;
@@ -59,8 +58,7 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
           FragmentBinding.of(
               "prize-weights.groovy",
               PrizeWeightsConfig.class,
-              PrizeWeightsAdapter.INSTANCE),
-          FragmentBinding.of("spawn.groovy", SpawnConfig.class, SpawnAdapter.INSTANCE));
+              PrizeWeightsAdapter.INSTANCE));
 
   private static final Map<String, FragmentBinding<?>> BY_BASENAME = indexByBasename();
 

@@ -105,9 +105,18 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
   @Override
   protected void initialize() {
     ed = requireSystem(EntityData.class);
-    spatialIndex.initialize(ed);
+    // spatialIndex looks up ArenaModuleSystem lazily — ArenaSystem boots before
+    // ArenaModuleSystem in GameServer's registration order, so capturing here
+    // would always be null. The index resolves per-call via this::getModuleSystem.
+    spatialIndex.initialize(ed, this::getModuleSystem);
     playerEntities = ed.getEntities(Player.class, BodyPosition.class);
     configRegistry = requireSystem(ConfigRegistrySystem.class);
+  }
+
+  /** Lazy lookup so spatialIndex resolves the module system after both systems have initialized. */
+  @javax.annotation.Nullable
+  infinity.modules.ArenaModuleSystem getModuleSystem() {
+    return getSystem(infinity.modules.ArenaModuleSystem.class);
   }
 
   @Override

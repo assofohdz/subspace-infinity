@@ -11,9 +11,8 @@ import org.junit.Test;
 
 /**
  * Unit coverage for {@link SpawnCircleSampler}. The sampler is the canonical
- * "uniform-in-disc" primitive used by both {@code ArenaLogic.sampleTeamSpawn}
- * (per-team spawn discs) and {@code ArenaLogic.resolveArenaSpawn}'s legacy
- * fallback path (legacy single-coord spawn with {@code SpawnConfig.spawnRadius}).
+ * "uniform-in-disc" primitive used by {@code RandomRadiusSpawnPlacement} to
+ * pick a sample point around its configured {@code center}.
  *
  * <p>Three contract pillars covered:
  * <ol>

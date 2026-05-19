@@ -6,7 +6,6 @@
 arena {
     map '04-2026-deva/bdegb.lvl'
     shipsScript '/conf/deva-04-2026/ships.groovy'
-    includeFragment '/conf/deva-04-2026/spawn.groovy'
     includeFragment '/conf/deva-04-2026/prize-weights.groovy'
     includeFragment '/conf/deva-04-2026/ship-warbird.groovy'
     includeFragment '/conf/deva-04-2026/ship-javelin.groovy'
@@ -32,7 +31,9 @@ arena {
     // 2=all weapons. Deva keeps the safe default.
     friendlyFire 0
 
-    // ADR-0008 module DSL — minimum surface (roster) so AvatarSystem can resolve
-    // a roster gate on ship-change requests in this arena.
-    roster 'all-ships'
+    // ADR-0008 module DSL — minimum surface so AvatarSystem can gate ship-change
+    // and arena can resolve spawn positions. Coords lifted 1:1 from the deleted
+    // /conf/deva-04-2026/spawn.groovy fragment.
+    roster         'all-ships'
+    spawnPlacement 'random-radius', center: [20, 20], radius: 0
 }

@@ -20,21 +20,17 @@ import java.util.List;
 public record ArenaConfig(
     String mapFile,
     String shipsScript,
-    int spawnX,
-    int spawnZ,
     List<String> fragmentIncludes,
     double wallFriction,
     List<SpawnerSpec> spawners,
     int friendlyFire,
     ArenaModuleDeclarations modules) {
 
-  /** Empty fallback — spawn at arena center, frictionless walls, friendly-fire off. */
+  /** Empty fallback — frictionless walls, friendly-fire off, no modules. */
   public static final ArenaConfig EMPTY =
       new ArenaConfig(
           "",
           "",
-          512,
-          512,
           List.of(),
           PhysicsDefaults.DEFAULT_WALL_FRICTION,
           List.of(),

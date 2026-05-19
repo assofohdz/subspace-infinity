@@ -15,7 +15,6 @@ import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mworld.WorldGrids;
 import infinity.InfinityConstants;
 import infinity.config.SpawnerSpec;
-import infinity.config.TeamSpawn;
 import infinity.es.Sensor;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaFootprint;
@@ -45,17 +44,6 @@ public final class ArenaLogic {
   private static final String ARENA_PREFIX = "Arena ";
 
   private ArenaLogic() {
-  }
-
-  /**
-   * Uniform-disc sample around a team's spawn centre. Thin delegate over
-   * {@link SpawnCircleSampler#sample(double, double, double)} — the
-   * sampler returns the exact centre when {@link TeamSpawn#radiusTiles()}
-   * is {@code 0} (point spawn) so authors get deterministic behaviour
-   * without needing to seed an RNG.
-   */
-  public static double[] sampleTeamSpawn(final TeamSpawn team) {
-    return SpawnCircleSampler.sample(team.x(), team.y(), team.radiusTiles());
   }
 
   /** Drop a trailing path separator if present. */
@@ -296,54 +284,6 @@ public final class ArenaLogic {
     }
   }
 
-  /**
-   * Resolve the world-space spawn coordinate for an arena. Pure helper:
-   * caller passes the typed {@link infinity.config.SpawnConfig}, the
-   * arena's loaded {@link ArenaMap}, and the legacy fallback (x, z) from
-   * the arena's {@link infinity.config.ArenaConfig}. Two paths:
-   *
-   * <ol>
-   *   <li><b>Typed teams.</b> When {@code spawn.teams()} is non-empty,
-   *       sample uniformly inside the freq's {@link TeamSpawn} disc
-   *       (per-team {@link TeamSpawn#radiusTiles()}).
-   *   <li><b>Legacy single-coord fallback.</b> Otherwise sample
-   *       uniformly inside the disc of radius
-   *       {@code spawn.spawnRadius()} centred on the arena.groovy-declared
-   *       {@code (legacySpawnX, legacySpawnZ)}. {@code spawnRadius == 0}
-   *       returns the exact coord (current behaviour preserved when the
-   *       knob is unset).
-   * </ol>
-   *
-   * <p>The legacy-fallback radius diverges from Subspace canon
-   * {@code [Misc] WarpRadiusLimit}, which anchors on arena <em>center</em>;
-   * Infinity anchors on the arena.groovy-declared coord. See
-   * {@link infinity.config.SpawnConfig#spawnRadius()} for the divergence
-   * note.
-   */
-  public static Vec3d resolveArenaSpawn(
-      final infinity.config.SpawnConfig spawn,
-      final int freq,
-      final ArenaMap map,
-      final double legacySpawnX,
-      final double legacySpawnZ) {
-    final TeamSpawn team = spawn.forFreq(freq);
-    if (team != null) {
-      final double[] xy = sampleTeamSpawn(team);
-      return arenaToWorld(map, xy[0], xy[1]);
-    }
-    final double[] xy =
-        SpawnCircleSampler.sample(legacySpawnX, legacySpawnZ, spawn.spawnRadius());
-    return arenaToWorld(map, xy[0], xy[1]);
-  }
-
-  /** Local copy of {@code ArenaSystem.arenaToWorld} so this helper class is self-contained. */
-  private static Vec3d arenaToWorld(
-      final ArenaMap map, final double localX, final double localZ) {
-    return new Vec3d(
-        map.getMax().x - localX,
-        InfinityConstants.GAMEPLAY_Y,
-        map.getMax().z - localZ);
-  }
 
   /**
    * Pure validation + dispatch for the {@code ~swapMap} chat command. Returns
@@ -373,8 +313,6 @@ public final class ArenaLogic {
     final infinity.config.ArenaConfig nextConfig = new infinity.config.ArenaConfig(
         newMap,
         oldConfig.shipsScript(),
-        oldConfig.spawnX(),
-        oldConfig.spawnZ(),
         oldConfig.fragmentIncludes(),
         oldConfig.wallFriction(),
         oldConfig.spawners(),

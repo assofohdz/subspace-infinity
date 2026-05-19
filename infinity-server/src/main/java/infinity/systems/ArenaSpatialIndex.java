@@ -9,9 +9,12 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.mathd.Vec3d;
 import infinity.InfinityConstants;
-import infinity.config.SpawnConfig;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
+import infinity.modules.ArenaModuleSystem;
+import infinity.modules.SpawnPlacementModule;
+import java.util.Optional;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,13 +34,15 @@ final class ArenaSpatialIndex {
 
   private EntitySet arenaEntities;
   private EntityData ed;
+  private Supplier<ArenaModuleSystem> moduleSystemLookup;
 
   ArenaSpatialIndex(final ArenaSystem arenaSystem) {
     this.arenaSystem = arenaSystem;
   }
 
-  void initialize(final EntityData ed) {
+  void initialize(final EntityData ed, final Supplier<ArenaModuleSystem> moduleSystemLookup) {
     this.ed = ed;
+    this.moduleSystemLookup = moduleSystemLookup;
     this.arenaEntities = ed.getEntities(ArenaId.class, ArenaMap.class);
   }
 
@@ -78,7 +83,11 @@ final class ArenaSpatialIndex {
     return null;
   }
 
-  /** Two-tier: typed {@link SpawnConfig} (team disc by freq wraparound) → legacy {@code ArenaConfig.spawnX/spawnZ}. */
+  /**
+   * Delegate to the active {@link SpawnPlacementModule} for {@code arenaName}. Arenas
+   * without a {@code spawnPlacement} declaration return {@code null} — caller falls back
+   * to world origin and logs.
+   */
   @Nullable
   Vec3d getArenaSpawn(final String arenaName, final int freq) {
     final ArenaSystem.ArenaRecord rec = arenaSystem.lookupRecord(arenaName);
@@ -86,16 +95,21 @@ final class ArenaSpatialIndex {
       log.warn("getArenaSpawn: arena '{}' not loaded", arenaName);
       return null;
     }
-    final ArenaMap map = ed.getComponent(rec.entityId, ArenaMap.class);
-    if (map == null) {
-      log.warn("getArenaSpawn: arena '{}' has no ArenaMap component", arenaName);
+    final ArenaModuleSystem moduleSystem = moduleSystemLookup == null ? null : moduleSystemLookup.get();
+    if (moduleSystem == null) {
+      log.warn("getArenaSpawn: ArenaModuleSystem unavailable; cannot resolve spawn for {}", arenaName);
       return null;
     }
-
-    final SpawnConfig spawn =
-        arenaSystem.getConfigRegistry().forArena(new ArenaId(arenaName, rec.entityId)).spawn();
-    return ArenaLogic.resolveArenaSpawn(
-        spawn, freq, map, rec.config.spawnX(), rec.config.spawnZ());
+    final ArenaModuleSystem.LoadedArena entry = moduleSystem.loadedFor(rec.entityId);
+    final Optional<SpawnPlacementModule> spawnPlacement =
+        entry == null ? Optional.empty() : entry.set().spawnPlacement();
+    if (spawnPlacement.isEmpty()) {
+      log.warn(
+          "getArenaSpawn: arena '{}' has no spawnPlacement module; add a 'spawnPlacement ...' DSL statement",
+          arenaName);
+      return null;
+    }
+    return spawnPlacement.get().resolveSpawn(new ArenaId(arenaName, rec.entityId), freq);
   }
 
   @Nullable

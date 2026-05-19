@@ -58,8 +58,6 @@ public class ConfigRegistrySystemLoadTest {
           new ArenaConfig(
               "trench.lvl",
               "/conf/trench-04-2026/ships.groovy",
-              512,
-              512,
               List.of(
                   "/conf/trench-04-2026/misc.groovy",
                   "/conf/trench-04-2026/bullet.groovy",
@@ -72,8 +70,7 @@ public class ConfigRegistrySystemLoadTest {
                   "/conf/trench-04-2026/decoy.groovy",
                   "/conf/trench-04-2026/portal.groovy",
                   "/conf/trench-04-2026/prize.groovy",
-                  "/conf/trench-04-2026/prize-weights.groovy",
-                  "/conf/trench-04-2026/spawn.groovy"),
+                  "/conf/trench-04-2026/prize-weights.groovy"),
               0.0,
               List.of(),
               0,
@@ -350,29 +347,6 @@ public class ConfigRegistrySystemLoadTest {
           Integer.valueOf(3),
           snapshot.prizeWeights().weights().get("Brick"));
 
-      // Slice 7: typed spawn.groovy populated the spawn slot.
-      // trench/spawn.groovy: spawnRadius 0 (exact-point legacy fallback),
-      // single team0 at (1000, 20) radius 0 — migrated 1:1 from
-      // arena.groovy's legacy `spawn 1000, 20`.
-      assertEquals(
-          "trench spawn spawnRadius = 0 (exact-point legacy fallback)",
-          0,
-          snapshot.spawn().spawnRadius());
-      assertEquals(
-          "trench spawn has 1 team authored",
-          1,
-          snapshot.spawn().teams().size());
-      final var team0 = snapshot.spawn().forFreq(0);
-      assertNotNull("trench team0 resolved for freq=0", team0);
-      assertEquals("trench team0 X = 1000 (arena-local tile)", 1000, team0.x());
-      assertEquals("trench team0 Y = 20 (arena-local tile)", 20, team0.y());
-      assertEquals("trench team0 radius = 0 (exact-point spawn)", 0, team0.radiusTiles());
-      // Wraparound: freq 1, 2, 3, 4, … all resolve to team0 because
-      // teams.size() == 1 and floorMod(N, 1) == 0.
-      assertEquals(
-          "trench freq=4 wraps to team0 (single-team config)",
-          team0,
-          snapshot.spawn().forFreq(4));
     } finally {
       systems.stop();
       systems.terminate();

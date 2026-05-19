@@ -387,7 +387,7 @@ Implements the minimum module catalog to ship one arena composition end to end:
 - `InstantRespawn` — drains death components, re-spawns immediately.
 - `TimedRoundStructure` — terminator: emits `RoundEndPending` after N minutes.
 - `ContinuousMatchStructure` — degenerate: emits `onMatchStart` at arena-load; never fires `onMatchEnd` until arena-unload; `*MatchScore` components are omitted under this matchStructure.
-- `RandomRadiusSpawnPlacement` — places players within a radius of a center point (same algorithm as today's `spawn.groovy` fragment, module-owned).
+- `RandomRadiusSpawnPlacement` — places players within a radius of a center point. Supports both single-center (`center: [x, z]`, FFA) and per-freq centers (`centers: ["0": [x, z], "1": [x, z]]`, multi-team) via Jackson kwargs binding. `ArenaSpatialIndex.getArenaSpawn` delegates to the active impl via lazy `ArenaModuleSystem` lookup. F2.6 deleted the legacy `SpawnConfig` / `TeamSpawn` / `SpawnAdapter` / `spawn.groovy` fragment pipeline + the `ArenaConfig.spawnX/spawnZ` and `arena.groovy spawn x, z` DSL. **(landed F2.6)**
 - `FlatShop` — basic shop (matches Subspace canon defaults).
 - `HighestScoreWinCondition` — decider only (no terminator role): `declareWinner()` reads `TeamRoundScore` and returns highest freq.
 - `ScoreCoordinatorSystem` writes `PlayerRoundScore` / `PlayerMatchScore` / `PlayerTotalScore` (and team / arena tiers) from drained `*Change` transients. `*MatchScore` omitted because `matchStructure 'continuous'`.

@@ -6,7 +6,6 @@
 arena {
     map '04-2026-trench/pub2025.lvl'
     shipsScript '/conf/trench-04-2026/ships.groovy'
-    includeFragment '/conf/trench-04-2026/spawn.groovy'
     includeFragment '/conf/trench-04-2026/prize-weights.groovy'
     includeFragment '/conf/trench-04-2026/ship-warbird.groovy'
     includeFragment '/conf/trench-04-2026/ship-javelin.groovy'
@@ -40,9 +39,11 @@ arena {
     // Trench stays at the safe default; testarena exercises mode 1.
     friendlyFire 0
 
-    // ADR-0008 module DSL — minimum surface (roster) so AvatarSystem can resolve
-    // a roster gate on ship-change requests in this arena.
-    roster 'all-ships'
+    // ADR-0008 module DSL — minimum surface so AvatarSystem can gate ship-change
+    // and arena can resolve spawn positions. Coords lifted 1:1 from the deleted
+    // /conf/trench-04-2026/spawn.groovy fragment.
+    roster         'all-ships'
+    spawnPlacement 'random-radius', center: [512, 512], radius: 0
 
     spawners {
         // Centre of the arena. No weights override → uses the typed

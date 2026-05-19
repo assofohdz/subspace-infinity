@@ -280,9 +280,8 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       }
       // Connect-time freq is always 0 — the player hasn't been assigned a
       // frequency yet (Frequency component is set by the team-balancing
-      // path, which runs after spawn). Maps to team0 for typed
-      // SpawnConfig arenas; legacy `arena.groovy spawn x, z` arenas
-      // ignore the freq.
+      // path, which runs after spawn). The active SpawnPlacementModule
+      // resolves freq 0 per its kwargs (center / centers[0]).
       final Vec3d spawn = arenas.getArenaSpawn(arenaName, 0);
       if (spawn == null) {
         log.warn("zone.groovy enterSpawn='{}' not loaded; spawning at world origin", arenaName);

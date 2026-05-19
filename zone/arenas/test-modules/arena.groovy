@@ -62,7 +62,6 @@
 arena {
     map '04-2026-trench/pub2025.lvl'
     shipsScript '/conf/testconf/ships.groovy'
-    includeFragment '/conf/testconf/spawn.groovy'
     includeFragment '/conf/testconf/prize-weights.groovy'
     includeFragment '/conf/testconf/ship-warbird.groovy'
     includeFragment '/conf/testconf/ship-javelin.groovy'
@@ -94,6 +93,7 @@ arena {
 
     // ADR-0008 arena-module DSL — exercised end-to-end as F2 sub-slices land.
     roster         'all-ships'         // F2.5 — global ship allow gate; permits every ship
+    spawnPlacement 'random-radius',   center: [512, 512], radius: 5  // F2.6 — replaces legacy spawn.groovy
     scoring        'kill-points',     perKill: 100
     roundStructure 'timed-round',     minutes: 5
     matchStructure 'continuous'        // rounds iterate; match never ends

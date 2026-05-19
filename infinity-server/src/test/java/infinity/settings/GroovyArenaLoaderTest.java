@@ -36,7 +36,6 @@ public class GroovyArenaLoaderTest {
     final ArenaConfigBuilder builder = new ArenaConfigBuilder();
     builder.map("04-2026-trench/pub2025.lvl");
     builder.shipsScript("/conf/trench-04-2026/ships.groovy");
-    builder.spawn(1000, 20);
     builder.includeFragment("/conf/trench-04-2026/trench.conf");
     builder.includeFragment("/conf/trench-04-2026/extra.conf");
 
@@ -44,8 +43,6 @@ public class GroovyArenaLoaderTest {
 
     assertEquals("04-2026-trench/pub2025.lvl", cfg.mapFile());
     assertEquals("/conf/trench-04-2026/ships.groovy", cfg.shipsScript());
-    assertEquals(1000, cfg.spawnX());
-    assertEquals(20, cfg.spawnZ());
     assertEquals(
         List.of("/conf/trench-04-2026/trench.conf", "/conf/trench-04-2026/extra.conf"),
         cfg.fragmentIncludes());
@@ -73,11 +70,6 @@ public class GroovyArenaLoaderTest {
 
     assertEquals("", cfg.mapFile());
     assertEquals("", cfg.shipsScript());
-    // Spawn defaults to the arena centre (512, 512) — the documented
-    // ArenaConfig.EMPTY contract — so an arena.groovy that forgets the
-    // `spawn` directive puts players in the middle, not the NW corner.
-    assertEquals(512, cfg.spawnX());
-    assertEquals(512, cfg.spawnZ());
     assertTrue(cfg.fragmentIncludes().isEmpty());
   }
 
@@ -106,7 +98,6 @@ public class GroovyArenaLoaderTest {
         ARENA_OPEN
             + "  map '04-2026-trench/pub2025.lvl'\n"
             + "  shipsScript '/conf/trench-04-2026/ships.groovy'\n"
-            + "  spawn 1000, 20\n"
             + "  wallFriction 0.5\n"
             + "  includeFragment '/conf/trench-04-2026/trench.conf'\n"
             + BLOCK_CLOSE;
@@ -115,8 +106,6 @@ public class GroovyArenaLoaderTest {
 
     assertEquals("04-2026-trench/pub2025.lvl", cfg.mapFile());
     assertEquals("/conf/trench-04-2026/ships.groovy", cfg.shipsScript());
-    assertEquals(1000, cfg.spawnX());
-    assertEquals(20, cfg.spawnZ());
     assertEquals(0.5, cfg.wallFriction(), 0.0);
     assertEquals(List.of("/conf/trench-04-2026/trench.conf"), cfg.fragmentIncludes());
   }
@@ -190,11 +179,6 @@ public class GroovyArenaLoaderTest {
     assertNotNull(empty);
     assertEquals("", empty.mapFile());
     assertEquals("", empty.shipsScript());
-    // Spawn defaults to the arena centre (512, 512) so an unconfigured arena
-    // (or one whose arena.groovy omits `spawn`) puts the player at the middle
-    // of the map instead of the NW corner.
-    assertEquals(512, empty.spawnX());
-    assertEquals(512, empty.spawnZ());
     assertTrue(empty.fragmentIncludes().isEmpty());
     assertEquals(0.0, empty.wallFriction(), 0.0);
     // Slice 9a — friendly-fire defaults to 0 (off) so unmigrated arenas keep

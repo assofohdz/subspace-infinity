@@ -5,12 +5,14 @@ package infinity.modules;
 import infinity.config.FillUpXTeamsConfig;
 import infinity.config.FirstToXWinConditionConfig;
 import infinity.config.KillPointsConfig;
+import infinity.config.RandomRadiusConfig;
 import infinity.config.TimedRoundStructureConfig;
 import infinity.modules.matchstructure.ContinuousMatchStructure;
 import infinity.modules.mechanic.FillUpXTeams;
 import infinity.modules.roster.AllShipsRoster;
 import infinity.modules.roundstructure.TimedRoundStructure;
 import infinity.modules.scoring.KillPointsScoring;
+import infinity.modules.spawnplacement.RandomRadiusSpawnPlacement;
 import infinity.modules.wincondition.FirstToXWinCondition;
 import infinity.modules.wincondition.HighestScoreWinCondition;
 import java.util.Map;
@@ -60,6 +62,12 @@ public final class ModuleCatalog {
               AllShipsRoster.class,
               null, // zero-config
               ModuleCategory.ROSTER,
+              Set.of()),
+          "random-radius",
+          new ModuleDescriptor(
+              RandomRadiusSpawnPlacement.class,
+              RandomRadiusConfig.class,
+              ModuleCategory.SPAWN_PLACEMENT,
               Set.of()));
 
   private ModuleCatalog() {}
