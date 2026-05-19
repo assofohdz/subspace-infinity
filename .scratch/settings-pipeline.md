@@ -77,8 +77,7 @@ ArenaConfig (per-arena structural — read by ArenaSystem)
 ├── map               : String
 ├── fragmentIncludes  : List<String>     ← arena.groovy include list
 ├── wallFriction      : double
-├── friendlyFire      : int (0/1/2)      ← Slice 9a; 0=off, 1=bomb splash only, 2=all
-└── spawn             : SpawnConfig      ← absorbs [Spawn]'s 12 keys (in-scope, gameplay Slice 7)
+└── friendlyFire      : int (0/1/2)      ← Slice 9a; 0=off, 1=bomb splash only, 2=all
 ```
 
 `ArenaConfig` doesn't sit in `ConfigRegistry` because `ArenaSystem`
@@ -301,7 +300,7 @@ The biggest section; bounce/safety/spawn/timer knobs that mostly aren't read on 
 | ⚠️ | `BounceFactor` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `SafetyLimit` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `TickerDelay` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
-| ✅ | `WarpRadiusLimit` → `spawnRadius` | ✅ spawn.groovy (`spawnRadius <tiles>`); diverges from Subspace canon arena-center anchor — anchors on arena.groovy-declared spawn coord | ✅ `SpawnAdapter.spawnRadius(int)` | ✅ `SpawnConfig.spawnRadius` (default 0 = exact-point) | — | ✅ `ArenaLogic.resolveArenaSpawn` legacy-fallback path samples uniformly inside disc via `SpawnCircleSampler.sample` when `spawnRadius > 0` | ✅ `SpawnCircleSamplerTest` (within-radius + uniform-in-disc) + `ConfigRegistrySystemLoadTest` (parse) |
+| 🔀 | `WarpRadiusLimit` | diverged — F2.6 replaced the typed-pipeline path with the `spawnPlacement 'random-radius', center: [x, z], radius: N` arena-module DSL kwarg (per ADR-0008 / arena-modules PRD). No longer flows through this pipeline. | n/a | n/a | n/a | `RandomRadiusSpawnPlacement.resolveSpawn` via `ArenaSpatialIndex.getArenaSpawn` | `SpawnCircleSamplerTest` (math) + manual smoke |
 | ⚠️ | `ActivateAppShutdownTime` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `NearDeathLevel` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
 | ⚠️ | `VictoryMusic` | ✅ misc.groovy | ❌ | ❌ | — | ❌ | ❌ |
@@ -427,14 +426,15 @@ Loader column below is uniform: `PrizeWeightsAdapter` reads every weight key int
 
 ## [Spawn]
 
-Per-team spawn data. Subspace canonical encoding is 12 keys (4 teams ×
-3 each: X, Y, Radius); Infinity's typed shape is a `List<TeamSpawn>` of
-arbitrary length, looked up via `freq % teams.size()` — generalizes the
-canon "Freq 4 → Team0, Freq 5 → Team1, …" wraparound to N teams.
-
-| C | Setting | Authored? | Loader | API config | Applier | Subsystem | Test |
-|---|---|---|---|---|---|---|---|
-| ✅ | per-team `Team<N>-X` / `Team<N>-Y` / `Team<N>-Radius` | ✅ trench/deva spawn.groovy | `SpawnAdapter` | `SpawnConfig.teams` | — | `ArenaSystem.getArenaSpawn(arenaName, freq)` → `GameSessionHostedService.resolveInitialSpawn` + `AvatarSystem.requestShipChange` | ✅ `ConfigRegistrySystemLoadTest` |
+🔀 Diverged from typed pipeline. F2.6 (arena-modules) replaced the per-team
+`Team<N>-X/Y/Radius` typed-fragment path with the `spawnPlacement 'random-radius'`
+arena-module DSL per ADR-0008. Per-arena spawn coords + radius are now kwargs on
+the `spawnPlacement` module declaration in `arena.groovy`; per-freq centers use
+the `centers: ["0": [x, z], "1": [x, z]]` map shape. Lookup wraps via
+`freq % centers.size()` (same semantics as legacy `freq % teams.size()`).
+Resolved by `RandomRadiusSpawnPlacement.resolveSpawn` via
+`ArenaSpatialIndex.getArenaSpawn`. No row here — see
+[`arena-modules/PRD.md`](./arena-modules/PRD.md) F2.6.
 
 ## [Spectator]
 
@@ -562,5 +562,6 @@ is the macro view.
 - **Status family `*Status` / `*Energy` ship keys:** authored in ships.groovy and the per-entity components (`CloakStatus`, `Cloak`, `CloakEnergy`, etc.) **already exist** — what's missing is the `GroovyShipLoader` read, the `*Config` field, and the prize applier. So these rows are 1 component-class step further along than they look at first glance.
 - **Component-class gaps surfaced by the v2 column:** `Proximity`, `Super`, `Shields`, `Shrap` (Shrapnel/ShrapnelMax), `BouncingBullets`, `Glue` (EngineShutdown) all need new component classes before their stub appliers can do anything meaningful.
 - **Out-of-scope (🚫):** see [`out-of-scope.md`](out-of-scope.md). Cut from this tracker and the `.groovy` sources in the typed-DSL migration sweep.
-- **In-scope but unstarted (❌):** `[Spawn]` (12 keys, today driven by hardcoded `centerOfArena`), several `[Misc]` rows that are unauthored.
+- **In-scope but unstarted (❌):** several `[Misc]` rows that are unauthored.
+- **Diverged to arena-modules (🔀):** `[Spawn]` (formerly 12 typed keys) and `[Misc] WarpRadiusLimit` — replaced by the `spawnPlacement 'random-radius'` DSL kwarg in F2.6.
 - **Test coverage:** 0 rows have any automated test today. Per the spawn-projection-test-gap, manual launch is the only verification path. Filling the Test column is a separate workstream.

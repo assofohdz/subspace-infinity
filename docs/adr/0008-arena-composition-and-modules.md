@@ -608,10 +608,10 @@ clear message; player-facing impact is the same.
 - **Slice plan.** Framework landed (F1): `ArenaModule` interface,
   `ModuleCatalog`, `ModuleLoader`, `ArenaModuleSystem`, lifecycle
   dispatcher, score coordinator. Initial concrete modules landed
-  through F2.5: `kill-points`, `timed-round`, `first-to-x`,
+  through F2.6: `kill-points`, `timed-round`, `first-to-x`,
   `highest-score`, `continuous` matchStructure, `fill-up-x-teams`
-  mechanic, `all-ships` roster. Remaining F2 modules (`instant-respawn`,
-  `random-radius` spawn, `ffa-private-freqs`, `flat` shop) land
+  mechanic, `all-ships` roster, `random-radius` spawn. Remaining F2
+  modules (`instant-respawn`, `ffa-private-freqs`, `flat` shop) land
   sub-slice by sub-slice to ship a single FFA-Deathmatch arena as
   the first consumer. Each subsequent gametype is its own slice,
   ordered by gameplay priority.

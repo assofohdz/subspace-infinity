@@ -15,7 +15,7 @@ description: ArenaModule interface (api/) — arena-composition contract per ADR
 4. **Register in `ModuleCatalog`** (`infinity-server/src/main/java/infinity/modules/ModuleCatalog.java`): add a `ModuleDescriptor(MyModule.class, MyConfig.class, ModuleCategory.X, Set.of())` entry under a short DSL id.
 5. **Reference from `arena.groovy`** with the matching DSL statement (`scoring 'my-id', kw: v` for scoring, etc.).
 
-Canonical examples to mimic: `AllShipsRoster` (zero-config marker), `KillPointsScoring` (subscribes to `EventBus`, emits `*Change` transients), `TimedRoundStructure` (per-tick state machine), `FirstToXWinCondition` (dual-role terminator + decider).
+Canonical examples to mimic: `AllShipsRoster` (zero-config marker), `KillPointsScoring` (subscribes to `EventBus`, emits `*Change` transients), `TimedRoundStructure` (per-tick state machine), `FirstToXWinCondition` (dual-role terminator + decider), `RandomRadiusSpawnPlacement` (kwargs binding with conditional shape — single `center` or per-freq `centers` map).
 
 ## Module lifecycle hooks
 
