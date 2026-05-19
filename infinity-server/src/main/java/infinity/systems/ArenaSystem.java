@@ -21,7 +21,7 @@ import infinity.settings.GroovyArenaLoader;
 import infinity.settings.GroovyFileWatcher;
 import infinity.settings.GroovyZoneLoader;
 import infinity.es.arena.ArenaMap;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.sim.ArenaManager;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -109,7 +109,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     // ArenaModuleSystem in GameServer's registration order, so capturing here
     // would always be null. The index resolves per-call via this::getModuleSystem.
     spatialIndex.initialize(ed, this::getModuleSystem);
-    playerEntities = ed.getEntities(Player.class, BodyPosition.class);
+    playerEntities = ed.getEntities(PlayerShip.class, BodyPosition.class);
     configRegistry = requireSystem(ConfigRegistrySystem.class);
   }
 

@@ -49,9 +49,10 @@ import com.simsilica.es.EntityId;
 public interface GameSessionListener {
 
     /**
-     * Called to tell the player what their current avatar entity is. This may
-     * change during the game as the player dies/respawns/whatever.
+     * Pushes the durable player entity id to the client at signon. Fires once per
+     * session; the client resolves the current ship via the {@code CurrentShip}
+     * component on this entity (absent → ghost).
      */
     @Asynchronous
-    void setAvatar(EntityId avatar);
+    void setPlayer(EntityId player);
 }

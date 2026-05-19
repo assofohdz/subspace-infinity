@@ -27,7 +27,7 @@ import infinity.client.MainGameFunctions;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;
 import infinity.es.Frequency;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 
 /**
  * Displays the list of players currently known to the client (those with a Player, Name, and
@@ -112,7 +112,8 @@ public class PlayerListState extends BaseAppState {
     final PlayerEntry[] entries = players.getArray().clone();
     java.util.Arrays.sort(entries, PlayerEntry.BY_FREQ_THEN_NAME);
 
-    final EntityId avatarId = getState(GameSessionState.class).getAvatarEntityId();
+    // PlayerEntry tracks player ships; "me" highlighting matches the current ship id.
+    final EntityId avatarId = getState(GameSessionState.class).getCurrentShipId();
     int lastFreq = Integer.MIN_VALUE;
 
     for (final PlayerEntry entry : entries) {
@@ -162,7 +163,7 @@ public class PlayerListState extends BaseAppState {
 
   private class PlayerContainer extends EntityContainer<PlayerEntry> {
     PlayerContainer(final EntityData ed) {
-      super(ed, Player.class, Name.class, Frequency.class);
+      super(ed, PlayerShip.class, Name.class, Frequency.class);
     }
 
     @Override

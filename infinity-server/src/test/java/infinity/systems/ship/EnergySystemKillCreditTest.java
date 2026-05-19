@@ -21,7 +21,7 @@ import infinity.es.Dead;
 import infinity.es.PrizeSpawnIntent;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyStats;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.es.ship.weapons.WeaponType;
 import infinity.events.arena.PlayerKilledEvent;
 import java.util.concurrent.atomic.AtomicReference;
@@ -58,7 +58,7 @@ public class EnergySystemKillCreditTest {
     final EntityId ship = ed.createEntity();
     ed.setComponent(ship, new Energy(pool));
     ed.setComponent(ship, new EnergyStats(cap, cap, 0, 0.0, 0.0, 0.0));
-    ed.setComponent(ship, new Player());
+    ed.setComponent(ship, new PlayerShip());
     final BodyPosition bp = new BodyPosition(2);
     bp.addFrame(1L, pos, new Quatd(), true);
     ed.setComponent(ship, bp);

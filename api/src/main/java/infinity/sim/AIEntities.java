@@ -14,7 +14,7 @@ import infinity.es.Frequency;
 import infinity.es.MobType;
 import infinity.es.ProbeInfo;
 import infinity.es.input.CharacterInput;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.sim.specs.ShipArgs;
 
 public class AIEntities {
@@ -45,7 +45,7 @@ public class AIEntities {
 
     // Right now we create the entity with the player component, but we don't want the mob to be a
     // player
-    ed.removeComponent(mob, Player.class);
+    ed.removeComponent(mob, PlayerShip.class);
 
     return mob;
   }

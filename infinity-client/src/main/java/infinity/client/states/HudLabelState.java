@@ -17,6 +17,7 @@ import com.jme3.scene.Spatial;
 import com.simsilica.bpos.BodyPosition;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
+import com.simsilica.es.EntityId;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.Name;
 import com.simsilica.ethereal.TimeSource;
@@ -143,7 +144,8 @@ public class HudLabelState extends BaseAppState {
       // If this is the player's ship then we don't want the model
       // shown else it looks bad.  A) it's ugly.  B) the model will
       // always lag the player's turning.
-      if (entity.getId().getId() == getState(GameSessionState.class).getAvatarEntityId().getId()) {
+      final EntityId currentShip = getState(GameSessionState.class).getCurrentShipId();
+      if (currentShip != null && entity.getId().equals(currentShip)) {
         this.isPlayerEntity = true;
       }
 

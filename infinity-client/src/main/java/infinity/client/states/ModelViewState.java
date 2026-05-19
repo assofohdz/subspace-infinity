@@ -79,8 +79,9 @@ import infinity.client.GameSessionState;
 import infinity.es.Flag;
 import infinity.es.Frequency;
 import infinity.es.ShapeNames;
-import infinity.es.ship.Player;
+import infinity.es.lifecycle.CurrentShip;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -156,8 +157,14 @@ public class ModelViewState extends BaseAppState {
   private VersionedHolder<String> spatialCount;
   EntitySet flags;
   int avatarFrequency;
-  private WatchedEntity avatarEntity;
-  private boolean avatarInitialized = false;
+  // P4 split: watch the durable player entity for CurrentShip; lazily watch
+  // the current ship for Frequency. The player watch survives ship death;
+  // the ship watch rebinds when the link changes. This is the structural
+  // fix for the death-without-respawn NPE in the pre-P4 single-watch design.
+  private WatchedEntity playerWatch;
+  private WatchedEntity shipFrequencyWatch;
+  private EntityId currentShipId;
+  private boolean avatarInitialized;
   private LocalViewState localView;
   private VersionedReference<Vec3d> posRef;
 
@@ -307,9 +314,13 @@ public class ModelViewState extends BaseAppState {
     largeModels.stop();
     flags.release();
     flags = null;
-    if (avatarEntity != null) {
-      avatarEntity.release();
-      avatarEntity = null;
+    if (playerWatch != null) {
+      playerWatch.release();
+      playerWatch = null;
+    }
+    if (shipFrequencyWatch != null) {
+      shipFrequencyWatch.release();
+      shipFrequencyWatch = null;
     }
     posRef = null;
   }
@@ -363,11 +374,7 @@ public class ModelViewState extends BaseAppState {
       spatialCount.setObject(String.valueOf(modelIndex.size()));
     }
 
-    // If our ship changes frequency, update all the flag materials
-    if (avatarEntity != null && avatarEntity.applyChanges()) {
-      avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
-      updateFlagMaterials(avatarFrequency);
-    }
+    syncAvatarLink();
 
     // If any flags change frequency, update their materials (we could be more efficient here by
     // only updating the ones that changed)
@@ -376,17 +383,58 @@ public class ModelViewState extends BaseAppState {
     }
   }
 
+  /** Two-tier watch maintenance: player → CurrentShip → ship Frequency. */
+  private void syncAvatarLink() {
+    if (playerWatch != null && playerWatch.applyChanges()) {
+      rebindShipFrequencyWatch();
+    }
+    if (shipFrequencyWatch != null && shipFrequencyWatch.applyChanges()) {
+      final Frequency f = shipFrequencyWatch.get(Frequency.class);
+      if (f != null) {
+        avatarFrequency = f.getFrequency();
+        updateFlagMaterials(avatarFrequency);
+      }
+    }
+  }
+
   private void tryInitializeAvatar() {
     if (avatarInitialized) {
       return;
     }
-    final EntityId id = getState(GameSessionState.class).getAvatarEntityId();
-    // Note: the original guard was `id != NULL_ID || id != null` which is
-    // a tautology (always true) — behaviour preserved by always proceeding.
-    this.avatarEntity = ed.watchEntity(id, Player.class, Frequency.class);
-    if (avatarEntity != null) {
-      avatarInitialized = true;
-      avatarFrequency = avatarEntity.get(Frequency.class).getFrequency();
+    final EntityId player = getState(GameSessionState.class).getPlayerEntityId();
+    if (player == null) {
+      return;
+    }
+    this.playerWatch = ed.watchEntity(player, CurrentShip.class);
+    avatarInitialized = true;
+    rebindShipFrequencyWatch();
+  }
+
+  /**
+   * Releases the previous ship-frequency watcher (if any) and acquires a new one against the
+   * current {@link CurrentShip} target. {@code null} ship = ghost state; no ship watcher and
+   * the cached {@link #avatarFrequency} sticks (flag colors freeze on last-known team until
+   * the next respawn binds a new ship).
+   */
+  private void rebindShipFrequencyWatch() {
+    final CurrentShip current = playerWatch == null ? null : playerWatch.get(CurrentShip.class);
+    final EntityId newShipId = current == null ? null : current.getShipId();
+    if (Objects.equals(currentShipId, newShipId)) {
+      return;
+    }
+    if (shipFrequencyWatch != null) {
+      shipFrequencyWatch.release();
+    }
+    currentShipId = newShipId;
+    if (newShipId == null) {
+      shipFrequencyWatch = null;
+      return;
+    }
+    shipFrequencyWatch = ed.watchEntity(newShipId, Frequency.class);
+    final Frequency f = shipFrequencyWatch.get(Frequency.class);
+    if (f != null) {
+      avatarFrequency = f.getFrequency();
+      updateFlagMaterials(avatarFrequency);
     }
   }
 

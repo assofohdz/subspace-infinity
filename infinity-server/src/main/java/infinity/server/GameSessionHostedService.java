@@ -59,7 +59,7 @@ import infinity.InfinityConstants;
 import infinity.config.EngineConfig;
 import infinity.es.arena.ArenaId;
 import infinity.es.input.MovementInput;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.events.MapAction;
 import infinity.net.ConsumableTypeId;
 import infinity.net.GameSession;
@@ -187,7 +187,13 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
   private class GameSessionImpl implements GameSession {
 
     private final HostedConnection conn;
-    private final EntityId avatarEntityId;
+    /**
+     * The ship entity created at session signon. Used for the early initial-setup phase
+     * (SimEthereal binding, conn-attribute seed, log messages). Runtime input dispatch reads
+     * {@link #currentShipId()} so it follows respawn-created ships via the durable player's
+     * {@code CurrentShip} link.
+     */
+    private final EntityId initialShipId;
     // Resolved at session-create time from zone.conf [ZoneEnterSpawn] X/Z.
     // arena.conf [Spawn] is reserved for in-arena respawn (ship change, death) and
     // is read off the ship's *current* ArenaId — which doesn't exist at connect time.
@@ -224,7 +230,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       }
       ed.setComponent(playerEntityId, new Name(playerName));
 
-      avatarEntityId =
+      initialShipId =
           ShipFactory.createPlayerShip(
               ed,
               new infinity.sim.specs.ShipArgs(
@@ -240,18 +246,34 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       final ArenaId initialArena =
           gameSystems.get(ArenaSystem.class, true).findArenaAt(spawnLoc);
       if (initialArena != null) {
-        ed.setComponent(avatarEntityId, initialArena);
+        ed.setComponent(initialShipId, initialArena);
       }
 
-      ed.setComponent(avatarEntityId, new Player());
+      ed.setComponent(initialShipId, new PlayerShip());
 
-      conn.setAttribute(ATTRIBUTE_AVATAR, avatarEntityId.getId());
+      conn.setAttribute(ATTRIBUTE_AVATAR, initialShipId.getId());
 
       if (log.isInfoEnabled()) {
-        log.info("avatarId({})", avatarEntityId.getId());
+        log.info("avatarId({})", initialShipId.getId());
       }
 
-      log.info("createdAvatar:{}", avatarEntityId);
+      log.info("createdAvatar:{}", initialShipId);
+    }
+
+    /**
+     * Reads the player's current ship via {@code CurrentShip} on the durable player entity
+     * (per ADR-0008 / player-vs-ship-identity PRD). Refreshes {@code ATTRIBUTE_AVATAR} on
+     * the connection so chat command dispatch (which reads the attribute via
+     * {@link #getAvatarEntity(HostedConnection)}) stays in sync after respawn. Returns
+     * {@code null} when the player is a ghost.
+     */
+    @javax.annotation.Nullable
+    private EntityId currentShipId() {
+      final infinity.es.lifecycle.CurrentShip cs =
+          ed.getComponent(playerEntityId, infinity.es.lifecycle.CurrentShip.class);
+      final EntityId shipId = cs == null ? null : cs.getShipId();
+      conn.setAttribute(ATTRIBUTE_AVATAR, shipId == null ? null : shipId.getId());
+      return shipId;
     }
 
     /**
@@ -293,17 +315,17 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
     public void initialize() {
       log.info("GameSessionImpl.initialize()");
       if (getCallback(false) != null) {
-        getCallback(true).setAvatar(avatarEntityId);
+        getCallback(true).setPlayer(playerEntityId);
       } else {
         // Apparently when we call initialize to soon we don't have the delegate
         // yet. So this model only works with a separate login step.
-        log.warn("No game session callback registered so can't send avatar entity.");
+        log.warn("No game session callback registered so can't send player entity.");
       }
 
       // Setup to start using SimEthereal synching
       final EtherealHost ethereal = getService(EtherealHost.class);
       ethereal.startHostingOnConnection(conn);
-      ethereal.setConnectionObject(conn, avatarEntityId.getId(), spawnLoc);
+      ethereal.setConnectionObject(conn, initialShipId.getId(), spawnLoc);
       final EntityDataHostedService eds = getService(EntityDataHostedService.class);
 
       // Setup a filter for BodyPosition components to match what
@@ -334,12 +356,12 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
     @Override
     public Vec3d getPlayerLocation() {
-      return ed.getComponent(avatarEntityId, BodyPosition.class).getLastLocation();
-    }
-
-    @Override
-    public EntityId getAvatar() {
-      return avatarEntityId;
+      final EntityId ship = currentShipId();
+      if (ship == null) {
+        return spawnLoc; // ghost — last-known is the session spawn
+      }
+      final BodyPosition bp = ed.getComponent(ship, BodyPosition.class);
+      return bp == null ? spawnLoc : bp.getLastLocation();
     }
 
     @Override
@@ -347,22 +369,27 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       if (!spawned) {
         spawned = true;
       }
-
-      // Force our viewpoint to the network view.
-      // This is a bit of a hack and not officially supported to keep
-      // resetting yourself... but it works.
-      final NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
-      if (nsl != null) {
-        nsl.setSelf(avatarEntityId.getId(), location);
-      }
-
       lastViewLoc.set(location);
       lastViewOrient.set(rotation);
+
+      final EntityId ship = currentShipId();
+      if (ship == null) {
+        return; // ghost — no body to rebind SimEthereal to
+      }
+      // Force our viewpoint to the network view. setSelf rebinds the connection's
+      // "self" each call, which means a ship-id swap (respawn) is picked up here.
+      final NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
+      if (nsl != null) {
+        nsl.setSelf(ship.getId(), location);
+      }
     }
 
     @Override
     public void setMovementInput(final MovementInput input) {
-      ed.setComponent(avatarEntityId, input);
+      final EntityId ship = currentShipId();
+      if (ship != null) {
+        ed.setComponent(ship, input);
+      }
     }
 
     protected GameSessionListener getCallback(final boolean failFast) {
@@ -381,16 +408,23 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
     @Override
     public void move(final MovementInput movementForces) {
-      ed.setComponent(avatarEntityId, movementForces);
+      final EntityId ship = currentShipId();
+      if (ship != null) {
+        ed.setComponent(ship, movementForces);
+      }
     }
 
     @Override
     @SuppressWarnings("PMD.CyclomaticComplexity") // CC=10 from action-code switch dispatch; flattening would just hide the table
     public void action(final byte actionInput) {
+      final EntityId ship = currentShipId();
+      if (ship == null) {
+        return; // ghost — ignore actions
+      }
       final ConsumableTypeId action = ConsumableTypeId.fromWireId(actionInput);
       switch (action) {
         case WARP:
-          warpSys.warpToCenter(avatarEntityId);
+          warpSys.warpToCenter(ship);
           return;
         case FIRETHOR:
         case REPEL:
@@ -399,7 +433,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
         case PLACEBRICK:
         case PLACEDECOY:
         case PLACEPORTAL:
-          actionSys.sessionAct(avatarEntityId, action.wireId());
+          actionSys.sessionAct(ship, action.wireId());
           return;
         default:
           throw new IllegalStateException("Unexpected: " + action);
@@ -408,12 +442,18 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
 
     @Override
     public void attack(final byte attackInput) {
-      weaponsFireSystem.sessionAttack(avatarEntityId, attackInput);
+      final EntityId ship = currentShipId();
+      if (ship != null) {
+        weaponsFireSystem.sessionAttack(ship, attackInput);
+      }
     }
 
     @Override
     public void avatar(final byte avatarInput) {
-      avatarSys.requestShipChange(avatarEntityId, avatarInput);
+      final EntityId ship = currentShipId();
+      if (ship != null) {
+        avatarSys.requestShipChange(ship, avatarInput);
+      }
     }
 
     @Override

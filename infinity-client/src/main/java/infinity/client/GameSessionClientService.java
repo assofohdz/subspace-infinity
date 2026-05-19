@@ -70,11 +70,6 @@ public class GameSessionClientService extends AbstractClientService implements G
     }
 
     @Override
-    public EntityId getAvatar() {
-        return getDelegate().getAvatar();
-    }
-
-    @Override
     public void setView(final Quatd rotation, final Vec3d location) {
         if (log.isTraceEnabled()) {
             log.trace("setView(" + rotation + ", " + location + ")");
@@ -172,11 +167,11 @@ public class GameSessionClientService extends AbstractClientService implements G
     private class GameSessionCallback implements GameSessionListener {
 
         @Override
-        public void setAvatar(final EntityId avatar) {
+        public void setPlayer(final EntityId player) {
 
-            log.info("setAvatar({})", avatar);
+            log.info("setPlayer({})", player);
             for (final GameSessionListener l : listeners) {
-                l.setAvatar(avatar);
+                l.setPlayer(player);
             }
         }
     }

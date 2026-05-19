@@ -106,7 +106,7 @@ import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.CollidesWithLargeStatics;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.es.ship.RadarRange;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.internal.CubeFactory;
@@ -599,7 +599,7 @@ public class GameServer {
     Serializer.registerClass(TileType.class, new FieldSerializer());
     Serializer.registerClass(PointLightComponent.class, new FieldSerializer());
     Serializer.registerClass(Decay.class, new FieldSerializer());
-    Serializer.registerClass(Player.class, new FieldSerializer());
+    Serializer.registerClass(PlayerShip.class, new FieldSerializer());
     Serializer.registerClass(MovementInput.class, new FieldSerializer());
     Serializer.registerClass(ArenaId.class, new FieldSerializer());
     Serializer.registerClass(ArenaMap.class, new FieldSerializer());
@@ -614,6 +614,9 @@ public class GameServer {
     Serializer.registerClass(infinity.es.Jitter.class, new FieldSerializer());
     // Death-cycle: Dead is observable by clients (future death animations + HUD).
     Serializer.registerClass(infinity.es.Dead.class, new FieldSerializer());
+    // Player → ship reverse link (P2 of player-vs-ship-identity PRD). Client watches it to
+    // resolve the durable player entity's current ship without holding a stale ship watcher.
+    Serializer.registerClass(infinity.es.lifecycle.CurrentShip.class, new FieldSerializer());
   }
 
   public Server getServer() {

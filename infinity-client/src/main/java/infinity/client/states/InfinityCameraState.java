@@ -21,6 +21,7 @@ import com.simsilica.mathd.Vec3d;
 import com.simsilica.state.CameraState;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionClientService;
+import infinity.client.GameSessionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,28 +46,24 @@ public class InfinityCameraState extends CameraState implements AnalogFunctionLi
 
   private final TimeSource time;
   private GameSessionClientService session;
-  private final EntityId avatarId;
+  private EntityData ed;
+  // P4 split: camera follows the current ship's BodyPosition; watcher rebinds
+  // on death + respawn via GameSessionState.getCurrentShipId().
+  private EntityId watchedShipId;
   private WatchedEntity self;
 
   private float distance = DEFAULT_DISTANCE;
 
-  public InfinityCameraState(final EntityId avatar, final TimeSource timeSource) {
+  public InfinityCameraState(final TimeSource timeSource) {
     super();
-    this.avatarId = avatar;
     this.time = timeSource;
   }
 
   @Override
   protected void initialize(final Application app) {
-    EntityData ed = getState(ConnectionState.class).getEntityData();
+    ed = getState(ConnectionState.class).getEntityData();
     session = getState(ConnectionState.class).getService(GameSessionClientService.class);
-    self = ed.watchEntity(avatarId, BodyPosition.class);
-    log.info("self:{}", self);
-    BodyPosition bodyPos = self.get(BodyPosition.class);
-    log.info("self pos:{}", bodyPos);
-    if (bodyPos != null) {
-      bodyPos.initialize(avatarId, 12);
-    }
+    // Ship watcher binds lazily in update() once the player's CurrentShip resolves.
   }
 
   @Override
@@ -79,16 +76,44 @@ public class InfinityCameraState extends CameraState implements AnalogFunctionLi
 
   @Override
   public void update(final float tpf) {
+    rebindIfShipChanged();
+    if (self == null) {
+      return; // ghost state — no body to follow
+    }
     if (self.applyChanges()) {
-      log.info("self changes");
       BodyPosition bodyPos = self.get(BodyPosition.class);
-      log.info("self pos update:{}", bodyPos);
       if (bodyPos != null) {
-        bodyPos.initialize(avatarId, 12);
+        bodyPos.initialize(watchedShipId, 12);
       }
     } else {
       BodyPosition bodyPos = self.get(BodyPosition.class);
-      updateAvatarPosition(bodyPos);
+      if (bodyPos != null) {
+        updateAvatarPosition(bodyPos);
+      }
+    }
+  }
+
+  private void rebindIfShipChanged() {
+    final EntityId currentShip = getState(GameSessionState.class).getCurrentShipId();
+    if (currentShip == null) {
+      if (self != null) {
+        self.release();
+        self = null;
+        watchedShipId = null;
+      }
+      return;
+    }
+    if (currentShip.equals(watchedShipId)) {
+      return;
+    }
+    if (self != null) {
+      self.release();
+    }
+    watchedShipId = currentShip;
+    self = ed.watchEntity(watchedShipId, BodyPosition.class);
+    BodyPosition bodyPos = self.get(BodyPosition.class);
+    if (bodyPos != null) {
+      bodyPos.initialize(watchedShipId, 12);
     }
   }
 

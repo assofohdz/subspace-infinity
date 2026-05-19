@@ -223,9 +223,8 @@ public class AvatarMovementState extends BaseAppState
     if (timeSource == null || ed == null) {
       return null;
     }
-    if (avatarWatch == null) {
-      lazyBindAvatarWatch();
-    } else if (avatarWatch.applyChanges()) {
+    rebindAvatarWatchIfNeeded();
+    if (avatarWatch != null && avatarWatch.applyChanges()) {
       refreshAvatarBodyPos();
     }
     if (avatarBodyPos == null) {
@@ -239,17 +238,32 @@ public class AvatarMovementState extends BaseAppState
     return frame.getPosition(t, true);
   }
 
-  /** Resolve the avatar entity id and start a watch + initial BodyPosition bind. */
-  private void lazyBindAvatarWatch() {
-    EntityId id = getState(GameSessionState.class).getAvatarEntityId();
-    if (id == null || EntityId.NULL_ID.equals(id)) {
+  /**
+   * Resolve the current ship via {@code GameSessionState.getCurrentShipId()} and start a watch
+   * on its {@code BodyPosition}. Rebinds when the link changes (death + respawn → new ship);
+   * releases the watcher in the ghost state so the position freezes at the last-known value.
+   */
+  private void rebindAvatarWatchIfNeeded() {
+    final EntityId currentShip = getState(GameSessionState.class).getCurrentShipId();
+    if (currentShip == null) {
+      if (avatarWatch != null) {
+        avatarWatch.release();
+        avatarWatch = null;
+        avatarId = null;
+      }
       return;
     }
-    avatarId = id;
-    avatarWatch = ed.watchEntity(id, BodyPosition.class);
+    if (currentShip.equals(avatarId)) {
+      return;
+    }
+    if (avatarWatch != null) {
+      avatarWatch.release();
+    }
+    avatarId = currentShip;
+    avatarWatch = ed.watchEntity(avatarId, BodyPosition.class);
     BodyPosition bp = avatarWatch.get(BodyPosition.class);
     if (bp != null) {
-      bp.initialize(id, 12);
+      bp.initialize(avatarId, 12);
       avatarBodyPos = bp;
     }
   }

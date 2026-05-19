@@ -11,7 +11,7 @@ import infinity.es.ChangeTarget;
 import infinity.es.Frequency;
 import infinity.es.FrequencyChange;
 import infinity.es.arena.ArenaId;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.es.ship.ShipType;
 import infinity.es.team.TeamEntity;
 import infinity.es.team.TeamMemberCount;
@@ -48,7 +48,7 @@ public final class FfaPrivateFreqsTeamSetup implements TeamSetupModule {
     this.ed = ctx.ed();
     this.arenaId = ctx.arenaId();
     this.arenaEntityId = ctx.arenaEntity();
-    this.playerShips = ed.getEntities(ArenaId.class, Frequency.class, ShipType.class, Player.class);
+    this.playerShips = ed.getEntities(ArenaId.class, Frequency.class, ShipType.class, PlayerShip.class);
   }
 
   @Override

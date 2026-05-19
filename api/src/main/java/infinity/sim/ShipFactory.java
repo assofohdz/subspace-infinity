@@ -23,7 +23,7 @@ import infinity.es.PointLightComponent;
 import infinity.es.ShapeNames;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.CollidesWithLargeStatics;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.actions.RocketBuff;
 import infinity.es.ship.actions.RocketSnapshot;
@@ -74,7 +74,7 @@ public final class ShipFactory {
 
     final EntityId result = createShip(ed, spec);
 
-    ed.setComponent(result, new Player());
+    ed.setComponent(result, new PlayerShip());
     ed.setComponent(result, new Name("player"));
 
     // Seed freq=0 — default team for human players; freq-aware paths (chat

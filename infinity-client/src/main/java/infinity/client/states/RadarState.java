@@ -84,6 +84,8 @@ public class RadarState extends BaseAppState {
 
     private EntityData ed;
     private TimeSource timeSource;
+    // P4 split: avatar identity is the durable player; the watcher targets the current ship
+    // (resolved via GameSessionState.getCurrentShipId), rebinds across death + respawn.
     private EntityId avatarEntityId;
     private WatchedEntity avatarWatch;
     private BodyPosition avatarBodyPos;
@@ -249,21 +251,29 @@ public class RadarState extends BaseAppState {
     }
 
     private void resolveAvatar() {
-        if (avatarEntityId == null) {
-            final EntityId id = getState(GameSessionState.class).getAvatarEntityId();
-            if (id == null || EntityId.NULL_ID.equals(id)) {
-                return;
+        final EntityId currentShip = getState(GameSessionState.class).getCurrentShipId();
+        if (currentShip == null) {
+            // Ghost state — release any prior watcher; radar continues to render the
+            // world but no own-ship anchor (the last-known view freezes via BodyPosition).
+            if (avatarWatch != null) {
+                avatarWatch.release();
+                avatarWatch = null;
             }
-            avatarEntityId = id;
-            // Once the avatar id resolves, the local-player-vs-everyone-else colour
-            // partition shifts: the blip already attached for our own ship was painted
-            // with its own-frequency colour. Repaint everything now so the self blip
-            // flips to THEME.selfColor().
-            recolorAllBlips();
+            avatarEntityId = null;
+            avatarBodyPos = null;
+            currentAvatarFreq = null;
+            return;
         }
-        if (avatarWatch == null) {
+        if (!currentShip.equals(avatarEntityId)) {
+            if (avatarWatch != null) {
+                avatarWatch.release();
+            }
+            avatarEntityId = currentShip;
             avatarWatch = ed.watchEntity(
                     avatarEntityId, BodyPosition.class, RadarRange.class, Frequency.class);
+            // New self-blip → repaint everything (existing blip on our ship was painted
+            // as "other player"; flip to THEME.selfColor()).
+            recolorAllBlips();
             final BodyPosition bp = avatarWatch.get(BodyPosition.class);
             if (bp != null) {
                 bp.initialize(avatarEntityId, 12);

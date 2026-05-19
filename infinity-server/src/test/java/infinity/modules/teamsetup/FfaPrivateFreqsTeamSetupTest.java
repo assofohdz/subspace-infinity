@@ -14,7 +14,7 @@ import infinity.es.ChangeTarget;
 import infinity.es.Frequency;
 import infinity.es.FrequencyChange;
 import infinity.es.arena.ArenaId;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.es.ship.ShipType;
 import infinity.es.team.TeamEntity;
 import infinity.es.team.TeamMemberCount;
@@ -177,7 +177,7 @@ public final class FfaPrivateFreqsTeamSetupTest {
     ed.setComponent(ship, arena);
     ed.setComponent(ship, new Frequency(seedFrequency));
     ed.setComponent(ship, new ShipType(Ship.WARBIRD));
-    ed.setComponent(ship, new Player());
+    ed.setComponent(ship, new PlayerShip());
     return ship;
   }
 

@@ -18,7 +18,7 @@ import com.simsilica.sim.SimTime;
 import infinity.es.CollisionCategory;
 import infinity.es.PrizeType;
 import infinity.es.PrizeTypes;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.server.chat.InfinityChatHostedService;
 import infinity.sim.AccessLevel;
 import infinity.sim.CollisionFilters;
@@ -104,7 +104,7 @@ public class PrizeConsumptionSystem extends BaseInfinitySystem
     final ComponentFilter<?> prizeColliderFilter =
         FieldFilter.create(
             CollisionCategory.class, "filter", CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS);
-    ships = ed.getEntities(shipColliderFilter, Player.class);
+    ships = ed.getEntities(shipColliderFilter, PlayerShip.class);
     prizes = ed.getEntities(prizeColliderFilter, PrizeType.class);
 
     final EnergySystem energySystem = requireSystem(EnergySystem.class);

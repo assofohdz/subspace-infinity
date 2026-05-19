@@ -21,7 +21,7 @@ import infinity.es.PrizeWeightsOverride;
 import infinity.es.Spawner;
 import infinity.es.SphereShape;
 import infinity.es.arena.ArenaId;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineConfigSystem;
 import infinity.sim.CollisionFilters;
@@ -116,7 +116,7 @@ public class PrizeSpawnerSystem extends BaseInfinitySystem {
     final ComponentFilter<?> prizeColliderFilter =
         FieldFilter.create(
             CollisionCategory.class, "filter", CollisionFilters.FILTER_CATEGORY_DYNAMIC_MAPOBJECTS);
-    ships = ed.getEntities(shipColliderFilter, Player.class);
+    ships = ed.getEntities(shipColliderFilter, PlayerShip.class);
     prizes = ed.getEntities(prizeColliderFilter, PrizeType.class);
 
     random = new Random();

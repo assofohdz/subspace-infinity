@@ -24,21 +24,20 @@ import org.slf4j.LoggerFactory;
  * per-frame offset stacks on top of CameraState's tracked location. CameraState
  * rewrites the location each frame, so the perturbation is non-accumulating.
  *
- * <p>Avatar id is lazy-resolved in {@link #update} ({@code GameSessionState} fetches
- * it via RMI; value may be {@code null} / {@code NULL_ID} at initialize). Per
- * {@code client-read-only.md}, single-entity component reads go through
- * {@link com.simsilica.es.EntityData#watchEntity}, not {@code ed.getComponent}.
+ * <p>P4 split: the {@code Jitter} read targets the current ship (which dies + respawns);
+ * the watcher rebinds via {@code GameSessionState.getCurrentShipId()}. Ghost state =
+ * no current ship = no jitter (no shake to render anyway).
  */
 public final class JitterState extends BaseAppState {
 
-  // Pattern 4 candidate — promote to engine.groovy when a per-zone tunable need materializes.
+  // Tunable candidate — promote to engine.groovy when a per-zone need materializes.
   private static final float MAX_OFFSET = 0.5f;
 
   static final Logger log = LoggerFactory.getLogger(JitterState.class);
 
   private EntityData ed;
   private TimeSource timeSource;
-  private EntityId avatarEntityId;
+  private EntityId watchedShipId;
   private WatchedEntity self;
 
   @Override
@@ -68,15 +67,22 @@ public final class JitterState extends BaseAppState {
 
   @Override
   public void update(final float tpf) {
-    if (avatarEntityId == null) {
-      final EntityId id = getState(GameSessionState.class).getAvatarEntityId();
-      if (id == null || EntityId.NULL_ID.equals(id)) {
-        return;
+    final EntityId currentShip = getState(GameSessionState.class).getCurrentShipId();
+    if (currentShip == null) {
+      // Ghost state — release any prior watcher and skip; no ship → no jitter.
+      if (self != null) {
+        self.release();
+        self = null;
+        watchedShipId = null;
       }
-      avatarEntityId = id;
+      return;
     }
-    if (self == null) {
-      self = ed.watchEntity(avatarEntityId, Jitter.class);
+    if (!currentShip.equals(watchedShipId)) {
+      if (self != null) {
+        self.release();
+      }
+      self = ed.watchEntity(currentShip, Jitter.class);
+      watchedShipId = currentShip;
     }
     self.applyChanges();
 

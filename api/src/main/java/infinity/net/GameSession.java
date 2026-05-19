@@ -52,10 +52,10 @@ import infinity.events.MapAction;
 public interface GameSession {
 
     /**
-     * Returns the ID of the player's current 'avatar' in the game.
+     * Returns the durable player entity for this connection. Persists across ship death,
+     * respawn, ship-change. The current ship (if any) is reachable via the
+     * {@code CurrentShip} component on the player.
      */
-    EntityId getAvatar();
-
     EntityId getPlayer();
 
     Vec3d getPlayerLocation();

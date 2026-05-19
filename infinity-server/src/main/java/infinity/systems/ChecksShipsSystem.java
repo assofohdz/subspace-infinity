@@ -11,13 +11,16 @@ import com.simsilica.es.EntitySet;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.es.Captain;
+import infinity.es.ChangeTarget;
+import infinity.es.Dead;
 import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
 import infinity.es.ship.BounceRestitution;
 import infinity.es.ship.Energy;
+import infinity.es.ship.EnergyChange;
 import infinity.es.ship.EnergyStats;
 import infinity.es.ship.LinearDamping;
-import infinity.es.ship.Player;
+import infinity.es.ship.PlayerShip;
 import infinity.es.ship.RadarRange;
 import infinity.es.ship.Rotation;
 import infinity.es.ship.RotationStats;
@@ -60,15 +63,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Ship / avatar diagnostic chat commands. Read-only.
+ * Ship / avatar diagnostic chat commands.
  * <ul>
- *   <li>{@code ~checkships} — Pattern-4 component-coverage audit across
+ *   <li>{@code ~checkships} — spawn-projection component-coverage audit across
  *       all live ships (Energy/Stats × Rotation/Thrust/Speed + weapon
  *       current/max pairs; missing = projection bug).
  *   <li>{@code ~ship [id]} — deep-dump every projected component on one
  *       ship (default: caller's avatar).
  *   <li>{@code ~checkcaptains} — verifies {@code AvatarSystem.isCaptain}
  *       agrees with the {@link Captain} EntitySet.
+ *   <li>{@code ~kill} — self-destruct via canonical EnergyChange drain; smoke-test
+ *       seam for the player-vs-ship-identity ghost-state flow.
  * </ul>
  */
 @SuppressWarnings("PMD.CyclomaticComplexity") // dispatcher with many small per-check methods; flattening would just hide the table
@@ -82,6 +87,7 @@ public class ChecksShipsSystem extends AbstractGameSystem {
   /** {@code ~ship} = your avatar; {@code ~ship 17} = ship by EntityId. */
   private final Pattern checkShipCommand = Pattern.compile("\\~ship(?:\\s+(\\d+))?");
   private final Pattern checkCaptainsCommand = Pattern.compile("\\~checkcaptains");
+  private final Pattern killSelfCommand = Pattern.compile("\\~kill");
 
   private EntityData ed;
   private EntitySet ships;
@@ -93,13 +99,13 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     ed = getSystem(EntityData.class);
     avatarSystem = getSystem(AvatarSystem.class);
 
-    ships = ed.getEntities(ShipType.class, Player.class);
+    ships = ed.getEntities(ShipType.class, PlayerShip.class);
     captains = ed.getEntities(Captain.class);
 
     final ChatHostedPoster chat = getSystem(InfinityChatHostedService.class);
     chat.registerPatternTriConsumer(
         checkShipsCommand,
-        "~checkships — audits Pattern-4 component coverage on each live ship",
+        "~checkships — audits spawn-projection component coverage on each live ship",
         new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::checkShips));
     chat.registerPatternTriConsumer(
         checkShipCommand,
@@ -109,6 +115,10 @@ public class ChecksShipsSystem extends AbstractGameSystem {
         checkCaptainsCommand,
         "~checkcaptains — verifies AvatarSystem.isCaptain agrees with the Captain EntitySet",
         new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::checkCaptains));
+    chat.registerPatternTriConsumer(
+        killSelfCommand,
+        "~kill — drop your own ship's energy to 0 (death + ghost-state smoke testing)",
+        new CommandTriFunction<>(AccessLevel.PLAYER_LEVEL, this::killSelf));
   }
 
   @Override
@@ -154,7 +164,7 @@ public class ChecksShipsSystem extends AbstractGameSystem {
           .append(arenaId == null ? "<none>" : arenaId.getArena())
           .append('\n');
 
-      // Engine stats — Pattern-4 baseline; missing here = projection bug.
+      // Engine stats — spawn-projection baseline; missing here = projection bug.
       final int missing = appendComponentMatrix(sb, id,
           Energy.class, EnergyStats.class,
           Rotation.class, RotationStats.class,
@@ -247,6 +257,29 @@ public class ChecksShipsSystem extends AbstractGameSystem {
     sb.append('\n');
 
     return sb.toString();
+  }
+
+  /**
+   * Self-destruct via the canonical EnergyChange drain — large negative delta pushes the
+   * ship's Energy past 0, {@code EnergySystem} stamps {@link Dead} on the death edge,
+   * {@code DeathSystem} stamps {@code Decay} for despawn next tick. Useful for smoke-testing
+   * the player-vs-ship-identity ghost-state flow without finding a teammate to bomb.
+   */
+  @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature
+  private String killSelf(
+      final EntityId playerEntityId, final EntityId avatarEntityId, final Matcher matcher) {
+    if (avatarEntityId == null) {
+      return "~kill: no avatar to kill";
+    }
+    if (ed.getComponent(avatarEntityId, Dead.class) != null) {
+      return "~kill: already dead";
+    }
+    final EntityId holder = ed.createEntity();
+    ed.setComponents(
+        holder,
+        ChangeTarget.self(avatarEntityId),
+        new EnergyChange(-1_000_000));
+    return "Self-destruct initiated.";
   }
 
   @SuppressWarnings("PMD.UnusedFormalParameter") // CommandTriFunction signature

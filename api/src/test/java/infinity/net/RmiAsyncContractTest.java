@@ -26,7 +26,7 @@ import org.junit.Test;
  * forget) based on whether the interface method is annotated
  * {@link Asynchronous}. Player-input commands ({@code setView},
  * {@code setMovementInput}, {@code attack} …) and listener callbacks
- * ({@code notifyLoginStatus}, {@code setAvatar} …) MUST be async — a
+ * ({@code notifyLoginStatus}, {@code setPlayer} …) MUST be async — a
  * synchronous client→server input call would block the render thread
  * for one full RTT per frame, and a synchronous server→client callback
  * would let one slow client stall the network thread for everyone.
@@ -44,7 +44,7 @@ public class RmiAsyncContractTest {
       new HashSet<>(Arrays.asList("getServerInfo"));
 
   private static final Set<String> SYNC_ALLOWLIST_GAME_SESSION =
-      new HashSet<>(Arrays.asList("getAvatar", "getPlayer", "getPlayerLocation"));
+      new HashSet<>(Arrays.asList("getPlayer", "getPlayerLocation"));
 
   private static final Set<String> SYNC_ALLOWLIST_CHAT_SESSION =
       new HashSet<>(Arrays.asList("getPlayerNames"));

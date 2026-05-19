@@ -40,8 +40,11 @@ import com.jme3.app.Application;
 import com.jme3.math.ColorRGBA;
 import com.jme3.texture.plugins.AWTLoader;
 import com.simsilica.builder.BuilderState;
+import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.ethereal.TimeSource;
+import infinity.es.lifecycle.CurrentShip;
+import javax.annotation.Nullable;
 import com.simsilica.mworld.view.ProgressState;
 import com.simsilica.state.BlackboardState;
 import com.simsilica.state.CompositeAppState;
@@ -74,7 +77,7 @@ import infinity.client.view.SkyState;
 /** Active while the player is in a game session; owns the in-game sub-states. */
 public final class GameSessionState extends CompositeAppState {
 
-  private EntityId avatarEntityId;
+  private EntityId playerEntityId;
 
   public GameSessionState() {
     super(
@@ -108,8 +111,8 @@ public final class GameSessionState extends CompositeAppState {
 
   @Override
   protected void initialize(final Application app) {
-    avatarEntityId =
-        getState(ConnectionState.class).getService(GameSessionClientService.class).getAvatar();
+    playerEntityId =
+        getState(ConnectionState.class).getService(GameSessionClientService.class).getPlayer();
     // See if this is local host mode. This stuff should maybe be moved
     // to its own debug manager state.
     final HostState host = getState(HostState.class);
@@ -124,7 +127,7 @@ public final class GameSessionState extends CompositeAppState {
 
     getState(TimeState.class).setTimeSource(timeSource);
 
-    InfinityCameraState cameraState = new InfinityCameraState(avatarEntityId, timeSource);
+    InfinityCameraState cameraState = new InfinityCameraState(timeSource);
     addChild(cameraState);
     // Slice 9c-JitterTime: camera-shake state must run after the camera
     // tracker so its offset additively perturbs CameraState's tracked
@@ -156,8 +159,27 @@ public final class GameSessionState extends CompositeAppState {
     // Auto-generated method stub
   }
 
-  //A method to get the avatar entity id
-  public EntityId getAvatarEntityId() {
-    return avatarEntityId;
+  /** Durable player entity id for this session — never changes for the lifetime of the connection. */
+  public EntityId getPlayerEntityId() {
+    return playerEntityId;
+  }
+
+  /**
+   * Resolves the player's current ship via {@link CurrentShip} on the durable player entity.
+   * Returns {@code null} when the player has no ship (between death and respawn — ghost state).
+   * The lookup goes through the client {@link EntityData}, so the answer reflects the latest
+   * synced state from SimEthereal.
+   */
+  @Nullable
+  public EntityId getCurrentShipId() {
+    if (playerEntityId == null) {
+      return null;
+    }
+    final EntityData ed = getState(ConnectionState.class).getEntityData();
+    if (ed == null) {
+      return null;
+    }
+    final CurrentShip current = ed.getComponent(playerEntityId, CurrentShip.class);
+    return current == null ? null : current.getShipId();
   }
 }

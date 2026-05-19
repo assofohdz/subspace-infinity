@@ -37,7 +37,7 @@ public class PositionHudState extends BaseAppState {
   private static final String ARENA_PLACEHOLDER = "arena: -";
 
   private EntityData ed;
-  private EntityId avatarEntityId;
+  private EntityId watchedShipId;
   private ArenaRegistryState arenaRegistry;
   private BlackboardState blackboard;
   private VersionedReference<Vec3d> posRef;
@@ -51,10 +51,8 @@ public class PositionHudState extends BaseAppState {
     ed = getState(ConnectionState.class).getEntityData();
     arenaRegistry = getState(ArenaRegistryState.class);
     blackboard = getState(BlackboardState.class, true);
-    // avatarEntityId is resolved lazily in update() — GameSessionState fetches it via
-    // an RMI roundtrip on connect, and depending on AppState attach order this state
-    // can initialize before that result arrives. AvatarMovementState uses the same
-    // lazy-resolve pattern; reading the id here would cache a null forever.
+    // Ship id is resolved lazily in update() via GameSessionState.getCurrentShipId() —
+    // the watcher rebinds when the player's CurrentShip link changes (death + respawn).
 
     hud = new Container();
     worldLabel = hud.addChild(new Label("world: -"));
@@ -143,19 +141,23 @@ public class PositionHudState extends BaseAppState {
         String.format("arena:  %s  (%.0f, %.0f)", snap.arenaName, localX, localZ));
   }
 
-  // Lazy-resolves avatar id (RMI) and binds a one-component watch on its {@link ArenaId}.
+  // Rebinds the ArenaId watch when the player's current ship changes (death + respawn).
   private ArenaId resolveArenaId() {
-    if (avatarEntityId == null) {
-      final EntityId id = getState(GameSessionState.class).getAvatarEntityId();
-      if (id != null && !EntityId.NULL_ID.equals(id)) {
-        avatarEntityId = id;
+    final EntityId currentShip = getState(GameSessionState.class).getCurrentShipId();
+    if (currentShip == null) {
+      if (avatarWatch != null) {
+        avatarWatch.release();
+        avatarWatch = null;
+        watchedShipId = null;
       }
-    }
-    if (avatarWatch == null && avatarEntityId != null) {
-      avatarWatch = ed.watchEntity(avatarEntityId, ArenaId.class);
-    }
-    if (avatarWatch == null) {
       return null;
+    }
+    if (!currentShip.equals(watchedShipId)) {
+      if (avatarWatch != null) {
+        avatarWatch.release();
+      }
+      avatarWatch = ed.watchEntity(currentShip, ArenaId.class);
+      watchedShipId = currentShip;
     }
     avatarWatch.applyChanges();
     return avatarWatch.get(ArenaId.class);

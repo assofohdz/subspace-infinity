@@ -74,7 +74,7 @@ Per [`components.md`](../../.claude/rules/components.md): immutable, no-arg ctor
 `AvatarSystem` becomes the canonical writer of `CurrentShip` on the player entity:
 
 - **On spawn / respawn** — when a ship entity is created for the player, stamp `CurrentShip(shipId)` on the player.
-- **On ship-change** (Pattern-4 projection onto the same entity-id, current behaviour for `requestShipChange`) — no change, the ship-entity-id didn't change so the link is still valid.
+- **On ship-change** (in-place re-projection onto the same entity-id, current behaviour for `requestShipChange` — `ShipType` is rewritten, the ship entity stays alive) — no change, the ship-entity-id didn't change so the link is still valid.
 - **On death** — when `DeathSystem` stamps `Dead`+`Decay`, also remove `CurrentShip` from the player. The player is now a ghost. The ship entity is despawned next tick by the reaper.
 
 Per ADR-0001 (canonical writer rule): `AvatarSystem` is the only system that writes `CurrentShip`. Other systems that need to react to "player got a new ship" observe the component change via `EntitySet` / `WatchedEntity`.

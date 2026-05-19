@@ -16,12 +16,16 @@ import com.simsilica.mathd.Vec3d;
 import infinity.Ship;
 import infinity.es.Captain;
 import infinity.es.ChangeTarget;
+import infinity.es.Dead;
 import infinity.es.Frequency;
 import infinity.es.FrequencyChange;
+import infinity.es.Parent;
 import infinity.es.ShapeNames;
 import infinity.es.arena.ArenaId;
+import infinity.es.lifecycle.CurrentShip;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyStats;
+import infinity.es.ship.PlayerShip;
 import infinity.es.ship.ResetLivePool;
 import infinity.es.ship.ShipType;
 import infinity.es.ship.ShipTypeChange;
@@ -47,13 +51,18 @@ public class AvatarSystem extends BaseInfinitySystem {
   // LANCASTER/SHARK) live in api/ as `infinity.net.ShipTypeId`. The chat-side
   // entry point takes a raw byte off the wire — convert via
   // `ShipTypeId.fromWireId(byte)` for enum-level dispatch.
-  private EntityData ed;
+  // package-private for AvatarSystemTest — see syncCurrentShipLinks().
+  EntityData ed;
   private EngineConfigSystem engineConfigSystem;
   private ArenaModuleSystem arenaModules;
   private EntitySet frequencies;
   private EntitySet shipTypeChanges;
 
   private EntitySet captains;
+  /** Player ships entering the world — link target for {@link CurrentShip} stamp. */
+  EntitySet playerShips;
+  /** Player ships marked {@link Dead} — link source for {@link CurrentShip} removal. */
+  EntitySet deadPlayerShips;
 
   public AvatarSystem() {
     // no-arg ctor — wiring happens in initialize()
@@ -68,6 +77,8 @@ public class AvatarSystem extends BaseInfinitySystem {
     frequencies = ed.getEntities(ShapeInfo.class, Frequency.class);
     captains = ed.getEntities(ShapeInfo.class, Captain.class);
     shipTypeChanges = ed.getEntities(ShipTypeChange.class, ChangeTarget.class);
+    playerShips = ed.getEntities(PlayerShip.class, Parent.class);
+    deadPlayerShips = ed.getEntities(PlayerShip.class, Parent.class, Dead.class);
   }
 
   @Override
@@ -81,6 +92,12 @@ public class AvatarSystem extends BaseInfinitySystem {
 
     shipTypeChanges.release();
     shipTypeChanges = null;
+
+    playerShips.release();
+    playerShips = null;
+
+    deadPlayerShips.release();
+    deadPlayerShips = null;
   }
 
   @SuppressWarnings("unused")
@@ -89,6 +106,37 @@ public class AvatarSystem extends BaseInfinitySystem {
     captains.applyChanges();
     shipTypeChanges.applyChanges();
     drainShipTypeChanges();
+    syncCurrentShipLinks();
+  }
+
+  /**
+   * Maintains {@link CurrentShip} on player entities per ADR-0008 / player-vs-ship-identity PRD.
+   * Stamp on each newly-arrived player ship; in-place ship-change (same entity id, re-projected
+   * via {@code ShipSpawnSystem}) does not fire an addedEntity event so the link stays valid
+   * without extra work. Remove when the ship is marked {@link Dead} — the player becomes a
+   * ghost until a respawn module rebinds.
+   */
+  // package-private for AvatarSystemCurrentShipTest.
+  void syncCurrentShipLinks() {
+    playerShips.applyChanges();
+    deadPlayerShips.applyChanges();
+    for (final Entity added : playerShips.getAddedEntities()) {
+      final EntityId player = added.get(Parent.class).getParentEntityId();
+      if (player == null) {
+        continue;
+      }
+      ed.setComponent(player, new CurrentShip(added.getId()));
+    }
+    for (final Entity dead : deadPlayerShips.getAddedEntities()) {
+      final EntityId player = dead.get(Parent.class).getParentEntityId();
+      if (player == null) {
+        continue;
+      }
+      final CurrentShip current = ed.getComponent(player, CurrentShip.class);
+      if (current != null && dead.getId().equals(current.getShipId())) {
+        ed.removeComponent(player, CurrentShip.class);
+      }
+    }
   }
 
   /** Canonical drain — value-replacement; last-write-wins same-tick. */
