@@ -70,6 +70,12 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
     return null;
   }
 
+  /** {@link ArenaModuleSetLookup} adapter for {@link ModuleContext}. {@code null} if not loaded. */
+  ArenaModuleSet moduleSetFor(final ArenaId arenaId) {
+    final LoadedArena entry = loadedFor(arenaId);
+    return entry == null ? null : entry.set();
+  }
+
   @Override
   protected void initialize() {
     ed = requireSystem(EntityData.class);
@@ -101,6 +107,7 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
       }
     }
     tickTeamSetups(time);
+    tickRespawnPolicies(time);
     tickRoundStructures(time);
     tickWinConditions();
     tickMechanics(time);
@@ -110,6 +117,13 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
   private void tickTeamSetups(final SimTime time) {
     for (final LoadedArena entry : loaded.values()) {
       entry.set().teamSetup().ifPresent(m -> m.tickTeamSetup(entry.arenaId(), time));
+    }
+  }
+
+  /** Per-tick dispatch for the per-arena {@code respawnPolicy} module (if any). */
+  private void tickRespawnPolicies(final SimTime time) {
+    for (final LoadedArena entry : loaded.values()) {
+      entry.set().respawnPolicy().ifPresent(m -> m.tickRespawnPolicy(entry.arenaId(), time));
     }
   }
 
@@ -160,7 +174,8 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
       return;
     }
 
-    final ModuleContext context = new ModuleContext(arenaId, entityId, ed, chat, physics);
+    final ModuleContext context =
+        new ModuleContext(arenaId, entityId, ed, chat, physics, this::moduleSetFor);
     final ArenaModuleSet set = ModuleLoader.build(decls, context);
     loaded.put(entityId, new LoadedArena(arenaId, set));
     bootstrapLifecycle(entityId, arenaId, set);

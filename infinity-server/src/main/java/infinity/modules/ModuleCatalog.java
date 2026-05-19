@@ -2,6 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.modules;
 
+import infinity.config.CooldownRespawnConfig;
 import infinity.config.FillUpXTeamsConfig;
 import infinity.config.FirstToXWinConditionConfig;
 import infinity.config.KillPointsConfig;
@@ -9,9 +10,12 @@ import infinity.config.RandomRadiusConfig;
 import infinity.config.TimedRoundStructureConfig;
 import infinity.modules.matchstructure.ContinuousMatchStructure;
 import infinity.modules.mechanic.FillUpXTeams;
+import infinity.modules.respawn.CooldownRespawn;
+import infinity.modules.respawn.InstantRespawn;
 import infinity.modules.roster.AllShipsRoster;
 import infinity.modules.roundstructure.TimedRoundStructure;
 import infinity.modules.scoring.KillPointsScoring;
+import infinity.modules.shop.FlatShop;
 import infinity.modules.spawnplacement.RandomRadiusSpawnPlacement;
 import infinity.modules.teamsetup.FfaPrivateFreqsTeamSetup;
 import infinity.modules.wincondition.FirstToXWinCondition;
@@ -24,58 +28,48 @@ import javax.annotation.Nullable;
 public final class ModuleCatalog {
 
   private static final Map<String, ModuleDescriptor> CATALOG =
-      Map.of(
-          "kill-points",
-          new ModuleDescriptor(
-              KillPointsScoring.class, KillPointsConfig.class, ModuleCategory.SCORING, Set.of()),
-          "timed-round",
-          new ModuleDescriptor(
-              TimedRoundStructure.class,
-              TimedRoundStructureConfig.class,
-              ModuleCategory.ROUND_STRUCTURE,
-              Set.of()),
-          "continuous",
-          new ModuleDescriptor(
-              ContinuousMatchStructure.class,
-              null, // zero-config
-              ModuleCategory.MATCH_STRUCTURE,
-              Set.of()),
-          "fill-up-x-teams",
-          new ModuleDescriptor(
-              FillUpXTeams.class,
-              FillUpXTeamsConfig.class,
-              ModuleCategory.MECHANIC,
-              Set.of()),
-          "highest-score",
-          new ModuleDescriptor(
-              HighestScoreWinCondition.class,
-              null, // zero-config — no kwargs accepted at validate time
-              ModuleCategory.WIN_CONDITION,
-              Set.of()),
-          "first-to-x",
-          new ModuleDescriptor(
-              FirstToXWinCondition.class,
-              FirstToXWinConditionConfig.class,
-              ModuleCategory.WIN_CONDITION,
-              Set.of()),
-          "all-ships",
-          new ModuleDescriptor(
-              AllShipsRoster.class,
-              null, // zero-config
-              ModuleCategory.ROSTER,
-              Set.of()),
-          "random-radius",
-          new ModuleDescriptor(
-              RandomRadiusSpawnPlacement.class,
-              RandomRadiusConfig.class,
-              ModuleCategory.SPAWN_PLACEMENT,
-              Set.of()),
-          "ffa-private-freqs",
-          new ModuleDescriptor(
-              FfaPrivateFreqsTeamSetup.class,
-              null, // zero-config
-              ModuleCategory.TEAM_SETUP,
-              Set.of()));
+      Map.ofEntries(
+          Map.entry("kill-points",
+              new ModuleDescriptor(
+                  KillPointsScoring.class, KillPointsConfig.class, ModuleCategory.SCORING,
+                  Set.of())),
+          Map.entry("timed-round",
+              new ModuleDescriptor(
+                  TimedRoundStructure.class, TimedRoundStructureConfig.class,
+                  ModuleCategory.ROUND_STRUCTURE, Set.of())),
+          Map.entry("continuous",
+              new ModuleDescriptor(
+                  ContinuousMatchStructure.class, null, ModuleCategory.MATCH_STRUCTURE, Set.of())),
+          Map.entry("fill-up-x-teams",
+              new ModuleDescriptor(
+                  FillUpXTeams.class, FillUpXTeamsConfig.class, ModuleCategory.MECHANIC, Set.of())),
+          Map.entry("highest-score",
+              new ModuleDescriptor(
+                  HighestScoreWinCondition.class, null, ModuleCategory.WIN_CONDITION, Set.of())),
+          Map.entry("first-to-x",
+              new ModuleDescriptor(
+                  FirstToXWinCondition.class, FirstToXWinConditionConfig.class,
+                  ModuleCategory.WIN_CONDITION, Set.of())),
+          Map.entry("all-ships",
+              new ModuleDescriptor(
+                  AllShipsRoster.class, null, ModuleCategory.ROSTER, Set.of())),
+          Map.entry("random-radius",
+              new ModuleDescriptor(
+                  RandomRadiusSpawnPlacement.class, RandomRadiusConfig.class,
+                  ModuleCategory.SPAWN_PLACEMENT, Set.of())),
+          Map.entry("ffa-private-freqs",
+              new ModuleDescriptor(
+                  FfaPrivateFreqsTeamSetup.class, null, ModuleCategory.TEAM_SETUP, Set.of())),
+          Map.entry("instant-respawn",
+              new ModuleDescriptor(
+                  InstantRespawn.class, null, ModuleCategory.RESPAWN_POLICY, Set.of())),
+          Map.entry("cooldown-respawn",
+              new ModuleDescriptor(
+                  CooldownRespawn.class, CooldownRespawnConfig.class,
+                  ModuleCategory.RESPAWN_POLICY, Set.of())),
+          Map.entry("flat-shop",
+              new ModuleDescriptor(
+                  FlatShop.class, null, ModuleCategory.SHOP, Set.of())));
 
   private ModuleCatalog() {}
 

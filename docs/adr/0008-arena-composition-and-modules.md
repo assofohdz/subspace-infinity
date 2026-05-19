@@ -608,13 +608,14 @@ clear message; player-facing impact is the same.
 - **Slice plan.** Framework landed (F1): `ArenaModule` interface,
   `ModuleCatalog`, `ModuleLoader`, `ArenaModuleSystem`, lifecycle
   dispatcher, score coordinator. Initial concrete modules landed
-  through F2.7: `kill-points`, `timed-round`, `first-to-x`,
+  through F2.10: `kill-points`, `timed-round`, `first-to-x`,
   `highest-score`, `continuous` matchStructure, `fill-up-x-teams`
   mechanic, `all-ships` roster, `random-radius` spawn,
-  `ffa-private-freqs` teamSetup. Remaining F2 modules
-  (`instant-respawn`, `flat` shop) land sub-slice by sub-slice to ship
-  a single FFA-Deathmatch arena as the first consumer. Each subsequent
-  gametype is its own slice, ordered by gameplay priority.
+  `ffa-private-freqs` teamSetup, `instant-respawn` + `cooldown-respawn`
+  respawnPolicies, `flat-shop` (stub). F2 capstone:
+  `zone/arenas/ffa/arena.groovy` composes the catalog into a playable
+  FFA-Deathmatch arena. **F2 complete.** Subsequent gametypes (Trench,
+  KOTH, CTF, …) are their own slices, ordered by gameplay priority.
 - **Module-author docs.** A short authoring guide alongside this ADR
   for "how do I write a new scoring module?". Covers the lifecycle
   interface, the contribution-emission pattern, the cleanup contract,

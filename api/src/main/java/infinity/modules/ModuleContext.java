@@ -25,4 +25,16 @@ public record ModuleContext(
     EntityId arenaEntity,
     EntityData ed,
     @Nullable ChatHostedPoster chat,
-    @Nullable PhysicsManager physics) {}
+    @Nullable PhysicsManager physics,
+    @Nullable ArenaModuleSetLookup modules) {
+
+  /** Test-friendly constructor — defaults {@code modules} to {@code null}. */
+  public ModuleContext(
+      final ArenaId arenaId,
+      final EntityId arenaEntity,
+      final EntityData ed,
+      @Nullable final ChatHostedPoster chat,
+      @Nullable final PhysicsManager physics) {
+    this(arenaId, arenaEntity, ed, chat, physics, null);
+  }
+}
