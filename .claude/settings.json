@@ -63,7 +63,6 @@
       "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity merge*)",
       "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity stash*)",
       "Bash(git stash *)",
-      "Bash(git commit *)",
       "Bash(git merge *)",
       "Bash(git * | grep *)",
 
