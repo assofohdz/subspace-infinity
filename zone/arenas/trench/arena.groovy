@@ -39,11 +39,31 @@ arena {
     // Trench stays at the safe default; testarena exercises mode 1.
     friendlyFire 0
 
-    // ADR-0008 module DSL — minimum surface so AvatarSystem can gate ship-change
-    // and arena can resolve spawn positions. Coords lifted 1:1 from the deleted
-    // /conf/trench-04-2026/spawn.groovy fragment.
+    // ADR-0008 module DSL — F4 turf-shaped composition.
+    //   - teamSetup 'two-fixed-teams' — eager 2-team setup (freq 0 + 1), balanced joins.
+    //   - roster 'all-ships' — global allow gate.
+    //   - respawnPolicy 'instant-respawn' — fresh ship immediately after death.
+    //   - spawnPlacement 'random-radius', center: [512, 512], radius: 0 — exact-point spawn at center.
+    //     (Per-team centers come with multi-spawn-zone work later.)
+    //   - scoring 'kill-points' + 'flag-hold-time' — layered: kills + per-second flag occupancy.
+    //   - roundStructure 'timed-round', minutes: 10 — 10-minute rounds.
+    //   - matchStructure 'continuous' — rounds iterate forever.
+    //   - winCondition 'most-flag-occupancy' — first non-UNDECIDED decider; reads TeamFlagHoldTicks.
+    //   - winCondition 'highest-score' — fallback when no team has occupancy yet.
+    //
+    // Flag entities still come from the map's flag tiles via MapFactory.createTurfStationaryFlag
+    // (LegacyMapProjector) — no `mechanic 'static-flag'` needed because FlagSystem is an
+    // always-loaded server system that handles flag-touch contacts on every arena.
+    teamSetup      'two-fixed-teams'
     roster         'all-ships'
-    spawnPlacement 'random-radius', center: [512, 512], radius: 0
+    respawnPolicy  'instant-respawn'
+    spawnPlacement 'random-radius',    center: [512, 512], radius: 0
+    scoring        'kill-points',      perKill: 100
+    scoring        'flag-hold-time',   perSecondPerFlag: 5
+    roundStructure 'timed-round',      minutes: 10
+    matchStructure 'continuous'
+    winCondition   'most-flag-occupancy'
+    winCondition   'highest-score'
 
     spawners {
         // Centre of the arena. No weights override → uses the typed

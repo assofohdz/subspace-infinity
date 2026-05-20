@@ -480,6 +480,9 @@ public class GameServer {
     systems.register(MapSystem.class, new MapSystem());
     systems.register(WarpSystem.class, new WarpSystem());
     systems.register(FrequencySystem.class, new FrequencySystem());
+    // F4b — flag-touch handler extracted from FrequencySystem. Canonical writer of
+    // FlagOwnership on flag entities; ship-vs-flag contacts route here, not to FrequencySystem.
+    systems.register(infinity.systems.FlagSystem.class, new infinity.systems.FlagSystem());
 
     systems.register(WorldSystem.class, new WorldSystem());
 
@@ -599,6 +602,8 @@ public class GameServer {
     Serializer.registerClass(Name.class, new FieldSerializer());
     Serializer.registerClass(Frequency.class, new FieldSerializer());
     Serializer.registerClass(Flag.class, new FieldSerializer());
+    Serializer.registerClass(infinity.es.FlagOwnership.class, new FieldSerializer());
+    Serializer.registerClass(infinity.es.team.TeamFlagHoldTicks.class, new FieldSerializer());
     Serializer.registerClass(Gold.class, new FieldSerializer());
     Serializer.registerClass(AudioType.class, new FieldSerializer());
     Serializer.registerClass(Parent.class, new FieldSerializer());

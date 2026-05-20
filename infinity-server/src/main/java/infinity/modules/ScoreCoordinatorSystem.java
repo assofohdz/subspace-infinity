@@ -14,6 +14,10 @@ import infinity.es.score.PlayerRoundScore;
 import infinity.es.score.PlayerScoreChange;
 import infinity.es.score.PlayerTotalScore;
 import infinity.es.score.ScoreReset;
+import infinity.es.score.TeamMatchScore;
+import infinity.es.score.TeamRoundScore;
+import infinity.es.score.TeamScoreChange;
+import infinity.es.score.TeamTotalScore;
 import infinity.systems.BaseInfinitySystem;
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -24,12 +28,13 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Canonical writer for the three player-tier score components
- * ({@link PlayerRoundScore}, {@link PlayerMatchScore}, {@link PlayerTotalScore})
+ * Canonical writer for the player-tier and team-tier score components
+ * ({@link PlayerRoundScore}, {@link PlayerMatchScore}, {@link PlayerTotalScore},
+ * {@link TeamRoundScore}, {@link TeamMatchScore}, {@link TeamTotalScore})
  * per ADR-0001 / ADR-0008. Each drained {@link PlayerScoreChange} adds its delta
- * to ALL three tiers in one pass — the three tiers diverge only when
- * {@link ScoreReset} markers zero a tier on round-end (ROUND) or match-end
- * (MATCH). {@link PlayerTotalScore} accumulates across the arena session.
+ * to ALL three player tiers in one pass; same for {@link TeamScoreChange} on team
+ * entities. Tiers diverge only when {@link ScoreReset} markers zero a tier on
+ * round-end (ROUND) or match-end (MATCH). Total tiers never reset.
  *
  * <p>Missing prior tier value = treat as 0. One-shot: change entities are
  * destroyed after apply (no Decay-bound score buffs in F2*).
@@ -37,53 +42,86 @@ import java.util.Set;
 public final class ScoreCoordinatorSystem extends BaseInfinitySystem {
 
   private EntityData ed;
-  private EntitySet changes;
+  private EntitySet playerChanges;
+  private EntitySet teamChanges;
   private EntitySet resets;
   private EntitySet roundScored;
   private EntitySet matchScored;
+  private EntitySet teamRoundScored;
+  private EntitySet teamMatchScored;
 
   @Override
   protected void initialize() {
     ed = requireSystem(EntityData.class);
-    changes = ed.getEntities(PlayerScoreChange.class, ChangeTarget.class);
+    playerChanges = ed.getEntities(PlayerScoreChange.class, ChangeTarget.class);
+    teamChanges = ed.getEntities(TeamScoreChange.class, ChangeTarget.class);
     resets = ed.getEntities(ArenaId.class, ScoreReset.class);
     roundScored = ed.getEntities(ArenaId.class, PlayerRoundScore.class);
     matchScored = ed.getEntities(ArenaId.class, PlayerMatchScore.class);
+    teamRoundScored = ed.getEntities(ArenaId.class, TeamRoundScore.class);
+    teamMatchScored = ed.getEntities(ArenaId.class, TeamMatchScore.class);
   }
 
   @Override
   protected void terminate() {
-    changes.release();
-    changes = null;
+    playerChanges.release();
+    playerChanges = null;
+    teamChanges.release();
+    teamChanges = null;
     resets.release();
     resets = null;
     roundScored.release();
     roundScored = null;
     matchScored.release();
     matchScored = null;
+    teamRoundScored.release();
+    teamRoundScored = null;
+    teamMatchScored.release();
+    teamMatchScored = null;
   }
 
   @Override
   public void update(final SimTime time) {
-    changes.applyChanges();
+    playerChanges.applyChanges();
+    teamChanges.applyChanges();
     resets.applyChanges();
     roundScored.applyChanges();
     matchScored.applyChanges();
+    teamRoundScored.applyChanges();
+    teamMatchScored.applyChanges();
     drainPlayerScoreChanges();
+    drainTeamScoreChanges();
     drainScoreResets();
   }
 
   private void drainPlayerScoreChanges() {
     final Map<EntityId, Integer> deltaByTarget = new HashMap<>();
     final List<EntityId> oneShotHolders = new ArrayList<>();
-    for (final Entity added : changes.getAddedEntities()) {
+    for (final Entity added : playerChanges.getAddedEntities()) {
       final ChangeTarget ct = added.get(ChangeTarget.class);
       final int delta = added.get(PlayerScoreChange.class).delta();
       deltaByTarget.merge(ct.target(), delta, Integer::sum);
       oneShotHolders.add(added.getId());
     }
     for (final Map.Entry<EntityId, Integer> e : deltaByTarget.entrySet()) {
-      applyDelta(e.getKey(), e.getValue());
+      applyPlayerDelta(e.getKey(), e.getValue());
+    }
+    for (final EntityId id : oneShotHolders) {
+      ed.removeEntity(id);
+    }
+  }
+
+  private void drainTeamScoreChanges() {
+    final Map<EntityId, Integer> deltaByTarget = new HashMap<>();
+    final List<EntityId> oneShotHolders = new ArrayList<>();
+    for (final Entity added : teamChanges.getAddedEntities()) {
+      final ChangeTarget ct = added.get(ChangeTarget.class);
+      final int delta = added.get(TeamScoreChange.class).delta();
+      deltaByTarget.merge(ct.target(), delta, Integer::sum);
+      oneShotHolders.add(added.getId());
+    }
+    for (final Map.Entry<EntityId, Integer> e : deltaByTarget.entrySet()) {
+      applyTeamDelta(e.getKey(), e.getValue());
     }
     for (final EntityId id : oneShotHolders) {
       ed.removeEntity(id);
@@ -91,7 +129,7 @@ public final class ScoreCoordinatorSystem extends BaseInfinitySystem {
   }
 
   /** Adds {@code delta} to all three player-tier components in one pass. */
-  private void applyDelta(final EntityId target, final int delta) {
+  private void applyPlayerDelta(final EntityId target, final int delta) {
     if (delta == 0) {
       return;
     }
@@ -101,6 +139,19 @@ public final class ScoreCoordinatorSystem extends BaseInfinitySystem {
     ed.setComponent(target, new PlayerRoundScore((round == null ? 0 : round.getValue()) + delta));
     ed.setComponent(target, new PlayerMatchScore((match == null ? 0 : match.getValue()) + delta));
     ed.setComponent(target, new PlayerTotalScore((total == null ? 0 : total.getValue()) + delta));
+  }
+
+  /** Adds {@code delta} to all three team-tier components in one pass. */
+  private void applyTeamDelta(final EntityId target, final int delta) {
+    if (delta == 0) {
+      return;
+    }
+    final TeamRoundScore round = ed.getComponent(target, TeamRoundScore.class);
+    final TeamMatchScore match = ed.getComponent(target, TeamMatchScore.class);
+    final TeamTotalScore total = ed.getComponent(target, TeamTotalScore.class);
+    ed.setComponent(target, new TeamRoundScore((round == null ? 0 : round.getValue()) + delta));
+    ed.setComponent(target, new TeamMatchScore((match == null ? 0 : match.getValue()) + delta));
+    ed.setComponent(target, new TeamTotalScore((total == null ? 0 : total.getValue()) + delta));
   }
 
   /**
@@ -124,18 +175,23 @@ public final class ScoreCoordinatorSystem extends BaseInfinitySystem {
     final Set<String> roundArenas = new HashSet<>(
         arenasByScope.getOrDefault(ScoreReset.Scope.ROUND, Set.of()));
     roundArenas.addAll(matchArenas);
-    if (!roundArenas.isEmpty()) {
-      for (final Entity p : roundScored) {
-        if (roundArenas.contains(p.get(ArenaId.class).getArena())) {
-          ed.setComponent(p.getId(), new PlayerRoundScore(0));
-        }
-      }
+    zeroInArenas(roundScored, roundArenas, id -> new PlayerRoundScore(0));
+    zeroInArenas(teamRoundScored, roundArenas, id -> new TeamRoundScore(0));
+    zeroInArenas(matchScored, matchArenas, id -> new PlayerMatchScore(0));
+    zeroInArenas(teamMatchScored, matchArenas, id -> new TeamMatchScore(0));
+  }
+
+  /** Zero a score tier component on every entity in {@code scoped} whose ArenaId is in {@code arenas}. */
+  private void zeroInArenas(
+      final EntitySet scoped,
+      final Set<String> arenas,
+      final java.util.function.Function<EntityId, com.simsilica.es.EntityComponent> zeroFactory) {
+    if (arenas.isEmpty()) {
+      return;
     }
-    if (!matchArenas.isEmpty()) {
-      for (final Entity p : matchScored) {
-        if (matchArenas.contains(p.get(ArenaId.class).getArena())) {
-          ed.setComponent(p.getId(), new PlayerMatchScore(0));
-        }
+    for (final Entity e : scoped) {
+      if (arenas.contains(e.get(ArenaId.class).getArena())) {
+        ed.setComponent(e.getId(), zeroFactory.apply(e.getId()));
       }
     }
   }

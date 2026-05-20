@@ -16,6 +16,10 @@ import infinity.es.score.PlayerRoundScore;
 import infinity.es.score.PlayerScoreChange;
 import infinity.es.score.PlayerTotalScore;
 import infinity.es.score.ScoreReset;
+import infinity.es.score.TeamMatchScore;
+import infinity.es.score.TeamRoundScore;
+import infinity.es.score.TeamScoreChange;
+import infinity.es.score.TeamTotalScore;
 import org.junit.Test;
 
 /** Pins {@link ScoreCoordinatorSystem}'s drain semantics. */
@@ -184,5 +188,108 @@ public final class ScoreCoordinatorSystemTest {
     final EntityId change = ed.createEntity();
     ed.setComponents(change, new ChangeTarget(target, target), new PlayerScoreChange(delta));
     return change;
+  }
+
+  private static EntityId emitTeam(final EntityData ed, final EntityId team, final int delta) {
+    final EntityId change = ed.createEntity();
+    ed.setComponents(change, new ChangeTarget(team, team), new TeamScoreChange(delta));
+    return change;
+  }
+
+  @Test
+  public void teamScoreChange_writesAllThreeTeamTiers() {
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    registerSystems(systems, ed);
+    try {
+      final EntityId team = ed.createEntity();
+      final EntityId change = emitTeam(ed, team, 75);
+
+      systems.update();
+
+      assertEquals(75, ed.getComponent(team, TeamRoundScore.class).getValue());
+      assertEquals(75, ed.getComponent(team, TeamMatchScore.class).getValue());
+      assertEquals(75, ed.getComponent(team, TeamTotalScore.class).getValue());
+      assertNull("one-shot drain destroyed the team change entity",
+          ed.getComponent(change, TeamScoreChange.class));
+    } finally {
+      stop(systems);
+    }
+  }
+
+  @Test
+  public void teamScoreChange_multipleDeltasSameTick_sumPerTeam() {
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    registerSystems(systems, ed);
+    try {
+      final EntityId teamA = ed.createEntity();
+      final EntityId teamB = ed.createEntity();
+      emitTeam(ed, teamA, 50);
+      emitTeam(ed, teamA, 25);
+      emitTeam(ed, teamB, 10);
+
+      systems.update();
+
+      assertEquals(75, ed.getComponent(teamA, TeamRoundScore.class).getValue());
+      assertEquals(10, ed.getComponent(teamB, TeamRoundScore.class).getValue());
+    } finally {
+      stop(systems);
+    }
+  }
+
+  @Test
+  public void roundReset_zeroesTeamRoundScore_preservesTeamTotal() {
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    registerSystems(systems, ed);
+    try {
+      final EntityId arenaEntity = ed.createEntity();
+      final ArenaId arenaId = new ArenaId("trench", arenaEntity);
+      final EntityId team = ed.createEntity();
+      ed.setComponent(team, arenaId);
+      ed.setComponent(team, new TeamRoundScore(200));
+      ed.setComponent(team, new TeamMatchScore(500));
+      ed.setComponent(team, new TeamTotalScore(900));
+      ed.setComponent(arenaEntity, arenaId);
+      ed.setComponent(arenaEntity, new ScoreReset(ScoreReset.Scope.ROUND));
+
+      systems.update();
+
+      assertEquals(0, ed.getComponent(team, TeamRoundScore.class).getValue());
+      assertEquals("MATCH untouched on ROUND reset",
+          500, ed.getComponent(team, TeamMatchScore.class).getValue());
+      assertEquals("TOTAL never resets",
+          900, ed.getComponent(team, TeamTotalScore.class).getValue());
+    } finally {
+      stop(systems);
+    }
+  }
+
+  @Test
+  public void matchReset_zeroesTeamMatchAndRound_preservesTeamTotal() {
+    final GameSystemManager systems = new GameSystemManager();
+    final DefaultEntityData ed = new DefaultEntityData();
+    registerSystems(systems, ed);
+    try {
+      final EntityId arenaEntity = ed.createEntity();
+      final ArenaId arenaId = new ArenaId("trench", arenaEntity);
+      final EntityId team = ed.createEntity();
+      ed.setComponent(team, arenaId);
+      ed.setComponent(team, new TeamRoundScore(120));
+      ed.setComponent(team, new TeamMatchScore(420));
+      ed.setComponent(team, new TeamTotalScore(900));
+      ed.setComponent(arenaEntity, arenaId);
+      ed.setComponent(arenaEntity, new ScoreReset(ScoreReset.Scope.MATCH));
+
+      systems.update();
+
+      assertEquals(0, ed.getComponent(team, TeamMatchScore.class).getValue());
+      assertEquals("MATCH reset cascades to ROUND",
+          0, ed.getComponent(team, TeamRoundScore.class).getValue());
+      assertEquals(900, ed.getComponent(team, TeamTotalScore.class).getValue());
+    } finally {
+      stop(systems);
+    }
   }
 }

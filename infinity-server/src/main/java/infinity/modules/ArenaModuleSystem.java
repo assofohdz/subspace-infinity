@@ -110,8 +110,18 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
     tickTeamSetups(time);
     tickRespawnPolicies(time);
     tickRoundStructures(time);
-    tickWinConditions();
     tickMechanics(time);
+    tickScoringContributions(time);
+    tickWinConditions();
+  }
+
+  /** Per-tick dispatch for layered {@code scoring} modules (state-publishing phase). */
+  private void tickScoringContributions(final SimTime time) {
+    for (final LoadedArena entry : loaded.values()) {
+      for (final ScoringModule m : entry.set().scoring()) {
+        m.tickContributions(entry.arenaId(), time);
+      }
+    }
   }
 
   /** Per-tick dispatch for the per-arena {@code teamSetup} module (if any). */

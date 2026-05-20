@@ -5,6 +5,7 @@ package infinity.modules;
 import infinity.config.CooldownRespawnConfig;
 import infinity.config.FillUpXTeamsConfig;
 import infinity.config.FirstToXWinConditionConfig;
+import infinity.config.FlagHoldTimeConfig;
 import infinity.config.KillPointsConfig;
 import infinity.config.RandomRadiusConfig;
 import infinity.config.TimedRoundStructureConfig;
@@ -15,12 +16,15 @@ import infinity.modules.respawn.InstantRespawn;
 import infinity.modules.roster.AllShipsRoster;
 import infinity.modules.roundstructure.TimedRoundStructure;
 import infinity.modules.scoring.BonusPointsScoring;
+import infinity.modules.scoring.FlagHoldTimeScoring;
 import infinity.modules.scoring.KillPointsScoring;
 import infinity.modules.shop.FlatShop;
 import infinity.modules.spawnplacement.RandomRadiusSpawnPlacement;
 import infinity.modules.teamsetup.FfaPrivateFreqsTeamSetup;
+import infinity.modules.teamsetup.TwoFixedTeamsTeamSetup;
 import infinity.modules.wincondition.FirstToXWinCondition;
 import infinity.modules.wincondition.HighestScoreWinCondition;
+import infinity.modules.wincondition.MostFlagOccupancyWinCondition;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -37,6 +41,10 @@ public final class ModuleCatalog {
           Map.entry("bonus-points",
               new ModuleDescriptor(
                   BonusPointsScoring.class, null, ModuleCategory.SCORING, Set.of())),
+          Map.entry("flag-hold-time",
+              new ModuleDescriptor(
+                  FlagHoldTimeScoring.class, FlagHoldTimeConfig.class,
+                  ModuleCategory.SCORING, Set.of())),
           Map.entry("timed-round",
               new ModuleDescriptor(
                   TimedRoundStructure.class, TimedRoundStructureConfig.class,
@@ -50,6 +58,10 @@ public final class ModuleCatalog {
           Map.entry("highest-score",
               new ModuleDescriptor(
                   HighestScoreWinCondition.class, null, ModuleCategory.WIN_CONDITION, Set.of())),
+          Map.entry("most-flag-occupancy",
+              new ModuleDescriptor(
+                  MostFlagOccupancyWinCondition.class, null,
+                  ModuleCategory.WIN_CONDITION, Set.of())),
           Map.entry("first-to-x",
               new ModuleDescriptor(
                   FirstToXWinCondition.class, FirstToXWinConditionConfig.class,
@@ -64,6 +76,9 @@ public final class ModuleCatalog {
           Map.entry("ffa-private-freqs",
               new ModuleDescriptor(
                   FfaPrivateFreqsTeamSetup.class, null, ModuleCategory.TEAM_SETUP, Set.of())),
+          Map.entry("two-fixed-teams",
+              new ModuleDescriptor(
+                  TwoFixedTeamsTeamSetup.class, null, ModuleCategory.TEAM_SETUP, Set.of())),
           Map.entry("instant-respawn",
               new ModuleDescriptor(
                   InstantRespawn.class, null, ModuleCategory.RESPAWN_POLICY, Set.of())),

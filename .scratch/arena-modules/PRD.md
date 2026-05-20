@@ -407,9 +407,19 @@ Acceptance: manually launch + play FFA arena; kills award points; round ends aft
 - `BonusPointsScoring` (no-op `ScoringModule`, zero-config) added to the catalog so live additions of `scoring 'bonus-points'` to `ffa/arena.groovy` exercise the diff path without changing gameplay.
 - `ArenaModuleSetMerger` extracted from `ArenaModuleSystem` to keep the latter's class complexity under PMD's threshold; the merger owns all the per-category retain-vs-rebuild logic plus the spec → instance lookup.
 
-### Slice F4 — Trench (Turf-shaped) — second consumer + legacy rip-out
+### Slice F4 — Trench (Turf-shaped) — second consumer + flag-system extraction **(landed)**
 
-Adds the StaticFlag mechanic, two-team setup, and Trench-canonical winCondition. Rips out the legacy `FrequencySystem` flag-touch handler in the same slice (the new mechanic supersedes it).
+Split into four landings (F4a → F4d). Replaces the legacy `FrequencySystem` flag-touch handler with a dedicated `FlagSystem` (always-loaded, not an ArenaModule — per grilled design: "would two arenas want different flag-touch semantics?" → no, the contact-to-ownership rule is engine-tier behaviour). New `FlagOwnership` component supersedes the overloaded `Frequency`-on-flag canon shape.
+
+**Landed:**
+- F4a — Team-tier score components (`TeamRoundScore`/`TeamMatchScore`/`TeamTotalScore` + `TeamScoreChange` transient) + `ScoreCoordinatorSystem` extension. Symmetric with the player-tier drain; `ScoreReset(ROUND|MATCH)` zeros team tiers same as player tiers.
+- F4b — `FlagSystem` extracted from `FrequencySystem`. Canonical writer of `FlagOwnership(int freq)` on flag entities. `FrequencySystem` stays the canonical writer of `Frequency` on ships. `ModelViewState.flags` updated to filter on `FlagOwnership` and read ownership from it (replaces `Frequency`-on-flag reads). `FlagOwnership` registered for the wire as a `final class` (not record — jME3 `FieldSerializer` can't reflectively set record fields).
+- F4c — `TwoFixedTeamsTeamSetup`. Eager 2-team creation on `onArenaLoad` (freq 0 + 1), balanced joins on `tickTeamSetup`, member-count decrement on leave, teams persist across the arena lifetime.
+- F4d — `FlagHoldTimeScoring` (mechanic-shaped `ScoringModule` with new `tickContributions` hook on `ScoringModule`) + `MostFlagOccupancyWinCondition` (decider-only) + `TeamFlagHoldTicks` component on team entities. Per-tick accumulator: `count(ownedFlags) * perSecondPerFlag * tpf`; emits whole-number `TeamScoreChange` deltas + bumps `TeamFlagHoldTicks`. `onRoundEnd` zeros `TeamFlagHoldTicks` (per-round occupancy, not lifetime).
+
+Trench migration: `zone/arenas/trench/arena.groovy` declares `two-fixed-teams`, `all-ships`, `instant-respawn`, `random-radius`, `kill-points`+`flag-hold-time` (layered scoring), `timed-round` 10min, `continuous`, `most-flag-occupancy`+`highest-score` (winCondition fallback chain). No `mechanic 'static-flag'` declaration needed — `FlagSystem` is always-loaded.
+
+Note: PRD's original "rip out `FrequencySystem.flagTouchHandler` and `MapFactory.createTurfStationaryFlag` legacy path" overstated the legacy footprint. `MapFactory.createTurfStationaryFlag` is kept — it's still the canonical map-load-time spawn for flag entities. Only the contact-handling logic moved out of `FrequencySystem`.
 
 New modules:
 - `StaticFlag` mechanic — drains map-loaded transient flag entities (per the map-loaded game-element drain pattern); canonical writer of `FlagOwnership`. Subscribes to per-arena flag-touch events; updates `FlagOwnership` on touch.

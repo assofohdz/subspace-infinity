@@ -77,6 +77,7 @@ import com.simsilica.state.DebugHudState.Location;
 import infinity.client.ConnectionState;
 import infinity.client.GameSessionState;
 import infinity.es.Flag;
+import infinity.es.FlagOwnership;
 import infinity.es.Frequency;
 import infinity.es.ShapeNames;
 import infinity.es.lifecycle.CurrentShip;
@@ -248,7 +249,7 @@ public class ModelViewState extends BaseAppState {
 
     initializeFactoryRegistry();
 
-    this.flags = ed.getEntities(Flag.class, Frequency.class);
+    this.flags = ed.getEntities(Flag.class, FlagOwnership.class);
 
     this.bodies = new BodyContainer(this, ed);
     this.models = new ModelContainer(this, ed);
@@ -458,10 +459,10 @@ public class ModelViewState extends BaseAppState {
   }
 
   void updateSingleFlagMaterial(final int shipFrequency, final Entity flagEntity) {
-    Frequency flagfrequency = flags.getEntity(flagEntity.getId()).get(Frequency.class);
+    final FlagOwnership owner = flags.getEntity(flagEntity.getId()).get(FlagOwnership.class);
     siModelFactory.setFlagMaterialVariables(
         getModelSpatial(flagEntity.getId(), true),
-        flagfrequency.getFrequency() == shipFrequency ? Flag.FLAG_OURS : Flag.FLAG_THEIRS);
+        owner.freq() == shipFrequency ? Flag.FLAG_OURS : Flag.FLAG_THEIRS);
   }
 
   @Override
