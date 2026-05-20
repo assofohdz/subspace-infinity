@@ -59,6 +59,57 @@ Each row: actionable item + source file:line + brief context.
   test-fixture slice. Reference: 2026-05-14 shape-interface consolidation
   recaptured the ratchet at the post-refactor floor.
 
+### Lighting
+
+- [ ] **Add PointLight emitters to projectiles + bot ships; balance ambient
+  vs dynamic light on world blocks.** Three related gaps:
+  1. **Projectiles emit no light today.** `WeaponFactory.createBomb` /
+     `createBullet` / `createMine` / etc. don't stamp `PointLightComponent`.
+     A bomb glowing red as it travels, a green bullet trail, mine pulses —
+     would dramatically improve readability in dim arenas. Trade-off: many
+     simultaneous projectiles = many jME `PointLight` instances created by
+     `LightState` ([infinity-client/.../states/LightState.java](../infinity-client/src/main/java/infinity/client/states/LightState.java)).
+     Verify acceptable cost (likely fine — bullets are short-lived via
+     `Decay`, automatically cleaned up).
+  2. **Bot ships emit no light.** `ShipFactory.createPlayerShip` stamps
+     `PointLightComponent` at
+     ([api/.../sim/ShipFactory.java:86](../api/src/main/java/infinity/sim/ShipFactory.java)),
+     but `createShip` (the base, used by `AIEntities.createMobShip` for
+     bots) doesn't. Result: human-player ships glow, AI ships are dark.
+     Move the light stamp into `createShip` so every ship gets one, OR
+     stamp explicitly in `AIEntities.createMobShip`.
+  3. **World block lighting is binary today.** `WallLightDecorator` bakes
+     vertex-colour light data into wall cells at map-load
+     ([infinity-server/.../systems/WallLightDecorator.java](../infinity-server/src/main/java/infinity/systems/WallLightDecorator.java));
+     blocks don't react to dynamic `PointLight`s from ships/projectiles.
+     Ambient too high → everything reads as a flat-lit picture, ship lights
+     have no perceived effect; ambient too low → world goes black and only
+     the ship-radius is visible (Doom-like, but disorienting on Subspace
+     overhead view). Want a middle ground: maybe per-block partial
+     contribution from nearby dynamic lights (small radius, low intensity),
+     OR a fragment-shader pass that samples nearby ship-light positions per
+     block face, OR a "fake ambient" floor that's slightly modulated by
+     local density of ship lights. Needs a small shader prototype + an
+     `engine.groovy` tunable for the dynamic/ambient mix.
+
+### Map element materialization
+
+- [ ] **Asteroids should be world blocks, not ECS entities.** Today
+  `LegacyMapProjector` calls `MapFactory.createAsteroidSmall` /
+  `createAsteroidMedium` for each asteroid tile in the `.lvl` (see
+  [infinity-server/src/main/java/infinity/systems/LegacyMapProjector.java:108-120](../infinity-server/src/main/java/infinity/systems/LegacyMapProjector.java)),
+  producing a separate physics-bodied entity per asteroid. Static asteroids
+  (no Subspace canon for moving them in-game) would be better as tile cells
+  in the Moss `World` — same shape as wall blocks. Cuts entity count on
+  asteroid-heavy maps, eliminates per-asteroid collision-listener pairs, and
+  lets the existing block-render pipeline draw them without a separate
+  `ShapeNames.ASTEROID` mesh path. Check first whether anything reads the
+  asteroid entity post-spawn (kill prize? collision damage? destructible
+  asteroids in any KOTH/event mode?); if so, those readers need either a
+  tile-side equivalent or to stay on the entity model. Source:
+  `MapFactory.createAsteroidSmall` / `createAsteroidMedium` at
+  `api/src/main/java/infinity/sim/MapFactory.java:114,128`.
+
 ### Performance / threading
 
 - [ ] **`InfinityDefaultLeafWorld.setWorldCell` recalculates side masks
@@ -68,6 +119,37 @@ Each row: actionable item + source file:line + brief context.
   Hot during bulk map load / live edit.
 
 ### AI behaviour
+
+- [ ] **Bot brains + steering currently feel like wandering chickens, not
+  Subspace players.** Bots spawned by `FillUpXTeams` /
+  `AIEntities.createMobShip` use the existing
+  `BrainConfigurations.createPerson` / `createDummy` / `createChicken`
+  brains ([infinity-server/src/main/java/infinity/ai/BrainConfigurations.java](../infinity-server/src/main/java/infinity/ai/BrainConfigurations.java))
+  driven by `MobDriver` ([../infinity-server/src/main/java/infinity/ai/MobDriver.java](../infinity-server/src/main/java/infinity/ai/MobDriver.java)).
+  The visible behaviour: slow drift, no target acquisition, no weapons fire,
+  no evasion — barely moves. F5 KOTH smoke surfaced this because the
+  arena assumes bots will actually fight. Want a `createCombatant` brain
+  that approximates a casual player:
+  - Acquires nearest non-team ship inside radar range as target
+    (`Frequency` mismatch, alive, in-arena).
+  - Steers toward target with full thrust + rotation up to ship cap
+    (currently turn speed is throttled in `MobDriverLogic.shortestArcFacing`
+    — likely needs a per-config tuning knob, not the chicken/dummy default).
+  - Fires bullets when within an effective range threshold; fires bombs at
+    longer range with a lead-prediction heuristic.
+  - Evades when own energy drops below a configurable threshold (60%?) —
+    invert thrust + turn 90–180° away from threat for N seconds.
+  - Optional: prize-pickup detour when a `Prize` entity is in nearby radius
+    and target is distant.
+  Wire-up: add `createCombatant(ed)` in `BrainConfigurations`, switch
+  `AIEntities.createMobShip` to use it (currently picks via `MobType` name
+  lookup against the BrainConfigurations registry, see
+  `MobSystem.java:359`). Tunable defaults (target acquisition radius,
+  evasion energy threshold, fire-range thresholds) go in `engine.groovy`
+  or a new `bot-tuning` preset fragment. Performance note:
+  `Actor.search` walks all objects linearly today — already filed as a
+  separate TODO; combatant brain will exacerbate that until the broadphase
+  refactor lands.
 
 - [ ] **`onMoved` brain hook for the wandering mob currently ignores
   every moved object — extend to chase fast-moving prey (filter by
@@ -107,6 +189,24 @@ Each row: actionable item + source file:line + brief context.
   filtering — the chat-by-arena fix (`postArenaMessage(ArenaId)`) sidesteps the
   problem by filtering via `getAvatarEntity(conn)` instead of using
   `playerConnectionMap`.
+
+### Chat lifecycle
+
+- [ ] **`InfinityChatHostedService` should defer system chat output until the
+  player has loaded into an arena.** Today, registration-time advertisements
+  from `registerPatternTriConsumer` / `registerPatternBiConsumer` (each calls
+  `postPublicMessage(SYSTEM_MESSAGE_SENDER, ..., description)` with the
+  command's help string) broadcast to every connected session — including
+  sessions that have authenticated but haven't yet entered an arena (the
+  player's avatar is null / arenaId unset). Welcome / help text shows up
+  before the player has gameplay context. Suggested fix: queue per-session
+  pre-arena messages and flush them on the first observed
+  `getAvatarEntity(conn).ArenaId != null` transition, or simply gate the
+  `postPublicMessage` broadcast loop on session readiness (e.g. a
+  `ChatSessionImpl.arenaJoined` boolean flipped when the avatar's `ArenaId`
+  is first observed). Source: `infinity-server/src/main/java/infinity/server/chat/InfinityChatHostedService.java`
+  (the broadcast loop in `postPublicMessage` + the registration sites that
+  call it).
 
 ### Zone vs arena scope
 
