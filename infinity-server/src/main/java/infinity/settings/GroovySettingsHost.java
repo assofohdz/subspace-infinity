@@ -15,8 +15,12 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.MultipleCompilationErrorsException;
 import org.codehaus.groovy.control.customizers.ImportCustomizer;
 import org.codehaus.groovy.control.customizers.SecureASTCustomizer;
+import org.codehaus.groovy.control.messages.Message;
+import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
+import org.codehaus.groovy.syntax.SyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,10 +60,32 @@ public final class GroovySettingsHost {
       final GroovySettingsAdapter<T, A> adapter, final String source, final String sourceName) {
     try {
       return evaluateInternal(adapter, source, sourceName);
+    } catch (final MultipleCompilationErrorsException e) {
+      // Mid-edit saves throw these on unmatched braces / trailing commas. Surface a
+      // single-line location + message; the full ANTLR stack is noise.
+      if (log.isWarnEnabled()) {
+        log.warn("{} parse failed: {}; using empty", sourceName, summarizeParseError(e));
+      }
+      return adapter.empty();
     } catch (final Exception e) {
       log.warn("{} failed to evaluate; using empty", sourceName, e);
       return adapter.empty();
     }
+  }
+
+  /** First error location + original message; falls back to the exception message when no error collector. */
+  private static String summarizeParseError(final MultipleCompilationErrorsException e) {
+    final var collector = e.getErrorCollector();
+    if (collector == null || collector.getErrorCount() == 0) {
+      return e.getMessage();
+    }
+    final Message first = collector.getError(0);
+    if (first instanceof SyntaxErrorMessage sem) {
+      final SyntaxException sx = sem.getCause();
+      return "line " + sx.getStartLine() + ":" + sx.getStartColumn()
+          + ": " + sx.getOriginalMessage();
+    }
+    return first.toString();
   }
 
   /** {@link #evaluate} without the catch-all; for adapters that classify exceptions themselves (e.g. cycle/depth). */

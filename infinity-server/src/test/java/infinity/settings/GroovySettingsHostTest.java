@@ -94,6 +94,17 @@ public class GroovySettingsHostTest {
     assertSame("eval-throws path must return adapter.empty()", TestAdapter.SENTINEL_EMPTY, result);
   }
 
+  /** Mid-edit save: trailing comma is the common case behind the broken-parse F3 incident. */
+  @Test
+  public void evaluate_brokenSyntax_returnsAdapterEmpty_withoutThrowing() {
+    final String src = "arena {\n    scoring 'kill-points',\n    roundStructure 'timed-round'\n}";
+    final String result =
+        GroovySettingsHost.INSTANCE.evaluate(new TestAdapter(), src, "test:brokenSyntax");
+
+    assertSame("parse-error path must return adapter.empty()",
+        TestAdapter.SENTINEL_EMPTY, result);
+  }
+
   @Test
   public void evaluate_disallowedImport_isRejectedAtCompileAndReturnsEmpty() {
     // Empty allowed-imports = block every explicit import.

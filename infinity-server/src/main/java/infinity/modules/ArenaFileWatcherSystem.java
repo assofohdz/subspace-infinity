@@ -122,12 +122,24 @@ public final class ArenaFileWatcherSystem extends BaseInfinitySystem {
    * Applies module-set diffs only. Non-module {@link ArenaConfig} changes (map, ships
    * script, fragment includes) are silently ignored in F3 — they'd require a full arena
    * restart and the operator gets that signal by re-issuing {@code ~loadArena}.
+   *
+   * <p>Package-private for the broken-parse-sentinel regression test.
    */
-  private void applyReload(
+  void applyReload(
       final ArenaId arenaId, final EntityId arenaEntity, final ArenaConfig newConfig) {
     if (newConfig == null) {
       if (log.isWarnEnabled()) {
         log.warn("Arena {} reload returned null config; ignoring", arenaId.getArena());
+      }
+      return;
+    }
+    // ArenaConfig.EMPTY is GroovyArenaLoader's broken-parse sentinel — common during
+    // mid-edit saves with unmatched braces. Diffing against it would mass-unload every
+    // module; instead skip the reload so the operator can keep typing.
+    if (newConfig == ArenaConfig.EMPTY) {
+      if (log.isWarnEnabled()) {
+        log.warn("Arena {} reload returned broken-parse sentinel; keeping current module set",
+            arenaId.getArena());
       }
       return;
     }

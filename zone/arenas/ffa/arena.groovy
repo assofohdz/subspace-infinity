@@ -67,7 +67,7 @@ arena {
     roster         'all-ships'
     respawnPolicy  'cooldown-respawn', seconds: 3
     spawnPlacement 'random-radius',   center: [512, 512], radius: 50
-    scoring        'kill-points',     perKill: 100
+    scoring        'kill-points',     perKill: 100        
     roundStructure 'timed-round',     minutes: 10
     matchStructure 'continuous'
     winCondition   'first-to-x',      target:  1000
