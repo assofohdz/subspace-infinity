@@ -354,6 +354,7 @@ guards 32 component types against single-writer regressions
 - **`FlagSystem`** (always-loaded, not an `ArenaModule`) — `FlagOwnership(int freq)` on flag entities. Extracted from `FrequencySystem` (F4b); `FrequencySystem` retains `Frequency`-on-ship canonical-writer status but no longer handles flag contacts. `FlagOwnership` is a `final class` (not record) per wire-crossing convention. RaM rule #6 no-op skip applied (same-freq touches suppressed).
 - **`FlagHoldTimeScoring`** — `TeamFlagHoldTicks` on team entities (per-tick accumulator; zeroed on `onRoundEnd`). Emits `TeamScoreChange` transients consumed by `ScoreCoordinatorSystem`.
 - **`ScoreCoordinatorSystem`** — extended (F4a) to also drain `TeamScoreChange` transients and write `TeamRoundScore` / `TeamMatchScore` / `TeamTotalScore` on team entities. Symmetric shape with the existing `PlayerRoundScore` / `PlayerMatchScore` / `PlayerTotalScore` player-tier drain. `ScoreReset(ROUND|MATCH)` zeros team tiers same as player tiers; totals never reset.
+- **`Crowns` mechanic** — `CrownHolder` on player/bot ship entities (distributes 1 per active player at `onRoundStart`; transfers all crowns to killer on attributed `PlayerKilledEvent`; drops on unattributed/self-kill; clears at `onRoundEnd`). Wire-crossing `final class`. The only writer; `LastCrownStandingWinCondition` + `MostCrownsWinCondition` are read-only consumers. `CrownKillBonus` is a scoring emitter only — emits `PlayerScoreChange` intents, never writes `CrownHolder`.
 
 #### `Decay` — multi-writer **by design** (documented exception)
 
@@ -421,7 +422,8 @@ a system writer, the multi-writer table above already flags it.
 - **`WeaponFactory`** — `Meta` (plus per-projectile bundles passed
   via `Set<EntityComponent>` for delayed bombs).
 - **`AIEntities`** — `Frequency` (seed), `Name` (seed),
-  `CharacterInput`, `ProbeInfo`.
+  `CharacterInput`, `ProbeInfo`, `BotShip` (marker stamped at mob-ship
+  spawn; factory tier, no runtime writer).
 - **`GameSounds`** — `Meta` (audio-entity factory; one-shot effects).
 - **`GameSessionHostedService`** — `Name` (seed), `Player` (seed) at
   client connect.

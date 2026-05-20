@@ -607,15 +607,12 @@ clear message; player-facing impact is the same.
 
 - **Slice plan.** Framework landed (F1): `ArenaModule` interface,
   `ModuleCatalog`, `ModuleLoader`, `ArenaModuleSystem`, lifecycle
-  dispatcher, score coordinator. Initial concrete modules landed
-  through F2.10: `kill-points`, `timed-round`, `first-to-x`,
-  `highest-score`, `continuous` matchStructure, `fill-up-x-teams`
-  mechanic, `all-ships` roster, `random-radius` spawn,
-  `ffa-private-freqs` teamSetup, `instant-respawn` + `cooldown-respawn`
-  respawnPolicies, `flat-shop` (stub). F2 capstone:
-  `zone/arenas/ffa/arena.groovy` composes the catalog into a playable
-  FFA-Deathmatch arena. **F2 complete.** Subsequent gametypes (Trench,
-  KOTH, CTF, …) are their own slices, ordered by gameplay priority.
+  dispatcher, score coordinator. Slices F1–F5 are complete:
+  - **F2** — FFA-Deathmatch first consumer (16 catalog modules).
+  - **F3** — Cleanup contract tests + module-set hot-reload (`ArenaModuleContractTest`, `ArenaFileWatcherSystem`).
+  - **F4** — Trench (Turf-shaped) second consumer: `FlagSystem` extraction, team-tier scoring, `TwoFixedTeamsTeamSetup`, `FlagHoldTimeScoring`, `MostFlagOccupancyWinCondition`.
+  - **F5** — KOTH third consumer: `Crowns` mechanic, `LastCrownStandingWinCondition`, `MostCrownsWinCondition`, `CrownKillBonus`, `LockoutNoCrownRespawn`, `CrownResetRoundStructure`. Catalog now 22 modules; `BotShip` marker stamped by `AIEntities` at mob-ship spawn.
+  Subsequent gametypes (CTF, …) are their own slices, ordered by gameplay priority.
 - **Module-author docs.** A short authoring guide alongside this ADR
   for "how do I write a new scoring module?". Covers the lifecycle
   interface, the contribution-emission pattern, the cleanup contract,
