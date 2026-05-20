@@ -13,7 +13,7 @@ import infinity.config.EngineConfig;
 import infinity.es.Frequency;
 import infinity.es.Parent;
 import infinity.es.arena.ArenaId;
-import infinity.es.ship.PlayerShip;
+import infinity.es.ship.BotShip;
 import infinity.es.ship.ShipType;
 import infinity.events.arena.PlayerKilledEvent;
 import infinity.modules.ArenaModuleSet;
@@ -78,7 +78,7 @@ public class CooldownRespawn implements RespawnPolicyModule {
     if (victimArena == null || !arenaId.equals(victimArena)) {
       return;
     }
-    if (ed.getComponent(victim, PlayerShip.class) == null) {
+    if (ed.getComponent(victim, BotShip.class) != null) {
       return; // bot — fill-up-x-teams handles it
     }
     final Parent parent = ed.getComponent(victim, Parent.class);

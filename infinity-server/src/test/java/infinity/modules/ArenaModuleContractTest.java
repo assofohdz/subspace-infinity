@@ -43,6 +43,7 @@ public final class ArenaModuleContractTest {
     final Map<String, Map<String, Object>> map = new HashMap<>();
     map.put("kill-points", Map.of("perKill", 1));
     map.put("timed-round", Map.of("minutes", 1));
+    map.put("crown-reset", Map.of("minutes", 1));
     map.put("random-radius", Map.of("center", List.of(512, 512), "radius", 0));
     // Configs with a no-arg / zero-validating default constructor handle Map.of() fine
     // (fill-up-x-teams, first-to-x, cooldown-respawn). Zero-config modules ignore kwargs.

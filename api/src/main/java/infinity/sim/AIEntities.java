@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // Copyright (c) 2018-2026 Asser Fahrenholz
-
 package infinity.sim;
 
 import com.simsilica.es.EntityData;
@@ -14,10 +13,22 @@ import infinity.es.Frequency;
 import infinity.es.MobType;
 import infinity.es.ProbeInfo;
 import infinity.es.input.CharacterInput;
-import infinity.es.ship.PlayerShip;
+import infinity.es.ship.BotShip;
 import infinity.sim.specs.ShipArgs;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class AIEntities {
+
+  /**
+   * Sample names for AI mobs. Picked uniformly at random at spawn time so server logs +
+   * future HUD can render readable identities ("Razor killed Echo") instead of raw
+   * entity ids. List can grow without coordination with other code.
+   */
+  private static final List<String> BOT_NAMES = List.of(
+      "Vex", "Drak", "Nyx", "Zorn", "Kael", "Echo", "Shade", "Wraith",
+      "Razor", "Spike", "Talon", "Fang", "Viper", "Cobra", "Falcon", "Raven",
+      "Crusher", "Reaper", "Slayer", "Smasher");
 
   private AIEntities() {
     // no instances
@@ -31,22 +42,26 @@ public class AIEntities {
       final long createdTime,
       final byte ship) {
 
-    EntityId mob =
+    final EntityId mob =
         ShipFactory.createShip(
             ed,
             new ShipArgs(
                 spawnLoc, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius()));
-    byte flags = 0x0;
+    final byte flags = 0x0;
     ed.setComponent(mob, new CharacterInput(new Vec3d(), new Quatd(), flags));
     ed.setComponent(mob, MobType.create("Mob", ed));
-    ed.setComponent(mob, new Name("Mob-"+mob.getId()));
+    ed.setComponent(mob, new Name(randomBotName()));
     ed.setComponent(mob, new ProbeInfo(new Vec3d(0, 0.1, 0.4), 0.3));
     ed.setComponent(mob, new Frequency(1));
-
-    // Right now we create the entity with the player component, but we don't want the mob to be a
-    // player
-    ed.removeComponent(mob, PlayerShip.class);
+    // Positive marker for AI-driven ships — replaces the older "bot = absence of
+    // PlayerShip" inverse pattern. createShip never stamps PlayerShip, so no remove
+    // call is needed.
+    ed.setComponent(mob, new BotShip());
 
     return mob;
+  }
+
+  private static String randomBotName() {
+    return BOT_NAMES.get(ThreadLocalRandom.current().nextInt(BOT_NAMES.size()));
   }
 }

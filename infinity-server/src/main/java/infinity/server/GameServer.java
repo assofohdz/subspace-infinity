@@ -604,6 +604,7 @@ public class GameServer {
     Serializer.registerClass(Flag.class, new FieldSerializer());
     Serializer.registerClass(infinity.es.FlagOwnership.class, new FieldSerializer());
     Serializer.registerClass(infinity.es.team.TeamFlagHoldTicks.class, new FieldSerializer());
+    Serializer.registerClass(infinity.es.CrownHolder.class, new FieldSerializer());
     Serializer.registerClass(Gold.class, new FieldSerializer());
     Serializer.registerClass(AudioType.class, new FieldSerializer());
     Serializer.registerClass(Parent.class, new FieldSerializer());
@@ -611,6 +612,7 @@ public class GameServer {
     Serializer.registerClass(PointLightComponent.class, new FieldSerializer());
     Serializer.registerClass(Decay.class, new FieldSerializer());
     Serializer.registerClass(PlayerShip.class, new FieldSerializer());
+    Serializer.registerClass(infinity.es.ship.BotShip.class, new FieldSerializer());
     Serializer.registerClass(MovementInput.class, new FieldSerializer());
     Serializer.registerClass(ArenaId.class, new FieldSerializer());
     Serializer.registerClass(ArenaMap.class, new FieldSerializer());

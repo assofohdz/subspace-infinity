@@ -454,19 +454,28 @@ arena {
 
 Acceptance: manually launch + play Trench arena. Flags are owned by the team last touching them. Both teams accumulate flag-hold time. Kill points accumulate normally. After 10 minutes the round ends; the team with more flag-hold time wins; scores reset; new round starts.
 
-### Slice F5 — KOTH third consumer (validates two-role winCondition + opt-in mechanic)
+### Slice F5 — KOTH third consumer **(landed)**
 
-Adds opt-in mechanic + layered scoring + lockout-respawn variants. Validates the two-role winCondition design (terminator + decider together).
+Split into four sub-slices (F5a → F5d) mirroring F4's shape. Validates the two-role winCondition design (terminator + decider on one impl) and the layered-scoring composition (kill-points + crown-kill-bonus emit into the same drain stream).
 
-- `Crowns` mechanic — spawns crown entities at `onRoundStart` (one per active player); transfers `CrownOwnership` on death by crown-holder.
-- `CrownKillBonus` scoring — additive contribution; emits extra `PlayerScoreChange` when killer holds a crown.
-- `LockoutNoCrownRespawnPolicy` — respawn requires arena to have ≥1 crown-holder remaining; otherwise queue.
-- `LastCrownStandingWinCondition` — **both roles**: terminator emits `RoundEndPending` when crown-count drops to 1; decider returns the surviving crown-holder's freq.
-- `CrownResetRoundStructure` — single round per crown distribution; despawns crowns on `onRoundEnd`; respawns on next `onRoundStart`.
+Grilled-and-resolved design choices:
 
-Plus: `zone/arenas/koth/arena.groovy` composing the above with the existing FFA modules.
+- `CrownHolder(int crowns)` is a marker-with-count **component on the player ship**, not a separate Crown entity. Mirrors the `Frequency` shape; client renders the crown via a spatial child attached to the ship. Wire-crossing `final class`.
+- On attributed kill, **all** of the victim's crowns transfer to the killer (so a single ship can hoard crowns). Unattributed deaths and self-kills drop the crowns (component removed, no transfer).
+- Crown lifecycle lives on the `Crowns` mechanic (distribute at `onRoundStart`, despawn at `onRoundEnd`, transfer in the `PlayerKilledEvent` listener). The round-structure module owns the timer only — no overlap.
 
-Acceptance: KOTH plays through a round end-to-end; crown drops on death; round resets; new crowns distributed.
+**Landed:**
+
+- F5a — `CrownHolder` component (api/) + `Crowns` mechanic (canonical writer; distributes 1 per active player at `onRoundStart`; transfers on attributed `PlayerKilledEvent`; drops on unattributed/self; clears at `onRoundEnd`). Catalog entry `crowns`. 6 unit tests.
+- F5b — `LastCrownStandingWinCondition` (two-role): terminator caches the winner freq when the in-arena `CrownHolder` set shrinks to size 1; decider returns the cached freq, sticky until `onRoundStart` re-arms. `MostCrownsWinCondition` (decider only): sums `CrownHolder.crowns()` per `Frequency` across the arena, returns highest. Catalog entries `last-crown-standing` + `most-crowns`. 6+4 tests.
+- F5c — `CrownKillBonus` scoring (additive layer; emits `PlayerScoreChange(perCrownKill × killer.crowns)` on attributed kill). `LockoutNoCrownRespawn` policy (capture-on-kill queue gated on `EntitySet(CrownHolder, ArenaId)` having ≥1 holder; `onRoundEnd` force-drains so locked-out players spawn for the new round before `Crowns.onRoundStart` redistributes). Catalog entries `crown-kill-bonus` + `lockout-no-crown-respawn`. 5+5 tests.
+- F5d — `CrownResetRoundStructure(int minutes)` — timer terminator with KOTH-themed chat ("N minutes until coronation") delivered via `postArenaMessage`. Mechanically a `TimedRoundStructure` variant; the differentiator is announcement text + intent. Catalog entry `crown-reset`.
+
+**Arena:** `zone/arenas/koth/arena.groovy` composes `ffa-private-freqs` + `all-ships` + `lockout-no-crown-respawn` + `random-radius` + `crowns` mechanic + layered `kill-points` + `crown-kill-bonus` scoring + `crown-reset` 5-min timer + `continuous` match + `last-crown-standing` (terminator + decider) + `most-crowns` (decider fallback) + `flat-shop`. Map: `04-2026-trench/koth.lvl`. Added to `zone.groovy` autoLoad; `enterSpawn` set to `koth` for smoke.
+
+`ArenaModuleContractTest` walks 22 catalog modules (was 16 after F4); all pass.
+
+Acceptance: KOTH plays through a round end-to-end; crown transfers on attributed kill; lockout gates respawn when no crowns remain; either last-crown-standing fires (single survivor) or timer fires + most-crowns decides (multiple holders at expiry).
 
 ### Slice F6+ — Module preset bundles + remaining catalog
 

@@ -2,13 +2,16 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.modules.respawn;
 
+import com.simsilica.es.Entity;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import com.simsilica.es.EntitySet;
 import com.simsilica.event.EventBus;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.SimTime;
 import infinity.config.EngineConfig;
+import infinity.es.CrownHolder;
 import infinity.es.Frequency;
 import infinity.es.Parent;
 import infinity.es.arena.ArenaId;
@@ -19,6 +22,7 @@ import infinity.modules.ArenaModuleSet;
 import infinity.modules.ArenaModuleSetLookup;
 import infinity.modules.ModuleContext;
 import infinity.modules.RespawnPolicyModule;
+import infinity.modules.RoundOutcome;
 import infinity.modules.SpawnPlacementModule;
 import infinity.sim.ShipFactory;
 import infinity.sim.specs.ShipArgs;
@@ -27,31 +31,30 @@ import java.util.Deque;
 import java.util.Optional;
 
 /**
- * On a {@link PlayerKilledEvent} for a player ship in this arena, captures the dying ship's
- * {@code ShipType} + {@code Frequency} + {@code Parent} (the player), then queues a respawn.
- * On the next {@link #tickRespawnPolicy} the queued spawns create fresh ship entities via
- * {@link ShipFactory#createPlayerShip} — the old ship reaps via the canonical
- * {@code DeathSystem} → {@code Decay} flow, and {@code AvatarSystem} rebinds
- * {@code CurrentShip} on the player to the new ship next tick (see player-vs-ship-identity
- * PRD slice P2).
+ * KOTH respawn policy: queue capture-on-kill (same shape as {@code InstantRespawn}) but the
+ * drain is gated on the arena still having at least one {@link CrownHolder}. Once all crowns
+ * are out, the dead stay ghosts until the next round-end. The queue is force-drained on
+ * {@code onRoundEnd} so the next round starts with every player respawned (and the
+ * {@code Crowns} mechanic's {@code onRoundStart} redistributes crowns immediately after).
  *
- * <p>Captures data at event-fire time (before the reaper removes the dying entity) — using a
- * post-Decay {@code EntitySet} would race the reaper and miss components. Bots (marked with
- * {@link BotShip}) are ignored; their respawn is the {@code FillUpXTeams} mechanic's job.
+ * <p>Tests subclass to override {@link #spawnShip} + {@link #resolveSpawn}, mirroring
+ * {@code CooldownRespawn}'s test seam.
  */
-public final class InstantRespawn implements RespawnPolicyModule {
+public class LockoutNoCrownRespawn implements RespawnPolicyModule {
 
   private final EntityData ed;
   private final ArenaId arenaId;
   private final PhysicsSpace<?, ?> physics;
   private final ArenaModuleSetLookup modules;
+  private final EntitySet crownsInArena;
   private final Deque<PendingRespawn> pending = new ArrayDeque<>();
 
-  public InstantRespawn(final ModuleContext ctx) {
+  public LockoutNoCrownRespawn(final ModuleContext ctx) {
     this.ed = ctx.ed();
     this.arenaId = ctx.arenaId();
     this.physics = ctx.physics() == null ? null : ctx.physics().getPhysics();
     this.modules = ctx.modules();
+    this.crownsInArena = ed.getEntities(ArenaId.class, CrownHolder.class);
   }
 
   @Override
@@ -62,7 +65,19 @@ public final class InstantRespawn implements RespawnPolicyModule {
   @Override
   public void onArenaUnload(final ArenaId unloadedArenaId) {
     EventBus.removeListener(this, PlayerKilledEvent.playerKilled);
+    crownsInArena.release();
     pending.clear();
+  }
+
+  @Override
+  public void onRoundEnd(
+      final ArenaId arenaIdParam, final int roundNumber, final RoundOutcome outcome) {
+    // Force-drain at round-end so everyone who got locked out last round spawns for the new
+    // round. Spawning happens before the next tickRespawnPolicy; Crowns.onRoundStart fires
+    // after this in the lifecycle-dispatcher sequence and distributes crowns to the fresh ships.
+    while (!pending.isEmpty()) {
+      respawn(pending.poll(), 0L);
+    }
   }
 
   /** EventBus reflective dispatch — name pattern is {@code on<EventTypeName>}. */
@@ -73,7 +88,7 @@ public final class InstantRespawn implements RespawnPolicyModule {
       return;
     }
     if (ed.getComponent(victim, BotShip.class) != null) {
-      return; // bot — fill-up-x-teams handles it
+      return; // bot
     }
     final Parent parent = ed.getComponent(victim, Parent.class);
     final ShipType shipType = ed.getComponent(victim, ShipType.class);
@@ -91,30 +106,56 @@ public final class InstantRespawn implements RespawnPolicyModule {
 
   @Override
   public void tickRespawnPolicy(final ArenaId tickArenaId, final SimTime time) {
+    if (pending.isEmpty()) {
+      return;
+    }
+    if (!hasAnyCrownInArena()) {
+      return; // gate closed — locked out until round-end
+    }
     while (!pending.isEmpty()) {
       respawn(pending.poll(), time.getTime());
     }
   }
 
-  /** Create a fresh ship for the player, preserving ship type + freq + arena from the prior life. */
+  private boolean hasAnyCrownInArena() {
+    crownsInArena.applyChanges();
+    for (final Entity holder : crownsInArena) {
+      if (arenaId.equals(holder.get(ArenaId.class))) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   private void respawn(final PendingRespawn req, final long createdTimeNanos) {
     final Vec3d spawnLoc = resolveSpawn(req.freq());
     if (spawnLoc == null) {
-      return; // spawn placement missing — log already happens in ArenaSpatialIndex
+      return;
     }
+    spawnShip(req.player(), req.shipByte(), req.freq(), spawnLoc, createdTimeNanos);
+  }
+
+  /** Test seam — override to record spawn requests without invoking the physics-bound factory. */
+  protected EntityId spawnShip(
+      final EntityId player,
+      final byte shipByte,
+      final int freq,
+      final Vec3d spawnLoc,
+      final long createdTimeNanos) {
     final EntityId newShip = ShipFactory.createPlayerShip(
         ed,
         new ShipArgs(
-            spawnLoc, req.player(), physics, createdTimeNanos, req.shipByte(),
+            spawnLoc, player, physics, createdTimeNanos, shipByte,
             EngineConfig.DEFAULTS.shipRadius()));
     ed.setComponent(newShip, arenaId);
-    if (req.freq() != 0) {
-      ed.setComponent(newShip, new Frequency(req.freq()));
+    if (freq != 0) {
+      ed.setComponent(newShip, new Frequency(freq));
     }
+    return newShip;
   }
 
-  /** Delegate to the arena's active {@link SpawnPlacementModule}; {@code null} if none loaded. */
-  private Vec3d resolveSpawn(final int freq) {
+  /** Test seam — short-circuits the spawn-placement module lookup in unit tests. */
+  protected Vec3d resolveSpawn(final int freq) {
     if (modules == null) {
       return null;
     }
@@ -126,6 +167,5 @@ public final class InstantRespawn implements RespawnPolicyModule {
     return placement.map(m -> m.resolveSpawn(arenaId, freq)).orElse(null);
   }
 
-  /** Captured at event-fire time; drained next tick. */
   private record PendingRespawn(EntityId player, byte shipByte, int freq) {}
 }

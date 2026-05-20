@@ -45,7 +45,10 @@
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>
-    <Logger name="infinity.modules" level="WARN" additivity="false">
+    <!-- INFO during F4/F5 smoke — Crowns transfer / round-start distribute / module-set diffs
+         are observability for KOTH + Trench gameplay. Re-tighten to WARN once the modules are
+         stable and per-tick chatter starts dominating the console. -->
+    <Logger name="infinity.modules" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>

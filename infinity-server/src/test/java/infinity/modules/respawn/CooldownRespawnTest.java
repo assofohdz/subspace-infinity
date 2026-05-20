@@ -97,7 +97,7 @@ public final class CooldownRespawnTest {
     assertEquals("foreign-arena kill ignored", 0, module.respawns.size());
   }
 
-  /** Bots are stripped of {@code PlayerShip}; their respawn is the FillUpXTeams mechanic's job. */
+  /** Bots carry the {@code BotShip} marker; their respawn is the FillUpXTeams mechanic's job. */
   @Test
   public void botKillIsIgnored() {
     final EntityId fakeParent = ed.createEntity();
@@ -105,7 +105,7 @@ public final class CooldownRespawnTest {
     ed.setComponent(bot, thisArena);
     ed.setComponent(bot, new Parent(fakeParent));
     ed.setComponent(bot, new ShipType(Ship.JAVELIN));
-    // No PlayerShip marker — bot pattern.
+    ed.setComponent(bot, new infinity.es.ship.BotShip());
     module.tickRespawnPolicy(thisArena, simTimeAt(secondsToNanos(0)));
     EventBus.publish(PlayerKilledEvent.playerKilled, new PlayerKilledEvent(bot, null, (byte) 0));
 

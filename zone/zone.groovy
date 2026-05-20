@@ -17,8 +17,8 @@
 // *which* arena's [Spawn] to read.
 
 zone {
-    autoLoad 'trench', 'deva', 'testarena', 'test-modules','ffa'
-    enterSpawn 'trench'
+    autoLoad 'trench', 'deva', 'testarena', 'test-modules', 'ffa', 'koth'
+    enterSpawn 'koth'
     // scriptPollInterval 5.0   // seconds; throttle for the per-arena ships.groovy
                                 // dev-mode reload watcher. 5 s is the documented
                                 // default; uncomment + tune to taste.
