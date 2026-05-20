@@ -296,9 +296,10 @@ ADR-0001 requires exactly one writer per component. The new components introduce
 | `MatchNumber` (on arena entity) | active `matchStructure` module | Increment in `onMatchStart` |
 | `TeamEntity` lifecycle, `Frequency` (on team entity), `TeamMemberCount` | active `teamSetup` module | Arena load + player freq-change events |
 | `PlayerRoundScore`, `PlayerMatchScore`, `PlayerTotalScore` | `ScoreCoordinatorSystem` | Drains `PlayerScoreChange` transients (+ `ScoreReset` for zero) |
-| `TeamRoundScore`, `TeamMatchScore`, `TeamTotalScore` | `ScoreCoordinatorSystem` | Drains `TeamScoreChange` transients |
+| `TeamRoundScore`, `TeamMatchScore`, `TeamTotalScore` | `ScoreCoordinatorSystem` | Drains `TeamScoreChange` transients; added F4a |
+| `TeamFlagHoldTicks` (on team entities) | `FlagHoldTimeScoring` | Per-tick accumulator; zeroed on `onRoundEnd` |
 | `ArenaRoundScore`, `ArenaMatchScore`, `ArenaTotalScore` | `ScoreCoordinatorSystem` | Drains `ArenaScoreChange` transients |
-| `FlagOwnership` (on map-loaded flag entities) | `StaticFlag` mechanic | Drain `Spawned`-marked flags + freq-touch events |
+| `FlagOwnership` (on flag entities) | `FlagSystem` (always-loaded, not an ArenaModule) | Ship-vs-flag contact events; extracted from `FrequencySystem` in F4b |
 | `FlagCarrier`, carry-flag pickup state | `CarryFlag` mechanic | Pickup/drop events |
 | `CrownOwnership` (on player entities) | `Crowns` mechanic | Spawn at `onRoundStart`; transfer on death |
 | `BallPossession` (on ball entities) | `Balls` mechanic | Touch events |

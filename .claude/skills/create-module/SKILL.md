@@ -15,7 +15,7 @@ description: ArenaModule interface (api/) — arena-composition contract per ADR
 4. **Register in `ModuleCatalog`** (`infinity-server/src/main/java/infinity/modules/ModuleCatalog.java`): add a `ModuleDescriptor(MyModule.class, MyConfig.class, ModuleCategory.X, Set.of())` entry under a short DSL id.
 5. **Reference from `arena.groovy`** with the matching DSL statement (`scoring 'my-id', kw: v` for scoring, etc.).
 
-Canonical examples to mimic: `AllShipsRoster` (zero-config marker), `KillPointsScoring` (subscribes to `EventBus`, emits `*Change` transients), `TimedRoundStructure` (per-tick state machine), `FirstToXWinCondition` (dual-role terminator + decider), `RandomRadiusSpawnPlacement` (kwargs binding with conditional shape — single `center` or per-freq `centers` map), `FfaPrivateFreqsTeamSetup` (zero-config `TeamSetupModule` — EntitySet-based claim/release + per-tick team-entity lifecycle).
+Canonical examples to mimic: `AllShipsRoster` (zero-config marker), `KillPointsScoring` (subscribes to `EventBus`, emits `*Change` transients), `TimedRoundStructure` (per-tick state machine), `FirstToXWinCondition` (dual-role terminator + decider), `RandomRadiusSpawnPlacement` (kwargs binding with conditional shape — single `center` or per-freq `centers` map), `FfaPrivateFreqsTeamSetup` (zero-config `TeamSetupModule` — EntitySet-based claim/release + per-tick team-entity lifecycle), `TwoFixedTeamsTeamSetup` (eager 2-team creation at `onArenaLoad`, balanced joins via `tickTeamSetup`), `FlagHoldTimeScoring` (per-tick `ScoringModule` using `tickContributions` — emits `TeamScoreChange` per owned flag per tick), `MostFlagOccupancyWinCondition` (decider-only — reads `TeamFlagHoldTicks` per team at round-end).
 
 ## Module lifecycle hooks
 
@@ -36,6 +36,7 @@ Some categories add a per-tick dispatcher beyond the base lifecycle. `ArenaModul
 
 - `TeamSetupModule.tickTeamSetup(ArenaId, SimTime)` — observe ship arrivals/departures, maintain team entities.
 - `MechanicModule.tickMechanic(ArenaId, SimTime)` — opt-in mechanics' state-publishing phase.
+- `ScoringModule.tickContributions(ArenaId, SimTime)` — per-tick scoring contribution; first impl is `FlagHoldTimeScoring`. Event-driven scorers (`KillPointsScoring`, `BonusPointsScoring`) inherit the default no-op.
 - `RoundStructureModule.tickRoundStructure(ArenaId, SimTime)` — terminator state machine.
 - `WinConditionModule.checkTermination(ArenaId)` — per-tick query (not a void hook).
 

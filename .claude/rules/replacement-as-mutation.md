@@ -330,17 +330,19 @@ guards 32 component types against single-writer regressions
   ships/spawners (membership writes; both write `arenaId` instances
   but to disjoint entity sets — ships vs the arena entity itself —
   so no race).
-- **`FfaPrivateFreqsTeamSetup`** (and `TeamSetupModule` impls
-  generally, per ADR-0008) — `TeamEntity` (create/destroy per
-  arena-freq pair via `tickTeamSetup` + `onArenaUnload`),
-  `TeamMemberCount` (per-tick update), `Frequency` on team entities
-  (seed at team-entity creation). Distinct from `ShipFactory`'s
-  spawn-time seed of `Frequency` on ship entities and from
-  `FrequencySystem`'s runtime drain of `FrequencyChange` on ships —
-  disjoint entity sets (team entities vs ship entities), no race.
-  The module emits `FrequencyChange` intents to drive ship-side
-  freq assignment, preserving `FrequencySystem` as the canonical
-  writer of ship `Frequency`.
+- **`FfaPrivateFreqsTeamSetup`** / **`TwoFixedTeamsTeamSetup`** (and
+  `TeamSetupModule` impls generally, per ADR-0008) — `TeamEntity`
+  (create/destroy per arena-freq pair via `tickTeamSetup` +
+  `onArenaUnload`), `TeamMemberCount` (per-tick update), `Frequency`
+  on team entities (seed at team-entity creation). Distinct from
+  `ShipFactory`'s spawn-time seed of `Frequency` on ship entities and
+  from `FrequencySystem`'s runtime drain of `FrequencyChange` on ships
+  — disjoint entity sets (team entities vs ship entities), no race.
+  Both modules emit `FrequencyChange` intents to drive ship-side freq
+  assignment, preserving `FrequencySystem` as the canonical writer of
+  ship `Frequency`. (`TwoFixedTeamsTeamSetup` eagerly creates 2 team
+  entities at `onArenaLoad` and persists them for the arena lifetime;
+  `FfaPrivateFreqsTeamSetup` lazily creates one per player.)
 - **`MapSystem`** — tile-cell components via
   `TileTypes.legacy(...)` / `TileTypes.wangblob(...)` (Pattern-4
   per-cell projection).
@@ -349,6 +351,9 @@ guards 32 component types against single-writer regressions
   spawn-time projection, not a competing runtime writer).
 - **`DoorSystem`** — `Door` state writes (the only mutating writer;
   `MapFactory` does the spawn-time stamp).
+- **`FlagSystem`** (always-loaded, not an `ArenaModule`) — `FlagOwnership(int freq)` on flag entities. Extracted from `FrequencySystem` (F4b); `FrequencySystem` retains `Frequency`-on-ship canonical-writer status but no longer handles flag contacts. `FlagOwnership` is a `final class` (not record) per wire-crossing convention. RaM rule #6 no-op skip applied (same-freq touches suppressed).
+- **`FlagHoldTimeScoring`** — `TeamFlagHoldTicks` on team entities (per-tick accumulator; zeroed on `onRoundEnd`). Emits `TeamScoreChange` transients consumed by `ScoreCoordinatorSystem`.
+- **`ScoreCoordinatorSystem`** — extended (F4a) to also drain `TeamScoreChange` transients and write `TeamRoundScore` / `TeamMatchScore` / `TeamTotalScore` on team entities. Symmetric shape with the existing `PlayerRoundScore` / `PlayerMatchScore` / `PlayerTotalScore` player-tier drain. `ScoreReset(ROUND|MATCH)` zeros team tiers same as player tiers; totals never reset.
 
 #### `Decay` — multi-writer **by design** (documented exception)
 
