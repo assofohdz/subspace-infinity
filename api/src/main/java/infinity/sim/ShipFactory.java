@@ -65,6 +65,16 @@ public final class ShipFactory {
     // dynamics (projectiles, sensor probes) deliberately stay opted out.
     ed.setComponent(result, new CollidesWithLargeStatics());
 
+    // Every ship (player + bot) emits a PointLight so it's visible at a distance in dim
+    // arenas. Client-side LightState renders these via the BodyPosition + PointLightComponent
+    // filter; bots inherit identical visibility to player ships.
+    ed.setComponent(
+        result,
+        new PointLightComponent(
+            new ColorRGBA(3.5f, 3.5f, 3.5f, 1.0f),
+            CoreViewConstants.SHIPLIGHTRADIUS,
+            CoreViewConstants.SHIPLIGHTOFFSET));
+
     ed.setComponent(result, new Meta(spec.createdTime()));
     return result;
   }
@@ -80,13 +90,6 @@ public final class ShipFactory {
     // Seed freq=0 — default team for human players; freq-aware paths (chat
     // `=N`, flag-touch via FrequencySystem) re-stamp via FrequencyChange.
     ed.setComponent(result, new Frequency(0));
-
-    ed.setComponent(
-        result,
-        new PointLightComponent(
-            new ColorRGBA(3.5f, 3.5f, 3.5f, 1.0f),
-            CoreViewConstants.SHIPLIGHTRADIUS,
-            CoreViewConstants.SHIPLIGHTOFFSET));
 
     byte flags = 0x0;
     ed.setComponent(result, new MovementInput(new Vec3d(), new Quatd(), flags));

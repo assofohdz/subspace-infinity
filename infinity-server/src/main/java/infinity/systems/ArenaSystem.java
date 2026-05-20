@@ -252,10 +252,6 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     return registry.get(arenaName);
   }
 
-  ConfigRegistrySystem getConfigRegistry() {
-    return configRegistry;
-  }
-
   /** Declare whether the named arena should be running; reconcile makes reality match. */
   public void setDesired(final String arenaName, final boolean desired) {
     registry.computeIfAbsent(arenaName, ArenaRecord::new).desired = desired;

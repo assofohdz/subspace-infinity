@@ -92,6 +92,34 @@ Each row: actionable item + source file:line + brief context.
      local density of ship lights. Needs a small shader prototype + an
      `engine.groovy` tunable for the dynamic/ambient mix.
 
+### Visual / animation
+
+- [ ] **Sprite-sheet animation frame-rate vs entity `Decay` lifetime are
+  not in sync — non-looping effects run ~1.5× their tilesheet length.**
+  The animation isn't endlessly looping (Decay still reaps the entity),
+  but the per-frame advance is slower than the entity's lifetime, so the
+  tilesheet wraps mid-life: explosion plays once, restarts, plays partway
+  through a second loop, then the entity decays. Visually reads as a
+  stutter/double-flash. Intentional loopers (black hole) are unaffected
+  because their Decay is long.
+
+  Two ways to fix:
+  - **Tune frame-rate to total lifetime per effect.** For one-shot
+    effects, set `framesPerSec = frameCount / decaySeconds` so the last
+    frame lands right at Decay expiry. Requires the client to know both
+    values (frame count of the tilesheet + entity Decay) at spawn time.
+  - **Clamp on last frame.** Animation advances at its tuned rate but
+    holds on the final frame once reached. Entity still decays
+    independently. Simpler shader/state change; tilesheet rate doesn't
+    need to scale with Decay.
+
+  Surface to look at: effect-spatial creation
+  ([infinity-client/src/main/java/infinity/client/states/EffectSpatialFactory.java](../infinity-client/src/main/java/infinity/client/states/EffectSpatialFactory.java))
+  + the j3md / shader pair sampling the sprite sheet. A `LoopMode`
+  marker on the entity (`LOOP` vs `ONE_SHOT_CLAMP`) plus a tilesheet-
+  metadata hook (frame count) would let the spatial factory honour
+  both paths without server-side timing knowledge.
+
 ### Map element materialization
 
 - [ ] **Asteroids should be world blocks, not ECS entities.** Today

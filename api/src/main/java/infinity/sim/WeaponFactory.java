@@ -3,6 +3,7 @@
 
 package infinity.sim;
 
+import com.jme3.math.ColorRGBA;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.common.Decay;
@@ -10,12 +11,14 @@ import com.simsilica.ext.mphys.Impulse;
 import com.simsilica.ext.mphys.Mass;
 import com.simsilica.ext.mphys.ShapeInfo;
 import com.simsilica.ext.mphys.SpawnPosition;
+import com.simsilica.mathd.Vec3d;
 import infinity.es.AudioType;
 import infinity.es.AudioTypes;
 import infinity.es.CollisionCategory;
 import infinity.es.Delay;
 import infinity.es.Meta;
 import infinity.es.Parent;
+import infinity.es.PointLightComponent;
 import infinity.es.WeaponType;
 import infinity.es.WeaponTypes;
 import infinity.es.ship.actions.Thor;
@@ -33,6 +36,25 @@ import java.util.concurrent.TimeUnit;
 public final class WeaponFactory {
 
   private WeaponFactory() {}
+
+  // Projectile PointLight colours + radii — tuned for readability in dim arenas.
+  // Bombs / bullets / mines etc. all emit a short-range light that LightState picks up via the
+  // PointLightComponent + BodyPosition filter; Decay automatically removes the light when the
+  // projectile expires. Tune here to adjust the visual signature of each weapon type.
+  private static final ColorRGBA BOMB_LIGHT = new ColorRGBA(1.0f, 0.45f, 0.2f, 1.0f);     // warm red — incoming
+  private static final ColorRGBA BULLET_LIGHT = new ColorRGBA(1.0f, 0.95f, 0.6f, 1.0f);   // pale yellow — fast/many
+  private static final ColorRGBA BURST_LIGHT = new ColorRGBA(1.0f, 1.0f, 1.0f, 1.0f);     // white — brief shrapnel
+  private static final ColorRGBA THOR_LIGHT = new ColorRGBA(0.85f, 0.4f, 1.0f, 1.0f);     // violet — heavy weapon signal
+  private static final ColorRGBA MINE_LIGHT = new ColorRGBA(0.25f, 0.5f, 1.0f, 1.0f);     // deep blue — static threat
+  private static final ColorRGBA EXPLOSION_LIGHT = new ColorRGBA(1.0f, 0.65f, 0.25f, 1.0f); // bright orange — flash
+  private static final ColorRGBA REPEL_LIGHT = new ColorRGBA(0.4f, 0.9f, 1.0f, 1.0f);     // cyan — push effect
+  private static final float BOMB_LIGHT_RADIUS = 24f;
+  private static final float BULLET_LIGHT_RADIUS = 8f;
+  private static final float BURST_LIGHT_RADIUS = 12f;
+  private static final float THOR_LIGHT_RADIUS = 40f;
+  private static final float MINE_LIGHT_RADIUS = 16f;
+  private static final float EXPLOSION_LIGHT_RADIUS = 48f;
+  private static final float REPEL_LIGHT_RADIUS = 24f;
 
   public static EntityId createDelayedBomb(final EntityData ed, final DelayedBombArgs spec) {
     final EntityId lastDelayedBomb =
@@ -74,6 +96,7 @@ public final class WeaponFactory {
         new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
         new Parent(spec.owner()));
 
+    ed.setComponent(lastBomb, new PointLightComponent(BOMB_LIGHT, BOMB_LIGHT_RADIUS, Vec3d.ZERO));
     ed.setComponent(lastBomb, new Meta(spec.createdTime()));
     return lastBomb;
   }
@@ -95,6 +118,7 @@ public final class WeaponFactory {
         new CollisionCategory(CollisionFilters.FILTER_CATEGORY_DYNAMIC_PROJECTILES),
         new Parent(spec.owner()));
 
+    ed.setComponent(lastBullet, new PointLightComponent(BULLET_LIGHT, BULLET_LIGHT_RADIUS, Vec3d.ZERO));
     ed.setComponent(lastBullet, new Meta(spec.createdTime()));
 
     return lastBullet;
@@ -113,6 +137,7 @@ public final class WeaponFactory {
             spec.createdTime(),
             spec.createdTime()
                 + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)));
+    ed.setComponent(lastExplosion, new PointLightComponent(EXPLOSION_LIGHT, EXPLOSION_LIGHT_RADIUS, Vec3d.ZERO));
     ed.setComponent(lastExplosion, new Meta(spec.createdTime()));
 
     return lastExplosion;
@@ -131,6 +156,7 @@ public final class WeaponFactory {
                 + TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
         WeaponType.create(WeaponTypes.BURST, ed),
         new Parent(spec.owner()));
+    ed.setComponent(lastBomb, new PointLightComponent(BURST_LIGHT, BURST_LIGHT_RADIUS, Vec3d.ZERO));
     ed.setComponent(lastBomb, new Meta(spec.createdTime()));
     return lastBomb;
   }
@@ -149,6 +175,7 @@ public final class WeaponFactory {
         new Parent(spec.owner()),
         AudioType.create(AudioTypes.REPEL, ed));
 
+    ed.setComponent(lastWarpTo, new PointLightComponent(REPEL_LIGHT, REPEL_LIGHT_RADIUS, Vec3d.ZERO));
     ed.setComponent(lastWarpTo, new Meta(spec.createdTime()));
     return lastWarpTo;
   }
@@ -171,6 +198,7 @@ public final class WeaponFactory {
         new Parent(spec.owner()),
         new Thor());
 
+    ed.setComponent(lastBomb, new PointLightComponent(THOR_LIGHT, THOR_LIGHT_RADIUS, Vec3d.ZERO));
     ed.setComponent(lastBomb, new Meta(spec.createdTime()));
 
     return lastBomb;
@@ -186,6 +214,7 @@ public final class WeaponFactory {
             spec.createdTime(), TimeUnit.NANOSECONDS.convert(spec.decayMillis(), TimeUnit.MILLISECONDS)),
         WeaponType.create(WeaponTypes.MINE, ed),
         new Parent(spec.owner()));
+    ed.setComponent(lastMine, new PointLightComponent(MINE_LIGHT, MINE_LIGHT_RADIUS, Vec3d.ZERO));
     ed.setComponent(lastMine, new Meta(spec.createdTime()));
     return lastMine;
   }

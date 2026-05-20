@@ -1,7 +1,13 @@
-// Per-arena server config. Read at arena-load time by GroovyArenaLoader,
-// which produces a typed ArenaConfig.
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2018-2026 Asser Fahrenholz
+//
+// Deva — Devastation pub-style deathmatch on bdegb.lvl. Composed via the
+// ADR-0008 module DSL: every player on their own freq (ffa-private-freqs),
+// kill-points scoring, timed 15-minute rounds, highest-score wins at the
+// timer. No bots, no team mechanics — pure free-for-all.
 //
 // Spawn coords are arena-local: (0, 0) = NW corner, (1024, 1024) = SE.
+// bdegb.lvl's [Spawn] region centers around (20, 20).
 
 arena {
     map '04-2026-deva/bdegb.lvl'
@@ -31,9 +37,14 @@ arena {
     // 2=all weapons. Deva keeps the safe default.
     friendlyFire 0
 
-    // ADR-0008 module DSL — minimum surface so AvatarSystem can gate ship-change
-    // and arena can resolve spawn positions. Coords lifted 1:1 from the deleted
-    // /conf/deva-04-2026/spawn.groovy fragment.
+    // F2 capstone composition — same shape as ffa but with deva's tuning + map.
+    teamSetup      'ffa-private-freqs'
     roster         'all-ships'
-    spawnPlacement 'random-radius', center: [20, 20], radius: 0
+    respawnPolicy  'cooldown-respawn', seconds: 3
+    spawnPlacement 'random-radius',    center: [20, 20], radius: 0
+    scoring        'kill-points',      perKill: 100
+    roundStructure 'timed-round',      minutes: 15
+    matchStructure 'continuous'
+    winCondition   'highest-score'
+    shop           'flat-shop'
 }
