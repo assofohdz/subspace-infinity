@@ -3,6 +3,179 @@
 Latest release only. Earlier history lives in git tags + commit log
 (`git log v<previous>..v<this>`).
 
+## v1.0.20 — 2026-05-20
+
+Arena-composition release. ADR-0008 landed (horizontal modules per
+arena category — scoring / win-condition / mechanic / team-setup /
+roster / respawn / round + match structure / spawn placement / shop).
+Five slices (F1–F5) shipped the framework + three playable consumer
+arenas. The `infinity` branch grew 65 commits since v1.0.19, including
+the durable-player / transient-ship identity refactor, a new
+`FlagSystem` extracted from `FrequencySystem`, a wire-level chat
+filter so per-arena announcements don't bleed cross-arena, and
+arena.groovy hot-reload (edit module declarations live → modules
+re-compose without arena restart).
+
+### For players
+
+Three real gametypes now playable, each composed from arena modules:
+
+- **FFA-Deathmatch** (`zone/arenas/ffa/`) — every player on their own
+  freq, kill points, cooldown respawn, 10-minute timed rounds, first
+  to 1000 wins (or highest score at timer). The F2 capstone.
+- **Trench (turf-shaped)** (`zone/arenas/trench/`) — two fixed teams
+  (freq 0 + 1), static flags, per-second flag-hold-time scoring,
+  most-flag-occupancy wins (or highest score fallback). F4.
+- **KOTH** (`zone/arenas/koth/`) — every player on own freq, crowns
+  distributed at round-start, kill = crown transfer, lockout when no
+  crowns remain in arena. Last-crown-standing terminates the round
+  (winner = survivor); if timer expires first, most-crowns wins. F5.
+
+Bots in koth (and any arena declaring `mechanic 'fill-up-x-teams'`)
+now have random names from a 20-name pool (Vex, Drak, Razor, Echo,
+…) instead of `Mob-<entityId>`.
+
+Round-timer chat announcements (e.g. `1 minute remaining` in trench,
+`1 minute until coronation` in koth) are now arena-scoped — players
+in unrelated arenas no longer see cross-arena announcements.
+
+Map sharing between arenas works: two arenas can declare the same
+`map '<file>.lvl'` without occupying the same world-space slot.
+Previously `MapSystem` keyed by map filename, causing arenas with
+identical map declarations to overlap and ships to thrash between
+them every frame.
+
+### For authors (zone, arena, ship presets)
+
+**New `arena.groovy` module DSL.** Compose arenas from horizontal
+modules:
+
+```groovy
+arena {
+    map '<arena>.lvl'
+    shipsScript '/conf/<preset>/ships.groovy'
+    includeFragment '/conf/<preset>/bomb.groovy'
+    // ...
+
+    teamSetup      'ffa-private-freqs'    // single-pick category
+    roster         'all-ships'
+    respawnPolicy  'cooldown-respawn', seconds: 3
+    spawnPlacement 'random-radius', center: [512, 512], radius: 50
+    mechanic       'fill-up-x-teams', teams: 3   // opt-in, keyed by id
+    scoring        'kill-points', perKill: 100   // layered (zero or more)
+    scoring        'crown-kill-bonus', perCrownKill: 50
+    roundStructure 'timed-round', minutes: 10
+    matchStructure 'continuous'
+    winCondition   'last-crown-standing'         // layered fallback chain
+    winCondition   'highest-score'
+    shop           'flat-shop'
+}
+```
+
+22 modules in the catalog covering all 10 categories. Operator-facing
+documentation lives in `.claude/skills/create-module/SKILL.md`; the
+architectural decisions live in
+[`docs/adr/0008-arena-composition-and-modules.md`](docs/adr/0008-arena-composition-and-modules.md).
+
+**Hot-reload.** Edit `arena.groovy` mid-game; on the next 5-second
+poll, `ArenaFileWatcherSystem` diffs the declarations and applies
+the delta — added modules get `onArenaLoad` + `onMatchStart` +
+`onRoundStart(currentRound)` fired; removed modules get
+`onArenaUnload`. Unchanged modules keep their instance + listener
+state. Broken-parse mid-edit saves are safe — the watcher logs a
+one-line warning and keeps the existing module set.
+
+**Hot-reload limitations:** non-module `ArenaConfig` fields (map,
+shipsScript, fragment includes) are not re-applied; restart the
+arena via `~loadArena <name>` if you change them. Modules whose
+kwargs change are treated as remove + re-add (cleared state). The
+`Reloadable<C>` companion interface for in-place reconfig is the
+opt-in path for modules that can apply kwargs deltas without losing
+state — none today.
+
+**New `gravBombs` DSL** in `ships.groovy` (technically lands earlier
+in the window but documented here for completeness — per-ship
+inventory-style gravbombs mirroring the `thors` block).
+
+**Modules tunables ship as Groovy kwargs**, not Java constants.
+Examples:
+- `respawnPolicy 'cooldown-respawn', seconds: 5`
+- `scoring 'flag-hold-time', perSecondPerFlag: 5`
+- `scoring 'crown-kill-bonus', perCrownKill: 50`
+- `roundStructure 'timed-round', minutes: 10`
+- `winCondition 'first-to-x', target: 1000`
+- `mechanic 'fill-up-x-teams', teams: 2`
+
+Empty kwargs work for zero-config modules: `scoring 'bonus-points'`.
+
+### Breaking changes
+
+Mostly internal — the framework is new, not a redesign of existing
+APIs. But three call out:
+
+- **`Player` component renamed to `PlayerShip`** (it always marked
+  ship entities, not the durable player). Filter usages and imports
+  updated across server + client + tests. ECS data on disk is
+  unaffected (the wire serializer was re-keyed; live worlds never
+  persist).
+- **Flag entities no longer carry `Frequency`.** Owner team lives on
+  a new `FlagOwnership(int freq)` component; canonical writer is the
+  new `FlagSystem` (extracted from `FrequencySystem`, which keeps
+  the ship-side `Frequency`-canonical-writer role). Any code/scripts
+  that read `Frequency` from a flag entity should switch to
+  `FlagOwnership`.
+- **Bot detection** flipped from `getComponent(ship, PlayerShip.class)
+  == null` to `getComponent(ship, BotShip.class) != null` (positive
+  marker, set by `AIEntities.createMobShip`). External callers
+  checking the inverse will mis-detect bots after this release.
+
+### Bug fixes
+
+- `PlayerKilledEvent` RMI loop in single-JVM dev mode — fixed
+  (server-side listeners no longer re-fire client-bridge events).
+- `DeathSystem` previously unregistered → dead entities never reaped
+  → `EnergySystem` continued draining post-death. Death system now
+  registered + split from `EnergySystem` to make ownership explicit.
+- `applyDelta` energy-damage post-death drain loops — gated on
+  `Dead` so corpses don't continue taking damage.
+- `Damage.intendedDamage` sign convention fixed at the energy.damage
+  call sites (was applying delta with wrong sign).
+- Arena-overlap thrash when two arenas declared the same map file —
+  `MapSystem` keyed by mapName, two arenas got the same slot, ships
+  flipped membership every frame. Now keyed by arena name.
+
+### For maintainers
+
+- **Identity model:** durable `playerEntityId` (lives across deaths)
+  + transient ship entity (recreated on respawn / ship-change).
+  Player → ship link is the new `CurrentShip(shipEntityId)` component
+  on the player; ship → player link is the existing `Parent`. Client
+  identity switches to the durable player; ship-specific HUD hides
+  gracefully when `CurrentShip` is absent (ghost state).
+- **`ScoreCoordinatorSystem`** drains `PlayerScoreChange` AND
+  `TeamScoreChange`; writes player + team tiers (Round / Match /
+  Total) symmetrically. `ScoreReset(ROUND|MATCH)` zeros both tiers
+  per scope.
+- **`MapSystem` API** changed: `loadMap(arenaName, mapName, slot)` /
+  `unloadMap(arenaName)` / `swapMap(arenaName, newMap, slot)` /
+  `getMapBoundsMin(arenaName)` / `isLoaded(arenaName)`. Keying by
+  arena name instead of map filename was the fix for the overlap
+  bug above.
+- **`ChatHostedPoster.postArenaMessage(from, type, ArenaId, msg)`** —
+  new API. Service resolves each chat session's avatar via
+  `GameSessionHostedService.getAvatarEntity(conn)`, reads the
+  avatar's `ArenaId`, delivers only to matches. Used by
+  `TimedRoundStructure` + `CrownResetRoundStructure` chat
+  announcements.
+- **Two-`ed.createEntity()` per logged-in player bug** filed in
+  `.scratch/code-todos-backlog.md` — `AccountHostedService.login`
+  + `GameSessionImpl` ctor each create a separate entity for the
+  same human; identity unification slice deferred.
+- **`infinity.modules` log level** temporarily bumped to INFO so
+  KOTH / Trench module lifecycle events are visible during the F4 /
+  F5 smoke window. Re-tighten to WARN once the modules stabilize
+  and per-tick chatter starts dominating the console.
+
 ## v1.0.19 — 2026-05-14
 
 Code-quality and architectural-review release. Lint/Sonar/PMD baselines ratcheted to zero across both server and client, pre-push hook wired so `./gradlew check` runs locally before every push, JaCoCo coverage ratchets in CI, and the P1 + P2 architectural-review batches landed (~148 new test methods + P2 follow-ups). One concrete gameplay fix: the gravbomb fire path actually works now. 34 commits since v1.0.18.
