@@ -21,9 +21,10 @@ import javax.annotation.Nullable;
  * each {@code onRoundStart} so subsequent rounds re-time from their own start.
  *
  * <p>Posts a minute-countdown chat announcement every {@link #ANNOUNCE_INTERVAL_NANOS}
- * via {@link ChatHostedPoster#postPublicMessage} (zone-wide today — see legacy-vs-
- * infinity tracker; arena-scoped chat is deferred). No announcement fires at the
- * round-end mark itself ({@code RoundEndPending} is the signal).
+ * via {@link ChatHostedPoster#postArenaMessage} — the service filters delivery to
+ * sessions whose current avatar is in this arena, so other arenas' players never
+ * see the message. No announcement fires at the round-end mark itself
+ * ({@code RoundEndPending} is the signal).
  */
 public final class TimedRoundStructure implements RoundStructureModule {
 
@@ -31,6 +32,7 @@ public final class TimedRoundStructure implements RoundStructureModule {
   private static final String CHAT_SENDER = "round-timer";
 
   private final EntityData ed;
+  private final ArenaId arenaId;
   private final EntityId arenaEntity;
   private final long durationNanos;
   private final ChatHostedPoster chat;
@@ -41,20 +43,21 @@ public final class TimedRoundStructure implements RoundStructureModule {
   public TimedRoundStructure(
       final ModuleContext ctx, final TimedRoundStructureConfig config) {
     this.ed = ctx.ed();
+    this.arenaId = ctx.arenaId();
     this.arenaEntity = ctx.arenaEntity();
     this.durationNanos = TimeUnit.MINUTES.toNanos(config.minutes());
     this.chat = ctx.chat();
   }
 
   @Override
-  public void onRoundStart(final ArenaId arenaId, final int roundNumber) {
+  public void onRoundStart(final ArenaId arenaIdParam, final int roundNumber) {
     roundStartNanos = -1;
     nextAnnounceNanos = -1;
     emitted = false;
   }
 
   @Override
-  public void tickRoundStructure(final ArenaId arenaId, final SimTime time) {
+  public void tickRoundStructure(final ArenaId arenaIdParam, final SimTime time) {
     if (emitted) {
       return;
     }
@@ -76,7 +79,7 @@ public final class TimedRoundStructure implements RoundStructureModule {
     }
   }
 
-  /** Posts {@code "N minute(s) remaining"} via the chat poster (nullable in tests). */
+  /** Posts {@code "N minute(s) remaining"} via {@link ChatHostedPoster#postArenaMessage}; service filters by arena. */
   private void announceTimeRemaining(final long remainingNanos) {
     @Nullable final ChatHostedPoster poster = chat;
     if (poster == null) {
@@ -87,7 +90,8 @@ public final class TimedRoundStructure implements RoundStructureModule {
       return;
     }
     final String unit = remainingMinutes == 1 ? "minute" : "minutes";
-    poster.postPublicMessage(
-        CHAT_SENDER, MessageTypes.MESSAGE, remainingMinutes + " " + unit + " remaining");
+    poster.postArenaMessage(
+        CHAT_SENDER, MessageTypes.MESSAGE, arenaId,
+        remainingMinutes + " " + unit + " remaining");
   }
 }

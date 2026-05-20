@@ -85,6 +85,29 @@ Each row: actionable item + source file:line + brief context.
   `Actor.look`) — consolidate into a single source.** Source:
   `infinity-server/src/main/java/infinity/ai/MobSystem.java:276`.
 
+### Identity / ECS
+
+- [ ] **Two `ed.createEntity()` calls per logged-in player — unify into one.**
+  `AccountHostedService.login` ([infinity-server/src/main/java/infinity/server/AccountHostedService.java:187](../infinity-server/src/main/java/infinity/server/AccountHostedService.java))
+  creates a player entity and registers it in `playerConnectionMap` (the key
+  `lookupConnection(EntityId)` walks for `postPrivateMessage`). Independently,
+  `GameSessionImpl` ctor
+  ([infinity-server/src/main/java/infinity/server/GameSessionHostedService.java:225](../infinity-server/src/main/java/infinity/server/GameSessionHostedService.java))
+  creates a SECOND `playerEntityId` used as the ship's `Parent`. These are two
+  ECS entities for the same logged-in human — both get `Name(playerName)`, only
+  one is in `playerConnectionMap`, only the other is reachable from the ship
+  via `Parent`. The identity PRD
+  ([`.scratch/player-vs-ship-identity/PRD.md`](player-vs-ship-identity/PRD.md))
+  is explicit that there should be one durable player entity per session;
+  refactor `0d42d12d` didn't finish the consolidation. Fix: `AccountHostedService`
+  stops creating its own entity; on `login()` it reads
+  `GameSessionImpl.playerEntityId` (already exists at connection-attached time)
+  and registers THAT in `playerConnectionMap` + sets
+  `ATTRIBUTE_PLAYER_ENTITYID`. Surfaced 2026-05-20 during F4 round-timer chat
+  filtering — the chat-by-arena fix (`postArenaMessage(ArenaId)`) sidesteps the
+  problem by filtering via `getAvatarEntity(conn)` instead of using
+  `playerConnectionMap`.
+
 ### Zone vs arena scope
 
 - [ ] **Move `repelFriendlies` from `zone.groovy` to an arena module.**

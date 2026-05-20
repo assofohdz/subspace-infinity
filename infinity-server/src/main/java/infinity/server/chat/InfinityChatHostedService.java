@@ -321,6 +321,50 @@ public class InfinityChatHostedService extends AbstractHostedConnectionService
   }
 
   @Override
+  public void postArenaMessage(
+      final String from,
+      final int messageType,
+      final infinity.es.arena.ArenaId arena,
+      final String message) {
+    if (arena == null) {
+      return;
+    }
+    final com.simsilica.es.EntityData ed = resolveEntityData();
+    if (ed == null) {
+      // No EntityDataHostedService wired (e.g. in some test fixtures) — degrade
+      // to broadcast so messages aren't silently dropped in non-prod paths.
+      postPublicMessage(from, messageType, message);
+      return;
+    }
+    int delivered = 0;
+    for (final ChatSessionImpl session : players) {
+      final EntityId avatar =
+          infinity.server.GameSessionHostedService.getAvatarEntity(session.getConn());
+      if (avatar == null) {
+        continue;
+      }
+      final infinity.es.arena.ArenaId shipArena =
+          ed.getComponent(avatar, infinity.es.arena.ArenaId.class);
+      if (shipArena == null || !arena.getArena().equals(shipArena.getArena())) {
+        continue;
+      }
+      session.newMessage(0, from, message);
+      delivered++;
+    }
+    if (log.isInfoEnabled()) {
+      log.info("{}{} said (arena={}, {} recipients): {}",
+          PREPEND_CHAT, from, arena.getArena(), delivered, message);
+    }
+  }
+
+  /** Test seam — overridden in fixtures lacking an {@code EntityDataHostedService}. */
+  protected com.simsilica.es.EntityData resolveEntityData() {
+    final com.simsilica.es.server.EntityDataHostedService eds =
+        getService(com.simsilica.es.server.EntityDataHostedService.class);
+    return eds == null ? null : eds.getEntityData();
+  }
+
+  @Override
   public void registerCommandConsumer(
       final String cmd, final String helptext, final CommandFunction c) {
     postPublicMessage(SYSTEM_MESSAGE_SENDER, MessageTypes.MESSAGE, helptext);

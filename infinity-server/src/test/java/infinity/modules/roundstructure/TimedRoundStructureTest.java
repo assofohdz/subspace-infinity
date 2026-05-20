@@ -114,6 +114,25 @@ public final class TimedRoundStructureTest {
         ed.getComponent(arenaEntity, RoundEndPending.class));
   }
 
+  @Test
+  public void announceTargetsThisArena() {
+    final DefaultEntityData ed = new DefaultEntityData();
+    final EntityId arenaEntity = ed.createEntity();
+    final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
+    final CapturingChat chat = new CapturingChat();
+    final TimedRoundStructure m = new TimedRoundStructure(
+        new ModuleContext(arenaId, arenaEntity, ed, chat, null),
+        new TimedRoundStructureConfig(2));
+
+    m.onRoundStart(arenaId, 1);
+    m.tickRoundStructure(arenaId, simTimeAt(0L));
+    m.tickRoundStructure(arenaId, simTimeAt(TimeUnit.MINUTES.toNanos(1)));
+
+    assertEquals(1, chat.messages.size());
+    assertEquals("announcement targets this arena (service filters delivery)",
+        arenaId.getArena(), chat.arenaTargets.get(0).getArena());
+  }
+
   private static SimTime simTimeAt(final long simNanos) {
     final SimTime t = new SimTime();
     t.setCurrentTime(simNanos);
@@ -140,6 +159,19 @@ public final class TimedRoundStructureTest {
     public void postTeamMessage(
         final String from, final int messageType, final int targetFrequency, final String message) {
       // not under test
+    }
+
+    /** Per-arena targets also captured for assertion symmetry; service does the filtering. */
+    final List<ArenaId> arenaTargets = new ArrayList<>();
+
+    @Override
+    public void postArenaMessage(
+        final String from,
+        final int messageType,
+        final ArenaId arena,
+        final String message) {
+      messages.add(message);
+      arenaTargets.add(arena);
     }
 
     @Override
