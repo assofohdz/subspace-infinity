@@ -43,8 +43,11 @@ public class MapSystem extends BaseInfinitySystem {
       "Currentmap location is:{}, current direction is:{}";
 
   private static final String MAP_DIRECTORY = "Maps";
-  private final Map<String, Set<Vec3d>> activeMaps = new HashMap<>();
-  private final Map<String, Vec3d> mapCoordinates = new LinkedHashMap<>();
+  // Keyed by arena name (NOT map filename) — two arenas can share a map file and
+  // still get distinct world-space slots. The map filename lives in res.setMapName()
+  // for asset loading + the LevelFile's display name; it doesn't disambiguate arenas.
+  private final Map<String, Set<Vec3d>> arenaBlocks = new HashMap<>();
+  private final Map<String, Vec3d> arenaCoordinates = new LinkedHashMap<>();
   private Vec3d currentMapLoc = new Vec3d(-1, 0, -1);
   private SimTime time;
   private AssetLoaderService assetLoader;
@@ -119,10 +122,10 @@ public class MapSystem extends BaseInfinitySystem {
     final MapSystemLogic.Direction testDirection = direction.next();
     final Vec3d testMapLoc = testDirection.advance(currentMapLoc);
     // First time we will land here:
-    if (!mapCoordinates.containsValue(currentMapLoc)) {
+    if (!arenaCoordinates.containsValue(currentMapLoc)) {
       log.info(LOG_CURRENT_MAP_LOCATION, currentMapLoc, direction);
       return currentMapLoc;
-    } else if (!mapCoordinates.containsValue(testMapLoc)) {
+    } else if (!arenaCoordinates.containsValue(testMapLoc)) {
 
       // Test if we should go new direction
       currentMapLoc = testMapLoc;
@@ -138,41 +141,47 @@ public class MapSystem extends BaseInfinitySystem {
   }
 
   /**
-   * Loads a map, auto-positioning it via the spiral placement algorithm.
+   * Loads a map for {@code arenaName}, auto-positioning it via the spiral placement algorithm.
+   * Two arenas can share a map filename: each gets its own world-space slot keyed by
+   * {@code arenaName}.
    *
-   * @param mapName    the lvl-map to load
+   * @param arenaName  the arena owning this map; identifies the world-space slot
+   * @param mapName    the lvl-map to load (asset filename + LevelFile display name)
    * @param arenaIndex zero-based arena slot — determines the block-type range the map's tiles
    *                   occupy ({@code arenaTileBase(arenaIndex)..+189}), and therefore which
    *                   tileset the client will render them with.
    * @return true if loaded
    */
-  public boolean loadMap(final String mapName, final int arenaIndex) {
+  public boolean loadMap(final String arenaName, final String mapName, final int arenaIndex) {
     if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
       return false;
     }
     final Vec3d offset = calculateNextOffset();
     final TileId tile = TileId.fromCell((int) offset.x, 0, (int) offset.z);
-    return loadMap(mapName, tile, arenaIndex);
+    return loadMap(arenaName, mapName, tile, arenaIndex);
   }
 
   /**
    * Loads a map at an explicit grid location. Each TileId is a 1024x1024 slot on Moss's TILE_GRID;
    * adjacent tiles share a 2-cell gutter formed by each map's own border ring.
    *
+   * @param arenaName  the arena owning this map
    * @param mapName    the lvl-map to load
    * @param tile       the Moss TileId specifying where to place the map
-   * @param arenaIndex zero-based arena slot (see {@link #loadMap(String, int)})
+   * @param arenaIndex zero-based arena slot (see {@link #loadMap(String, String, int)})
    * @return true if loaded, false if the filename is invalid or the tile is occupied
    */
-  public boolean loadMap(final String mapName, final TileId tile, final int arenaIndex) {
-    log.info("Loading map: {} at {} (arenaIndex={})", mapName, tile, arenaIndex);
+  public boolean loadMap(
+      final String arenaName, final String mapName, final TileId tile, final int arenaIndex) {
+    log.info("Loading map: {} for arena {} at {} (arenaIndex={})",
+        mapName, arenaName, tile, arenaIndex);
     if (!(mapName.endsWith(".lvl") || mapName.endsWith(".lvz"))) {
       return false;
     }
     final Vec3i cell = tile.getCell(null);
     final Vec3d offset = new Vec3d(cell.x, cell.y, cell.z);
-    if (mapCoordinates.containsValue(offset)) {
-      log.warn("Tile {} already occupied; skipping {}", tile, mapName);
+    if (arenaCoordinates.containsValue(offset)) {
+      log.warn("Tile {} already occupied; skipping arena {} (map {})", tile, arenaName, mapName);
       return false;
     }
     final Vec3i corner = tile.getWorld(null);
@@ -198,106 +207,96 @@ public class MapSystem extends BaseInfinitySystem {
         CompletableFuture.supplyAsync(
             () -> projector.project(res, worldOffset, tileBase, createdTime));
     completableFuture
-        .thenAccept(s -> activeMaps.put(mapName, s))
+        .thenAccept(s -> arenaBlocks.put(arenaName, s))
         .exceptionally(ex -> {
-          log.error("Async block population failed for map {}", mapName, ex);
+          log.error("Async block population failed for arena {} (map {})", arenaName, mapName, ex);
           return null;
         });
 
     res.setMapName(mapName);
-    mapCoordinates.put(mapName, offset);
-    log.info("Queued map: {} at grid {} (world {})", mapName, offset, worldOffset);
+    arenaCoordinates.put(arenaName, offset);
+    log.info("Queued arena {} (map {}) at grid {} (world {})",
+        arenaName, mapName, offset, worldOffset);
     return true;
   }
 
   /**
-   * Returns the maximum world-space bounds of the loaded map. {@code mapCoordinates}
+   * Returns the maximum world-space bounds of the arena's slot. {@code arenaCoordinates}
    * stores grid-cell offsets (each step is one tile = {@code MAP_SIZE} world units),
    * so the world max is {@code (gridOffset * MAP_SIZE) + (MAP_SIZE, 0, MAP_SIZE)}.
-   *
-   * @param arenaId the map to get the bounds for
-   * @return the maximum world-space bounds of the map
    */
-  public Vec3d getMapBoundsMax(final String arenaId) {
-    final Vec3d min = getMapBoundsMin(arenaId);
+  public Vec3d getMapBoundsMax(final String arenaName) {
+    final Vec3d min = getMapBoundsMin(arenaName);
     return new Vec3d(min.x + MAP_SIZE, min.y, min.z + MAP_SIZE);
   }
 
   /**
-   * Returns the minimum world-space bounds of the loaded map (the bounds-min corner).
+   * Returns the minimum world-space bounds of the arena's slot (the bounds-min corner).
    * Converts the stored grid-cell offset to world units by multiplying by {@code MAP_SIZE}.
-   *
-   * @param map the map to get the bounds for
-   * @return the minimum world-space bounds of the map
    */
-  public Vec3d getMapBoundsMin(final String map) {
-    final Vec3d gridOffset = mapCoordinates.get(map);
+  public Vec3d getMapBoundsMin(final String arenaName) {
+    final Vec3d gridOffset = arenaCoordinates.get(arenaName);
     return new Vec3d(gridOffset.x * MAP_SIZE, gridOffset.y, gridOffset.z * MAP_SIZE);
   }
 
   /**
-   * Unloads a given lvz-map. Block clearing runs asynchronously; the tracking
-   * entries are removed after the clear completes so a subsequent loadMap for
-   * the same slot will see it as occupied until the clear is done.
+   * Unloads {@code arenaName}'s map. Block clearing runs asynchronously; the tracking
+   * entries are removed after the clear completes so a subsequent loadMap for the same
+   * arena will see it as occupied until the clear is done.
    *
-   * @param mapName the name of the map to unload
-   * @return true if the unload was queued, false if no such map is loaded
+   * @return true if the unload was queued, false if no such arena is loaded
    */
-  public boolean unloadMap(final String mapName) {
-    if (!activeMaps.containsKey(mapName)) {
+  public boolean unloadMap(final String arenaName) {
+    if (!arenaBlocks.containsKey(arenaName)) {
       return false;
     }
-    final Set<Vec3d> coordinates = activeMaps.get(mapName);
+    final Set<Vec3d> coordinates = arenaBlocks.get(arenaName);
     final CompletableFuture<Boolean> completableFuture =
         CompletableFuture.supplyAsync(() -> this.removeBlocksFromLegacyMap(coordinates));
-    completableFuture.thenAccept(s -> activeMaps.remove(mapName));
-    completableFuture.thenAccept(s -> mapCoordinates.remove(mapName));
+    completableFuture.thenAccept(s -> arenaBlocks.remove(arenaName));
+    completableFuture.thenAccept(s -> arenaCoordinates.remove(arenaName));
     return true;
   }
 
   /**
-   * Replaces a loaded map with a new one at the same grid slot. The new map's
-   * coordinate entry is registered synchronously (so bounds are immediately
-   * queryable), while the old blocks are cleared and the new blocks are built
-   * asynchronously.
+   * Replaces a loaded arena's map with a new one at the same grid slot. The new map's
+   * coordinate entry is registered synchronously (so bounds are immediately queryable),
+   * while the old blocks are cleared and the new blocks are built asynchronously.
    *
-   * @param oldMapName the currently-loaded map to replace
-   * @param newMapName the map to load in its place
-   * @return true if the swap was queued, false if the old map isn't loaded or
+   * @return true if the swap was queued, false if the arena isn't loaded or
    *         the new name has an invalid extension
    */
-  public boolean swapMap(final String oldMapName, final String newMapName, final int arenaIndex) {
-    if (!activeMaps.containsKey(oldMapName)) {
+  public boolean swapMap(
+      final String arenaName, final String newMapName, final int arenaIndex) {
+    if (!arenaBlocks.containsKey(arenaName)) {
       return false;
     }
     if (!(newMapName.endsWith(".lvl") || newMapName.endsWith(".lvz"))) {
       return false;
     }
-    final Vec3d offset = mapCoordinates.get(oldMapName);
+    final Vec3d offset = arenaCoordinates.get(arenaName);
     final TileId tile = TileId.fromCell((int) offset.x, 0, (int) offset.z);
     final Vec3i corner = tile.getWorld(null);
     final Vec3d worldOffset = new Vec3d(corner.x, corner.y, corner.z);
 
-    final Set<Vec3d> oldCoordinates = activeMaps.remove(oldMapName);
-    mapCoordinates.remove(oldMapName);
-    mapCoordinates.put(newMapName, offset);
+    final Set<Vec3d> oldCoordinates = arenaBlocks.remove(arenaName);
 
     final LevelFile res = (LevelFile) assetLoader.loadAsset(MAP_DIRECTORY + "/" + newMapName);
     res.setMapName(newMapName);
-    log.info("Swapping {} -> {} at {}", oldMapName, newMapName, tile);
+    log.info("Swapping arena {} map -> {} at {}", arenaName, newMapName, tile);
 
     final int tileBase = InfinityConstants.arenaTileBase(arenaIndex);
     final long createdTime = time != null ? time.getTime() : 0L;
     CompletableFuture
         .supplyAsync(() -> removeBlocksFromLegacyMap(oldCoordinates))
         .thenApplyAsync(s -> projector.project(res, worldOffset, tileBase, createdTime))
-        .thenAccept(blocks -> activeMaps.put(newMapName, blocks));
+        .thenAccept(blocks -> arenaBlocks.put(arenaName, blocks));
     return true;
   }
 
-  /** Returns true if the given map is currently tracked as loaded. */
-  public boolean isLoaded(final String mapName) {
-    return activeMaps.containsKey(mapName);
+  /** Returns true if the given arena's map is currently tracked as loaded. */
+  public boolean isLoaded(final String arenaName) {
+    return arenaBlocks.containsKey(arenaName);
   }
 
   private boolean removeBlocksFromLegacyMap(final Set<Vec3d> coordinates) {

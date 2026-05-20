@@ -399,11 +399,13 @@ Plus: `zone/arenas/ffa/arena.groovy` composes the above into a playable FFA aren
 
 Acceptance: manually launch + play FFA arena; kills award points; round ends after timer; scores reset; new round starts.
 
-### Slice F3 — Cleanup contract tests + module-set hot-reload (ADR-0008-β)
+### Slice F3 — Cleanup contract tests + module-set hot-reload (ADR-0008-β) **(landed)**
 
-- Add `ArenaModuleContractTest` to `infinity-server/src/test/java/`: instantiates each catalog module, runs `onArenaUnload`, asserts the arena's entity set is clean of module-owned components.
-- Extend the arena-groovy file-watcher to compute module-set diffs and apply per `ModuleLoader`.
-- Test: edit `ffa/arena.groovy` while the arena is running (add `scoring 'bonus-points'` — a no-op-but-loaded second scoring module). Verify the running arena picks it up without restart.
+- `ArenaModuleContractTest` (parameterised over `ModuleCatalog.allDescriptors()`) runs each module through `onArenaLoad → onMatchStart → onRoundStart(1) → onRoundEnd → onMatchEnd → onArenaUnload` and asserts entity-count delta = 0 via a `CountingEntityData` subclass. All 13 catalog entries pass. Per-tick dispatchers are intentionally out of scope — the contract this test enforces is "lifecycle hooks alone don't leak"; deeper coverage (mid-play unload) lands when the first leaking module surfaces.
+- `ArenaFileWatcherSystem` polls each loaded arena's `arena.groovy` for mtime changes (5 s cadence, matches `EngineConfigSystem`). On change, it diffs the parsed `ArenaModuleDeclarations` against the live snapshot in `ConfigRegistry` and, if the modules section changed, calls `ArenaModuleSystem.applyModuleSetDiff` — which tears down removed instances, instantiates added specs, and fires `onArenaLoad + onMatchStart + onRoundStart(currentRound)` on each new module. Unchanged modules keep their instance + EventBus subscription state. Reconfigured specs (same id, different kwargs) currently teardown + rebuild since no catalog module implements `Reloadable` yet. Non-module `ArenaConfig` fields (`map`, `shipsScript`, fragment includes) are silently ignored — operator restarts the arena to apply.
+- `ModuleSetDiff` is a pure record + static `compute` in `api/infinity.modules`; covered by `ModuleSetDiffTest` (api/) and exercised end-to-end by `ArenaModuleSystemDiffTest` (server/).
+- `BonusPointsScoring` (no-op `ScoringModule`, zero-config) added to the catalog so live additions of `scoring 'bonus-points'` to `ffa/arena.groovy` exercise the diff path without changing gameplay.
+- `ArenaModuleSetMerger` extracted from `ArenaModuleSystem` to keep the latter's class complexity under PMD's threshold; the merger owns all the per-category retain-vs-rebuild logic plus the spec → instance lookup.
 
 ### Slice F4 — Trench (Turf-shaped) — second consumer + legacy rip-out
 

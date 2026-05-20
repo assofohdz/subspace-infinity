@@ -403,7 +403,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
       reloadWatcher.registerArenaReloadWatches(
           arenaId, rec.config.shipsScript(), rec.config.fragmentIncludes());
 
-      if (!maps.loadMap(mapFile, rec.arenaIndex)) {
+      if (!maps.loadMap(rec.name, mapFile, rec.arenaIndex)) {
         fail(rec, arena, "loadMap returned false for " + mapFile);
         return;
       }
@@ -411,7 +411,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
       // LargeGridCell set directly to dodge moss dropping the second arena loaded in the same frame.
       ArenaLogic.configureGhostCube(
           ed, arena,
-          maps.getMapBoundsMin(mapFile), maps.getMapBoundsMax(mapFile),
+          maps.getMapBoundsMin(rec.name), maps.getMapBoundsMax(rec.name),
           rec.arenaIndex, mapFile, rec.name, log);
       rec.entityId = arena;
 
@@ -450,7 +450,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     rec.state = ArenaState.UNLOADING;
     reloadWatcher.unregisterScriptWatch(rec.name);
     try {
-      requireSystem(MapSystem.class).unloadMap(rec.config.mapFile());
+      requireSystem(MapSystem.class).unloadMap(rec.name);
       if (rec.entityId != null) {
         ed.removeEntity(rec.entityId);
         rec.entityId = null;
@@ -503,7 +503,7 @@ public class ArenaSystem extends BaseInfinitySystem implements ArenaManager {
     }
     final ArenaLogic.SwapMapOutcome outcome = ArenaLogic.swapArenaMap(
         rec.state, rec.config, arenaName, newMap,
-        () -> requireSystem(MapSystem.class).swapMap(rec.config.mapFile(), newMap, rec.arenaIndex));
+        () -> requireSystem(MapSystem.class).swapMap(arenaName, newMap, rec.arenaIndex));
     if (outcome.config != null) {
       rec.config = outcome.config;
     }

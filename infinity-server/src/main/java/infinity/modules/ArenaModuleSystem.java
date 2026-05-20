@@ -20,6 +20,7 @@ import infinity.sim.ChatHostedPoster;
 import infinity.sim.PhysicsManager;
 import infinity.sim.internal.InfinityPhysicsManager;
 import infinity.systems.BaseInfinitySystem;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,8 +50,8 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
   private PhysicsManager physics;
   private final Map<EntityId, LoadedArena> loaded = new HashMap<>();
 
-  /** Bundles the per-arena state {@link #handleAdded} captures + {@link #handleRemoved} unwinds. */
-  public record LoadedArena(ArenaId arenaId, ArenaModuleSet set) {}
+  /** Bundles the per-arena state {@link #handleAdded} captures + {@link #handleRemoved} unwinds. {@code decls} is retained so {@link #applyModuleSetDiff} can compute the diff. */
+  public record LoadedArena(ArenaId arenaId, ArenaModuleSet set, ArenaModuleDeclarations decls) {}
 
   /** Look up the loaded module set for an arena entity; {@code null} if the arena hasn't been loaded. */
   public LoadedArena loadedFor(final EntityId arenaEntity) {
@@ -170,14 +171,14 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
     final ValidationResult result = ModuleLoader.validate(decls);
     if (!result.ok()) {
       logValidationErrors(arenaId, result);
-      loaded.put(entityId, new LoadedArena(arenaId, ArenaModuleSet.EMPTY));
+      loaded.put(entityId, new LoadedArena(arenaId, ArenaModuleSet.EMPTY, ArenaModuleDeclarations.EMPTY));
       return;
     }
 
     final ModuleContext context =
         new ModuleContext(arenaId, entityId, ed, chat, physics, this::moduleSetFor);
     final ArenaModuleSet set = ModuleLoader.build(decls, context);
-    loaded.put(entityId, new LoadedArena(arenaId, set));
+    loaded.put(entityId, new LoadedArena(arenaId, set, decls));
     bootstrapLifecycle(entityId, arenaId, set);
   }
 
@@ -221,6 +222,82 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
     for (int i = all.size() - 1; i >= 0; i--) {
       all.get(i).onArenaUnload(entry.arenaId());
     }
+  }
+
+  /**
+   * Drains a module-set diff into a live arena (F3 hot-reload entry point). Validates {@code newDecls},
+   * computes the symmetric diff vs. the current declarations, tears down removed instances, instantiates
+   * added specs, and dispatches {@code onArenaLoad → onMatchStart → onRoundStart(currentRound)} on each
+   * new module. Unchanged modules keep their instance + listener state. Reconfigured modules (same id,
+   * different kwargs) currently teardown + rebuild — Reloadable companion not yet implemented by any
+   * catalog module.
+   */
+  public ModuleSetDiff applyModuleSetDiff(
+      final EntityId arenaEntity, final ArenaModuleDeclarations newDecls) {
+    final LoadedArena current = loaded.get(arenaEntity);
+    if (current == null) {
+      if (log.isWarnEnabled()) {
+        log.warn("applyModuleSetDiff for unknown arena entity {}; ignoring", arenaEntity);
+      }
+      return ModuleSetDiff.EMPTY;
+    }
+    final ValidationResult validation = ModuleLoader.validate(newDecls);
+    if (!validation.ok()) {
+      logValidationErrors(current.arenaId(), validation);
+      return ModuleSetDiff.EMPTY;
+    }
+    final ModuleSetDiff diff = ModuleSetDiff.compute(current.decls(), newDecls);
+    if (diff.isEmpty()) {
+      if (log.isDebugEnabled()) {
+        log.debug("Arena {}: module-set diff empty", current.arenaId().getArena());
+      }
+      return diff;
+    }
+
+    // Step A — tear down removed instances in reverse registration order.
+    final List<ArenaModule> removedInstances =
+        ArenaModuleSetMerger.findInstancesForSpecs(current, diff.removedSpecs());
+    for (int i = removedInstances.size() - 1; i >= 0; i--) {
+      removedInstances.get(i).onArenaUnload(current.arenaId());
+    }
+
+    // Step B — merge: retain unchanged instances; instantiate added specs.
+    final ModuleContext ctx =
+        new ModuleContext(current.arenaId(), arenaEntity, ed, chat, physics, this::moduleSetFor);
+    final ArenaModuleSet merged =
+        ArenaModuleSetMerger.mergeAndRebuild(current.set(), current.decls(), newDecls, ctx);
+
+    // Step C — lifecycle for added instances at the arena's current round number.
+    final int roundNumber = currentRoundNumber(arenaEntity);
+    final LoadedArena mergedState = new LoadedArena(current.arenaId(), merged, newDecls);
+    final List<ArenaModule> addedInstances =
+        ArenaModuleSetMerger.findInstancesForSpecs(mergedState, diff.addedSpecs());
+    for (final ArenaModule m : addedInstances) {
+      m.onArenaLoad(current.arenaId());
+      m.onMatchStart(current.arenaId());
+      m.onRoundStart(current.arenaId(), roundNumber);
+    }
+
+    loaded.put(arenaEntity, mergedState);
+    if (log.isInfoEnabled()) {
+      log.info("Arena {} module-set diff applied — added {}, removed {}",
+          current.arenaId().getArena(),
+          specIds(diff.addedSpecs()), specIds(diff.removedSpecs()));
+    }
+    return diff;
+  }
+
+  private int currentRoundNumber(final EntityId arenaEntity) {
+    final RoundNumber rn = ed.getComponent(arenaEntity, RoundNumber.class);
+    return rn == null ? 1 : rn.getValue();
+  }
+
+  private static List<String> specIds(final List<ModuleSpec> specs) {
+    final List<String> out = new ArrayList<>(specs.size());
+    for (final ModuleSpec s : specs) {
+      out.add(s.moduleId());
+    }
+    return out;
   }
 
   @Override

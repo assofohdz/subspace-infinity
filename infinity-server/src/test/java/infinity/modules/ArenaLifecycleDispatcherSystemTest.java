@@ -218,7 +218,7 @@ public final class ArenaLifecycleDispatcherSystemTest {
       @SuppressWarnings("unchecked")
       final java.util.Map<EntityId, LoadedArena> map =
           (java.util.Map<EntityId, LoadedArena>) loadedField.get(moduleSystem);
-      map.put(arenaEntity, new LoadedArena(arenaId, set));
+      map.put(arenaEntity, new LoadedArena(arenaId, set, ArenaModuleDeclarations.EMPTY));
     } catch (final ReflectiveOperationException e) {
       throw new AssertionError(e);
     }

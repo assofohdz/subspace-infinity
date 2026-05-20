@@ -14,6 +14,7 @@ import infinity.modules.respawn.CooldownRespawn;
 import infinity.modules.respawn.InstantRespawn;
 import infinity.modules.roster.AllShipsRoster;
 import infinity.modules.roundstructure.TimedRoundStructure;
+import infinity.modules.scoring.BonusPointsScoring;
 import infinity.modules.scoring.KillPointsScoring;
 import infinity.modules.shop.FlatShop;
 import infinity.modules.spawnplacement.RandomRadiusSpawnPlacement;
@@ -33,6 +34,9 @@ public final class ModuleCatalog {
               new ModuleDescriptor(
                   KillPointsScoring.class, KillPointsConfig.class, ModuleCategory.SCORING,
                   Set.of())),
+          Map.entry("bonus-points",
+              new ModuleDescriptor(
+                  BonusPointsScoring.class, null, ModuleCategory.SCORING, Set.of())),
           Map.entry("timed-round",
               new ModuleDescriptor(
                   TimedRoundStructure.class, TimedRoundStructureConfig.class,
@@ -81,5 +85,10 @@ public final class ModuleCatalog {
 
   public static Set<String> allIds() {
     return CATALOG.keySet();
+  }
+
+  /** Every {@code (id, descriptor)} entry — used by the cleanup-contract test to walk the catalog. */
+  public static Set<Map.Entry<String, ModuleDescriptor>> allDescriptors() {
+    return CATALOG.entrySet();
   }
 }

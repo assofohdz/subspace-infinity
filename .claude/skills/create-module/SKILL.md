@@ -41,7 +41,9 @@ Some categories add a per-tick dispatcher beyond the base lifecycle. `ArenaModul
 
 Implement only the hook(s) you need; the base lifecycle covers the rest.
 
-Cleanup contract (ADR-0008-β): `onArenaUnload` MUST remove every component / entity / EventBus listener / Decay token the module added during the arena's lifetime. Verified by `ArenaModuleContractTest` once F3 lands.
+Cleanup contract (ADR-0008-β): `onArenaUnload` MUST remove every component / entity / EventBus listener / Decay token the module added during the arena's lifetime. Verified by `ArenaModuleContractTest` (parameterised over `ModuleCatalog.allDescriptors()`); a leaking module shows up as a non-zero entity-count delta across the lifecycle.
+
+Hot-reload (F3): `ArenaFileWatcherSystem` polls each arena's `arena.groovy` and on a module-set diff calls `ArenaModuleSystem.applyModuleSetDiff` — removed modules get `onArenaUnload`, added modules get `onArenaLoad + onMatchStart + onRoundStart(currentRound)`. Unchanged modules keep their instance state. Reconfigured kwargs are currently treated as remove+add; opt into the `Reloadable<C>` companion interface if your module can apply config changes in place.
 
 ## Module Philosophy
 

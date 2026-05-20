@@ -459,6 +459,12 @@ public class GameServer {
     // ArenaModuleDeclarations slot) and before DecaySystem (per the canonical-
     // writer ordering rule the coordinators inherit).
     systems.register(ArenaModuleSystem.class, new ArenaModuleSystem());
+    // F3 arena.groovy live reload — polls each loaded arena for module-set diffs.
+    // Registers after ArenaModuleSystem so its applyModuleSetDiff entry point exists
+    // by the time the watcher first ticks.
+    systems.register(
+        infinity.modules.ArenaFileWatcherSystem.class,
+        new infinity.modules.ArenaFileWatcherSystem());
     // Canonical writer of PlayerRoundScore; drains PlayerScoreChange transients
     // emitted by scoring modules. Registers after ArenaModuleSystem so modules
     // have published their per-tick contributions before the drain runs.

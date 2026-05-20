@@ -85,6 +85,16 @@ Each row: actionable item + source file:line + brief context.
   `Actor.look`) — consolidate into a single source.** Source:
   `infinity-server/src/main/java/infinity/ai/MobSystem.java:276`.
 
+### Zone vs arena scope
+
+- [ ] **Move `repelFriendlies` from `zone.groovy` to an arena module.**
+  Currently a zone-wide ops knob (`SettingsSystem.repelFriendlies()` consumed
+  by `RepelSystem`), but the semantics are per-arena gameplay — Trench may want
+  it on while a CTF arena wants it off. Lift the knob into the future
+  `repel-mechanic` (or absorb into a broader physics-mechanic module) per
+  ADR-0008's "horizontal modules own per-arena tuning"; drop the zone-tier
+  field once consumers read from the module. Source: `zone/zone.groovy:25`.
+
 ### Settings re-projection
 
 - [ ] **`BombSafetyRadius` (per-ship snapshot of `BombConfig.bombSafety`

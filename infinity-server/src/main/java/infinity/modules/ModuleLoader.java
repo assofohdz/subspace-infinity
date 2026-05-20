@@ -131,7 +131,8 @@ public final class ModuleLoader {
         mechanics);
   }
 
-  private static ArenaModule instantiate(final ModuleSpec spec, final ModuleContext context) {
+  /** Package-private so {@code ArenaModuleSystem.applyModuleSetDiff} can build added specs one-at-a-time. */
+  static ArenaModule instantiate(final ModuleSpec spec, final ModuleContext context) {
     final ModuleDescriptor desc = ModuleCatalog.descriptor(spec.moduleId());
     if (desc.configType() == null) {
       return instantiateZeroConfig(desc, spec, context);
