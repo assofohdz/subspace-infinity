@@ -70,3 +70,6 @@ entities.json
 # Claude Code transient state
 .claude/scheduled_tasks.lock
 .claude/worktrees/
+
+# graphify knowledge graph — regenerable via /graphify, per-machine cache
+graphify-out/

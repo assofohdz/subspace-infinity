@@ -7,31 +7,25 @@
     "allow": [
       "WebSearch",
       "WebFetch(domain:github.com)",
-
       "Bash(./gradlew *)",
-
       "Bash(javap *)",
       "Bash(jar -tf *)",
       "Bash(jar * | grep *)",
       "Bash(unzip -l *)",
       "Bash(unzip -p *)",
       "Bash(unzip * | grep *)",
-
       "Bash(jar -xf ~/.gradle/caches/modules-2/files-2.1/org.jmonkeyengine/jme3-core/3.9.0-stable/c32f56f493618d11b118c113b85269cacefc9933/jme3-core-3.9.0-stable.jar com/jme3/renderer/opengl/GLRenderer.class)",
       "Bash(jar -xf ~/.gradle/caches/modules-2/files-2.1/org.jmonkeyengine/jme3-core/3.9.0-stable/c32f56f493618d11b118c113b85269cacefc9933/jme3-core-3.9.0-stable.jar com/jme3/renderer/opengl/TextureUtil.class)",
       "Bash(jar -xf ~/.gradle/caches/modules-2/files-2.1/org.jmonkeyengine/jme3-core/3.9.0-stable/c32f56f493618d11b118c113b85269cacefc9933/jme3-core-3.9.0-stable.jar com/jme3/texture/Texture.class)",
       "Bash(jar -xf /home/assofohdz/.m2/repository/com/simsilica/mphys/1.0.0-SNAPSHOT/mphys-1.0.0-SNAPSHOT-sources.jar)",
       "Bash(unzip -o /home/assofohdz/.m2/repository/com/simsilica/mphys/1.0.0-SNAPSHOT/mphys-1.0.0-SNAPSHOT-sources.jar -d /tmp/mphys-src)",
-
       "Bash(cp /home/assofohdz/.m2/repository/com/simsilica/mphys/1.0.0-SNAPSHOT/* /home/assofohdz/github/assofohdz/subspace-infinity/libs/m2/com/simsilica/mphys/1.0.0-SNAPSHOT/)",
       "Bash(cp /home/assofohdz/.m2/repository/com/simsilica/mphys/maven-metadata-local.xml /home/assofohdz/github/assofohdz/subspace-infinity/libs/m2/com/simsilica/mphys/)",
       "Bash(cp /home/assofohdz/.m2/repository/com/simsilica/sio2-mphys/1.0.0-SNAPSHOT/* /home/assofohdz/github/assofohdz/subspace-infinity/libs/m2/com/simsilica/sio2-mphys/1.0.0-SNAPSHOT/)",
       "Bash(cp /home/assofohdz/.m2/repository/com/simsilica/sio2-mphys/maven-metadata-local.xml /home/assofohdz/github/assofohdz/subspace-infinity/libs/m2/com/simsilica/sio2-mphys/)",
-
       "Bash(mkdir -p /tmp/sio2-check)",
       "Bash(mkdir -p /tmp/fb3)",
       "Bash(mkdir -p /tmp/mphys-src)",
-
       "Bash(grep *)",
       "Bash(awk *)",
       "Bash(xargs *)",
@@ -42,7 +36,6 @@
       "Bash(cut *)",
       "Bash(tr *)",
       "Bash(wc *)",
-
       "Bash(ls *)",
       "Bash(cat *)",
       "Bash(zcat *)",
@@ -50,9 +43,7 @@
       "Bash(stat *)",
       "Bash(diff *)",
       "Bash(tree *)",
-
       "Bash(echo \"EXIT_CODE:$?\")",
-
       "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity status*)",
       "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity log*)",
       "Bash(git -C /home/assofohdz/github/assofohdz/subspace-infinity diff*)",
@@ -65,7 +56,6 @@
       "Bash(git stash *)",
       "Bash(git merge *)",
       "Bash(git * | grep *)",
-
       "Read(//home/assofohdz/github/assofohdz/subspace-infinity/=== Local trackers in .claude/**)",
       "Read(//home/assofohdz/github/assofohdz/subspace-infinity/**)",
       "Read(//home/assofohdz/github/assofohdz/subspace-infinity/=== Spawn /**)",
@@ -88,6 +78,17 @@
           {
             "type": "command",
             "command": "grep -q '\"command\":\"git commit' && echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"A git commit was just made. Consider delegating to the doc-maintainer agent to check if documentation needs updating.\"}}' || true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "CMD=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('tool_input',d).get('command',''))\" 2>/dev/null || true); case \"$CMD\" in *grep*|*rg\\ *|*ripgrep*|*find\\ *|*fd\\ *|*ack\\ *|*ag\\ *)   [ -f graphify-out/graph.json ] &&   echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"graphify: knowledge graph at graphify-out/. For focused questions, run `graphify query \\\"<question>\\\"` (scoped subgraph, usually much smaller than GRAPH_REPORT.md) instead of grepping raw files. Read GRAPH_REPORT.md only for broad architecture context.\"}}'   || true ;; esac"
           }
         ]
       }
