@@ -459,9 +459,17 @@ public class ModelViewState extends BaseAppState {
   }
 
   void updateSingleFlagMaterial(final int shipFrequency, final Entity flagEntity) {
+    // Race: the flags EntitySet (Flag + FlagOwnership filter) can match before
+    // ModelContainer has built the entity's spatial — BodyPosition/ShapeInfo
+    // sync independently from FlagOwnership. Skip and retry next frame; the
+    // material flip is idempotent.
+    final Spatial spatial = getModelSpatial(flagEntity.getId(), false);
+    if (spatial == null) {
+      return;
+    }
     final FlagOwnership owner = flags.getEntity(flagEntity.getId()).get(FlagOwnership.class);
     siModelFactory.setFlagMaterialVariables(
-        getModelSpatial(flagEntity.getId(), true),
+        spatial,
         owner.freq() == shipFrequency ? Flag.FLAG_OURS : Flag.FLAG_THEIRS);
   }
 
@@ -572,12 +580,16 @@ public class ModelViewState extends BaseAppState {
     return result;
   }
 
-  /** Returns the spatial for {@code entityId}; if {@code throwNotExists}, throws when missing. */
+  /** Returns the spatial for {@code entityId}; if {@code throwNotExists}, throws when missing; otherwise returns {@code null}. */
   public Spatial getModelSpatial(final EntityId entityId, final boolean throwNotExists) {
-    if (throwNotExists && !modelIndex.containsKey(entityId)) {
-      throw new NoSuchElementException("Entity " + entityId + " does not have a spatial");
+    final Model model = modelIndex.get(entityId);
+    if (model == null) {
+      if (throwNotExists) {
+        throw new NoSuchElementException("Entity " + entityId + " does not have a spatial");
+      }
+      return null;
     }
-    return modelIndex.get(entityId).spatial;
+    return model.spatial;
   }
 
   public Vector3f getAvatarLoc() {
