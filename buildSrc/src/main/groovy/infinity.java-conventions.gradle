@@ -134,7 +134,13 @@ tasks.withType(Pmd).configureEach {
 tasks.register('pmdPath', Pmd) {
     description = "Run PMD against -PpmdPath=<file_or_dir,...> (default: src/main/java)"
     group = 'verification'
-    def rawPath = project.findProperty('pmdPath') ?: 'src/main/java'
+    // Read the -PpmdPath property via providers.gradleProperty rather than
+    // project.findProperty('pmdPath'). findProperty walks the project's
+    // dynamic-property chain, which includes tasks — so once this task is
+    // registered, findProperty('pmdPath') returns the Pmd task itself,
+    // not the command-line property. That breaks Tooling-API model builds
+    // (Eclipse Buildship / jdtls import) which eagerly realize every task.
+    def rawPath = providers.gradleProperty('pmdPath').getOrElse('src/main/java')
     def paths = rawPath.split(',').collect { it.trim() }.findAll { !it.isEmpty() }
     source = files(paths)
     classpath = sourceSets.main.runtimeClasspath
