@@ -61,6 +61,22 @@ Each row: actionable item + source file:line + brief context.
 
 ### Lighting
 
+- [ ] **Add an `arena.groovy` setting that toggles dynamic lighting on world
+  MBlocks.** When enabled, `PointLight`s emitted by ships / projectiles affect
+  block geometry (current behaviour via `MatDefs/TileLit.j3md`, see
+  `BlockGeometryIndex.java:240,248`). When disabled, blocks render with a
+  flat default (swap to `Common/MatDefs/Misc/Unshaded.j3md`, or a `TileLit`
+  path that ignores the `LightList`) so the arena reads as a uniformly-lit
+  field independent of nearby dynamic lights. Useful for arenas that want
+  classic Subspace flat-lit visuals without ripping out `PointLight`s on
+  ships/projectiles. Wire-up: new typed adapter under
+  `infinity.settings.*` → `LightingConfig` (or fold into an existing
+  `engine.groovy`-tier config if a "rendering" tier emerges) → consumer in
+  `BlockGeometryIndex` (or a wrapping app state) that picks the matdef based
+  on the arena's flag. Default `true` (keep current behaviour). Pair with
+  the dynamic/ambient mix work below — this toggle is the binary "off"
+  switch; the mix knob is the analogue dial.
+
 - [ ] **Add PointLight emitters to projectiles + bot ships; balance ambient
   vs dynamic light on world blocks.** Three related gaps:
   1. **Projectiles emit no light today.** `WeaponFactory.createBomb` /
