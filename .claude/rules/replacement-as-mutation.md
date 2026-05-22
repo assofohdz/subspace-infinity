@@ -423,7 +423,7 @@ a system writer, the multi-writer table above already flags it.
   via `Set<EntityComponent>` for delayed bombs).
 - **`AIEntities`** — `Frequency` (seed), `Name` (seed),
   `MovementInput` (seed; per-tick rewrite by `BotBrainSystem` is the
-  runtime canonical writer), `ProbeInfo`, `BotShip` (marker), `BotBrain`
+  runtime canonical writer), `BotShip` (marker), `BotBrain`
   (server-only brain holder; projected per-bot at spawn per ADR-0009;
   factory tier).
 - **`GameSounds`** — `Meta` (audio-entity factory; one-shot effects).

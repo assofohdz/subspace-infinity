@@ -44,12 +44,12 @@ Allowed:
 - **server → api** (server reads api/-side data types and implements api/-side interfaces).
 - **client → api** (client reads api/-side data types and implements api/-side interfaces).
 - **modules → api** (per ADR-0004; modules compile against api/ only).
-- **client → server** at the Gradle module level *only* — the `:infinity-client` build does compile-depend on `:infinity-server` to support the co-hosting `HostState` (a player hosting a local server inside the client process). Code-level dependencies across this edge are forbidden except at the two documented exception sites.
+- **client → server** at the Gradle module level *only* — the `:infinity-client` build does compile-depend on `:infinity-server` to support the co-hosting `HostState` (a player hosting a local server inside the client process). Code-level dependencies across this edge are forbidden except at the documented exception site.
 
 Forbidden:
 - **api → server / client / modules** (api stays self-contained).
 - **server → client** (server has no business knowing JME or Lemur types).
-- **client → server-internal** (everywhere except the two HostState / MobDebugState exception sites).
+- **client → server-internal** (everywhere except the `HostState` co-hosting exception site).
 - **modules → server-impl / client-impl** (modules see api/ only).
 
 ### Server authority
@@ -100,14 +100,13 @@ The decision: **resolve by relocation, not by package-rename.** Concretely, api-
 |---|---|---|
 | **Rule 1** | api/ has no deps on `infinity.systems..` / `infinity.server..` / `infinity.client..` / `infinity.modules..` / `infinity.ai..` | Missing `infinity.settings..` (server-impl) from forbidden list |
 | **Rule 2** | server / modules / ai have no deps on `infinity.client..` | None known |
-| **Rule 3** | client has no deps on `infinity.systems..` / `infinity.server..` / `infinity.modules..` / `infinity.ai..` (except `MobDebugState`, `HostState`) | Missing `infinity.sim.internal..` once relocation lands; missing the future `modules.*` server packages |
+| **Rule 3** | client has no deps on `infinity.systems..` / `infinity.server..` / `infinity.modules..` / `infinity.ai..` (except `HostState`) | Missing `infinity.sim.internal..` once relocation lands; missing the future `modules.*` server packages |
 
 Closing the gaps is on the architectural-review punch list (P1-c), not in this ADR.
 
-**Two documented exceptions** in Rule 3, both legitimate co-hosting boundaries:
+**One documented exception** in Rule 3, a legitimate co-hosting boundary:
 
 - **`HostState`** — "Host a Game" state that spawns a local `GameServer` inside the client process. It IS the co-hosting orchestration site; a direct dependency on `infinity.server.GameServer` is structural.
-- **`MobDebugState`** — client-side debug overlay that reads `MobSystem` / `MobStats` internals for debug visualization. Co-hosting only; not load-bearing for production.
 
 New exceptions should be rare and documented at the rule site.
 
@@ -155,7 +154,7 @@ New exceptions should be rare and documented at the rule site.
 - **Client is read-only.** Observes via Zay-ES sync + SimEthereal `BodyPosition`; submits intent via RMI (`GameSession`).
 - **Modules compile against api/ only.** Same `LayerDependencyTest` discipline applied via `SecureASTCustomizer` import whitelist per ADR-0004.
 - **`infinity.sim` ambiguity resolution:** server-side concrete classes relocate to `infinity.sim.internal..`; api-side `infinity.sim..` stays as the module-facing ABI.
-- **`LayerDependencyTest` is the enforcement.** Three ArchUnit rules; documented exceptions for co-hosting (`HostState`, `MobDebugState`).
+- **`LayerDependencyTest` is the enforcement.** Three ArchUnit rules; documented exception for co-hosting (`HostState`).
 - **Client-side prediction is a non-goal today.** SimEthereal interpolation is the responsiveness story; adding prediction is a future-game-mode decision.
 
 ## References
