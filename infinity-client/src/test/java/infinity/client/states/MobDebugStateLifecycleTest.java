@@ -8,7 +8,7 @@ import com.simsilica.es.EntityData;
 import com.simsilica.mathd.Grid;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.sim.GameSystemManager;
-import infinity.ai.MobSystem;
+import infinity.ai.legacy.MobSystem;
 import infinity.client.test.BaseAppStateLifecycleHarness;
 import infinity.client.test.GuiGlobalsTestFixture;
 import infinity.client.test.RecordingEntityFixtures.RecordingEntityData;

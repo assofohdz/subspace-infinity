@@ -1,0 +1,412 @@
+/*
+ * $Id$
+ *
+ * Copyright (c) 2021, Simsilica, LLC
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ *
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in
+ *    the documentation and/or other materials provided with the
+ *    distribution.
+ *
+ * 3. Neither the name of the copyright holder nor the names of its
+ *    contributors may be used to endorse or promote products derived
+ *    from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+ * OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package infinity.ai.legacy;
+
+import com.google.common.base.MoreObjects;
+import com.simsilica.es.EntityId;
+import com.simsilica.sim.SimTime;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * For lack of a better name, the Brain is what combines the goals, strategies, and action queue of
+ * a mob.
+ *
+ * @author Paul Speed
+ */
+@Deprecated
+public class Brain {
+  static Logger log = LoggerFactory.getLogger(Brain.class);
+
+  private BrainScheduler scheduler;
+  private final EntityId id;
+  private Actor actor;
+
+  private final BrainConfiguration config;
+
+  private long nextHeartbeat;
+
+  private Goal currentGoal;
+  private Strategy<Goal> currentStrategy;
+
+  private final Deque<Goal> failedGoals = new LinkedList<>();
+
+  private final Set<TouchEvent> pendingTouches = new HashSet<>();
+
+  // For local runtime storage that can override configuration
+  // properties.  Note: as implemented, this would be for transient
+  // information that would not persist.  Probably we want to let
+  // the app specify its own runtime properties implementation.
+  private final Map<String, Object> localProperties = new HashMap<>();
+
+  private Action action;
+
+  // Used to force the status in the next think() pass and skip
+  // the regular action processing... for when failing goals, etc.
+  private ActionStatus forcedStatus;
+
+  public Brain(final EntityId id, final BrainConfiguration config) {
+    this.id = id;
+    this.config = config;
+  }
+
+  public void initialize(final BrainScheduler scheduler) {
+    this.scheduler = scheduler;
+  }
+
+  /**
+   * Clears every reference + per-tick state so a terminated brain is fully
+   * inert. Without this cleanup the brain retained {@code actor} (a now-released
+   * {@link MobDriver}), {@code action}, {@code currentGoal}, {@code currentStrategy},
+   * {@code pendingTouches}, and {@code failedGoals} — any callback that found the
+   * brain (e.g. via {@code MobDriver.brain} back-reference firing on a lingering
+   * physics contact) could re-enter {@code think()}-shaped code paths and NPE on
+   * the released driver's null body.
+   */
+  public void terminate(final BrainScheduler scheduler) {
+    this.scheduler = null;
+    this.actor = null;
+    this.action = null;
+    this.currentGoal = null;
+    this.currentStrategy = null;
+    this.forcedStatus = null;
+    this.pendingTouches.clear();
+    this.failedGoals.clear();
+  }
+
+  public EntityId getId() {
+    return id;
+  }
+
+  public Actor getActor() {
+    return actor;
+  }
+
+  public void setActor(final Actor actor) {
+    log.info("setActor({})", actor);
+    this.actor = actor;
+  }
+
+  public long getNextHeartbeat() {
+    return nextHeartbeat;
+  }
+
+  // Mostly for debugging/info right now.
+  public Collection<Goal> getFailedGoals() {
+    return failedGoals;
+  }
+
+  public void setProperty(final String name, final Object value) {
+    if (value == null) {
+      // Go back to the default
+      localProperties.remove(name);
+    } else {
+      localProperties.put(name, value);
+    }
+  }
+
+  public <T> T getProperty(final String name, final T defaultValue) {
+    @SuppressWarnings("unchecked")
+    T result = (T) localProperties.get(name);
+    if (result != null) {
+      return result;
+    }
+    return config.getProperty(name, defaultValue);
+  }
+
+  public Goal getCurrentGoal() {
+    return currentGoal;
+  }
+
+  public boolean objectMoved(final SeenObject obj) {
+    if (currentStrategy != null && currentStrategy.objectMoved(this, obj)) {
+      return true;
+    }
+    // Else try the default
+    if (config.getDefaultStrategy() != null) {
+      return config.getDefaultStrategy().objectMoved(this, obj);
+    }
+    return false;
+  }
+
+  // Can't provide any other information right now because contact
+  // doesn't really have it... We'll pretend we do for now with
+  // an Object.
+  public boolean blocked(final Object blocker) {
+    if (currentStrategy != null && currentStrategy.blocked(this, blocker)) {
+      return true;
+    }
+    // Else try the default
+    if (config.getDefaultStrategy() != null) {
+      return config.getDefaultStrategy().blocked(this, blocker);
+    }
+    return false;
+  }
+
+  public boolean isInterestingTouch(final String type) {
+    if (currentStrategy != null && currentStrategy.isInterestingTouch(type)) {
+      return true;
+    }
+    // Check the defaults
+    if (config.getDefaultStrategy() != null) {
+      return config.getDefaultStrategy().isInterestingTouch(type);
+    }
+
+    return false;
+  }
+
+  public void touch(final TouchEvent event) {
+    if (pendingTouches.add(event)) {
+      // Make sure we get a chance to evaluate the event by
+      // rescheduling ourselves for 'now'
+      nextHeartbeat = 0;
+      scheduler.reschedule(this);
+    }
+  }
+
+  public boolean isFailedGoal(final Goal goal) {
+    return failedGoals.contains(goal);
+  }
+
+  protected void addFailedGoal(final Goal goal) {
+    failedGoals.add(goal);
+
+    // Chickens can only remember 3 past failures
+    while (failedGoals.size() > 3) {
+      failedGoals.removeFirst();
+    }
+  }
+
+  protected Goal selectGoal() {
+    return config.selectGoal(this);
+  }
+
+  protected Strategy<Goal> selectStrategy(final Goal goal) {
+    log.info("selectStrategy({})", goal);
+    // Stored Strategy<G> is keyed on the runtime goal class — bridging into
+    // Strategy<Goal> here so currentGoal can flow through plan/done/failed.
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    Strategy<Goal> result = (Strategy<Goal>) (Strategy) config.getStrategy(goal.getClass());
+    log.info(" found:{}", result);
+    if (result == null) {
+      log.error("No strategy found to support goal:{}", goal);
+      // We can't use a default strategy because some strategies
+      // only work with certain goal types.  Something to maybe
+      // address in the future.  Or make sure that default strategies
+      // are always generic.
+    }
+    return result;
+  }
+
+  protected Action makePlan(final Strategy<Goal> strategy, final Goal goal) {
+    log.info("makePlan({}, {})", strategy, goal);
+    return strategy.plan(this, goal);
+  }
+
+  /** Overrides the existing goal with a new higher priority goal. */
+  public void newGoal(final Goal goal) {
+    log.info("newGoal({})", goal);
+    // We should just be able to abort the current action
+    // set the current goal and clear the current strategy+action.
+    if (action != null) {
+      action.abort(this);
+    }
+    action = null;
+    currentStrategy = null;
+    currentGoal = goal;
+    nextHeartbeat = 0; // schedule immediately
+
+    // Let the scheduler know that our next heartbeat
+    // has changed.
+    scheduler.reschedule(this);
+  }
+
+  public void goalFailed() {
+    log.info("goalFailed()");
+    // We want to force a FAILED status the next pass through
+    // think.
+    forcedStatus = ActionStatus.FAILED;
+    nextHeartbeat = 0; // schedule immediately
+    scheduler.reschedule(this);
+  }
+
+  protected boolean deliverTouches(final Set<TouchEvent> events) {
+    // Without being able to sort by any kind of priority,
+    // try to deliver to the current strategy first and stop
+    // at the first handled one.
+    if (currentStrategy != null) {
+      for (final TouchEvent event : pendingTouches) {
+        if (currentStrategy.touch(this, event)) {
+          // It was handled and changed the goal
+          return true;
+        }
+      }
+    }
+    // Try the defaults
+    if (config.getDefaultStrategy() != null) {
+      for (final TouchEvent event : pendingTouches) {
+        if (config.getDefaultStrategy().touch(this, event)) {
+          // It was handled and changed the goal
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  public void think(final SimTime time) {
+    log.info("think():{}", actor);
+
+    if (!pendingTouches.isEmpty()) {
+      deliverTouches(pendingTouches);
+      pendingTouches.clear();
+    }
+
+    if (!ensureGoalAndAction(time)) {
+      return;
+    }
+
+    final ActionStatus status = runCurrentAction(time);
+    if (status == ActionStatus.RUNNING) {
+      scheduleNextRunHeartbeat(time);
+      return;
+    }
+
+    finishStrategy(status);
+
+    // If there is no follow-on action then we're ready
+    // for a new goal
+    if (action == null) {
+      currentGoal = null;
+    }
+
+    // Come back soon
+    nextHeartbeat = time.getFutureTime(0.001);
+  }
+
+  /**
+   * Pick the next goal/strategy/action if needed. Returns {@code false} when the
+   * planning step threw and {@code think()} should bail (heartbeat already set).
+   */
+  private boolean ensureGoalAndAction(final SimTime time) {
+    if (action != null) {
+      return true;
+    }
+    if (currentGoal == null) {
+      currentGoal = selectGoal();
+      actor.say(time.getTime(), time.getFutureTime(1.0), String.valueOf(currentGoal));
+      currentStrategy = null;
+    }
+    if (currentStrategy == null) {
+      currentStrategy = selectStrategy(currentGoal);
+      try {
+        action = makePlan(currentStrategy, currentGoal);
+      } catch (final RuntimeException e) {
+        log.error("Error making plan for:{}, strategy:{}", currentGoal, currentStrategy, e);
+        nextHeartbeat = time.getFutureTime(0.001);
+        currentGoal = null;
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /** Honour any forced status, otherwise step the current action. */
+  private ActionStatus runCurrentAction(final SimTime time) {
+    if (forcedStatus != null) {
+      final ActionStatus status = forcedStatus;
+      forcedStatus = null;
+      return status;
+    }
+    return action.run(time, this);
+  }
+
+  /** Compute the next heartbeat for an action that is still RUNNING. */
+  private void scheduleNextRunHeartbeat(final SimTime time) {
+    // See how long to wait
+    double next = action.getHeartbeat(time);
+
+    // Next should always be a little more than 0 but we
+    // get stuck if the actions return a bad time.  So we'll
+    // check, warn, and adjust
+    if (next <= 0) {
+      log.warn("Bad heartbeat value from:{}  heartbeat:{}", action, next);
+      next = 0.001;
+    }
+
+    nextHeartbeat = time.getFutureTime(next);
+  }
+
+  /** Drive DONE / FAILED outcomes through the strategy and clear it. */
+  private void finishStrategy(final ActionStatus status) {
+    if (currentStrategy == null) {
+      // This was a tail action from a finished strategy... so clear
+      // it and get ready for the next goal
+      action = null;
+      return;
+    }
+    // See how we faired
+    if (Objects.requireNonNull(status) == ActionStatus.DONE) {
+      action = currentStrategy.done(this, currentGoal);
+
+      // Clear our memory of failed goals
+      failedGoals.clear();
+    } else if (status == ActionStatus.FAILED) {
+      if (currentGoal != null) {
+        currentGoal.setFailedAction(action.getLastAction());
+        addFailedGoal(currentGoal);
+      }
+      action = currentStrategy.failed(this, currentGoal);
+    }
+    // That particular strategy is done either way
+    currentStrategy = null;
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(getClass().getSimpleName()).add("entityId", id).toString();
+  }
+}

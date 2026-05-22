@@ -27,3 +27,32 @@ Move the existing `infinity.ai.*` chicken framework (Brain / Goal / Strategy / A
 None — can start immediately.
 
 ## Comments
+
+### 2026-05-22 — Implementation complete; awaiting user verification + commit
+
+Work landed:
+
+- 35 files moved via `git mv`: `infinity-server/src/main/java/infinity/ai/*.java` → `infinity-server/src/main/java/infinity/ai/legacy/*.java`.
+- All 35 package declarations updated: `package infinity.ai;` → `package infinity.ai.legacy;`.
+- `@Deprecated` annotation injected above 34 public top-level types (`public class` / `public interface` / `public enum` / `public abstract class`). 1 type skipped per issue spec: `MobDriverLogic` is package-private (`final class`).
+- 4 external import sites updated in 3 files:
+  - `infinity-server/src/main/java/infinity/server/GameServer.java` (1 import: `MobSystem`)
+  - `infinity-client/src/main/java/infinity/client/states/MobDebugState.java` (2 imports: `MobStats`, `MobSystem`)
+  - `infinity-client/src/test/java/infinity/client/states/MobDebugStateLifecycleTest.java` (1 import: `MobSystem`)
+
+`LayerDependencyTest` left untouched — its package pattern `"infinity.ai.."` already covers subpackages including `infinity.ai.legacy.*`.
+
+Build verification (via build-validator subagent):
+- `:infinity-server:compileJava` / `:infinity-server:compileTestJava` / `:infinity-server:check` → green
+- `:infinity-client:compileJava` / `:infinity-client:compileTestJava` / `:infinity-client:check` → green
+- `spotlessJavaCheck` → no formatting violations
+- PMD / Checkstyle → no new violations (baseline only)
+- `LayerDependencyTest`, `CanonicalWriterTest`, `MobDebugStateLifecycleTest` → all pass
+
+Expected deprecation warnings at:
+- `GameServer.java:402` (calls into the now-deprecated `MobSystem`)
+- `MobDebugState.java:132,188,189` (consumers of `MobSystem`)
+
+These warnings are intentional — they flag callers of the deprecated framework, which a later cleanup slice (full chicken deletion, not in v1 scope) will remove.
+
+No behaviour change: arena spawn still produces idle bots, identical to pre-refactor.

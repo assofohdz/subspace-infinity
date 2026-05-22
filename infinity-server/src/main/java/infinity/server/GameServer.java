@@ -87,7 +87,7 @@ import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
 import com.simsilica.sim.common.DecaySystem;
 import infinity.InfinityConstants;
-import infinity.ai.MobSystem;
+import infinity.ai.legacy.MobSystem;
 import infinity.es.AudioType;
 import infinity.es.Flag;
 import infinity.es.Frequency;
