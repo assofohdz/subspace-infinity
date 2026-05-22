@@ -19,8 +19,13 @@
 *.tar.gz
 *.rar
 
-# JDT-specific (Eclipse Java Development Tools)     
-# .classpath
+# Eclipse / Buildship IDE artifacts — all regenerable from `gradle eclipse`
+# or by reimporting the Gradle project, so check-ins create noise without
+# enabling anyone (they get overwritten on import anyway).
+.classpath
+*.factorypath
+.project
+**/.settings/
 
 # binary folders
 bin/
