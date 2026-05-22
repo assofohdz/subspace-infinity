@@ -29,16 +29,6 @@ Identified from a wider-lens architectural pass on 2026-05-13 (Nygard-style: "wo
   - Login / logout lifecycle and the surface area for cheating.
 - **Trigger to draft.** When modules ([ADR-0004](../docs/adr/0004-settings-pipeline.md)) need identity-aware behavior (e.g. a `ScoringRule` tracking per-player stats), the implicit identity flow becomes load-bearing. Also: if anti-cheat work surfaces a concrete attack vector that the current identity model doesn't address.
 
-### AI architecture
-
-- **Implicit today.** `infinity.ai..` package contains AI / mob code. Layer rules treat it as a server-tier sub-package ([`LayerDependencyTest`](../infinity-client/src/test/java/infinity/architecture/LayerDependencyTest.java) Rule 2/3).
-- **What an ADR would settle:**
-  - Is `infinity.ai..` a special server-tier sub-layer, or just a server-tier system grouping?
-  - Mob-behavior model — state machines, behavior trees, scripted-systems, ECS-native data-driven?
-  - How modules ([ADR-0004](../docs/adr/0004-settings-pipeline.md)) extend AI without forking core AI systems.
-  - Path-finding strategy (per-tick vs cached; per-arena vs zone-global).
-- **Trigger to draft.** First non-trivial AI extension by a module, or when mob types grow past a handful and the implicit pattern starts to creak.
-
 ### Zone-tier composition story
 
 - **Implicit today.** [ADR-0008](../docs/adr/0008-arena-composition-and-modules.md) defined per-arena composition (`ArenaModule`, lifecycle, 4-phase tick, coordinator pattern). The *zone* tier — multi-arena structure: auth, accounts, admin, master-server, multi-arena lobbies, persistence boundaries, identity flow, the `~swapMap` / `~loadArena` command surface — has no analogous composition story. Today these are individual `HostedService` / `BaseInfinitySystem` classes wired into `GameServer` directly, with no pluggability framework.
