@@ -11,17 +11,20 @@ import com.simsilica.sim.SimTime;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.BotShip;
 import infinity.systems.BaseInfinitySystem;
-import java.util.concurrent.TimeUnit;
 
 /**
- * Canonical writer of {@link MovementInput} on {@link BotShip} entities. v1 stub: writes
- * a continuously-rotating facing each tick to prove input-parity wiring; steering + BT
- * logic lands in later slices. See ADR-0009.
+ * Canonical writer of {@link MovementInput} on {@link BotShip} entities. v1 stub: emits a
+ * constant left-turn rate (intent.x = 1.0, intent.z = 0) to prove input-parity wiring —
+ * same rate-shaped intent a keyboard player produces via F_TURN. Actual turn speed comes
+ * from the ship's {@code RotationStats.max} via {@code PlayerDriver}; this system never
+ * picks physical rates. Steering + BT logic lands in later slices. See ADR-0009.
  */
 public final class BotBrainSystem extends BaseInfinitySystem {
 
-  // 1 full rotation per ~5 seconds — visible at human-perception rates.
-  private static final double YAW_RATE_RAD_PER_SEC = Math.PI * 2.0 / 5.0;
+  // Rate-shaped intent: x = turn rate in [-1, 1], z = thrust in [-1, 1]. PlayerDriver
+  // scales these by the ship's RotationStats.max / ThrustStats.max — same path as the
+  // keyboard client's analog F_TURN / F_THRUST values.
+  private static final Vec3d CONSTANT_LEFT_TURN = new Vec3d(1.0, 0.0, 0.0);
 
   private EntityData ed;
   private EntitySet bots;
@@ -49,12 +52,10 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     if (this.bots.isEmpty()) {
       return;
     }
-    final double seconds = time.getTime() / (double) TimeUnit.SECONDS.toNanos(1L);
-    final double yaw = seconds * YAW_RATE_RAD_PER_SEC;
     for (final Entity entity : this.bots) {
-      final Quatd facing = new Quatd().fromAngles(0.0, yaw, 0.0);
       this.ed.setComponent(
-          entity.getId(), new MovementInput(new Vec3d(), facing, MovementInput.NONE));
+          entity.getId(),
+          new MovementInput(CONSTANT_LEFT_TURN.clone(), new Quatd(), MovementInput.NONE));
     }
   }
 }

@@ -7,6 +7,21 @@ Each row: actionable item + source file:line + brief context.
 
 ## Backlog
 
+### Input pipeline
+
+- [ ] **Replace `MovementInput` with a rate-only `MovementIntent(turnRate, thrustRate, flags)`.**
+  Surfaced 2026-05-22 during bot-AI Issue #02 input-abstraction audit
+  ([ADR-0009](../docs/adr/0009-bot-ai-architecture.md)). `MovementInput.facing`
+  (`Quatd`) is dead-on-the-wire: client `AvatarMovementState.update` never
+  updates it (always identity), server `PlayerDriver.applyMovementInput`
+  ignores it, only `move.x` (rotation rate) + `move.z` (thrust) are read.
+  Refactor would drop the dead field, rename the type to make the rate-based
+  abstraction explicit, and shrink the wire payload. Touches:
+  `MovementInput` (api/), `AvatarMovementState` (client), `PlayerDriver` +
+  `MovementInputSystem` (server), `AIEntities` + `BotBrainSystem` (server).
+  Defer until the bot-AI v1 stack is stable so the refactor lands on settled
+  ground.
+
 ### Cross-tier comms
 
 - [ ] **Extend the server→client `EventBus` bridge to additional EventTypes

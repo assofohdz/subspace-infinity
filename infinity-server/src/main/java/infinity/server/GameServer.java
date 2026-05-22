@@ -87,7 +87,6 @@ import com.simsilica.sim.GameLoop;
 import com.simsilica.sim.GameSystemManager;
 import com.simsilica.sim.common.DecaySystem;
 import infinity.InfinityConstants;
-import infinity.ai.legacy.MobSystem;
 import infinity.es.AudioType;
 import infinity.es.Flag;
 import infinity.es.Frequency;
@@ -400,7 +399,6 @@ public class GameServer {
     systems.register(infinity.systems.WelcomeService.class, new infinity.systems.WelcomeService());
     systems.register(infinity.ai.BotBrainSystem.class, new infinity.ai.BotBrainSystem());
     systems.register(MovementInputSystem.class, new MovementInputSystem());
-    systems.register(MobSystem.class, new MobSystem());
     // WeaponsReaperSystem must register BEFORE WeaponsImpactSystem — Impact.initialize() looks it up.
     // WeaponsFireSystem (546 lines) split into 3 Use-Case systems per P2-k:
     //   WeaponsFireEligibilitySystem    — energy/cooldown/level gate; emits

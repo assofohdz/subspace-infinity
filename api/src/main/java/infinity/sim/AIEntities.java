@@ -11,8 +11,6 @@ import com.simsilica.mphys.PhysicsSpace;
 import infinity.config.EngineConfig;
 import infinity.es.BotBrain;
 import infinity.es.Frequency;
-import infinity.es.MobType;
-import infinity.es.ProbeInfo;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.BotShip;
 import infinity.sim.specs.ShipArgs;
@@ -49,9 +47,7 @@ public class AIEntities {
             new ShipArgs(
                 spawnLoc, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius()));
     ed.setComponent(mob, new MovementInput(new Vec3d(), new Quatd(), MovementInput.NONE));
-    ed.setComponent(mob, MobType.create("Mob", ed));
     ed.setComponent(mob, new Name(randomBotName()));
-    ed.setComponent(mob, new ProbeInfo(new Vec3d(0, 0.1, 0.4), 0.3));
     ed.setComponent(mob, new Frequency(1));
     // Positive marker for AI-driven ships — replaces the older "bot = absence of
     // PlayerShip" inverse pattern. createShip never stamps PlayerShip, so no remove

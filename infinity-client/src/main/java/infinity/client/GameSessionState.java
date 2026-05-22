@@ -54,7 +54,6 @@ import infinity.InfinityConstants;
 import infinity.client.states.HelpState;
 import infinity.client.states.HostState;
 import infinity.client.states.TimeState;
-import infinity.client.states.MobDebugState;
 import infinity.client.audio.AudioState;
 import infinity.client.audio.SIAudioFactory;
 import infinity.client.states.AmbientLightState;
@@ -118,9 +117,6 @@ public final class GameSessionState extends CompositeAppState {
     final HostState host = getState(HostState.class);
     if (host != null) {
       addChild(new PhysicsDebugState(host), true);
-    }
-    if (host != null) {
-      addChild(new MobDebugState(host), true);
     }
 
     TimeSource timeSource = getState(ConnectionState.class).getRemoteTimeSource();
