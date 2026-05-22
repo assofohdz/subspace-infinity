@@ -422,8 +422,10 @@ a system writer, the multi-writer table above already flags it.
 - **`WeaponFactory`** — `Meta` (plus per-projectile bundles passed
   via `Set<EntityComponent>` for delayed bombs).
 - **`AIEntities`** — `Frequency` (seed), `Name` (seed),
-  `CharacterInput`, `ProbeInfo`, `BotShip` (marker stamped at mob-ship
-  spawn; factory tier, no runtime writer).
+  `MovementInput` (seed; per-tick rewrite by `BotBrainSystem` is the
+  runtime canonical writer), `ProbeInfo`, `BotShip` (marker), `BotBrain`
+  (server-only brain holder; projected per-bot at spawn per ADR-0009;
+  factory tier).
 - **`GameSounds`** — `Meta` (audio-entity factory; one-shot effects).
 - **`GameSessionHostedService`** — `Name` (seed), `Player` (seed) at
   client connect.
