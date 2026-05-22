@@ -44,8 +44,8 @@ The `CharacterInput` + `UprightDriver` + `MobContainer` path in `MovementInputSy
 |---|---|---|---|
 | **Steering** | `infinity.ai.steer.*` | Reynolds-derived primitives (`Seek`/`Pursue`/`Evade`/`Arrive`/`Wander`/`AvoidObstacles`/`OrbitTarget`) + boids (`Separation`/`Cohesion`/`Alignment`) + composites (`PrioritySteering`/`BlendedSteering`). Pure `Vec3d`/`Quatd` math; returns `(yaw, thrust)` tuples. | **None** |
 | **Behaviour Tree** | `infinity.ai.bt.*` | Tiny BT framework: `Behavior` base + `Selector`/`Sequence`/`Parallel` composites + `Inverter`/`Cooldown`/`Timeout`/`Repeater`/`UntilFailure` decorators + `Condition`/`Action` leaf interfaces. Each tick returns `Success`/`Failure`/`Running`. | **None** |
-| **Brain** | `infinity.ai.brain.*` | Composed BTs per archetype (`CombatantBrain`, `DefensiveBrain`, …) with per-bot `Blackboard` (last seen target, last fire time, mode hint, perception cache). One instance per bot ship; held in `BotBrainState` ECS component as an opaque holder. | **None** in the brain types themselves; `Blackboard` is plain Java |
-| **System** | `infinity.ai.BotBrainSystem` | `BaseInfinitySystem`. Owns `EntitySet<BotShip>`. Per tick: build perception (mphys `BinIndex` broadphase), tick each bot's BT, write `CharacterInput`, emit `FireRequest` intents. | **All** — the only ECS boundary |
+| **Brain** | `infinity.ai.brain.*` | Composed BTs per archetype (`CombatantBrain`, `DefensiveBrain`, …) with per-bot `Blackboard` (last seen target, last fire time, mode hint, perception cache). One instance per bot ship; held in `BotBrain` ECS component as an opaque holder. | **None** in the brain types themselves; `Blackboard` is plain Java |
+| **System** | `infinity.ai.BotBrainSystem` | `BaseInfinitySystem`. Owns `EntitySet<BotShip>`. Per tick: build perception (mphys `BinIndex` broadphase), tick each bot's BT, write `MovementInput`, emit `FireRequest` intents. | **All** — the only ECS boundary |
 
 The layer boundary is non-decorative: steering is unit-testable with no fixtures (pure function on `Vec3d`), the BT is unit-testable with mock `Blackboard`, and only the system layer needs a full ECS test harness.
 
@@ -59,11 +59,11 @@ Flocking is **orthogonal** to the BT — it lives in the steering layer as `Sepa
 
 `BotBrainSystem` is the **canonical writer** ([ADR-0001](./0001-ecs-component-model.md)) of `MovementInput` on entities carrying the `BotShip` marker. The existing player input path (RMI-driven from client `MovementSession`-shape calls) is the canonical writer of `MovementInput` on non-`BotShip` ships. The two writers operate on **disjoint entity sets** — a ship is either bot-controlled or player-controlled, never both — so the canonical-writer rule holds per entity even though the component type has two writer sites. This is the same disjoint-set canonical-writer shape already used for `Frequency` (`TeamSetup` writes team entities; `FrequencySystem` writes ship entities) and recorded in [`replacement-as-mutation.md`](../../.claude/rules/replacement-as-mutation.md). Weapon firing emits `FireRequest` Change-entity intents (existing pattern, drained by `WeaponsProjectileSpawnSystem`) — bots fire by the same mechanism human ships do, with no direct component writes.
 
-The per-bot brain instance is stamped at spawn as a `BotBrainState` component (opaque holder around the brain object + blackboard). This is a single-writer write at the spawn boundary, ticked by `BotBrainSystem` thereafter. The component is **not wire-crossing** — the brain runs server-side only; clients see the resulting `CharacterInput` and projectile spawns through normal SimEthereal sync.
+The per-bot brain instance is stamped at spawn as a `BotBrain` component (opaque holder around the brain object + blackboard). This is a single-writer write at the spawn boundary, ticked by `BotBrainSystem` thereafter. The component is **not wire-crossing** — the brain runs server-side only; clients see the resulting `CharacterInput` and projectile spawns through normal SimEthereal sync.
 
 ### Tuning via Config-Component Projection
 
-Per [ADR-0002](./0002-config-component-projection.md): a `BotBrainConfig` template carries archetype-level tunables — perception radius, engage range, evade-energy threshold, lead-prediction time, wander cadence, weapon-fire range, flocking weights. The template ships as a Groovy fragment under `zone/conf/<preset>/` (provisional name `bot-tuning.groovy`; per-preset and per-arena overrides via the existing settings-pipeline shape). `FillUpXTeams` (or any future bot-spawning `ArenaModule`) selects a `BotBrainConfig` archetype by name when stamping the bot; `BotBrainSystem`'s spawn-projection step reads the template and projects it onto the `BotBrainState` component once. Hot-path reads the component only.
+Per [ADR-0002](./0002-config-component-projection.md): a `BotBrainConfig` template carries archetype-level tunables — perception radius, engage range, evade-energy threshold, lead-prediction time, wander cadence, weapon-fire range, flocking weights. The template ships as a Groovy fragment under `zone/conf/<preset>/` (provisional name `bot-tuning.groovy`; per-preset and per-arena overrides via the existing settings-pipeline shape). `FillUpXTeams` (or any future bot-spawning `ArenaModule`) selects a `BotBrainConfig` archetype by name when stamping the bot; `BotBrainSystem`'s spawn-projection step reads the template and projects it onto the `BotBrain` component once. Hot-path reads the component only.
 
 True magic numbers stay in Java (BT-node identity, math identities, Reynolds-paper constants). Tuning that an operator would want to adjust without a recompile is in Groovy, consistent with [ADR-0006](./0006-tuning-knobs-vs-magic-numbers.md).
 
@@ -71,7 +71,7 @@ True magic numbers stay in Java (BT-node identity, math identities, Reynolds-pap
 
 [ADR-0005](./0005-layered-architecture.md)'s api/server split is by ECS coupling. The bot AI stack splits cleanly across the boundary:
 
-- **api/** — steering primitives (`infinity.ai.steer.*`), BT framework (`infinity.ai.bt.*`), brain composition (`infinity.ai.brain.*` — archetype factories, `Blackboard`, named-archetype registry), perception interface (`infinity.ai.Perception` + `PerceptionSnapshot` value type), `BotBrainConfig` template, `BotBrainState` component. All pure-math / pure-logic / data — no ECS implementation deps.
+- **api/** — steering primitives (`infinity.ai.steer.*`), BT framework (`infinity.ai.bt.*`), brain composition (`infinity.ai.brain.*` — archetype factories, `Blackboard`, named-archetype registry), perception interface (`infinity.ai.Perception` + `PerceptionSnapshot` value type), `BotBrainConfig` template, `BotBrain` component. All pure-math / pure-logic / data — no ECS implementation deps.
 - **server-tier** — `BotBrainSystem` (the ECS adapter + intent writer), `PerceptionService` (mphys `BinIndex` integration; implements `Perception`), `GroovyBotBrainLoader` (settings-pipeline adapter per [ADR-0004](./0004-settings-pipeline.md)).
 
 Steering + BT + brain composition land in api/ deliberately: future external Groovy modules ([ADR-0008](./0008-arena-composition-and-modules.md)) compose these primitives to author custom brain archetypes without depending on server internals. The api surface grows by ~12 steering classes + ~8 BT primitive classes + a handful of brain types — small, stable (Reynolds steering is a 1999 paper; BT is a well-known shape), worth the boundary cost.
@@ -130,13 +130,13 @@ Subspace arenas are open 2D fields. Steering-layer `AvoidObstacles` covers stati
 
 ## Resolved decisions
 
-- **Package:** `infinity.ai.*` (top-level). **api/** module: `infinity.ai.steer.*`, `infinity.ai.bt.*`, `infinity.ai.brain.*`, `infinity.ai.Perception` + `PerceptionSnapshot`, `infinity.config.BotBrainConfig`, `infinity.es.BotBrainState`. **server-tier**: `infinity.ai.BotBrainSystem`, `infinity.ai.PerceptionService` (Perception impl), `infinity.settings.GroovyBotBrainLoader`.
+- **Package:** `infinity.ai.*` (top-level). **api/** module: `infinity.ai.steer.*`, `infinity.ai.bt.*`, `infinity.ai.brain.*`, `infinity.ai.Perception` + `PerceptionSnapshot`, `infinity.config.BotBrainConfig`, `infinity.es.BotBrain`. **server-tier**: `infinity.ai.BotBrainSystem`, `infinity.ai.PerceptionService` (Perception impl), `infinity.settings.GroovyBotBrainLoader`.
 - **Layering:** Steering (pure math) → BT (pure logic) → Brain (composed BTs + blackboard) → System (ECS boundary). No layer skipping.
 - **Decision model:** Behaviour Tree. Not FSM. Not HSM. Not GOAP.
-- **Brain shape:** one BT instance per bot ship, held in `BotBrainState` ECS component; per-bot `Blackboard` for memory.
+- **Brain shape:** one BT instance per bot ship, held in `BotBrain` ECS component; per-bot `Blackboard` for memory.
 - **Canonical writer (RaM):** `BotBrainSystem` is the canonical writer of `MovementInput` on `BotShip` entities (disjoint-entity-set with the existing player input writer, which writes `MovementInput` on non-`BotShip` ships). Weapons fire via `FireRequest` Change-entity intents — no direct component writes.
 - **Input parity:** bots write the player input shape (`MovementInput`), processed by `PlayerDriver` — the same control driver that handles human-driven ships. No parallel "bot input" type, no "AI fast path" past server-side rate limits.
-- **Tuning:** `BotBrainConfig` template in Groovy under `zone/conf/<preset>/bot-tuning.groovy`. Spawn projects to `BotBrainState`. Hot-path reads component only ([ADR-0002](./0002-config-component-projection.md)).
+- **Tuning:** `BotBrainConfig` template in Groovy under `zone/conf/<preset>/bot-tuning.groovy`. Spawn projects to `BotBrain`. Hot-path reads component only ([ADR-0002](./0002-config-component-projection.md)).
 - **Module-extensibility:** archetypes by Groovy fragment + named `BrainArchetype` factory. `FillUpXTeams`-shape modules select by name. No forking of `BotBrainSystem`.
 - **Steering primitives v1:** `Seek`, `Pursue`, `Evade`, `Arrive`, `Wander`, `AvoidObstacles`, `OrbitTarget`, `Separation`, `Cohesion`, `Alignment`, `PrioritySteering`, `BlendedSteering`.
 - **BT primitives v1:** `Selector`, `Sequence`, `Parallel`, `Inverter`, `Cooldown`, `Timeout`, `Repeater`, `UntilFailure`, plus `Condition` + `Action` leaf interfaces.
@@ -156,7 +156,7 @@ Subspace arenas are open 2D fields. Steering-layer `AvoidObstacles` covers stati
 ## References
 
 - [`docs/adr/0001-ecs-component-model.md`](./0001-ecs-component-model.md) — `BotBrainSystem` is canonical writer of `CharacterInput` on bot ships; weapons via `FireRequest` Change-entity intents.
-- [`docs/adr/0002-config-component-projection.md`](./0002-config-component-projection.md) — `BotBrainConfig` template projects to `BotBrainState` component at spawn.
+- [`docs/adr/0002-config-component-projection.md`](./0002-config-component-projection.md) — `BotBrainConfig` template projects to `BotBrain` component at spawn.
 - [`docs/adr/0005-layered-architecture.md`](./0005-layered-architecture.md) — `infinity.ai.*` is server-tier; brain archetypes + config are api-tier.
 - [`docs/adr/0006-tuning-knobs-vs-magic-numbers.md`](./0006-tuning-knobs-vs-magic-numbers.md) — operator-tunable values in Groovy; math identities + BT-node identity stay in Java.
 - [`docs/adr/0008-arena-composition-and-modules.md`](./0008-arena-composition-and-modules.md) — `FillUpXTeams` selects archetype; modules ship their own archetypes; brain itself is horizontal, not an `ArenaModule`.

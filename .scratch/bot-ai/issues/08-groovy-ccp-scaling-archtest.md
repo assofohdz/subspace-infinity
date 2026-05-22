@@ -17,8 +17,8 @@ Externalise hard-coded constants into Groovy + scale bot count with active playe
 - **api/** — `infinity.config.BotBrainConfig` record. Fields: `archetypeName`, `perceptionRadius` (nullable — falls back to ship `RadarRange`), `engageRange`, `evadeEnergyThreshold`, `leadPredictionTime`, `wanderCadence`, `flockingSeparationWeight`, `flockingCohesionWeight`, `flockingAlignmentWeight`, `avoidObstaclesWeight`.
 - **server-tier** — `infinity.settings.GroovyBotBrainLoader`. Matches the existing `Groovy*Loader` shape (see `GroovyShipLoader`, `GroovyEngineLoader`). Reads `bot-tuning.groovy` fragment; produces `BotBrainConfig` records into `ConfigRegistry`.
 - **Groovy** — `zone/conf/<default-preset>/bot-tuning.groovy` defines the `Brawler` archetype block with all the tunables above.
-- **`BotBrainState`** — extended to carry the projected per-bot tunables snapshot (not just an empty marker).
-- **`AIEntities.createMobShip`** — reads archetype name (default `"Brawler"`) from caller; looks up `BotBrainConfig` in `ConfigRegistry`; projects template → `BotBrainState` at spawn. Per [CCP](../../../.claude/rules/config-pattern.md): hot path reads the component, never the template.
+- **`BotBrain`** — extended to carry the projected per-bot tunables snapshot (not just an empty marker).
+- **`AIEntities.createMobShip`** — reads archetype name (default `"Brawler"`) from caller; looks up `BotBrainConfig` in `ConfigRegistry`; projects template → `BotBrain` at spawn. Per [CCP](../../../.claude/rules/config-pattern.md): hot path reads the component, never the template.
 - Move every hard-coded constant from `BotBrainSystem` / `CombatantBrain` / steering primitive defaults into the Groovy template.
 
 **Player-count scaling** (per [`player-scaling.md`](../../../.claude/rules/player-scaling.md)):
@@ -37,8 +37,8 @@ Externalise hard-coded constants into Groovy + scale bot count with active playe
 - [ ] `infinity.config.BotBrainConfig` exists in api/
 - [ ] `infinity.settings.GroovyBotBrainLoader` exists; pattern-matches existing `Groovy*Loader`s
 - [ ] `zone/conf/<default-preset>/bot-tuning.groovy` exists and defines the `Brawler` archetype block
-- [ ] `BotBrainState` carries projected per-bot tunables (no longer a marker)
-- [ ] `AIEntities.createMobShip` projects `BotBrainConfig` → `BotBrainState` at spawn
+- [ ] `BotBrain` carries projected per-bot tunables (no longer a marker)
+- [ ] `AIEntities.createMobShip` projects `BotBrainConfig` → `BotBrain` at spawn
 - [ ] All hard-coded brain/steering constants from earlier slices now live in `bot-tuning.groovy`
 - [ ] `FillUpXTeamsConfig.countPerPlayer` field exists; `FillUpXTeams` scales spawn count by active players in arena
 - [ ] `CanonicalWriterTest` extended with the two new assertions; passes

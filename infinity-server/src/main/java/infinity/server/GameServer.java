@@ -398,6 +398,7 @@ public class GameServer {
     // for that and emits the welcome TargetedEvent. Order: AvatarSystem → lifecycle → welcome.
     systems.register(infinity.systems.PlayerLifecycleSystem.class, new infinity.systems.PlayerLifecycleSystem());
     systems.register(infinity.systems.WelcomeService.class, new infinity.systems.WelcomeService());
+    systems.register(infinity.ai.BotBrainSystem.class, new infinity.ai.BotBrainSystem());
     systems.register(MovementInputSystem.class, new MovementInputSystem());
     systems.register(MobSystem.class, new MobSystem());
     // WeaponsReaperSystem must register BEFORE WeaponsImpactSystem — Impact.initialize() looks it up.

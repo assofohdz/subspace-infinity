@@ -49,7 +49,7 @@ Architecture is anchored by [ADR-0009](../../docs/adr/0009-bot-ai-architecture.m
 - **Brain composition** (`infinity.ai.brain.*`) — `BrainArchetype` factory interface (named-registry pattern), `Blackboard` per-bot scratchpad value, `CombatantBrain` v1 archetype shipping the `Brawler` BT shape.
 - **Perception contract** (`infinity.ai.Perception` + `PerceptionSnapshot`) — interface returning nearby threats / allies / projectiles within a radius, filtered by team / alive / arena.
 - **`BotBrainConfig`** (`infinity.config.BotBrainConfig`) — `*Config` record per [ADR-0002](../../docs/adr/0002-config-component-projection.md). Tunables: perception radius (defaults to ship's `RadarRange` stat per input-parity — see Further Notes), engage range, evade-energy threshold, lead-prediction time, wander cadence, flocking weights, fire-range per weapon.
-- **`BotBrainState`** (`infinity.es.BotBrainState`) — server-only ECS component holding the brain instance + blackboard. Not wire-crossing; clients see results via normal SimEthereal sync of `MovementInput` + projectile spawns.
+- **`BotBrain`** (`infinity.es.BotBrain`) — server-only ECS component holding the brain instance + blackboard. Not wire-crossing; clients see results via normal SimEthereal sync of `MovementInput` + projectile spawns.
 
 **Server-tier modules (new):**
 
@@ -63,7 +63,7 @@ Architecture is anchored by [ADR-0009](../../docs/adr/0009-bot-ai-architecture.m
 
 **Modify (existing):**
 
-- `AIEntities.createMobShip` — switch from `CharacterInput` stamp to `MovementInput` stamp; stamp `BotBrainState` reading archetype name (default `"Brawler"`) from `BotBrainConfig` template.
+- `AIEntities.createMobShip` — switch from `CharacterInput` stamp to `MovementInput` stamp; stamp `BotBrain` reading archetype name (default `"Brawler"`) from `BotBrainConfig` template.
 - `FillUpXTeams` — pass an archetype name to `AIEntities.createMobShip`.
 - Existing `infinity.ai.*` chicken framework — move whole package → `infinity.ai.legacy.*`, mark `@Deprecated` on the public surface. Keep compiling; deletion is a separate follow-up PRD once v1 stabilises.
 
@@ -71,7 +71,7 @@ Architecture is anchored by [ADR-0009](../../docs/adr/0009-bot-ai-architecture.m
 
 - `MovementInput` writer on `BotShip` entities is `BotBrainSystem`; writer on non-`BotShip` ships is the existing player input path. Disjoint-entity-set canonical writers per ADR-0009.
 - `FireRequest` Change-entity intents drained by `WeaponsProjectileSpawnSystem` — bots fire by the same mechanism human ships do.
-- `BotBrainConfig` template projects to `BotBrainState` component at spawn (`BotBrainSystem` reads the archetype name, looks up the template, projects).
+- `BotBrainConfig` template projects to `BotBrain` component at spawn (`BotBrainSystem` reads the archetype name, looks up the template, projects).
 
 ## Testing Decisions
 
@@ -157,7 +157,7 @@ Suggested vertical slices, each independently mergeable:
 3. **BT framework (api/)** — `Behavior` / `Status` / composites / decorators / leaf interfaces. Pure-logic; unit-tested in isolation. Mechanical.
 4. **Perception contract + service** — api-tier `Perception` + `PerceptionSnapshot`; server-tier `PerceptionService` over mphys `BinIndex`. Judgment on the filtering shape (team/alive/arena).
 5. **Brain composition + `Brawler` BT shape** — `BrainArchetype` registry, `Blackboard`, `CombatantBrain`. The judgment-laden slice. Manual launch verification.
-6. **`BotBrainConfig` + `BotBrainState` + `GroovyBotBrainLoader` + `bot-tuning.groovy`** — CCP wiring. Mostly mechanical (matches `GroovyShipLoader` pattern); judgment on archetype block grammar.
+6. **`BotBrainConfig` + `BotBrain` + `GroovyBotBrainLoader` + `bot-tuning.groovy`** — CCP wiring. Mostly mechanical (matches `GroovyShipLoader` pattern); judgment on archetype block grammar.
 7. **`BotBrainSystem` + `AIEntities.createMobShip` + `FillUpXTeams` wiring** — the ECS boundary. Includes `countPerPlayer` scaling on `FillUpXTeamsConfig`. Architectural-test extension to `CanonicalWriterTest`.
 8. **Manual smoke + tuning iteration** — launch the arena, fight the bots, iterate the Groovy archetype until it feels right. Cannot be delegated; needs a human at the keyboard.
 

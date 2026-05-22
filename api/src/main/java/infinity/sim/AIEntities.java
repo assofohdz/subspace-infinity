@@ -9,10 +9,11 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
 import infinity.config.EngineConfig;
+import infinity.es.BotBrain;
 import infinity.es.Frequency;
 import infinity.es.MobType;
 import infinity.es.ProbeInfo;
-import infinity.es.input.CharacterInput;
+import infinity.es.input.MovementInput;
 import infinity.es.ship.BotShip;
 import infinity.sim.specs.ShipArgs;
 import java.util.List;
@@ -47,8 +48,7 @@ public class AIEntities {
             ed,
             new ShipArgs(
                 spawnLoc, owner, phys, createdTime, ship, EngineConfig.DEFAULTS.shipRadius()));
-    final byte flags = 0x0;
-    ed.setComponent(mob, new CharacterInput(new Vec3d(), new Quatd(), flags));
+    ed.setComponent(mob, new MovementInput(new Vec3d(), new Quatd(), MovementInput.NONE));
     ed.setComponent(mob, MobType.create("Mob", ed));
     ed.setComponent(mob, new Name(randomBotName()));
     ed.setComponent(mob, new ProbeInfo(new Vec3d(0, 0.1, 0.4), 0.3));
@@ -57,6 +57,8 @@ public class AIEntities {
     // PlayerShip" inverse pattern. createShip never stamps PlayerShip, so no remove
     // call is needed.
     ed.setComponent(mob, new BotShip());
+    // BotBrainSystem owns this entity's MovementInput from here on; v1 is a marker only.
+    ed.setComponent(mob, new BotBrain());
 
     return mob;
   }
