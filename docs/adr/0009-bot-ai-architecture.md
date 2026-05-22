@@ -67,11 +67,16 @@ Per [ADR-0002](./0002-config-component-projection.md): a `BotBrainConfig` templa
 
 True magic numbers stay in Java (BT-node identity, math identities, Reynolds-paper constants). Tuning that an operator would want to adjust without a recompile is in Groovy, consistent with [ADR-0006](./0006-tuning-knobs-vs-magic-numbers.md).
 
-### `infinity.ai.*` is a server-tier system grouping, not a separate sub-layer
+### Layering: steering / BT / brain in api/; system + perception impl + loader in server
 
-[ADR-0005](./0005-layered-architecture.md) treats `infinity.ai.*` as part of the server tier — the same as `infinity.systems.*`. `LayerDependencyTest` Rule 2/3 already covers it. The new code respects the same layering: depends on `api/` only, never on `infinity.client.*`. No special boundary is created.
+[ADR-0005](./0005-layered-architecture.md)'s api/server split is by ECS coupling. The bot AI stack splits cleanly across the boundary:
 
-Brain types and `BotBrainConfig` are **api-tier** (consumed by `ArenaModule` implementations like `FillUpXTeams` to select archetype by name); the system is server-tier. Steering and BT framework are pure-math / pure-logic with no ECS deps, so they can live in either tier — placing them server-tier keeps the api surface small.
+- **api/** — steering primitives (`infinity.ai.steer.*`), BT framework (`infinity.ai.bt.*`), brain composition (`infinity.ai.brain.*` — archetype factories, `Blackboard`, named-archetype registry), perception interface (`infinity.ai.Perception` + `PerceptionSnapshot` value type), `BotBrainConfig` template, `BotBrainState` component. All pure-math / pure-logic / data — no ECS implementation deps.
+- **server-tier** — `BotBrainSystem` (the ECS adapter + intent writer), `PerceptionService` (mphys `BinIndex` integration; implements `Perception`), `GroovyBotBrainLoader` (settings-pipeline adapter per [ADR-0004](./0004-settings-pipeline.md)).
+
+Steering + BT + brain composition land in api/ deliberately: future external Groovy modules ([ADR-0008](./0008-arena-composition-and-modules.md)) compose these primitives to author custom brain archetypes without depending on server internals. The api surface grows by ~12 steering classes + ~8 BT primitive classes + a handful of brain types — small, stable (Reynolds steering is a 1999 paper; BT is a well-known shape), worth the boundary cost.
+
+`LayerDependencyTest` rules already cover both packages. The new code respects the same layering: api/-tier code never imports `infinity.systems.*` / `infinity.server.*` / `infinity.client.*`; server-tier code may import from api/.
 
 ### Module-extensibility (per ADR-0008)
 
@@ -125,7 +130,7 @@ Subspace arenas are open 2D fields. Steering-layer `AvoidObstacles` covers stati
 
 ## Resolved decisions
 
-- **Package:** `infinity.ai.*` (top-level); steering at `infinity.ai.steer.*`; BT framework at `infinity.ai.bt.*`; brain archetypes at `infinity.ai.brain.*`; system at `infinity.ai.BotBrainSystem`.
+- **Package:** `infinity.ai.*` (top-level). **api/** module: `infinity.ai.steer.*`, `infinity.ai.bt.*`, `infinity.ai.brain.*`, `infinity.ai.Perception` + `PerceptionSnapshot`, `infinity.config.BotBrainConfig`, `infinity.es.BotBrainState`. **server-tier**: `infinity.ai.BotBrainSystem`, `infinity.ai.PerceptionService` (Perception impl), `infinity.settings.GroovyBotBrainLoader`.
 - **Layering:** Steering (pure math) → BT (pure logic) → Brain (composed BTs + blackboard) → System (ECS boundary). No layer skipping.
 - **Decision model:** Behaviour Tree. Not FSM. Not HSM. Not GOAP.
 - **Brain shape:** one BT instance per bot ship, held in `BotBrainState` ECS component; per-bot `Blackboard` for memory.
