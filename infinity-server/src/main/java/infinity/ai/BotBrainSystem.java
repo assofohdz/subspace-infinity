@@ -23,7 +23,9 @@ import infinity.es.BotDebug;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.BotShip;
 import infinity.es.ship.RadarRange;
+import infinity.sim.WeaponsFiring;
 import infinity.systems.BaseInfinitySystem;
+import infinity.systems.ship.WeaponsFireEligibilitySystem;
 
 /**
  * Canonical writer of {@link MovementInput} on {@link BotShip} entities. Per-tick: sample
@@ -52,6 +54,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   private EntityData ed;
   private Perception perception;
   private PhysicsSpace<EntityId, MBlockShape> space;
+  private WeaponsFiring firing;
   private BrainContainer brains;
   private final BrainRegistry brainRegistry = new BrainRegistry();
   // Shared reactive layer — stateless across bots, so one instance suffices.
@@ -65,6 +68,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     @SuppressWarnings("unchecked")
     final MPhysSystem<MBlockShape> physics = requireSystem(MPhysSystem.class);
     this.space = physics.getPhysicsSpace();
+    this.firing = requireSystem(WeaponsFireEligibilitySystem.class);
     this.brainRegistry.register(new CombatantBrain());
   }
 
@@ -75,7 +79,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
   @Override
   public void start() {
-    this.brains = new BrainContainer(this.ed, this.brainRegistry);
+    this.brains = new BrainContainer(this.ed, this.brainRegistry, this.firing);
     this.brains.start();
   }
 
@@ -197,10 +201,12 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     final Behavior brain;
     final Blackboard blackboard;
 
-    BrainWiring(final EntityId botId, final BrainArchetype archetype) {
+    BrainWiring(final EntityId botId, final BrainArchetype archetype, final WeaponsFiring firing) {
       this.botId = botId;
       this.brain = archetype.createRoot();
       this.blackboard = archetype.createBlackboard();
+      this.blackboard.setSelfId(botId);
+      this.blackboard.setFiring(firing);
     }
   }
 
@@ -208,10 +214,13 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   private static final class BrainContainer extends EntityContainer<BrainWiring> {
 
     private final BrainRegistry registry;
+    private final WeaponsFiring firing;
 
-    BrainContainer(final EntityData ed, final BrainRegistry registry) {
+    BrainContainer(
+        final EntityData ed, final BrainRegistry registry, final WeaponsFiring firing) {
       super(ed, BotShip.class);
       this.registry = registry;
+      this.firing = firing;
     }
 
     @Override
@@ -222,7 +231,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     @Override
     protected BrainWiring addObject(final Entity e) {
       // Slice #08 reads a per-ship BotBrainConfig component to pick the archetype name.
-      return new BrainWiring(e.getId(), this.registry.get(CombatantBrain.NAME));
+      return new BrainWiring(e.getId(), this.registry.get(CombatantBrain.NAME), this.firing);
     }
 
     @Override

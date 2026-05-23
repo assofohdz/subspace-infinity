@@ -41,8 +41,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Pre-fire gate — drains the {@code sessionAttack} queue, runs eligibility+cooldown+cost via {@link WeaponsEligibility}, emits {@link FireRequest} on pass. See ADR 0001. */
-public class WeaponsFireEligibilitySystem extends BaseInfinitySystem {
+/** Pre-fire gate — drains the {@code sessionAttack} queue, runs eligibility+cooldown+cost via {@link WeaponsEligibility}, emits {@link FireRequest} on pass. Implements {@link infinity.sim.WeaponsFiring} so bot BTs can fire through the same gate. See ADR 0001 / ADR 0009. */
+public class WeaponsFireEligibilitySystem extends BaseInfinitySystem implements infinity.sim.WeaponsFiring {
 
   // Weapons that lay down in place rather than tag along (Subspace canon: mines).
   private static final Set<Byte> INERT_DROPS = Set.of(WeaponType.MINE);
@@ -120,6 +120,11 @@ public class WeaponsFireEligibilitySystem extends BaseInfinitySystem {
   /** Queue entry for the game session — one of {@link WeaponType}. */
   public void sessionAttack(final EntityId attacker, final byte flag) {
     sessionAttackCreations.add(new Attack(attacker, flag));
+  }
+
+  @Override
+  public void requestFire(final EntityId attacker, final byte weaponType) {
+    sessionAttack(attacker, weaponType);
   }
 
   private void attempt(final Entity requester, final byte flag) {

@@ -2,12 +2,15 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.ai.brain;
 
+import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
 import infinity.ai.MoverState;
 import infinity.ai.NearbyShip;
 import infinity.ai.PerceptionSnapshot;
+import infinity.ai.steer.OrbitTarget;
 import infinity.ai.steer.Pursue;
 import infinity.ai.steer.Wander;
+import infinity.sim.WeaponsFiring;
 
 /**
  * Per-bot scratchpad shared between BT nodes for one tick. {@link infinity.ai.bt.Action}
@@ -21,15 +24,19 @@ public final class Blackboard {
   private final Vec3d intent = new Vec3d();
   private final Pursue pursue;
   private final Wander wander;
+  private final OrbitTarget orbit;
 
+  private EntityId selfId;
   private MoverState self;
   private PerceptionSnapshot perception;
   private NearbyShip target;
   private String lastBranch = "";
+  private WeaponsFiring firing;
 
-  public Blackboard(final Pursue pursue, final Wander wander) {
+  public Blackboard(final Pursue pursue, final Wander wander, final OrbitTarget orbit) {
     this.pursue = pursue;
     this.wander = wander;
+    this.orbit = orbit;
   }
 
   /** Last BT branch that wrote intent this tick — set by {@code Steer*} actions for debug HUD. */
@@ -65,6 +72,23 @@ public final class Blackboard {
     this.target = target;
   }
 
+  public EntityId selfId() {
+    return this.selfId;
+  }
+
+  public void setSelfId(final EntityId selfId) {
+    this.selfId = selfId;
+  }
+
+  /** Server-side firing service, injected by BotBrainSystem; null in api-only tests. */
+  public WeaponsFiring firing() {
+    return this.firing;
+  }
+
+  public void setFiring(final WeaponsFiring firing) {
+    this.firing = firing;
+  }
+
   /** Mutable intent accumulator. Actions write via {@code intent().set(v)}. */
   public Vec3d intent() {
     return this.intent;
@@ -80,5 +104,9 @@ public final class Blackboard {
 
   public Wander wander() {
     return this.wander;
+  }
+
+  public OrbitTarget orbit() {
+    return this.orbit;
   }
 }

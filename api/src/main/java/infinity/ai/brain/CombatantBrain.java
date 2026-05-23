@@ -5,13 +5,16 @@ package infinity.ai.brain;
 import infinity.ai.bt.Behavior;
 import infinity.ai.bt.Selector;
 import infinity.ai.bt.Sequence;
+import infinity.ai.steer.OrbitTarget;
 import infinity.ai.steer.Pursue;
 import infinity.ai.steer.Wander;
+import infinity.es.ship.weapons.WeaponType;
 
 /**
- * v1 "Brawler" archetype — {@code Selector(Sequence(HasTarget, SteerPursue), SteerWander)}.
- * Pursue when a target is visible; wander otherwise. Leaves are stateless so the root is
- * a shared singleton; per-bot Pursue/Wander instances live on the per-bot blackboard.
+ * v1 "Brawler" archetype — {@code Selector(EngageBranch, PursueBranch, WanderFallback)}.
+ * Engage when in weapon range (orbit + fire); pursue when target visible but out of
+ * range; wander otherwise. Leaves are stateless so the root is a shared singleton;
+ * per-bot Pursue/Wander/OrbitTarget instances live on the per-bot blackboard.
  * See ADR-0009.
  */
 public final class CombatantBrain implements BrainArchetype {
@@ -27,11 +30,23 @@ public final class CombatantBrain implements BrainArchetype {
   private static final double WANDER_DISTANCE = 2.0;
   private static final double WANDER_JITTER_RADIANS = 0.5;
 
+  // Combat tuning — defaults for bullet engagement. Per-arena Groovy CCP overrides land
+  // in slice #08 (BotBrainConfig + per-archetype tunables).
+  private static final double WEAPON_RANGE_WORLD_UNITS = 20.0;
+  private static final double ORBIT_RADIUS_WORLD_UNITS = 15.0;
+
   // Rate-shaped thrust magnitude — full forward.
   private static final double FULL_THRUST = 1.0;
 
   private static final Behavior ROOT =
-      new Selector(new Sequence(new HasTarget(), new SteerPursue()), new SteerWander());
+      new Selector(
+          new Sequence(
+              new HasTarget(),
+              new InWeaponRange(WEAPON_RANGE_WORLD_UNITS),
+              new SteerOrbitTarget(),
+              new FireWeapon(WeaponType.BULLET)),
+          new Sequence(new HasTarget(), new SteerPursue()),
+          new SteerWander());
 
   @Override
   public String name() {
@@ -47,6 +62,7 @@ public final class CombatantBrain implements BrainArchetype {
   public Blackboard createBlackboard() {
     return new Blackboard(
         new Pursue(LEAD_TIME_SECONDS, FULL_THRUST),
-        new Wander(WANDER_RADIUS, WANDER_DISTANCE, WANDER_JITTER_RADIANS, FULL_THRUST));
+        new Wander(WANDER_RADIUS, WANDER_DISTANCE, WANDER_JITTER_RADIANS, FULL_THRUST),
+        new OrbitTarget(ORBIT_RADIUS_WORLD_UNITS, FULL_THRUST));
   }
 }

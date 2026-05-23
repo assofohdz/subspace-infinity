@@ -5,6 +5,7 @@ package infinity.ai.bt;
 import static org.junit.Assert.assertEquals;
 
 import infinity.ai.brain.Blackboard;
+import infinity.ai.steer.OrbitTarget;
 import infinity.ai.steer.Pursue;
 import infinity.ai.steer.Wander;
 import java.util.ArrayList;
@@ -13,7 +14,9 @@ import org.junit.Test;
 
 public class SequenceTest {
 
-  private final Blackboard blackboard = new Blackboard(new Pursue(0.5, 1.0), new Wander(1, 2, 0.5, 1.0));
+  private final Blackboard blackboard =
+      new Blackboard(
+          new Pursue(0.5, 1.0), new Wander(1, 2, 0.5, 1.0), new OrbitTarget(15, 1.0));
 
   @Test
   public void emptySequenceReturnsSuccess() {
