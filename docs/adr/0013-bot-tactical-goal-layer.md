@@ -16,7 +16,9 @@ That second decision is the gap the chat thread (2026-05-23) exposed:
 
 In all three cases, the goal is **what the bot is doing for the next several seconds**, parametrised by spatial query results ([ADR-0012](./0012-bot-spatial-analysis-services.md)) and reachable via pathfinding ([ADR-0011](./0011-bot-navigation-navmesh.md)). The BT's job becomes "execute the chosen goal"; goal selection is one layer up.
 
-Pattern reference: this is the **GOAP** (Goal-Oriented Action Planning) family from Jeff Orkin's F.E.A.R. work (GDC 2006), in the *lite* form — goal *selection* without full action *planning*. The Halo 2 paper (Isla, GDC 2005) calls the same shape "encounter scripting"; The Sims calls it "advertising goals." Utility-based selection (David Mark, *Behavioral Mathematics for Game AI*, 2009) is the canonical scoring mechanism.
+Pattern reference: this is **utility-based goal selection** — agents have a set of named *advertising* goals (each declaring "I'm valuable for these reasons"); the agent's planner scores each candidate and picks the highest. The shape comes from The Sims (Maxis, ~2000, "smart objects advertise"), Killzone 2 (Guerrilla, GDC 2009), and is comprehensively documented in David Mark's *Behavioral Mathematics for Game AI* (2009). The Halo 2 paper (Isla, GDC 2005) layers this with BT execution — the same composition this ADR adopts.
+
+**Not GOAP.** Jeff Orkin's F.E.A.R. paper (GDC 2006) describes Goal-Oriented Action *Planning* — an A*-over-action-graph planner that generates sequences of preconditioned actions to satisfy a goal. That's a different (more powerful, more expensive, harder-to-author) shape. The earlier draft of this ADR mis-cited F.E.A.R. as the reference; corrected here. We may grow toward GOAP if action *sequences* need dynamic composition, but v2 is utility-AI for goal *selection* only, with per-goal hand-authored Execute Sequences inside the BT.
 
 ### What this ADR does not settle
 
@@ -27,7 +29,7 @@ Pattern reference: this is the **GOAP** (Goal-Oriented Action Planning) family f
 
 ## Decision
 
-**A `TacticalPlanner` sits above the BT and picks one `TacticalGoal` for the bot at a slower cadence than the BT tick (every ~500ms-1s). Goals are typed data (records) describing what the bot is trying to achieve, with parameters drawn from spatial-service queries. The chosen goal is written to the `Blackboard`; the BT reads it and dispatches to per-goal-type Sequence branches. Goal selection is utility-based: the planner enumerates candidate goals available to the bot's archetype, scores each via per-goal utility functions, picks the highest. Goals are "sticky" (preempted only by significant utility margin or by goal completion / failure).**
+**A `TacticalPlanner` sits above the BT and picks one `TacticalGoal` for the bot at a slower cadence than the BT tick (every ~500ms). Goals are typed data (records) produced by named `Behaviour` building blocks (e.g. "mine-congestion-points", "bullet-snipe-from-afar"); each behaviour enumerates candidate goals from current world state and scores them by intrinsic utility. The archetype is a *weight vector over behaviour names*; the planner multiplies intrinsic score × archetype weight + applies an additive stickiness margin against the currently-running goal. The chosen goal is written to the `Blackboard`; the BT dispatches to per-goal-type Execute Sequences. Tuning lives in three Groovy tiers: zone-wide (`BotBrainSystem` defaults), arena-wide (`BotBrainConfig` per arena), archetype-specific (named `archetype { … }` blocks declaring behaviour weights).**
 
 ### Layer position
 
@@ -61,48 +63,83 @@ public record Wander() implements TacticalGoal {}                    // v1 Brawl
 
 Per-archetype goal sets are a subset of this universe. Brawler (v1) uses `Engage` + `Wander`. Shark-miner (v2) uses `DenyChokepoint` + `AmbushPath` + `Engage` + `Wander`. New goal types are records added here; the BT dispatches on the record's class.
 
-### Per-archetype Goal sets + utility scorers
+### Named behaviours + archetype weight vectors
 
-Each `BrainArchetype` declares (a) the goal types it considers, and (b) a `UtilityScorer` for each. Scorers return a `double` score; the planner picks the max.
+Each tactical concept the design team wants ("mine congestion points", "bullet-snipe from afar") is a named `Behaviour` — a reusable building block that knows how to enumerate candidate goals + score them intrinsically.
 
 ```java
-public interface UtilityScorer<G extends TacticalGoal> {
-  /** Higher = more desirable. Negative = "do not consider." */
-  double score(G candidate, Blackboard blackboard);
+public interface Behaviour<G extends TacticalGoal> {
+  /** Stable name; the same string operators write in archetype { ... } weight blocks. */
+  String name();
+
   /** Enumerate candidate goals of this type from current world state. */
-  List<G> enumerate(Blackboard blackboard);
+  List<G> enumerate(Blackboard bb);
+
+  /** Intrinsic utility of {@code candidate} in [0, 1]. Archetype weight applied by planner. */
+  double intrinsicScore(G candidate, Blackboard bb);
 }
 ```
 
-Per-archetype planner registration:
+Concrete v2 behaviours (planned, not all v2.0):
 
-```java
-// inside MinerShark.tacticalSetup(...)
-planner.register(DenyChokepoint.class, new DenyChokepointScorer(weights));
-planner.register(AmbushPath.class, new AmbushScorer(weights));
-planner.register(Engage.class, new EngageScorer(weights));
-```
+| Name | Goal type | Spatial inputs |
+|---|---|---|
+| `mine-congestion-points` | `DenyChokepoint(tile)` | ChokepointAnalyzer + TrafficHeatmap |
+| `mine-in-front-of-enemies` | `AmbushPath(predictedPath)` | ArenaCongestionField + predicted-velocity extrapolation |
+| `bullet-snipe-from-afar` | `Engage(target, fireRange=long)` | sight-line oracle (deferred) |
+| `bomb-snipe-from-afar` | `Engage(target, fireRange=long, weapon=BOMB)` | sight-line + splash range |
+| `engage` | `Engage(target)` | nearest threat |
+| `evade` | `Flee(threat)` | nearest threat + LowEnergy gate |
+| `wander` | `Wander()` | none |
 
-Scorers consume spatial services ([ADR-0012](./0012-bot-spatial-analysis-services.md)) via the `Blackboard`. Example:
+### Archetype = behaviour-weight map
 
-```java
-public double score(DenyChokepoint candidate, Blackboard bb) {
-  double choke = bb.spatial().chokepoints().scoreFor(candidate.tile());      // static
-  double traffic = bb.spatial().traffic().heatAt(candidate.tile());          // dynamic
-  double distance = bb.spatial().pathLength(bb.self().tile(), candidate.tile());
-  return choke * traffic / Math.max(1.0, distance * 0.1);
+An archetype declares which behaviours it considers and how strongly. **No per-archetype scorer subclasses.** The behaviour is the reusable scorer; the archetype is just the weight vector.
+
+```groovy
+// In bot-tuning.groovy (slice #08 framework already in place):
+archetype 'MinerShark', {
+    behaviour 'mine-congestion-points',  weight: 1.0
+    behaviour 'mine-in-front-of-enemies', weight: 0.8
+    behaviour 'engage',                  weight: 0.3
+    behaviour 'evade',                   weight: 0.7
+    behaviour 'wander',                  weight: 0.1
+}
+
+archetype 'Brawler', {
+    behaviour 'engage',  weight: 1.0
+    behaviour 'evade',   weight: 0.8
+    behaviour 'wander',  weight: 0.2
 }
 ```
 
-The weight constants in each scorer are the per-archetype parameterization. ADR-0010's per-arena weight overrides extend naturally here — weights live in `BotBrainConfig` (or a per-archetype follow-on `BotTacticalConfig`).
+Mapped to the typed config (extending ADR-0010's per-archetype config trajectory):
 
-### Planner cadence + stickiness
+```java
+public record ArchetypeConfig(String name, Map<String, Double> behaviourWeights) {}
+```
+
+The planner enumerates each behaviour the archetype names, runs `enumerate()` to get candidates, scores `intrinsic × weight` per candidate, picks the global max. **Behaviours not named in the archetype contribute zero candidates** — operators control what the archetype "knows how to do" by listing behaviours.
+
+### Three-tier tuning (per grill response)
+
+Per the grill's explicit "some zone-wide, some arena-wide, plus archetype configs" decision, tuning splits cleanly:
+
+1. **Zone-wide** — `BotBrainSystem` constants that apply to every bot in the zone regardless of arena (planner cadence, stickiness margin, max enumerated candidates per behaviour per tick). Lives in a `zone-bot-ai.groovy` fragment loaded by an `EngineConfigSystem`-style holder.
+2. **Arena-wide** — `BotBrainConfig` per arena (existing from slice #08): `perceptionRadius`, `aimConeDegrees`, etc. These apply to every bot in *this* arena.
+3. **Archetype-specific** — `ArchetypeConfig` keyed by name: behaviour weights + per-archetype overrides of arena-wide knobs (e.g. MinerShark might want a wider perception radius than Brawler).
+
+Precedence: zone → arena → archetype (later wins). Mirrors `ShipConfig`'s preset → arena → ship-type precedence and ADR-0010's reservation.
+
+### Planner cadence + additive stickiness
 
 The planner runs **every ~500ms** (not per-tick) — `BotBrainSystem` re-selects on a throttled timer. Per-tick selection is the cost trap AND the source of "the bot keeps switching goals mid-action" behaviour bugs.
 
-**Sticky preemption rule**: a new candidate goal preempts the current goal only if `new.score > current.score × (1 + STICKINESS_MARGIN)` (e.g. margin 0.25 = 25%). Without margin, two goals scoring 0.50 vs 0.51 would oscillate; with margin, the current goal stays unless a clearly better option appears.
+**Sticky preemption rule (additive, per grill correction)**: a new candidate goal preempts the current goal only if `new.weightedScore > current.weightedScore + STICKINESS_MARGIN` (e.g. additive margin 0.10). The earlier draft used a multiplicative margin (`current × 1.25`), which behaves unevenly across score scales — at low absolute scores the margin shrinks to nothing, at high scores it grows large. Additive is predictable: regardless of the current score, a competing goal needs to beat it by a fixed amount.
 
-**Forced re-select** on: goal completion (BT branch returned SUCCESS terminally), goal failure (BT branch returned FAILURE — path blocked, target despawned), goal expiry (goal's `deadlineSeconds` passed), or arena event (round transition, player joined).
+Default `STICKINESS_MARGIN = 0.10` (zone-wide tunable). With weighted scores in `[0, 1]`, 0.10 means "10% of the score range firmer than the alternative" — empirically the sweet spot in utility-AI tuning per *Behavioral Mathematics for Game AI*.
+
+**Forced re-select** on: goal completion (BT branch returned SUCCESS terminally), goal failure (BT branch returned FAILURE — per the "goal-validity mid-tick" decision: target despawned → ExecuteEngage returns FAILURE → planner re-selects on next planner tick; the BT does NOT itself re-run the planner inline), goal expiry (goal's `deadlineSeconds` passed), or arena event (round transition, player joined).
 
 ### BT integration
 
@@ -123,14 +160,16 @@ Selector(
 )
 ```
 
-`IsGoal(...)` is a new Condition leaf — returns SUCCESS when `bb.currentGoal()` matches the type. `ExecuteMineDeploy` / `ExecuteAmbush` are per-archetype Action sequences (themselves Sequences of pathfind / position / fire primitives).
+`IsGoal(...)` is a new Condition leaf — returns SUCCESS when `bb.currentGoal()` matches **exactly that class** (industry-standard exact-class dispatch, per grill resolution). Goal *variants* (e.g. `Engage(target)` vs hypothetical `EngageWithCover(target, coverTile)`) get separate record types and separate BT branches.
+
+`ExecuteMineDeploy` / `ExecuteAmbush` are per-behaviour Action sequences. **Per the grill's "behaviours in Groovy" framing**, each behaviour ships with both an enumerator (Java) AND an executor sequence; the executor is the BT subtree that satisfies one of the behaviour's goals. The executor is currently hand-coded Java (a small Sequence assembled from existing BT primitives: `NavigateTo` + `ArriveAt` + `FireWeapon` etc.); a future Groovy-composition layer for executors is reserved for v2.x+ when the executor authoring rate justifies the DSL cost.
 
 ### Layering
 
-- **api/infinity.ai.tactical.*** — `TacticalGoal` sealed interface + standard record subtypes, `UtilityScorer` interface, `TacticalPlanner` interface, `IsGoal` Condition. Per [ADR-0005](./0005-layered-architecture.md) data + interfaces only.
-- **infinity-server/.../ai/tactical/*** — `TacticalPlannerImpl`, per-archetype scorer impls, per-archetype `Execute*` Action impls.
-- **`Blackboard`** (api, extended) — `currentGoal()` accessor + `setCurrentGoal()` setter; `spatial()` accessor returning the per-arena `ArenaSpatial` bundle.
-- **`BotBrainSystem`** (server) — owns the planner's throttle timer; invokes `planner.select()` on cadence; writes result to blackboard.
+- **api/infinity.ai.tactical.*** — `TacticalGoal` sealed interface + standard record subtypes, `Behaviour` interface, `TacticalPlanner` interface, `IsGoal` Condition, `ArchetypeConfig` record. Per [ADR-0005](./0005-layered-architecture.md) data + interfaces only.
+- **infinity-server/.../ai/tactical/*** — `TacticalPlannerImpl`, per-behaviour impls (`MineCongestionBehaviour`, `EngageBehaviour`, etc.), per-behaviour `Execute*` Action Sequences.
+- **`Blackboard`** (api, extended) — `currentGoal()` accessor + `setCurrentGoal()` setter; `arenaContext()` accessor returning the per-arena `BotAiArenaContext` bundle (cross-cutting decision; see ADR-0011 / ADR-0012).
+- **`BotBrainSystem`** (server) — owns the planner's throttle timer; invokes `planner.select()` on cadence; writes result to blackboard. Also injects `BotAiArenaContext` reference into Blackboard at `BrainContainer.addObject` time.
 
 ## Consequences
 
@@ -162,10 +201,10 @@ Selector(
 **Why considered:** GAMASUTRA: "utility AI replaces behaviour trees entirely." Every action evaluated by utility every tick; pick highest; execute. Simpler conceptually.
 **Why rejected:** Loses the per-tick reactive sequencing the BT excels at (LowEnergy gate on Evade; mid-orbit fire-when-aimed). Utility AI is great at *what to do strategically*; BTs are great at *how to execute reactively*. Combining both ([Mark]) is the proven shape; rejecting either is a regression.
 
-### B. Pure GOAP (action planner generates plans)
+### B. Pure GOAP (Goal-Oriented Action Planning a la F.E.A.R.)
 
-**Why considered:** F.E.A.R.'s original GOAP plans sequences of preconditioned actions to satisfy goals. Most general; most powerful.
-**Why rejected:** **Author cost.** Each action needs precondition + effect declarations; the planner does A* over the action graph. Sufficient for our scope (≤10 goal types per archetype, ≤5 actions per goal) is *GOAP-lite*: goal selection without action planning. Promote to full GOAP if action sequences need dynamic composition; today they're per-goal-type hand-authored Sequence branches in the BT.
+**Why considered:** F.E.A.R.'s original GOAP plans sequences of preconditioned actions to satisfy goals via A* over an action graph. Most general; most powerful.
+**Why rejected:** **Author cost.** Each action needs precondition + effect declarations; the planner does A* over the action graph at runtime. Our scope (≤10 behaviours per archetype, each with a small hand-authored Execute Sequence) doesn't need action *sequence* synthesis — the sequences are short and hand-authored more clearly than they would be planner-generated. Promote to GOAP if action sequences need dynamic composition; today utility-AI goal selection + per-behaviour Execute Sequences cover the design surface.
 
 ### C. Goal-per-BT-leaf (no separate planner)
 
@@ -188,12 +227,16 @@ Selector(
 |---|---|
 | Layer position | `TacticalPlanner` above BT, below steering. Planner picks Goal; BT dispatches on it. |
 | Goal shape | Immutable record types implementing `sealed interface TacticalGoal`. Parameters drawn from spatial-service queries. |
-| Selection mechanism | Per-archetype `UtilityScorer<G>` per goal type. Highest-scoring candidate wins. |
+| Selection mechanism | Named `Behaviour` building blocks (`mine-congestion-points`, `bullet-snipe-from-afar`, etc.) enumerate + intrinsic-score candidates; archetype weight map multiplies score; planner picks max. |
+| Archetype shape | `ArchetypeConfig(name, Map<String, Double> behaviourWeights)` — pure data; one record per named archetype. No per-archetype Java subclasses. |
 | Cadence | Planner runs every ~500ms; not per-tick. BT continues to tick every frame. |
-| Stickiness | New goal preempts current only if `score > current × (1 + STICKINESS_MARGIN)`. Default margin 25%. |
-| Goal sharing | Goal record types live in `api/infinity.ai.tactical.*`; per-archetype customization in Scorer + Execute Sequences only. |
-| BT integration | New `IsGoal(GoalClass)` Condition leaf; per-archetype `Execute*` Action Sequences. No other new BT semantics. |
-| Per-archetype config | Weights live in `BotBrainConfig` (or per-archetype `BotTacticalConfig`); per [ADR-0010](./0010-bot-composition-dsl.md). |
+| Stickiness | **Additive** margin: new goal preempts current only if `weightedScore > current + STICKINESS_MARGIN`. Default `0.10`; zone-wide tunable. (Earlier multiplicative margin draft replaced.) |
+| Goal sharing | Goal record types live in `api/infinity.ai.tactical.*`; per-behaviour customization in `Behaviour` impl + Execute Sequence. |
+| BT integration | New `IsGoal(GoalClass)` Condition leaf, exact-class dispatch; per-behaviour `Execute*` Action Sequences (hand-coded Java for v2.0). No other new BT semantics. |
+| Goal-validity edge | BT branch returns FAILURE when its goal becomes invalid mid-tick (target despawned, path blocked); planner re-selects on next planner tick. BT doesn't run planner inline. |
+| Three-tier tuning | Zone-wide (`BotBrainSystem` defaults) → arena-wide (`BotBrainConfig`) → archetype-specific (`ArchetypeConfig`); precedence later-wins. Mirrors `ShipConfig` + ADR-0010. |
+| Multi-bot squad | Deferred to v2.x+ per grill. v2.0 single-bot tactical only. |
+| Citation correction | NOT GOAP. Pattern is utility-AI goal selection (The Sims, Killzone 2, *Behavioral Mathematics for Game AI*). F.E.A.R. cited only as Alternative B. |
 
 ## Open work
 
@@ -217,8 +260,9 @@ Selector(
 
 ### External
 
-- **Jeff Orkin, "Three States and a Plan: The AI of F.E.A.R."** (GDC 2006). The canonical GOAP reference. This ADR uses GOAP-lite (goal selection only, no action sequence planning).
+- **David Mark, *Behavioral Mathematics for Game AI*** (2009). **Primary reference for this ADR.** Comprehensive treatment of utility-based AI selection — scoring functions, response curves, oscillation, additive stickiness margins. The textbook for this layer.
 - **Damian Isla, "Handling Complexity in the Halo 2 AI"** (GDC 2005). Encounter-level tactical reasoning; "behaviour DAG with character context" maps to our (BT + Goal) split.
-- **David Mark, *Behavioral Mathematics for Game AI*** (2009). Comprehensive treatment of utility-based AI selection — scoring functions, response curves, oscillation, stickiness margins. The textbook for this layer.
+- **The Sims** (Maxis, 2000+). The "smart objects advertise utility scores; agent picks max" pattern this ADR adopts at the goal layer. Documented in *AI Game Programming Wisdom* vol. 2 (Forbus & Wright).
+- **Killzone 2 / Killzone 3** (Guerrilla Games, GDC 2009-2011). Production-shipped utility-AI with named behaviours + per-archetype weights — close to the shape this ADR codifies.
 - **Mat Buckland, *Programming Game AI by Example*** (2005). Goal-driven agent architecture chapter; the original C++ reference shape this ADR's interfaces mirror.
-- **Penny Drennan & Mark Boyer, "Implementing Goal-Oriented AI Action Planning"** (various GDC). Practical scoping notes that informed the GOAP-lite-not-full-GOAP decision.
+- **Jeff Orkin, "Three States and a Plan: The AI of F.E.A.R."** (GDC 2006). The canonical GOAP reference — cited here as Alternative B (action *planning*), **not** the model this ADR adopts (which is goal *selection*).

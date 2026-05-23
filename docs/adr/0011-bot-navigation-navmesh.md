@@ -16,14 +16,16 @@ The map substrate is convenient: Subspace `.lvl` files are native **tile grids**
 
 ### What this ADR does not settle
 
-- **Tactical reasoning** (which tile is worth pathing to). Lives in [ADR-0013](./0013-bot-tactical-goal-layer.md) — tactical-goal layer.
-- **Spatial analysis** (chokepoint detection, traffic heatmap). Lives in [ADR-0012](./0012-bot-spatial-analysis-services.md). Pathfinding answers "how to get there"; the spatial services answer "where is 'there'."
+- **Tactical reasoning** (which tile is worth pathing to). Lives in [ADR-0013](./0013-bot-tactical-goal-layer.md) — tactical AI layer.
+- **Spatial analysis** (chokepoint detection, congestion field). Lives in [ADR-0012](./0012-bot-spatial-analysis-services.md). Pathfinding answers "how to get there"; the spatial services answer "where is 'there'."
 - **Dynamic-obstacle integration in the planner.** Ships are not in the navmesh; reactive `AvoidObstacles` handles local dodging. The planner re-plans on path-blocked events, not on every enemy move.
 - **Cross-arena pathing.** Each arena is a separate navigation domain; no inter-arena route planning.
+- **Wormholes / warp tiles.** Subspace teleporters translate ships to non-adjacent tiles; modelling them as `TeleportEdge` in the graph is real work (warp source/destination tracking, conditional activation, prize-warp randomness). v2.0 leaves wormholes out of the graph — a goal tile across a wormhole is treated as unreachable, and bots that walk into a wormhole-tile get teleported as a side-effect from the physics layer (existing behaviour). Promote when a v2.x arena's gameplay hinges on wormhole-aware AI.
+- **Door-state invalidation of cached paths.** Doors flap; a cached path may become blocked mid-traverse. v2.0 detects this only via the existing "re-validate current waypoint each tick" cheap check (planner re-plans on the next bot tick after the door closes — bot may briefly bump the door). Full door-state event subscription is deferred until visible bot pathing through closing doors becomes a player-visible bug.
 
 ## Decision
 
-**Bot pathfinding is grid A* over the `.lvl` tile grid, per-arena, lazy-computed at first arena enter and cached for the arena's lifetime. A new `infinity.ai.nav.*` api package defines `Path`, `PathPlanner`, and the `FollowPath` BT action. A server-side `NavMeshService` builds the grid graph from `.lvl` at arena-load and exposes the planner. Dynamic obstacles (ships, projectiles) are NOT in the navigation graph — local avoidance stays with `AvoidObstacles` in the steering layer. Re-planning is event-triggered, not per-tick.**
+**Bot pathfinding is clearance-aware grid A* over the `.lvl` tile grid, per-arena, computed asynchronously at arena-load and cached for the arena's lifetime. A new `infinity.ai.nav.*` api package defines `Path`, `PathPlanner`, and the `FollowPath` BT action. A server-side `NavMeshService` builds the grid graph from `.lvl` at arena-load and exposes the planner. Dynamic obstacles (ships, projectiles) are NOT in the navigation graph — local avoidance stays with `AvoidObstacles` in the steering layer. Re-planning is event-triggered, not per-tick. Paths post-process through line-of-sight smoothing before reaching the `FollowPath` action.**
 
 ### Representation: grid A* over passable tiles
 
@@ -31,11 +33,29 @@ The graph is the `.lvl` tile grid: each passable tile is a node; edges connect t
 
 Decision: **8-connected with octile heuristic** for v2.0. Reason: 4-connected paths look visually unnatural (only cardinal directions); 8-connected is the cheap upgrade that makes paths look like a competent player chose them. Octile heuristic is admissible and consistent for 8-connected grids.
 
+### Clearance-aware traversal: ship-radius padding
+
+Ships have non-zero collision radius (`EngineConfig.shipRadius` ≈ 0.5). A grid path that grazes a wall tile's edge would press the ship's body into the wall — `AvoidObstacles` would fight the path the whole way.
+
+v2.0 mitigates with **wall-adjacency edge rejection**: during graph construction, mark each passable tile with its **clearance** (chebyshev distance to nearest wall tile, computed once via brushfire / BFS-from-walls). Reject an edge `(a, b)` when `min(clearance(a), clearance(b)) < shipRadiusInTiles`. For a 0.5-unit radius on a 1-unit tile grid, that means an edge requires both endpoints to be ≥ 1 tile away from any wall.
+
+This costs one extra pre-compute pass at arena-load (O(N) brushfire) + an int per node. It's the simplest form of "clearance-based A*" from the path-planning literature ([Harabor & Botea, "Clearance-based Pathfinding"](https://harabor.net/data/papers/dthesis.pdf)); upgrade to per-edge clearance if narrow-corridor navigation needs it.
+
+### Path smoothing: line-of-sight chain post-processing
+
+Raw grid A* output is stair-stepped (`(5,5) → (6,6) → (7,6) → (8,7)`). The `FollowPath` action would steer ship-center toward each tile center — visible zigzag at every step.
+
+Post-process the raw waypoint list by **Floyd-style line-of-sight chaining**: starting from waypoint `w[0]`, find the farthest `w[k]` such that the straight line from `w[0]` to `w[k]` doesn't cross any wall tile. Replace `w[0..k]` with `[w[0], w[k]]`; recurse from `w[k]`. Result: a sparse waypoint list (corners only) that the steering layer's `Arrive` follows smoothly.
+
+This is the standard post-processing step in tile-grid A* implementations; cheap (O(N²) worst case but typically O(N log N)); produces visually clean paths.
+
 ### Per-arena lifecycle: `NavMeshService`
 
-One `NavMeshService` instance owns the per-arena nav graphs. On arena-load (`ArenaModule.onArenaLoad` per [ADR-0008](./0008-arena-composition-and-modules.md)), the service computes the grid from the loaded `.lvl` and caches by `ArenaId`. On arena-unload, the cache entry is released. Lazy compute (build on first planner request) is an optimization deferred until measurements demand.
+One `NavMeshService` instance owns the per-arena nav graphs. On arena-load (`ArenaModule.onArenaLoad` per [ADR-0008](./0008-arena-composition-and-modules.md)), the service **schedules async graph construction** on a worker thread; the per-arena entry is marked `BUILDING` until the brushfire + clearance + neighbour-graph pass completes. Bot planner requests against a `BUILDING` arena return `Path.empty()`; the brain falls back to wander until the next tick after the graph is ready. On arena-unload, the cache entry is released.
 
-The service is **zone-global, not per-arena module** — it's a navigation utility consumed by the bot AI; arena modules don't own the navmesh, they just trigger its build via the load event. Lives in `infinity-server/src/main/java/infinity/ai/nav/NavMeshService.java`.
+Async chosen over lazy-per-bot to avoid "first bot spawn pays the graph-build cost" latency spikes; the trade-off is graceful (bot wanders briefly during the build window, typically sub-second on commodity hardware for a 1024² map).
+
+The service is **zone-global, not per-arena module** — it's a navigation utility consumed by the bot AI; arena modules don't own the navmesh, they just trigger its build via the load event. Lives in `infinity-server/src/main/java/infinity/ai/nav/NavMeshService.java`. Per the cross-cutting decision shared with [ADR-0012](./0012-bot-spatial-analysis-services.md) + [ADR-0013](./0013-bot-tactical-goal-layer.md), the service is consumed via `BotAiArenaContext.nav()` rather than directly — a single container holds nav + spatial + tactical per-arena state.
 
 ### Re-plan policy: event-triggered
 
@@ -98,8 +118,8 @@ The `Arrive` steering primitive ships with this ADR's implementation slice — i
 
 ### Costs
 
-- **Per-arena memory:** grid graph is `width × height × neighbour_count` references. A 1024×1024 arena ≈ 1M tiles × 8 neighbours × pointer; ~30-80 MB depending on representation. Mitigate by computing only passable-tile nodes (typical maps are 20-50% passable → cut to 5-30 MB). Cache eviction on arena unload prevents memory growth across many arenas.
-- **Arena-load latency:** initial graph build is `O(N)` over tiles. A 1024×1024 arena should still complete in well under a second on commodity hardware; if it ever doesn't, hierarchical A* (HPA*) is the cheap optimization.
+- **Per-arena memory:** grid graph is `width × height × neighbour_count` references plus a clearance int per node. Order-of-magnitude estimate for a 1024² arena with 30% passable tiles + 8-connected adjacency lands in the tens of MB; the actual number must be benchmarked against a real `.lvl` before committing v2.0 production budgets. **This is illustrative, not a budget.** If real-world measurement exceeds available headroom, HPA* or per-region graph caching are the documented optimization escapes.
+- **Arena-load CPU spike (mitigated by async).** Initial graph build is `O(N)` brushfire + `O(N × neighbours)` graph construction. Async on a worker thread keeps the sim tick responsive; the bot AI gracefully degrades to wander until the build completes. Sub-second on commodity hardware for typical Subspace maps.
 - **A* worst-case query cost:** an unreachable target forces the algorithm to expand the full reachable set before returning `null`. Mitigate with `closedSet.size() > MAX_NODES` early-out (treat as "no path") and let the brain fall back to wander.
 
 ### Neutral
@@ -133,13 +153,17 @@ The `Arrive` steering primitive ships with this ADR's implementation slice — i
 
 | Decision | Resolution |
 |---|---|
-| Representation | 8-connected grid A* over `.lvl` passable tiles; octile heuristic |
-| Lifecycle | Per-arena cache in zone-global `NavMeshService`; build at arena-load, evict at unload |
-| Re-plan policy | Event-triggered (target moved, path blocked, path complete) + sanity floor every ~20s |
+| Representation | 8-connected clearance-aware grid A* over `.lvl` passable tiles; octile heuristic |
+| Clearance | Wall-adjacency edge rejection via brushfire-computed per-tile clearance (Harabor-style) |
+| Path smoothing | Floyd-style line-of-sight chain post-process: raw waypoints → sparse corner-only list |
+| Lifecycle | Per-arena cache in zone-global `NavMeshService`; **async** build at arena-load, evict at unload; `BUILDING` arenas return `Path.empty()` (bot wanders briefly) |
+| Re-plan policy | Event-triggered (target moved, waypoint blocked, path complete) + sanity floor every ~20s |
 | Dynamic obstacles | NOT in navmesh; `AvoidObstacles` handles them via `PrioritySteering(AvoidObstacles, FollowPath)` |
 | Path output | `Path(List<TileId>, totalCost)`; `FollowPath` BT action drives `Arrive(nextWaypoint)` |
-| Layer | `api/infinity.ai.nav.*` interfaces + `infinity-server/.../ai/nav/NavMeshService` impl |
+| Layer | `api/infinity.ai.nav.*` interfaces + `infinity-server/.../ai/nav/NavMeshService` impl; consumed via per-arena `BotAiArenaContext.nav()` |
 | Diagonal corner-clip | Reject diagonal moves when both orthogonal neighbours are walls |
+| Wormholes / warps | Deferred — out of graph in v2.0 |
+| Door-state events | Deferred — re-validate current waypoint each tick only, no event subscription |
 
 ## Open work
 

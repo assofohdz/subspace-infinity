@@ -34,54 +34,71 @@ ADR-0011 (navigation) handles the "how do I get there" half of spatial reasoning
 
 | Service | Mode | Purpose | Primary consumer |
 |---|---|---|---|
-| `TrafficHeatmap` | Dynamic (tick) | Per-tile decaying scalar of recent ship presence | Shark miner ("find busy lanes"), Leviathan ("find target clusters") |
-| `ChokepointAnalyzer` | Static (load) | Graph analysis of the tile grid: narrow passages, junctions, dead-ends | Shark miner ("mine the choke"), Javelin ("ambush past the choke") |
-| `EnemyDensityField` | Dynamic (tick) | Live cluster detection from perception | Leviathan ("splash the cluster"), evade decisions ("avoid the deathball") |
-| `BounceTracer` | Query-on-demand | Geometric simulation: "if I fire from X heading H with N bounces, where does the projectile land?" | Javelin bouncer; bomb-trajectory predictors |
+| `TrafficHeatmap` | Dynamic (tick) | Per-tile decaying scalar of recent ship presence | Shark miner ("find busy lanes"), behaviours scoring "place mine on this lane" |
+| `ChokepointAnalyzer` | Static (load) | Width-narrow tile detection (per below): tiles with low clearance + high through-flow | Shark miner ("mine the choke"), Javelin ("ambush past the choke") |
+| `ArenaCongestionField` | Dynamic (tick) | **Arena-wide** density field of all observed live ships (player + bot). Replaces per-bot perception aggregation. | Leviathan ("splash the cluster"), evade decisions ("avoid the deathball"), miner ("mine where they cluster") |
 
 **Explicitly deferred** (don't build until first consumer needs them):
 
+- `BounceTracer` — geometric simulation for bouncing-projectile aim. Adds when Javelin bouncer behaviour lands.
 - `CoverFinder` — "where can I sit with sight blocked from threat direction, sight open to my fire line?" Adds when Leviathan setup behaviour lands.
 - `MinePlacementScorer` — utility scalar per candidate tile combining heatmap × choke-score × distance-from-existing-mines. Adds when Shark miner lands.
 - `LineOfSightOracle` — "does ship A have LoS to ship B?" — adds when stealth / cover behaviour needs it.
 
-The deferral principle is the same as everywhere in this codebase: don't build a service without a consumer. The four services above are the ones bot v2 needs immediately; the others wait for their behaviours.
+The deferral principle is uniform: don't build a service without a consumer. The v2.0 set above is the minimal substrate; weapon-specific services land alongside the first archetype that needs each.
+
+### `ArenaCongestionField` design note (per grill response)
+
+Original draft had `EnemyDensityField` rebuilt from *per-bot perception*, which made it not really a service (it would be per-bot scratch). Replaced with **arena-wide knowledge**: the field is computed once per tick from all live ships in the arena (omniscient), not from any individual bot's perception. Read as "every player can see where the congestion is" — a deliberate simplification that treats bots as having human-level map awareness.
+
+This trade-off:
+- **Pro:** the field is genuinely shared (one compute, many readers); simple semantics; matches how a human player thinks about traffic on the map.
+- **Pro:** dodges the privacy-leak / scope ambiguity of per-bot rebuilds.
+- **Con:** bots "know" cluster locations even when their personal perception radius wouldn't normally see them. v2.0 accepts this; v2.x can add a per-bot perception-mask filter as a query parameter if it matters.
 
 ### Update modes: static vs dynamic
 
-**Static services** compute once at arena-load and never update. Queries are O(1) lookups against a pre-built data structure.
-- `ChokepointAnalyzer` — tile graph analysis from the `.lvl` data.
+**Static services** compute once at arena-load (async per [ADR-0011](./0011-bot-navigation-navmesh.md)) and never update for the arena's lifetime in v2.0.
 
-Static services are zero per-tick cost. Their work is amortized at arena-enter.
+- `ChokepointAnalyzer` — algorithm: **width-narrow tile detection on the passable graph**, paired with the per-tile clearance values already computed by `NavMeshService` (see ADR-0011 brushfire pre-compute). A tile is a chokepoint candidate if `clearance(tile) ≤ CHOKE_WIDTH_TILES` (e.g. ≤ 2 tile-widths of room around it). Filter further by "through-flow" — only tiles whose removal would disconnect non-trivial regions (cheap proxy: tiles where both side directions are walls, i.e. corridor segments). Rank by `1.0 / clearance × log(connectedRegionSize)`. Single-pass over the navmesh; produces a `List<TileScored>` ranked by choke strength.
 
-**Dynamic services** update each tick (or every N ticks for cost-tuned services). The update cost must be bounded by arena size + bot count.
-- `TrafficHeatmap` — per-tick, iterates all active ships in arena, increments the per-tile counter for the tile each ship occupies, decays all counters by a small factor (e.g. ×0.99). Bounded: O(activeShips) increments + O(populatedTiles) decay. Decay-only update can be skipped most ticks; full update every ~10 ticks (≈300ms at 30Hz).
-- `EnemyDensityField` — per-tick, rebuilt from perception snapshots. Cluster centroid + radius via simple density-based scan. Bounded: O(perceivedShips²) for clustering; capped at small perception radii.
+  Algorithm choice (per grill response): width-narrow detection chosen over articulation-point / min-cut for v2.0 because (a) it directly matches Subspace's tile-corridor map idiom, (b) reuses `NavMeshService`'s clearance pre-compute → minimal new cost, (c) produces a continuous "chokepoint strength" score per tile (not a binary articulation/non-articulation), which is exactly what utility scorers want. Promote to articulation-graph-based scoring if more sophisticated "chokepoint" semantics need to materialize.
 
-**Query-on-demand services** are stateless given the world state — no cached precompute, called when needed.
-- `BounceTracer` — pure geometric simulation; one invocation = one trace. Bot calls this only when in the "should I fire a bounce shot" branch.
+**Note on door + warp topology changes (deferred per ADR-0011 §"What this ADR does not settle"):** the static chokepoint set in v2.0 is computed from the static `.lvl` passability; door state changes do not invalidate it. Wormholes are not nodes in the analysis. Same deferral envelope as the navmesh itself.
 
-### Per-arena lifecycle: `SpatialAiHostService`
+**Dynamic services** update each tick (or every N ticks for cost-tuned services). The update cost must be bounded by arena size + ship count.
+- `TrafficHeatmap` — per-tick, iterates all live ships in arena, increments the per-tile counter for the tile each ship occupies, decays all counters by a small factor (e.g. ×0.99). Bounded: O(liveShips) increments + O(populatedTiles) decay. Decay-only update can be skipped most ticks; full update every ~10 ticks (≈300ms at 30Hz).
+- `ArenaCongestionField` — per-tick, single pass over live ships in the arena (PlayerShip + BotShip both counted). Cluster detection via simple density-based scan (e.g. DBSCAN-lite over ship tiles with a fixed eps). Bounded: O(liveShips²) worst case; in practice small (Subspace arenas rarely exceed 64 simultaneous ships).
 
-A single zone-global `SpatialAiHostService` (extending `BaseInfinitySystem`) owns the per-arena service instances. On arena-load: instantiate all services for the arena, register with the spatial host. On arena-unload: dispose all services for the arena. Same lifecycle pattern as `NavMeshService` from ADR-0011.
+### Per-arena lifecycle: `BotAiArenaContext` (consolidated)
+
+Per the cross-cutting decision shared with [ADR-0011](./0011-bot-navigation-navmesh.md) + [ADR-0013](./0013-bot-tactical-goal-layer.md), the three v2 ADRs **consolidate their per-arena host state into a single `BotAiArenaContext`**. One zone-global `BotAiHostService` (extending `BaseInfinitySystem`) owns one `BotAiArenaContext` per loaded arena:
 
 ```java
-public class SpatialAiHostService extends BaseInfinitySystem {
-  private final Map<ArenaId, ArenaSpatial> byArena = new ConcurrentHashMap<>();
+public class BotAiHostService extends BaseInfinitySystem {
+  private final Map<ArenaId, BotAiArenaContext> byArena = new ConcurrentHashMap<>();
 
-  public ArenaSpatial forArena(ArenaId arena) { return byArena.get(arena); }
-  // onArenaLoad / onArenaUnload create / dispose ArenaSpatial bundles.
+  public BotAiArenaContext forArena(ArenaId arena) { return byArena.get(arena); }
+  // onArenaLoad / onArenaUnload create / dispose BotAiArenaContext bundles.
 }
 
-public final class ArenaSpatial {
+public final class BotAiArenaContext {
+  public NavMeshService.ArenaNav nav() { … }       // ADR-0011
+  public ChokepointAnalyzer chokepoints() { … }    // this ADR
   public TrafficHeatmap traffic() { … }
-  public ChokepointAnalyzer chokepoints() { … }
-  public EnemyDensityField enemies() { … }
-  public BounceTracer bouncer() { … }
+  public ArenaCongestionField congestion() { … }
+  // Deferred services land here: bouncer(), cover(), minePlacement(), lineOfSight().
 }
 ```
 
-`ArenaSpatial` is the per-arena query bundle; brains hold a reference once at addObject time (via `Blackboard.spatial()`), call methods per tick.
+`BotAiArenaContext` is the single per-arena bundle of bot AI state — navigation, spatial analysis, tactical planner host (per ADR-0013). Brains hold a reference once at addObject time (via `Blackboard.arenaContext()`), call methods per tick.
+
+**Load order — graceful degradation:** the bundle's components have varying readiness:
+- Navmesh build is async (per ADR-0011) → `nav()` returns `Path.empty()` while `BUILDING`.
+- Static spatial services (chokepoints) build as part of the same async pass, depending on the navmesh's clearance data → return empty result sets while building.
+- Dynamic services (traffic, congestion) are ready immediately (they just accumulate from zero).
+
+When a bot ticks before the full bundle is ready, its scorers receive empty data → the goal scoring naturally falls back to whichever behaviour scores positive on incomplete data (typically Wander). **No crash; the bot gets info next tick.** This matches the user's "should not crash, simply gets info next tick" decision in the grill.
 
 ### Query API shape
 
@@ -152,13 +169,17 @@ This keeps services testable in isolation (no brain dependency) and reusable acr
 
 | Decision | Resolution |
 |---|---|
-| Where do services live? | `api/infinity.ai.spatial.*` interfaces + `infinity-server/.../ai/spatial/*` impls + per-arena `ArenaSpatial` bundle + zone-global `SpatialAiHostService` |
-| What's the v2.0 service set? | TrafficHeatmap (dynamic), ChokepointAnalyzer (static), EnemyDensityField (dynamic), BounceTracer (query-on-demand) |
-| Update modes | Static (arena-load, O(1) query); dynamic (tick-cadence, throttled); query-on-demand (no cache) |
-| Per-arena vs zone-global? | Per-arena instances; zone-global host. Same shape as `NavMeshService` from ADR-0011. |
+| Where do services live? | `api/infinity.ai.spatial.*` interfaces + `infinity-server/.../ai/spatial/*` impls; **consolidated per-arena `BotAiArenaContext`** bundle (cross-cutting with ADR-0011 / ADR-0013) owned by zone-global `BotAiHostService` |
+| What's the v2.0 service set? | TrafficHeatmap (dynamic), ChokepointAnalyzer (static, width-narrow + clearance-based), ArenaCongestionField (dynamic, arena-wide knowledge) |
+| Update modes | Static (arena-load async, O(1) query); dynamic (tick-cadence, throttled) |
+| `ChokepointAnalyzer` algorithm | Width-narrow tile detection using `NavMeshService` clearance data; rank by `1/clearance × log(regionSize)` |
+| `ArenaCongestionField` scope | Arena-wide knowledge (all live ships counted); not per-bot perception. "Every player knows congestion points." |
+| Per-arena vs zone-global? | Per-arena bundle; zone-global host. Single `BotAiHostService` shared with ADR-0011 / ADR-0013. |
 | Query API shape | Data records out, no BT semantics. Translation to BT-blackboard state is the planner's job. |
-| Deferred services | CoverFinder, MinePlacementScorer, LineOfSightOracle — add when first consumer behaviour lands. |
-| Cache invalidation | v2.0 ignores door-driven topology changes for `ChokepointAnalyzer`; revisit if it bites. |
+| Knowledge injection into bot | `BotBrainSystem.BrainContainer.addObject` injects `BotAiArenaContext` reference into `Blackboard` |
+| Load-order safety | Empty results during async build window; bot wanders; no crash |
+| Deferred services | BounceTracer, CoverFinder, MinePlacementScorer, LineOfSightOracle — add when first consumer behaviour lands. |
+| Door / wormhole topology changes | Deferred per ADR-0011's matching deferral; v2.0 chokepoints frozen at arena-load |
 
 ## Open work
 
