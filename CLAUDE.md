@@ -29,6 +29,7 @@ Path-scoped rules live in `.claude/rules/` and load automatically when relevant 
 
 - [`components.md`](.claude/rules/components.md) — immutability + no-arg constructor (`api/src/main/java/infinity/es/**`) — see [ADR-0001](docs/adr/0001-ecs-component-model.md).
 - [`entity-sets.md`](.claude/rules/entity-sets.md) — release in `terminate()` (`infinity-server/` + `infinity-client/` Java).
+- [`entity-containers.md`](.claude/rules/entity-containers.md) — use `EntityContainer<T>` for "component-set → per-entity object" maps (drivers, AI sidecars, RMI handles); don't hand-roll `Map<EntityId, T>` + manual add/remove loops (`infinity-server/` + `infinity-client/` Java).
 - [`systems.md`](.claude/rules/systems.md) — logic-in-systems; component-write discipline pointer (`infinity-server/src/main/java/infinity/systems/**`) — see [ADR-0001](docs/adr/0001-ecs-component-model.md).
 - [`replacement-as-mutation.md`](.claude/rules/replacement-as-mutation.md) — RaM: one canonical writer per component; other systems emit intents drained by the writer; phased tick (`infinity-server/src/main/java/infinity/systems/**`, `api/src/main/java/infinity/sim/**`) — formalised by [ADR-0001](docs/adr/0001-ecs-component-model.md).
 - [`world-coordinates.md`](.claude/rules/world-coordinates.md) — `TileId` APIs, `InfinityConstants.GRID_CELL_SIZE` source of truth (`infinity-server/` + `infinity-client/` Java).

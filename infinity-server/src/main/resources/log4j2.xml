@@ -36,12 +36,13 @@
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>
-    <!-- AI + module packages: WARN keeps per-tick Brain.think / BrainScheduler.schedule /
-         MobBodyInitializer.apply chatter off the console while still surfacing real warnings
-         (e.g. BrainScheduler endless-loop). Bump to INFO when debugging AI/module wiring;
-         without these loggers everything in these packages falls through to Root=error and
-         even WARN goes missing — that's how the kill-event RMI loop hid for so long. -->
-    <Logger name="infinity.ai" level="WARN" additivity="false">
+    <!-- Bot AI v1 (ADR-0009): chicken framework retired into infinity.ai.legacy.* and no
+         longer registered, so the per-tick Brain.think / BrainScheduler.schedule /
+         MobBodyInitializer.apply chatter that originally motivated WARN here is gone.
+         INFO on infinity.ai surfaces BotBrainSystem + PerceptionService wiring logs.
+         Legacy code in infinity.ai.legacy.* would inherit INFO too but is not invoked
+         at runtime; tighten or split if a legacy code path ever fires again. -->
+    <Logger name="infinity.ai" level="INFO" additivity="false">
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>

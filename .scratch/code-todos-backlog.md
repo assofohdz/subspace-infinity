@@ -7,6 +7,30 @@ Each row: actionable item + source file:line + brief context.
 
 ## Backlog
 
+### World coordinates / placement
+
+- [ ] **Ship sphere vertical placement is misaligned with the wall block row.**
+  Ships are spheres centered at `Y = GAMEPLAY_Y = 1.0` with radius `EngineConfig.shipRadius()`
+  (~0.5), so a ship's bounding sphere occupies `Y ∈ [0.5, 1.5]`. Walls placed by
+  `LegacyMapProjector` (`new Vec3d(xpos, 1, zpos)`) become 1×1×1 MBlock cells occupying
+  `Y ∈ [1.0, 2.0]`. Vertical overlap is `Y ∈ [1.0, 1.5]` — only the top half of the
+  sphere is in the wall cell row; the bottom half sits in the empty Y=0 cell row.
+  Consequences: (a) collision contacts are biased (only top-half normals fire),
+  (b) any future perception or raycast aimed at "the ship's plane" must be careful
+  to use a Y clearly inside the wall row, not on the boundary at `Y=1.0` — the
+  bot-AI Issue #03 raycast worked around this by using `Y = GAMEPLAY_Y + 0.5`
+  (centred in the wall row); see `PerceptionService.castForwardWallRay`.
+  Possible fixes (each has trade-offs):
+    1. Place ship spheres centred at `Y = 1.5` so sphere range `[1.0, 2.0]` matches
+       the wall row exactly. Requires updating `GAMEPLAY_Y` + `clampToGameplayPlane`
+       + likely the camera + any HUD/radar Y math.
+    2. Place wall cells at `Y = 0` so they occupy `[0.0, 1.0)` and the sphere range
+       `[0.5, 1.5]` straddles them. Less invasive but walls are then visually below
+       the gameplay plane; clients rendering walls may need adjustments.
+    3. Replace ship spheres with 1×1×1 cubes aligned to cell Y=1. Loses canonical
+       Subspace circle-collision semantics; significant rebalance risk.
+  Surfaced 2026-05-22 during bot-AI Issue #03 wall-raycast debugging.
+
 ### Input pipeline
 
 - [ ] **Replace `MovementInput` with a rate-only `MovementIntent(turnRate, thrustRate, flags)`.**
