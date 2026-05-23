@@ -48,17 +48,6 @@ Identified from a wider-lens architectural pass on 2026-05-13 (Nygard-style: "wo
   - Where `engine.groovy` config-tier knobs ([`feedback-engine-tier-for-physics-constants`](../.claude/rules/) in agent memory) stop and "engine modules" begin — i.e. what's tuning vs what's swap.
 - **Trigger to draft.** When proposing an alt-physics path; when the tick loop needs to be pluggable for a specific use case (e.g. deterministic replay); when the engine grows enough complexity that the monolith assumption breaks; or when the user explicitly asks for the grill-with-docs design exercise at the engine tier.
 
-### Bot navigation / pathfinding
-
-- **Implicit today.** [ADR-0009](../docs/adr/0009-bot-ai-architecture.md) explicitly defers pathfinding for v1: open Subspace arenas are 2D fields where steering-layer `AvoidObstacles` (reactive corridor projection) + perception via mphys `BinIndex` (dynamic targeting) cover the navigation surface adequately. There is no `infinity.ai.nav.*` package today.
-- **What an ADR would settle:**
-  - **Representation.** Polygonal navmesh (mesh-from-tile-grid at arena load) vs grid A* directly against the `.lvl` tile array. Subspace maps are tile grids natively; grid A* is structurally simpler but produces blockier waypoints and grows fast at unit-cell resolution.
-  - **Layered insertion.** Where pathfinding slots into the bot AI stack: a new api-tier `infinity.ai.nav.*` package (NavMesh / Path / PathPlanner / PathFollower); a new BT `FollowPath` Action that drives `Arrive(nextWaypoint)` via the existing steering layer; `AvoidObstacles` continues to run in parallel via `BlendedSteering` for dynamic local obstacles (ships). No replacement of steering — pathfinding feeds it.
-  - **Per-arena vs zone-global.** NavMesh data is per-arena (mesh structure derived from the `.lvl`); planner instances cache per-arena. Decide whether the cache lives in the arena module lifecycle ([ADR-0008](../docs/adr/0008-arena-composition-and-modules.md)) or in a zone-global `NavMeshService` keyed by `ArenaId`.
-  - **Re-plan policy.** When to re-plan vs follow the cached path: target moves > threshold, path becomes blocked (door closes), bot reaches a waypoint, every N ticks as a sanity floor. Re-planning every tick is the cost trap; cache + event-triggered replan is standard.
-  - **Dynamic-obstacle integration.** Ships are not in the navmesh. Decide whether bots treat enemy ships as moving obstacles in the planner (expensive — full replan when any threat moves) or rely entirely on `AvoidObstacles` for local reactive avoidance (cheap; what ADR-0009 does today).
-- **Trigger to draft.** First closed-corridor / multi-room arena design lands where `AvoidObstacles` is structurally insufficient — a flag-room with one entrance, a maze, a base-defense layout with chokepoints. Triggers when a player-visible "the bot got stuck pushing against a wall trying to reach me" bug surfaces, OR when an upcoming gametype (CTF, base-rush, dungeon-style) explicitly needs route-aware AI. ADR-0009 commits to re-opening the decision as a follow-up ADR at that point.
-
 ### Wire-compatibility / component-shape migration policy
 
 - **Implicit today.** Component shapes evolve in `api/src/main/java/infinity/es/...` as gameplay needs change. Some are wire-crossing (synced to client via Zay-ES `FieldSerializer`); changes to those fields must coordinate server + client + (future) modules. Coordination is currently negotiated per change, with no rule for "when can a component shape change without staged rollout?"
