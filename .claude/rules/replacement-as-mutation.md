@@ -355,6 +355,7 @@ guards 32 component types against single-writer regressions
 - **`FlagHoldTimeScoring`** — `TeamFlagHoldTicks` on team entities (per-tick accumulator; zeroed on `onRoundEnd`). Emits `TeamScoreChange` transients consumed by `ScoreCoordinatorSystem`.
 - **`ScoreCoordinatorSystem`** — extended (F4a) to also drain `TeamScoreChange` transients and write `TeamRoundScore` / `TeamMatchScore` / `TeamTotalScore` on team entities. Symmetric shape with the existing `PlayerRoundScore` / `PlayerMatchScore` / `PlayerTotalScore` player-tier drain. `ScoreReset(ROUND|MATCH)` zeros team tiers same as player tiers; totals never reset.
 - **`Crowns` mechanic** — `CrownHolder` on player/bot ship entities (distributes 1 per active player at `onRoundStart`; transfers all crowns to killer on attributed `PlayerKilledEvent`; drops on unattributed/self-kill; clears at `onRoundEnd`). Wire-crossing `final class`. The only writer; `LastCrownStandingWinCondition` + `MostCrownsWinCondition` are read-only consumers. `CrownKillBonus` is a scoring emitter only — emits `PlayerScoreChange` intents, never writes `CrownHolder`.
+- **`BotBrainSystem`** — `MovementInput` on `BotShip` entities (per-tick brain-tick result; the `AIEntities.createMobShip` factory-tier seed at spawn is the disjoint-entity-set shape per ADR-0009, not a competing runtime writer); `BotDebug` (per-tick wire-crossing snapshot of branch / target / intent / clock-hour-to-target; clients observe via SimEthereal sync for the bot-debug HUD).
 
 #### `Decay` — multi-writer **by design** (documented exception)
 
