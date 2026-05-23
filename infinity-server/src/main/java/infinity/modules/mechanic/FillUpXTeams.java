@@ -20,9 +20,13 @@ import infinity.es.arena.ArenaMap;
 import infinity.es.ship.EnergyChange;
 import infinity.es.ship.EnergyStats;
 import infinity.es.ship.EnergyStatsChange;
+import infinity.modules.ArenaModuleSet;
+import infinity.modules.ArenaModuleSetLookup;
 import infinity.modules.MechanicModule;
 import infinity.modules.ModuleContext;
+import infinity.modules.SpawnPlacementModule;
 import infinity.sim.AIEntities;
+import java.util.Optional;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -59,6 +63,7 @@ public class FillUpXTeams implements MechanicModule {
   private final ArenaId arenaId;
   private final PhysicsSpace<?, ?> phys;
   private final int teams;
+  private final ArenaModuleSetLookup modules;
   /** Set (not List) so per-tick prune on bot reap is O(1). */
   private final Set<EntityId> spawnedBots = new HashSet<>();
   private final Set<EntityId> pendingNerf = new HashSet<>();
@@ -71,6 +76,7 @@ public class FillUpXTeams implements MechanicModule {
     this.arenaId = ctx.arenaId();
     this.phys = ctx.physics() == null ? null : ctx.physics().getPhysics();
     this.teams = config.effectiveTeams();
+    this.modules = ctx.modules();
   }
 
   @Override
@@ -220,11 +226,7 @@ public class FillUpXTeams implements MechanicModule {
 
   /** Test seam — override to record spawn requests without invoking the physics-bound factory. */
   protected EntityId spawnBot(final long createdTimeNanos, final int freq) {
-    // Per-freq lateral offset so multiple bots spawning the same tick don't overlap.
-    final Vec3d loc = new Vec3d(
-        cachedSpawnCenter.x + freq * 4.0,
-        cachedSpawnCenter.y,
-        cachedSpawnCenter.z);
+    final Vec3d loc = resolveBotSpawn(freq);
     final EntityId bot = AIEntities.createMobShip(
         loc, ed, EntityId.NULL_ID, phys, createdTimeNanos, Ship.JAVELIN.getId());
     ed.setComponent(bot, arenaId);
@@ -232,5 +234,24 @@ public class FillUpXTeams implements MechanicModule {
     spawnedBots.add(bot);
     pendingNerf.add(bot);
     return bot;
+  }
+
+  /**
+   * Honor the arena's {@code SpawnPlacementModule} when present (matches player respawn
+   * behaviour); otherwise fall back to the arena-centre + per-freq lateral offset so
+   * multiple bots spawning the same tick don't overlap.
+   */
+  private Vec3d resolveBotSpawn(final int freq) {
+    if (modules != null) {
+      final ArenaModuleSet set = modules.getModuleSet(arenaId);
+      if (set != null) {
+        final Optional<SpawnPlacementModule> placement = set.spawnPlacement();
+        if (placement.isPresent()) {
+          return placement.get().resolveSpawn(arenaId, freq);
+        }
+      }
+    }
+    return new Vec3d(
+        cachedSpawnCenter.x + freq * 4.0, cachedSpawnCenter.y, cachedSpawnCenter.z);
   }
 }

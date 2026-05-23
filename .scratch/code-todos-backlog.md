@@ -7,6 +7,44 @@ Each row: actionable item + source file:line + brief context.
 
 ## Backlog
 
+### Physics / collision response
+
+- [ ] **Rigid-body-vs-rigid-body collision torque spins the ship's nose into the contact.**
+  When the ship hits another `RigidBody` (other ship, asteroid, large static) at an
+  off-angle, the mphys collision response applies an angular impulse around the Y axis.
+  `PlayerDriver.applyRotationEase`
+  ([infinity-server/.../sim/internal/PlayerDriver.java](../infinity-server/src/main/java/infinity/sim/internal/PlayerDriver.java))
+  zeroes X/Z angular velocity each tick via `setRotationalVelocity(0, newAng, 0)`, but
+  the Y component is *eased* from `currentAng` toward `targetAng = intent.x * rotSpeed`:
+  `newAng = currentAng + (targetAng - currentAng) * t`. If collision left
+  `currentAng` much larger than the ship can accelerate to under intent alone, the eased
+  blend keeps spinning the ship for many ticks — visually the nose rotates *into* the
+  contact surface instead of away from it.
+  **Scope: rigid-body-vs-rigid-body only.** MWorld voxel-block collisions appear to
+  behave differently (no equivalent torque grind observed) — investigate why if a fix
+  unifies both paths.
+  Symptoms in-game: ship "grinds" along the contacted body, nose pointed slightly into
+  it. Bots are extra-affected because Pursue + thrust keeps them pressed against the
+  contact; humans tend to release thrust and recover. **Suspected chain in bot-AI corner
+  symptom:** bot pursues player → contacts player off-angle → spin torque rotates
+  heading → bot continues thrusting in new (now-wrong) direction → drifts into a wall.
+  Surfaced 2026-05-23 during bot-AI Issue #04 demo testing; recurring issue (user:
+  "hit hard again").
+  Possible fixes (each has trade-offs):
+    1. **Clamp `currentAng` before easing**: `currentAng = max(-rotSpeed, min(rotSpeed, currentAng))`.
+       One-line change; loses any "carry-over" from spin-up under thrust.
+    2. **Replace ease with direct set**: `body.setRotationalVelocity(0, targetAng, 0)`.
+       Removes collision-spin entirely; also removes the "ship feels heavy" responsiveness
+       feel the ease currently provides.
+    3. **Filter collision-applied Y torque at the mphys callback layer** — intercept the
+       contact response and zero the Y component. Most surgical but needs mphys
+       integration work.
+    4. **Lock body inertia / friction at ship-spawn** so rigid-body contacts don't
+       generate angular impulse on the ship in the first place. Cleanest if the angular
+       inertia is the actual source; needs mphys body-config investigation.
+  Decision likely needs a one-line spike on (1) to confirm it solves the bot
+  observation, then a follow-up decision on whether to retain the ease for human feel.
+
 ### World coordinates / placement
 
 - [ ] **Ship sphere vertical placement is misaligned with the wall block row.**

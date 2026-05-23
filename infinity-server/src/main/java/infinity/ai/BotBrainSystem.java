@@ -13,28 +13,27 @@ import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.SimTime;
+import infinity.ai.brain.Blackboard;
+import infinity.ai.brain.BrainArchetype;
+import infinity.ai.brain.BrainRegistry;
+import infinity.ai.brain.CombatantBrain;
+import infinity.ai.bt.Behavior;
 import infinity.ai.steer.AvoidObstacles;
-import infinity.ai.steer.PrioritySteering;
-import infinity.ai.steer.Pursue;
-import infinity.ai.steer.Steering;
+import infinity.es.BotDebug;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.BotShip;
 import infinity.es.ship.RadarRange;
 import infinity.systems.BaseInfinitySystem;
 
 /**
- * Canonical writer of {@link MovementInput} on {@link BotShip} entities. v1 brain:
- * pursue the nearest enemy ship while avoiding walls + dynamic obstacles via Reynolds
- * corridor projection. Per-bot brain wiring lives in a {@link BrainContainer} — see
- * {@code entity-containers.md} for the canonical pattern. Slice #04 (BT framework)
- * extends the container to watch additional components (BehaviorTree holder, BotBrainConfig).
- * See ADR-0009.
+ * Canonical writer of {@link MovementInput} on {@link BotShip} entities. Per-tick: sample
+ * physics state, build perception, tick the per-bot brain BT (writes intent to its
+ * blackboard), wrap with {@link AvoidObstacles} reactive steering, write MovementInput.
+ * Per-bot wiring lives in {@link BrainContainer} (see {@code entity-containers.md}).
+ * Default archetype is "Brawler" ({@link CombatantBrain}); slice #08 wires Groovy CCP to
+ * pick alternative archetypes per ship. See ADR-0009.
  */
 public final class BotBrainSystem extends BaseInfinitySystem {
-
-  // Reynolds lead-prediction window. 0.5s is a good middle ground — long enough to lead
-  // a moving target, short enough not to over-shoot when the target turns.
-  private static final double LEAD_TIME_SECONDS = 0.5;
 
   // Default perception radius (world units) when the bot ship has no RadarRange.
   private static final double DEFAULT_PERCEPTION_RADIUS = 30.0;
@@ -47,14 +46,17 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   // narrower = squeeze through gaps. 0.6 ~= ship-and-a-half.
   private static final double CORRIDOR_HALF_WIDTH = 0.6;
 
-  // Rate-shaped intent magnitudes — full forward on pursue, full forward on avoid.
-  // BlendedSteering in slice #07 will replace these with weighted contributions.
-  private static final double FULL_THRUST = 1.0;
+  // AvoidObstacles thrust magnitude when the reactive steer overrides the BT decision.
+  private static final double AVOID_THRUST = 1.0;
 
   private EntityData ed;
   private Perception perception;
   private PhysicsSpace<EntityId, MBlockShape> space;
   private BrainContainer brains;
+  private final BrainRegistry brainRegistry = new BrainRegistry();
+  // Shared reactive layer — stateless across bots, so one instance suffices.
+  private final AvoidObstacles avoidObstacles =
+      new AvoidObstacles(LOOK_AHEAD_DISTANCE, CORRIDOR_HALF_WIDTH, AVOID_THRUST);
 
   @Override
   protected void initialize() {
@@ -63,6 +65,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     @SuppressWarnings("unchecked")
     final MPhysSystem<MBlockShape> physics = requireSystem(MPhysSystem.class);
     this.space = physics.getPhysicsSpace();
+    this.brainRegistry.register(new CombatantBrain());
   }
 
   @Override
@@ -72,7 +75,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
   @Override
   public void start() {
-    this.brains = new BrainContainer(this.ed);
+    this.brains = new BrainContainer(this.ed, this.brainRegistry);
     this.brains.start();
   }
 
@@ -104,10 +107,57 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     }
     final double radius = perceptionRadius(wiring.botId);
     final PerceptionSnapshot snapshot = this.perception.perceive(wiring.botId, self, radius);
-    wiring.pursue.setTarget(pickNearestThreat(self, snapshot));
-    final Vec3d intent = wiring.composite.steer(self, snapshot);
-    final Vec3d move = (intent != null) ? intent.clone() : new Vec3d();
+    final Blackboard bb = wiring.blackboard;
+    bb.setSelf(self);
+    bb.setPerception(snapshot);
+    final NearbyShip target = pickNearestThreat(self, snapshot);
+    bb.setTarget(target);
+    bb.resetIntent();
+    bb.setLastBranch("Idle");
+    wiring.brain.tick(bb);
+    final Vec3d avoid = this.avoidObstacles.steer(self, snapshot);
+    final boolean avoiding = avoid != null;
+    final Vec3d move = avoiding ? avoid : bb.intent().clone();
     this.ed.setComponent(wiring.botId, new MovementInput(move, new Quatd(), MovementInput.NONE));
+    writeDebugSnapshot(wiring.botId, self, target, move, bb.lastBranch(), avoiding);
+  }
+
+  /**
+   * Write the per-tick {@link BotDebug} snapshot. {@code branch} is suffixed with "+Avoid"
+   * when {@link AvoidObstacles} overrode the BT decision. Clock hour is {@code 0} when
+   * there's no target; otherwise {@code 1..12} relative to the bot's forward.
+   */
+  private void writeDebugSnapshot(
+      final EntityId botId,
+      final MoverState self,
+      final NearbyShip target,
+      final Vec3d move,
+      final String branch,
+      final boolean avoiding) {
+    final String effectiveBranch = avoiding ? branch + "+Avoid" : branch;
+    final long targetId = target != null ? target.id().getId() : -1L;
+    final int clockHour = target != null ? clockHourToTarget(self, target.position()) : 0;
+    this.ed.setComponent(
+        botId, new BotDebug(effectiveBranch, targetId, move.x, move.z, clockHour));
+  }
+
+  /**
+   * Map the direction from {@code self} to {@code targetWorldPos} into a 1..12 clock hour
+   * relative to the bot's forward heading. 12 = ahead, 3 = 90° right, 6 = behind, 9 = 90° left.
+   */
+  private static int clockHourToTarget(final MoverState self, final Vec3d targetWorldPos) {
+    final Vec3d forward = self.orientation().mult(Vec3d.UNIT_Z);
+    final Vec3d left = self.orientation().mult(Vec3d.UNIT_X);
+    final Vec3d delta = targetWorldPos.subtract(self.position());
+    if (delta.lengthSq() < 1e-9) {
+      return 12;
+    }
+    final Vec3d dir = delta.normalize();
+    // Positive angle = target to bot's left; convert to clockwise degrees from "ahead".
+    final double angleRad = Math.atan2(left.dot(dir), forward.dot(dir));
+    final double degCw = ((-Math.toDegrees(angleRad) % 360.0) + 360.0) % 360.0;
+    final int hour = ((int) Math.round(degCw / 30.0)) % 12;
+    return hour == 0 ? 12 : hour;
   }
 
   /** Sample the bot's current position / orientation / velocity from its RigidBody. */
@@ -141,30 +191,27 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     return nearest;
   }
 
-  /**
-   * Per-bot steering wiring; brain reconfigures {@link #pursue} target each tick. Holds
-   * the bot's {@link EntityId} so per-tick logic can sample state without going through
-   * the container.
-   */
+  /** Per-bot brain instance + blackboard, instantiated from the registry archetype. */
   private static final class BrainWiring {
     final EntityId botId;
-    final Pursue pursue;
-    final Steering composite;
+    final Behavior brain;
+    final Blackboard blackboard;
 
-    BrainWiring(final EntityId botId) {
+    BrainWiring(final EntityId botId, final BrainArchetype archetype) {
       this.botId = botId;
-      this.pursue = new Pursue(LEAD_TIME_SECONDS, FULL_THRUST);
-      this.composite =
-          new PrioritySteering(
-              new AvoidObstacles(LOOK_AHEAD_DISTANCE, CORRIDOR_HALF_WIDTH, FULL_THRUST),
-              this.pursue);
+      this.brain = archetype.createRoot();
+      this.blackboard = archetype.createBlackboard();
     }
   }
 
   /** Per-{@link BotShip} sidecar holding the brain wiring; see entity-containers.md. */
   private static final class BrainContainer extends EntityContainer<BrainWiring> {
-    BrainContainer(final EntityData ed) {
+
+    private final BrainRegistry registry;
+
+    BrainContainer(final EntityData ed, final BrainRegistry registry) {
       super(ed, BotShip.class);
+      this.registry = registry;
     }
 
     @Override
@@ -174,13 +221,13 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
     @Override
     protected BrainWiring addObject(final Entity e) {
-      return new BrainWiring(e.getId());
+      // Slice #08 reads a per-ship BotBrainConfig component to pick the archetype name.
+      return new BrainWiring(e.getId(), this.registry.get(CombatantBrain.NAME));
     }
 
     @Override
     protected void updateObject(final BrainWiring wiring, final Entity e) {
-      // BotShip is a marker — nothing to re-wire on change. Slice #04 will watch
-      // BehaviorTree + BotBrainConfig here and swap wiring when they update.
+      // BotShip is a marker; slice #08 watches BotBrainConfig and re-wires on change.
     }
 
     @Override

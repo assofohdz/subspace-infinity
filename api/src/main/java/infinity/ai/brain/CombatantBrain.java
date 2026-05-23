@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: BSD-3-Clause
+// Copyright (c) 2018-2026 Asser Fahrenholz
+package infinity.ai.brain;
+
+import infinity.ai.bt.Behavior;
+import infinity.ai.bt.Selector;
+import infinity.ai.bt.Sequence;
+import infinity.ai.steer.Pursue;
+import infinity.ai.steer.Wander;
+
+/**
+ * v1 "Brawler" archetype — {@code Selector(Sequence(HasTarget, SteerPursue), SteerWander)}.
+ * Pursue when a target is visible; wander otherwise. Leaves are stateless so the root is
+ * a shared singleton; per-bot Pursue/Wander instances live on the per-bot blackboard.
+ * See ADR-0009.
+ */
+public final class CombatantBrain implements BrainArchetype {
+
+  public static final String NAME = "Brawler";
+
+  // Reynolds lead-prediction window for the pursue branch.
+  private static final double LEAD_TIME_SECONDS = 0.5;
+
+  // Reynolds wander parameters — small circle just ahead of the agent with bounded jitter.
+  // Tuned for Subspace open-arena gameplay; per-arena overrides land via Groovy CCP in slice #08.
+  private static final double WANDER_RADIUS = 1.0;
+  private static final double WANDER_DISTANCE = 2.0;
+  private static final double WANDER_JITTER_RADIANS = 0.5;
+
+  // Rate-shaped thrust magnitude — full forward.
+  private static final double FULL_THRUST = 1.0;
+
+  private static final Behavior ROOT =
+      new Selector(new Sequence(new HasTarget(), new SteerPursue()), new SteerWander());
+
+  @Override
+  public String name() {
+    return NAME;
+  }
+
+  @Override
+  public Behavior createRoot() {
+    return ROOT;
+  }
+
+  @Override
+  public Blackboard createBlackboard() {
+    return new Blackboard(
+        new Pursue(LEAD_TIME_SECONDS, FULL_THRUST),
+        new Wander(WANDER_RADIUS, WANDER_DISTANCE, WANDER_JITTER_RADIANS, FULL_THRUST));
+  }
+}

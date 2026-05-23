@@ -59,6 +59,51 @@ Identified from a wider-lens architectural pass on 2026-05-13 (Nygard-style: "wo
   - **Dynamic-obstacle integration.** Ships are not in the navmesh. Decide whether bots treat enemy ships as moving obstacles in the planner (expensive — full replan when any threat moves) or rely entirely on `AvoidObstacles` for local reactive avoidance (cheap; what ADR-0009 does today).
 - **Trigger to draft.** First closed-corridor / multi-room arena design lands where `AvoidObstacles` is structurally insufficient — a flag-room with one entrance, a maze, a base-defense layout with chokepoints. Triggers when a player-visible "the bot got stuck pushing against a wall trying to reach me" bug surfaces, OR when an upcoming gametype (CTF, base-rush, dungeon-style) explicitly needs route-aware AI. ADR-0009 commits to re-opening the decision as a follow-up ADR at that point.
 
+### Bot composition DSL in arena.groovy
+
+- **Implicit today.** Bots are spawned by `mechanic 'fill-up-x-teams', teams: N`
+  ([infinity-server/.../modules/mechanic/FillUpXTeams.java](../infinity-server/src/main/java/infinity/modules/mechanic/FillUpXTeams.java))
+  with hard-coded Javelin ship + hard-coded `Frequency(freq)` + hard-coded `CombatantBrain`
+  archetype ("Brawler"). No first-class arena-Groovy way to express *which* archetype,
+  *which* ship hull, *how many* per freq, or any per-bot overrides. Per-arena bot mix
+  (e.g. "2 Brawlers + 1 ScoutBot on freq 0" vs "all Warbird Brawlers on freq 1") is not
+  expressible without writing a new MechanicModule.
+- **What an ADR would settle:**
+  - **DSL shape.** Top-level `bots { ... }` block vs inline mechanic args vs a new
+    module-kind tier (`botSpawner 'foo', config: [...]`). Trade-off: top-level block is
+    discoverable + composable but adds another module-kind to the loader; inline args
+    re-use existing `mechanic` machinery but mixes "fill the freq" with "what shape of
+    bot" semantics.
+  - **Typed config record.** `BotConfig` / `BotSpawnerConfig` per [`config-pattern.md`](../.claude/rules/config-pattern.md):
+    `archetype` (String — looked up in BrainRegistry), `ship` (Ships enum), `count` (int
+    or `perPlayer` for [`player-scaling.md`](../.claude/rules/player-scaling.md) shape),
+    `freq` (int or list), per-bot stat overrides if any.
+  - **Multi-archetype composition.** When BTs grow beyond "Brawler" (Scout / Defender /
+    Bomber / etc. per slice queue), arena authors need to specify *which* archetype per
+    bot slot. DSL must scale from "one archetype, fill all freqs" to "different
+    archetype per freq" to "weighted random pick from a roster" without rewriting the
+    syntax.
+  - **Integration with existing modules.** Whether `fill-up-x-teams` becomes a
+    *consumer* of `BotConfig` (delegates archetype lookup) or whether a new
+    `BotSpawnerModule` interface lands. The latter cleanly separates "fill freqs" from
+    "what fills them" but doubles the module surface area.
+  - **Per-bot BotBrainConfig overrides.** Slice #08 (Groovy CCP wiring) adds
+    `BotBrainConfig` ECS components on bot entities (perception radius, lookahead,
+    corridor width, lead time). Decide whether the arena DSL exposes these knobs
+    directly per archetype (`brawler { perceptionRadius 50 }`) or only via per-arena
+    `botBrainConfig.groovy` fragments (matches existing
+    [`ship-warbird.groovy`](../zone/conf/testconf/ship-warbird.groovy) pattern).
+  - **Default-archetype fallback.** When a `bots { ... }` block is absent but
+    `fill-up-x-teams` is still loaded, what's the default? Keep "Brawler / Javelin / 1
+    per freq" as today's implicit default vs require explicit `bots` declaration.
+- **Trigger to draft.** Slice #08 (Groovy CCP for bot tunables) is the natural
+  pairing — once `BotBrainConfig` is a typed record loaded from Groovy, exposing
+  archetype + ship picks alongside it costs little extra. Alternatively, draft when a
+  second `BrainArchetype` lands (slice #04+) and the hard-coded `CombatantBrain` lookup
+  in `BotBrainSystem.BrainContainer.addObject` becomes the bottleneck for per-arena
+  bot-mix design. Until then, the single-archetype + `teams: N` knob is sufficient.
+  Surfaced 2026-05-23 during bot-AI Issue #04 testing.
+
 ### Wire-compatibility / component-shape migration policy
 
 - **Implicit today.** Component shapes evolve in `api/src/main/java/infinity/es/...` as gameplay needs change. Some are wire-crossing (synced to client via Zay-ES `FieldSerializer`); changes to those fields must coordinate server + client + (future) modules. Coordination is currently negotiated per change, with no rule for "when can a component shape change without staged rollout?"
