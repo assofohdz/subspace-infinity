@@ -3,6 +3,7 @@
 **Status:** Proposed
 **Date:** 2026-05-23
 **Deciders:** Asser Fahrenholz
+**Amended by:** [ADR-0014](./0014-capability-derived-bot-composition.md) (2026-05-23) — behaviour enumeration eligibility rule changes from "behaviours not named in the archetype contribute zero candidates" to "behaviours with effective weight below `MIN_BEHAVIOUR_WEIGHT` (default 0.05) skip enumeration." Planner cadence, additive stickiness, `IsGoal` BT dispatch, and per-goal Execute Sequences are unchanged.
 
 ## Context
 
@@ -80,17 +81,32 @@ public interface Behaviour<G extends TacticalGoal> {
 }
 ```
 
-Concrete v2 behaviours (planned, not all v2.0):
+### Behaviour registry + canonical v2.0 names
 
-| Name | Goal type | Spatial inputs |
-|---|---|---|
-| `mine-congestion-points` | `DenyChokepoint(tile)` | ChokepointAnalyzer + TrafficHeatmap |
-| `mine-in-front-of-enemies` | `AmbushPath(predictedPath)` | ArenaCongestionField + predicted-velocity extrapolation |
-| `bullet-snipe-from-afar` | `Engage(target, fireRange=long)` | sight-line oracle (deferred) |
-| `bomb-snipe-from-afar` | `Engage(target, fireRange=long, weapon=BOMB)` | sight-line + splash range |
-| `engage` | `Engage(target)` | nearest threat |
-| `evade` | `Flee(threat)` | nearest threat + LowEnergy gate |
-| `wander` | `Wander()` | none |
+Behaviour names are referenced as Strings across four sources — the synergy table ([ADR-0014](./0014-capability-derived-bot-composition.md)), objective biases ([ADR-0015](./0015-arena-objective-and-roles.md)), per-bot role biases (ADR-0015), and the per-arena `bots { tweak: [...] }` overlay (ADR-0014). To prevent silent typos that mute behaviours unpredictably, the engine maintains a **`BehaviourRegistry`** that all `Behaviour` impls register with at startup (engine + mechanic modules + community modules). A **load-time validation pass** walks every synergy/objective/role/overlay map and fails fast on any key that doesn't match a registered behaviour.
+
+Behaviour names are kebab-case Strings (operator-readable, Groovy-friendly). Engine ships `BehaviourNames` constant strings; modules adding new behaviours export their own constants alongside the registration call. Validation runs after all modules have registered, so the registry is the union of all sources.
+
+**v2.0 canonical behaviour names** (the engine + first-class mechanic-module set; community modules add to this):
+
+| Name | Source | Goal type | Spatial inputs |
+|---|---|---|---|
+| `engage` | engine (core) | `Engage(target)` | nearest threat |
+| `evade` | engine (core) | `Flee(threat)` | nearest threat + LowEnergy gate |
+| `wander` | engine (core) | `Wander()` | none |
+| `strafe` | engine (core) | `OrbitAt(target, radius)` | `EnemyDensityField` ([ADR-0012](./0012-bot-spatial-analysis-services.md)) |
+| `kite` | engine (core) | `Disengage(threat, preferredRange)` | `ThreatField` |
+| `mine-congestion-points` | engine (capability-gated) | `DenyChokepoint(tile)` | `ChokepointAnalyzer` tile list ([ADR-0012](./0012-bot-spatial-analysis-services.md)) + `CombatDensityField` |
+| `bomb-bank-shot` | engine (capability-gated) | `BounceShot(firingTile, heading, bounces, target)` | `BounceTracer` (deferred — lands with Javelin) |
+| `lurk-ambush` | engine (capability-gated) | `Ambush(tile, predictedPath)` | `EnemyDensityField` + cloak/stealth gate |
+| `scout` | engine (capability-gated) | `Reconnoiter(tile)` | `CombatDensityField` + xradar gate |
+| `anchor` | engine (capability-gated) | `HoldPosition(tile)` | static goal tile from objective ([ADR-0015](./0015-arena-objective-and-roles.md)) |
+| `defend-flag-tile` | `CtfMechanic` | `Guard(flagTile)` | `DistanceField(flagTile)` + `ThreatField` |
+| `capture-flag` | `CtfMechanic` | `Retrieve(enemyFlag)` | `DistanceField(enemyFlagTile)` |
+| `ball-carry` | `PowerballMechanic` | `CarryTo(goalTile)` | `DistanceField(allyGoalTile)` + `ThreatField` |
+| `ball-pursue` | `PowerballMechanic` | `Intercept(ballTile)` | `DistanceField(ballTile)` |
+
+14 behaviours total in v2.0 (10 engine + 2 CTF + 2 Powerball). KOTH and Turf gametypes don't add new behaviours — they bias `anchor`, `engage`, `mine-congestion-points` via `ArenaObjective.behaviourBias()` ([ADR-0015](./0015-arena-objective-and-roles.md)).
 
 ### Archetype = behaviour-weight map
 
@@ -133,13 +149,39 @@ Precedence: zone → arena → archetype (later wins). Mirrors `ShipConfig`'s pr
 
 ### Planner cadence + additive stickiness
 
-The planner runs **every ~500ms** (not per-tick) — `BotBrainSystem` re-selects on a throttled timer. Per-tick selection is the cost trap AND the source of "the bot keeps switching goals mid-action" behaviour bugs.
+The planner runs at a **zone-tunable cadence; default ~150ms** (not per-tick) — `BotBrainSystem` re-selects on a throttled timer. Per-tick selection is the cost trap AND the source of "the bot keeps switching goals mid-action" behaviour bugs.
+
+**Cadence per gametype tempo:** the original draft of this ADR proposed a 500ms default. That value was reviewed against Subspace's actual TTK (Warbird-vs-Warbird fights end in 1-3 seconds) and judged too sluggish — 500ms commitment is half a fight, which produces bots that miss obvious openings. The revised default is ~150ms for fast-combat zones; slow-game-mode zones (Hockey, Powerball, KOTH where holding-the-tile dominates) can override to 500ms+ via the zone-tier `engine-bot-ai.groovy` tunable. Don't set below ~50ms — at that point you're back into per-tick territory and stickiness loses meaning.
 
 **Sticky preemption rule (additive, per grill correction)**: a new candidate goal preempts the current goal only if `new.weightedScore > current.weightedScore + STICKINESS_MARGIN` (e.g. additive margin 0.10). The earlier draft used a multiplicative margin (`current × 1.25`), which behaves unevenly across score scales — at low absolute scores the margin shrinks to nothing, at high scores it grows large. Additive is predictable: regardless of the current score, a competing goal needs to beat it by a fixed amount.
 
-Default `STICKINESS_MARGIN = 0.10` (zone-wide tunable). With weighted scores in `[0, 1]`, 0.10 means "10% of the score range firmer than the alternative" — empirically the sweet spot in utility-AI tuning per *Behavioral Mathematics for Game AI*.
+Default `STICKINESS_MARGIN = 0.10` (zone-wide tunable in `zone-bot-ai.groovy`; see [ADR-0014](./0014-capability-derived-bot-composition.md) §"Engine vs zone Groovy tiers"). With weighted scores in `[0, 1]`, 0.10 means "10% of the score range firmer than the alternative" — empirically the sweet spot in utility-AI tuning per *Behavioral Mathematics for Game AI*. Fast-cadence zones (~100ms) may want slightly lower stickiness (~0.05) to stay reactive; slow-game-mode zones may want higher (~0.20) to keep bots committed to objectives. Planner cadence + stickiness live in the same zone-tier file (both per-zone tunings).
 
 **Forced re-select** on: goal completion (BT branch returned SUCCESS terminally), goal failure (BT branch returned FAILURE — per the "goal-validity mid-tick" decision: target despawned → ExecuteEngage returns FAILURE → planner re-selects on next planner tick; the BT does NOT itself re-run the planner inline), goal expiry (goal's `deadlineSeconds` passed), or arena event (round transition, player joined).
+
+### Tick ordering across the bot stack
+
+Per ADR-0001's phased-tick discipline, the bot stack runs in a strict 4-phase order each tick. Phases run every tick; **work within each phase may be throttled by cadence** (planner only ticks if its 150ms cadence has elapsed; field updates only run on their per-N-tick cadence; mechanic-state updates only emit events when state changes).
+
+| Phase | Work |
+|---|---|
+| 1 — Sense | `BotAiHostService` updates dynamic fields (per ADR-0012 cadence); `PerceptionService` builds per-bot snapshots. |
+| 2 — World state | Mechanic modules update objective state; emit role-change events when state changes (ball pickup, flag grab). |
+| 3 — Role assignment | `BotRoleAssigner` drains role-change events; re-stamps `BotRole` per ADR-0015. |
+| 4 — Decide + act | `BotBrainSystem` ticks each bot: planner runs if cadence hit; BT ticks against fresh world state; `MovementInput` + `FireRequest` written. |
+
+Within a tick, later phases see writes from earlier phases. A bot deciding in Phase 4 reads the field updates from Phase 1, objective state from Phase 2, and its own role from Phase 3 — all consistent within the tick.
+
+### Behaviour enumeration: adaptive threshold
+
+The previous "skip behaviour enumeration when `effective(B) < MIN_BEHAVIOUR_WEIGHT = 0.05`" rule was effectively a no-op — any non-zero synergy bonus crosses 0.05. The revised rule is **adaptive per bot per planner tick**:
+
+```
+threshold = max(effectiveWeights) × MIN_FRACTION
+behaviours_enumerated = { B : effective(B) >= threshold }
+```
+
+`MIN_FRACTION` default `0.25` (zone-tunable in `zone-bot-ai.groovy`). A bot enumerates only behaviours whose effective weight is at least 25% of its top-scoring behaviour. Self-calibrating: a Shark with strong mine weights still enumerates evade (right floor relative); a Warbird with no mine bonuses won't enumerate mining. One extra `max(...)` per bot per planner tick — negligible.
 
 ### BT integration
 
@@ -171,6 +213,14 @@ Selector(
 - **`Blackboard`** (api, extended) — `currentGoal()` accessor + `setCurrentGoal()` setter; `arenaContext()` accessor returning the per-arena `BotAiArenaContext` bundle (cross-cutting decision; see ADR-0011 / ADR-0012).
 - **`BotBrainSystem`** (server) — owns the planner's throttle timer; invokes `planner.select()` on cadence; writes result to blackboard. Also injects `BotAiArenaContext` reference into Blackboard at `BrainContainer.addObject` time.
 
+### Live-reload semantics
+
+| Event | Action |
+|---|---|
+| `ZoneBotAiReloaded` | Re-read planner cadence + stickiness margin + `MIN_FRACTION`. Apply on next planner cycle. |
+| `EngineBotAiReloaded` | Re-validate `BehaviourRegistry` (per §"Behaviour registry"). New behaviours added by engine reload register; load-time validation pass re-runs against synergy/objective/role/overlay maps. |
+| `ArenaGroovyReloaded` | No direct action (planner reads from `ArchetypeConfig` per ADR-0014 which re-stamps separately). |
+
 ## Consequences
 
 ### Positive
@@ -187,6 +237,15 @@ Selector(
 - **Per-tick planner-throttle bookkeeping.** Minor — one timestamp per bot. Cost is negligible vs the BT tick itself.
 - **Goal-record class proliferation.** Each new tactical goal = new record type. Acceptable: records are tiny, sealed interface keeps the list discoverable, dispatch is type-based.
 - **Coupling to spatial services + navmesh.** A tactical archetype's value depends on both being implemented. v2.0 sequencing must land all three ADRs' impls (or stubs sufficient for one archetype) before any tactical archetype demos.
+
+### Performance budget (estimates; profile-validated per slice)
+
+- **Per-planner-tick cost (per bot):** 14 behaviours × `enumerate() + intrinsicScore()` for the subset above adaptive threshold. Typical: ~5-8 behaviours actually enumerated; each enumerator is O(1)-O(k) field samples.
+- **Planner cadence:** 150 ms default = ~6.7 planner ticks/sec per bot. With 8 bots = ~54 planner ticks/sec across the arena.
+- **BT tick:** per-frame, ~30 Hz × 8 bots = 240 BT ticks/sec; each is a small Selector/Sequence walk + 1-3 leaf evaluations.
+- **Goal record allocation:** per planner tick per bot; small records, JVM escape-analysis usually elides.
+
+Numbers are seeds; first impl slice that lands the planner measures actuals.
 
 ### Neutral
 
@@ -229,7 +288,7 @@ Selector(
 | Goal shape | Immutable record types implementing `sealed interface TacticalGoal`. Parameters drawn from spatial-service queries. |
 | Selection mechanism | Named `Behaviour` building blocks (`mine-congestion-points`, `bullet-snipe-from-afar`, etc.) enumerate + intrinsic-score candidates; archetype weight map multiplies score; planner picks max. |
 | Archetype shape | `ArchetypeConfig(name, Map<String, Double> behaviourWeights)` — pure data; one record per named archetype. No per-archetype Java subclasses. |
-| Cadence | Planner runs every ~500ms; not per-tick. BT continues to tick every frame. |
+| Cadence | Planner runs at zone-tunable cadence; **default ~150ms**. Slow-game-mode zones (Hockey, Powerball) override to 500ms+. BT continues to tick every frame. |
 | Stickiness | **Additive** margin: new goal preempts current only if `weightedScore > current + STICKINESS_MARGIN`. Default `0.10`; zone-wide tunable. (Earlier multiplicative margin draft replaced.) |
 | Goal sharing | Goal record types live in `api/infinity.ai.tactical.*`; per-behaviour customization in `Behaviour` impl + Execute Sequence. |
 | BT integration | New `IsGoal(GoalClass)` Condition leaf, exact-class dispatch; per-behaviour `Execute*` Action Sequences (hand-coded Java for v2.0). No other new BT semantics. |

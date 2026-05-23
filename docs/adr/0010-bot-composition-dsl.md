@@ -3,6 +3,7 @@
 **Status:** Proposed
 **Date:** 2026-05-23
 **Deciders:** Asser Fahrenholz
+**Amended by:** [ADR-0014](./0014-capability-derived-bot-composition.md) (2026-05-23) — weight authoring superseded by capability derivation; `tweak: [...]` overlay replaces `weights: [...]` set-value semantics. The parameterize-don't-fork thesis + `BrainArchetype` registry + non-behaviour `BotBrainConfig` knobs (perceptionRadius, aimConeDegrees, etc.) are unaffected.
 
 ## Context
 

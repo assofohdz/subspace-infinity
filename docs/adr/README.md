@@ -28,10 +28,12 @@ ADRs are mostly independent but some build on each other. Suggested read order f
 | [0007](./0007-entity-ttl-decay.md) | Entity TTL: one mechanism, deadline-shaped (`Decay`) | Proposed | 2026-05-13 |
 | [0008](./0008-arena-composition-and-modules.md) | Arena composition: gametypes as compositions of horizontal modules | Proposed | 2026-05-15 |
 | [0009](./0009-bot-ai-architecture.md) | Bot AI architecture: layered hand-roll with Behaviour Trees | Proposed | 2026-05-22 |
-| [0010](./0010-bot-composition-dsl.md) | Bot composition DSL: per-arena archetype × ship-type × weights | Proposed | 2026-05-23 |
-| [0011](./0011-bot-navigation-navmesh.md) | Bot navigation: grid A* over the `.lvl` tile grid | Proposed | 2026-05-23 |
-| [0012](./0012-bot-spatial-analysis-services.md) | Bot spatial-analysis services (TrafficHeatmap, ChokepointAnalyzer, EnemyDensityField, BounceTracer) | Proposed | 2026-05-23 |
-| [0013](./0013-bot-tactical-goal-layer.md) | Bot tactical-goal layer: GOAP-lite utility-scored Goals above the BT | Proposed | 2026-05-23 |
+| [0010](./0010-bot-composition-dsl.md) | Bot composition DSL: per-arena archetype × ship-type × weights | Proposed (amended by 0014) | 2026-05-23 |
+| [0011](./0011-bot-navigation-navmesh.md) | Bot navigation: flow fields per goal tile (revised — was grid A*) | Proposed (revised) | 2026-05-23 |
+| [0012](./0012-bot-spatial-analysis-services.md) | Bot spatial analysis: scalar fields as the unified primitive (revised — was service suite) | Proposed (revised) | 2026-05-23 |
+| [0013](./0013-bot-tactical-goal-layer.md) | Bot tactical-goal layer: GOAP-lite utility-scored Goals above the BT | Proposed (amended by 0014) | 2026-05-23 |
+| [0014](./0014-capability-derived-bot-composition.md) | Capability-derived bot composition: archetypes as data-driven overlays | Proposed | 2026-05-23 |
+| [0015](./0015-arena-objective-and-roles.md) | Arena objectives: per-mechanic behaviour bias + per-bot role assignment | Proposed | 2026-05-23 |
 
 ## Backlog
 

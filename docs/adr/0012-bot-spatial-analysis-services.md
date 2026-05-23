@@ -1,207 +1,261 @@
-# ADR 0012 — Bot spatial-analysis services
+# ADR 0012 — Bot spatial analysis: scalar fields as the unified primitive
 
-**Status:** Proposed
+**Status:** Proposed (revised 2026-05-23)
 **Date:** 2026-05-23
 **Deciders:** Asser Fahrenholz
+**Revision note:** This ADR was originally drafted as a *suite of distinct services* — TrafficHeatmap, ChokepointAnalyzer, ArenaCongestionField, BounceTracer, CoverFinder, LineOfSightOracle — each with its own interface and update cadence. That framing was reviewed against the actual game shape (2D top-down, sparse obstacles, no cover in the FPS sense, open spaces) and most services either didn't fit or were producing semantically-similar data through divergent APIs. This revision collapses the suite into a single primitive — **2D scalar fields over the `.lvl` tile grid** — with concrete fields as specializations and a small set of derived operators (gradient, blend). [ADR-0011](./0011-bot-navigation-navmesh.md)'s flow fields are one such specialization. CoverFinder and LineOfSightOracle are dropped as services (replaced by one-off raycasts at the leaf level); ChokepointAnalyzer becomes a tile-list producer, not a runtime service.
 
 ## Context
 
-Bot v2 tactical brains need to answer spatial questions that the per-tick steering + perception substrate can't express:
+Bot v2 tactical brains need to answer spatial questions the per-tick steering layer can't:
 
-- **Shark miner** — "where is recent traffic densest?" (so I can deny the lane with mines), "is this tile a chokepoint?" (so the mine matters), "is there already a mine here?" (don't double-stack).
-- **Javelin bouncer** — "if I fire from here with N bounces, does the projectile reach the target around that corner?"
-- **Leviathan setup** — "where is the densest cluster of enemies in my splash radius?", "what cover position has line-of-sight to that cluster but is shielded from their return fire?"
-- **Any combatant** — "what's the shortest-path distance to that tile?" (consumed during goal scoring), "is my current path-tile still passable?" (door closed mid-traverse).
+- **Navigation** — "from this cell, which direction makes progress toward goal G?" (the flow-field shape, [ADR-0011](./0011-bot-navigation-navmesh.md)).
+- **Threat awareness** — "how dangerous is this cell?" — Σ over enemies of (weapon-range Gaussian centered at enemy position, dilated by walls).
+- **Opportunity awareness** — "how valuable is this cell?" — prize positions, ally-support positions, ammo tiles.
+- **Combat density** — "where is recent firing activity?" — smear recent shots in space + time.
+- **Player density** — per-team, "where are the allies" / "where are the enemies."
 
-These are **stateful, computationally non-trivial, and shared across multiple bots in an arena**. Each bot recomputing them per tick would burn CPU on identical data; embedding them inside BT leaves means each leaf becomes its own mini-system. The right shape is **dedicated per-arena services with their own update cadence**, queried by the bot brains.
+These are **stateful, shared across bots in an arena, and shaped identically**: each one is a 2D scalar value over the same tile grid, with the same query operations (sample at cell, sample at position, gradient at cell, blend with weights). The original ADR-0012 draft modeled them as six distinct services with bespoke interfaces; the revised design unifies them around one primitive.
 
-Pattern reference: this is the *influence map* family from RTS / FPS AI literature (Tozour in *AI Game Programming Wisdom*; Mark Brockington; Bourg & Seemann). Influence maps were standard in Age of Empires II, Killzone 2, and every Halo combat encounter. Same shape applies here.
-
-ADR-0011 (navigation) handles the "how do I get there" half of spatial reasoning. This ADR handles the "where is 'there' worth going" half.
+Pattern reference: the *influence map* family from RTS / FPS AI literature (Tozour, "Influence Mapping" in *Game Programming Gems 2*, 2001; Mark, *Behavioral Mathematics for Game AI*, 2009 ch. 12). Production references: Age of Empires II, Killzone 2, every Halo combat encounter, StarCraft 2 unit pathing. The pattern is older than any of the services the prior draft proposed.
 
 ### What this ADR does not settle
 
-- **Tactical decisions made from the query results.** That's [ADR-0013](./0013-bot-tactical-goal-layer.md) — the tactical-goal layer evaluates queries and picks goals.
-- **Pathfinding.** [ADR-0011](./0011-bot-navigation-navmesh.md). Spatial services may consume `PathPlanner` (e.g. "is this tile reachable from this other tile"); the planner does not depend on spatial services.
-- **Client visualization of spatial data.** A v2.x affordance — surface a debug overlay showing heatmaps, chokepoints, etc. Useful for AI authoring but not a primary requirement.
-- **Per-archetype "what services does my brain need"** scoping. Services are arena-scoped; consumers opt in by querying. Adding a service doesn't enable it for every bot.
+- **Tactical decisions made from sampled values.** [ADR-0013](./0013-bot-tactical-goal-layer.md) — planner scorers sample fields and pick goals.
+- **Pathfinding mechanism.** [ADR-0011](./0011-bot-navigation-navmesh.md) — flow field, which is one specialization of this ADR's `ScalarField`.
+- **Client visualization of fields.** v2.x affordance; debug overlay reading via wire-crossing components.
+- **Per-archetype scoping** of which fields a brain consumes. Fields are arena-scoped; consumers opt in by sampling. Adding a field doesn't enable it for any bot.
 
 ## Decision
 
-**Bot spatial-analysis lives in `infinity.ai.spatial.*` (api interfaces) + `infinity-server/.../ai/spatial/` (impls). Each service is per-arena, owned by a zone-global host system that creates/destroys instances on arena load/unload. Services have one of two update modes: static (compute-at-load, query-as-O(1)-lookup) or dynamic (tick-cadence, throttled). Brains query services via typed methods; the planner translates results into BT-blackboard state.**
+**Spatial analysis is unified around a single primitive: `ScalarField` (a per-tile-grid float surface) and its derived `GradientField` (per-cell direction toward lower scalar value). Concrete fields (`DistanceField`, `ThreatField`, `OpportunityField`, `CombatDensityField`, `AllyDensityField`, `EnemyDensityField`) are specializations of `ScalarField` with their own build/update mechanics. A small set of composite operators (`FieldBlend`, `FieldClamp`) lets behaviour scorers compose fields without writing new field types. The previously-proposed services that don't fit this shape (CoverFinder, LineOfSightOracle) are dropped as services and become one-off raycasts at the leaf level when needed. ChokepointAnalyzer becomes a load-time *tile-list producer* feeding [ADR-0015](./0015-arena-objective-and-roles.md) goal-tile registration, not a runtime service.**
 
-### Service inventory (v2.0 minimal first cut)
+### The primitive
 
-| Service | Mode | Purpose | Primary consumer |
+```java
+// api/infinity.ai.field
+public interface ScalarField {
+  int width();
+  int height();
+  /** Value at (x,y); semantics field-specific. POSITIVE_INFINITY = unreachable / undefined. */
+  double valueAt(int x, int y);
+  /** Convenience: sample at world position (interpolated or nearest-cell — impl choice). */
+  default double valueAt(Vec3d worldPos) { ... }
+}
+
+public interface GradientField {
+  /** Unit vector at (x,y) pointing toward lower scalar value. Zero vector at minima or undefined cells. */
+  Vec2d directionAt(int x, int y);
+  default Vec2d directionAt(Vec3d worldPos) { ... }
+}
+
+public final class FieldGradient implements GradientField {
+  public FieldGradient(ScalarField source) { ... }
+}
+```
+
+That's the substrate. Everything below is a specialization.
+
+### Concrete fields
+
+| Field | Builder | Update mode | Primary consumer |
 |---|---|---|---|
-| `TrafficHeatmap` | Dynamic (tick) | Per-tile decaying scalar of recent ship presence | Shark miner ("find busy lanes"), behaviours scoring "place mine on this lane" |
-| `ChokepointAnalyzer` | Static (load) | Width-narrow tile detection (per below): tiles with low clearance + high through-flow | Shark miner ("mine the choke"), Javelin ("ambush past the choke") |
-| `ArenaCongestionField` | Dynamic (tick) | **Arena-wide** density field of all observed live ships (player + bot). Replaces per-bot perception aggregation. | Leviathan ("splash the cluster"), evade decisions ("avoid the deathball"), miner ("mine where they cluster") |
+| `DistanceField(goalTile)` | Dijkstra from goal over passable tiles | Static per goal; rebuild on door / topology change | Navigation ([ADR-0011](./0011-bot-navigation-navmesh.md)) |
+| `ThreatField` | Σ over enemies of (weapon-range falloff centered on enemy, wall-blocked) | Dynamic, per-tick or every-N-ticks | Evade behaviours; "navigate to G avoiding threats" composition |
+| `OpportunityField` | Σ over prizes / ammo / ally-support of (value falloff) | Dynamic, per-prize-event or every-N-ticks | Prize-grab behaviours; engage scoring boost |
+| `CombatDensityField` | Recent firing events smeared in space + time-decayed | Dynamic, per-fire-event + decay tick | "Where's the action" — scout / engage |
+| `AllyDensityField` / `EnemyDensityField` | Per-team team-position sum | Dynamic, every-N-ticks | Flock-toward / avoid-deathball decisions |
 
-**Explicitly deferred** (don't build until first consumer needs them):
+Specializations land **on-demand**: build the field type when the first behaviour scores against it, not before. The ADR reserves the design space; the impls follow consumer demand.
 
-- `BounceTracer` — geometric simulation for bouncing-projectile aim. Adds when Javelin bouncer behaviour lands.
-- `CoverFinder` — "where can I sit with sight blocked from threat direction, sight open to my fire line?" Adds when Leviathan setup behaviour lands.
-- `MinePlacementScorer` — utility scalar per candidate tile combining heatmap × choke-score × distance-from-existing-mines. Adds when Shark miner lands.
-- `LineOfSightOracle` — "does ship A have LoS to ship B?" — adds when stealth / cover behaviour needs it.
+### Composite operators
 
-The deferral principle is uniform: don't build a service without a consumer. The v2.0 set above is the minimal substrate; weapon-specific services land alongside the first archetype that needs each.
+For "navigate to G but avoid threats":
 
-### `ArenaCongestionField` design note (per grill response)
+```java
+ScalarField composite = FieldBlend.of(
+    Weighted.of(distanceField, +1.0),
+    Weighted.of(threatField,   -0.6),
+    Weighted.of(opportunityField, +0.3)
+);
+Vec2d desired = new FieldGradient(composite).directionAt(botCell);
+```
 
-Original draft had `EnemyDensityField` rebuilt from *per-bot perception*, which made it not really a service (it would be per-bot scratch). Replaced with **arena-wide knowledge**: the field is computed once per tick from all live ships in the arena (omniscient), not from any individual bot's perception. Read as "every player can see where the congestion is" — a deliberate simplification that treats bots as having human-level map awareness.
+Or, simpler when the consumer just wants a blended *gradient* (not a blended scalar):
 
-This trade-off:
-- **Pro:** the field is genuinely shared (one compute, many readers); simple semantics; matches how a human player thinks about traffic on the map.
-- **Pro:** dodges the privacy-leak / scope ambiguity of per-bot rebuilds.
-- **Con:** bots "know" cluster locations even when their personal perception radius wouldn't normally see them. v2.0 accepts this; v2.x can add a per-bot perception-mask filter as a query parameter if it matters.
+```java
+Vec2d desired = navGradient.directionAt(cell)
+             .mul(1.0)
+             .sub(threatGradient.directionAt(cell).mul(0.6))
+             .add(opportunityGradient.directionAt(cell).mul(0.3));
+```
 
-### Update modes: static vs dynamic
+Both work. `FieldBlend` is cheap when the consumer wants to sample the composite at multiple cells; per-cell gradient blending is cheaper when the consumer samples one cell.
 
-**Static services** compute once at arena-load (async per [ADR-0011](./0011-bot-navigation-navmesh.md)) and never update for the arena's lifetime in v2.0.
+### What got dropped from the prior draft
 
-- `ChokepointAnalyzer` — algorithm: **width-narrow tile detection on the passable graph**, paired with the per-tile clearance values already computed by `NavMeshService` (see ADR-0011 brushfire pre-compute). A tile is a chokepoint candidate if `clearance(tile) ≤ CHOKE_WIDTH_TILES` (e.g. ≤ 2 tile-widths of room around it). Filter further by "through-flow" — only tiles whose removal would disconnect non-trivial regions (cheap proxy: tiles where both side directions are walls, i.e. corridor segments). Rank by `1.0 / clearance × log(connectedRegionSize)`. Single-pass over the navmesh; produces a `List<TileScored>` ranked by choke strength.
+- **`CoverFinder` as a service.** There is no cover in 2D top-down; the closest analogue is "is there a wall between me and shooter," which is one raycast at the BT leaf needing it. No service.
+- **`LineOfSightOracle` as a service.** Same reasoning — one raycast per query, computed on demand at the leaf. The "service" was a wrapper around `Bresenham line-of-sight`; we don't need a service for a 10-line function.
+- **`TrafficHeatmap` as a separate concept.** Replaced by `CombatDensityField` (recent fires) or `EnemyDensityField` (recent positions), depending on what the consumer actually wants. The "heatmap" abstraction collapsed because both candidates were really scalar fields with different update mechanics.
+- **`MinePlacementScorer` (deferred service).** Replaced by composing `CombatDensityField + DistanceField(existingMines) + ChokepointTileList` at the behaviour-scorer level. No new service; one scorer's composition logic.
 
-  Algorithm choice (per grill response): width-narrow detection chosen over articulation-point / min-cut for v2.0 because (a) it directly matches Subspace's tile-corridor map idiom, (b) reuses `NavMeshService`'s clearance pre-compute → minimal new cost, (c) produces a continuous "chokepoint strength" score per tile (not a binary articulation/non-articulation), which is exactly what utility scorers want. Promote to articulation-graph-based scoring if more sophisticated "chokepoint" semantics need to materialize.
+### What got reshaped
 
-**Note on door + warp topology changes (deferred per ADR-0011 §"What this ADR does not settle"):** the static chokepoint set in v2.0 is computed from the static `.lvl` passability; door state changes do not invalidate it. Wormholes are not nodes in the analysis. Same deferral envelope as the navmesh itself.
-
-**Dynamic services** update each tick (or every N ticks for cost-tuned services). The update cost must be bounded by arena size + ship count.
-- `TrafficHeatmap` — per-tick, iterates all live ships in arena, increments the per-tile counter for the tile each ship occupies, decays all counters by a small factor (e.g. ×0.99). Bounded: O(liveShips) increments + O(populatedTiles) decay. Decay-only update can be skipped most ticks; full update every ~10 ticks (≈300ms at 30Hz).
-- `ArenaCongestionField` — per-tick, single pass over live ships in the arena (PlayerShip + BotShip both counted). Cluster detection via simple density-based scan (e.g. DBSCAN-lite over ship tiles with a fixed eps). Bounded: O(liveShips²) worst case; in practice small (Subspace arenas rarely exceed 64 simultaneous ships).
+- **`ChokepointAnalyzer` is now a load-time tile-list producer**, not a runtime service. The width-narrow detection algorithm runs once at arena load over the passable tile grid (same brushfire pass that builds clearance data for navigation, [ADR-0011](./0011-bot-navigation-navmesh.md)); output is a `List<TileScored>` of chokepoint tiles. The tile list feeds [ADR-0015](./0015-arena-objective-and-roles.md) goal-tile registration — chokepoint tiles become candidate static `DistanceField` goals.
+- **`ArenaCongestionField` is renamed `EnemyDensityField`** (with `AllyDensityField` sibling). Same shape; clearer name.
+- **`BounceTracer` is the one previously-proposed service that earns its keep.** It is *not* a scalar field — it's a geometric raycast simulator for bouncing projectiles. Lands as its own narrow service when Javelin-bouncer behaviour lands; not bundled into the field substrate. Reserved here for cross-reference; the impl ADR (or impl PR) carries the design.
 
 ### Per-arena lifecycle: `BotAiArenaContext` (consolidated)
 
-Per the cross-cutting decision shared with [ADR-0011](./0011-bot-navigation-navmesh.md) + [ADR-0013](./0013-bot-tactical-goal-layer.md), the three v2 ADRs **consolidate their per-arena host state into a single `BotAiArenaContext`**. One zone-global `BotAiHostService` (extending `BaseInfinitySystem`) owns one `BotAiArenaContext` per loaded arena:
+Per the cross-cutting decision shared with [ADR-0011](./0011-bot-navigation-navmesh.md) + [ADR-0013](./0013-bot-tactical-goal-layer.md): one zone-global `BotAiHostService` owns one `BotAiArenaContext` per loaded arena. The context bundles the field accessors:
 
 ```java
-public class BotAiHostService extends BaseInfinitySystem {
-  private final Map<ArenaId, BotAiArenaContext> byArena = new ConcurrentHashMap<>();
-
-  public BotAiArenaContext forArena(ArenaId arena) { return byArena.get(arena); }
-  // onArenaLoad / onArenaUnload create / dispose BotAiArenaContext bundles.
-}
-
 public final class BotAiArenaContext {
-  public NavMeshService.ArenaNav nav() { … }       // ADR-0011
-  public ChokepointAnalyzer chokepoints() { … }    // this ADR
-  public TrafficHeatmap traffic() { … }
-  public ArenaCongestionField congestion() { … }
-  // Deferred services land here: bouncer(), cover(), minePlacement(), lineOfSight().
+  public NavigationFields navigation() { ... }       // ADR-0011
+  public ScalarField threat() { ... }                // this ADR
+  public ScalarField opportunity() { ... }
+  public ScalarField combatDensity() { ... }
+  public ScalarField allyDensity() { ... }
+  public ScalarField enemyDensity() { ... }
+  public List<TileScored> chokepoints() { ... }      // load-time tile list, not a field
+  public BounceTracer bounceTracer() { ... }         // when Javelin lands
+  // ArenaCapabilityNorms per ADR-0014 also lives here.
 }
 ```
 
-`BotAiArenaContext` is the single per-arena bundle of bot AI state — navigation, spatial analysis, tactical planner host (per ADR-0013). Brains hold a reference once at addObject time (via `Blackboard.arenaContext()`), call methods per tick.
+Brains hold a reference once at addObject time (via `Blackboard.arenaContext()`); behaviour scorers sample fields per planner tick.
 
-**Load order — graceful degradation:** the bundle's components have varying readiness:
-- Navmesh build is async (per ADR-0011) → `nav()` returns `Path.empty()` while `BUILDING`.
-- Static spatial services (chokepoints) build as part of the same async pass, depending on the navmesh's clearance data → return empty result sets while building.
-- Dynamic services (traffic, congestion) are ready immediately (they just accumulate from zero).
+**Load-order safety:** dynamic fields are ready immediately (they accumulate from zero); static fields and the navigation flow fields build asynchronously. Queries during the build window return the field's default (`POSITIVE_INFINITY` for distance, `0` for accumulated). No crash; bot gets info next tick.
 
-When a bot ticks before the full bundle is ready, its scorers receive empty data → the goal scoring naturally falls back to whichever behaviour scores positive on incomplete data (typically Wander). **No crash; the bot gets info next tick.** This matches the user's "should not crash, simply gets info next tick" decision in the grill.
+### Update cadence
 
-### Query API shape
+- **Static fields** (`DistanceField` per registered goal) — build at arena load (async) + on topology change.
+- **Dynamic fields** — per-tick or every-N-ticks, throttled. Default cadence: every 10 ticks (~330ms at 30Hz) for `EnemyDensityField`/`AllyDensityField`; per-event for `CombatDensityField` (decay tick every 10); per-event for `OpportunityField` (prize-pickup / prize-spawn events).
 
-Services return **data**, not BT semantics. Translation from query result to BT-blackboard state happens in the brain's tactical planner (ADR-0013), not inside the service. Example:
-
-```java
-public interface TrafficHeatmap {
-  /** Top-N tiles by heat. */
-  List<TileScored> hottest(int topN);
-  /** Heat at a specific tile (0..1 normalized). */
-  double heatAt(TileId tile);
-}
-
-public record TileScored(TileId tile, double score) { … }
-```
-
-This keeps services testable in isolation (no brain dependency) and reusable across brain archetypes. A future debug HUD can subscribe to the same query API to visualise heatmaps without going through any BT.
+All cadences are tunable in `zone-bot-ai.groovy` (per-zone performance tuning, per [ADR-0014](./0014-capability-derived-bot-composition.md) §"Engine vs zone Groovy tiers") per [ADR-0006](./0006-tuning-knobs-vs-magic-numbers.md). Default values are seeds; profile after v2.0 lands.
 
 ### Layering
 
-- **api/infinity.ai.spatial.*** — service interfaces + return-type records (`TileScored`, `Cluster`, `BounceTrace`, etc.). Pure data + interfaces per [ADR-0005](./0005-layered-architecture.md).
-- **infinity-server/.../ai/spatial/*** — service impls + `ArenaSpatial` bundle + `SpatialAiHostService`.
-- **No client dependency.** Spatial state is authoritative server data. Client visualization (v2.x) reads via ECS wire-crossing components stamped by a per-arena debug system, not by direct service access.
+- **api/infinity.math.Vec2d** — shared 2D double-precision vector type ([ADR-0011](./0011-bot-navigation-navmesh.md) §Layering owns the type definition).
+- **api/infinity.ai.field.\*** — `ScalarField`, `GradientField`, `FieldGradient`, `FieldBlend`, `Weighted`, `DistanceField` interface, `TileScored` record. Pure data + interfaces.
+- **infinity-server/.../ai/field/\*** — impls (per field type), build mechanics, update timers.
+- **No client dependency.** Server-only authoritative computation. Client visualization (v2.x) reads via ECS wire-crossing components.
+
+### Goal-tile contribution to navigation
+
+`ChokepointAnalyzer`'s top-N tile list feeds into `BotAiHostService.onArenaLoad` (per [ADR-0011](./0011-bot-navigation-navmesh.md) §"Goal registration") alongside `ArenaObjective.staticGoalTiles()` ([ADR-0015](./0015-arena-objective-and-roles.md)). The orchestrator unions both sets and calls `nav.fieldFor()` for each. ChokepointAnalyzer itself does not call the navigation layer directly — it produces data; the orchestrator consumes.
+
+`N` (chokepoint top count) is a zone-tier knob in `zone-bot-ai.groovy` (default 5). Larger N = more flow fields = more memory + more upfront Dijkstra work. Profile-validated per slice.
+
+### Live-reload semantics
+
+| Event | Action |
+|---|---|
+| `ZoneBotAiReloaded` | Re-read dynamic-field cadences + chokepoint-N. If chokepoint-N changed, re-derive ChokepointAnalyzer tile list + re-register goal tiles via orchestrator. |
+| `EngineBotAiReloaded` | No action (no engine-tier config consumed by spatial fields directly). |
+| `ArenaGroovyReloaded` | No action. |
+| `.lvl` reload | Chokepoint list re-derived; dynamic fields reset (they accumulate from zero). |
 
 ## Consequences
 
 ### Positive
 
-- **Brains express tactical questions naturally.** "Find hottest tile within 30 of me" becomes one line; without the service it's tens of lines of per-bot grid walking.
-- **Shared cost across bots.** Heatmap + chokepoint analysis cost is amortized — 10 bots in the same arena pay the cost once, not 10×.
-- **Data + interfaces only on api side.** Bots are testable against `FakeTrafficHeatmap` etc. in unit tests; spatial impl tests are independent of any brain.
-- **Composable with the navmesh.** Tactical layer can ask "shortest path to hottest tile within 50 units" by combining queries from both ADRs. Each ADR's primitive stays narrow.
+- **One primitive, many specializations.** New "thing to know about the map" = new `ScalarField` impl + register in the context. ~30-50 LOC per field, not a new service interface + lifecycle + tests.
+- **Composition is gradient algebra.** "Go to G avoiding threats" is two-line math; no service-orchestration code.
+- **Brains express tactical questions naturally.** Sample at position; read value; blend gradients. No grid-walking.
+- **Shared cost across bots.** 8 bots in the same arena read the same fields; build cost amortized.
+- **Testable in isolation.** A field is `(x, y) → double`. Stub one with a fixed function for tests. No mock orchestration.
+- **Subset of the prior service suite collapses to zero code.** `CoverFinder`, `LineOfSightOracle`, `MinePlacementScorer` go away as services — replaced by raycasts and composition logic at the leaf level.
 
 ### Costs
 
-- **Per-arena memory.** Static services scale with map size (chokepoint analysis ≈ tens of KB for a 1024² arena). Dynamic services scale with map size + bot count. Total budget should stay well under 100 MB per arena for normal Subspace maps; document in the v2 PRD.
-- **Tick-cadence dynamic services add per-tick CPU.** Bounded but non-zero. Measure once v2 lands; if any service exceeds budget, throttle (every Nth tick) or downsample (per-cell granularity coarser than per-tile).
-- **Cache invalidation on door / wall changes.** `ChokepointAnalyzer` is "static" only in the open-world sense — door-state changes can alter chokepoint topology. v2.0 ignores this (chokepoints recomputed only at arena-load); v2.x adds invalidation listeners if door-driven topology matters.
+- **Memory** per field at 1024² × ~2 bytes = ~2MB. For ~10 concurrent active fields (~5 static distance + 4-5 dynamic) ≈ 20-30MB per arena. Acceptable; downcountable via tile-supersampling.
+- **Field-update CPU on dynamic fields.** Bounded; throttle by tick count if any field exceeds budget. Profile after v2.0 lands.
+- **The flat `ScalarField` interface assumes 2D grid alignment.** If a behaviour ever wants "value at *world-position* with sub-tile fidelity," it interpolates via the default `valueAt(Vec3d)` — not worse than the prior service-per-need shape.
+
+### Performance budget (estimates; profile-validated per slice)
+
+- **Memory per dynamic field:** ~2 MB at 1024² × 2 bytes; ~6 dynamic fields concurrent = ~12 MB per arena.
+- **Memory per arena (this ADR + ADR-0011 nav):** ~42 MB total.
+- **Update cadence:** density fields every ~10 ticks (~330 ms at 30 Hz); combat/opportunity event-driven + decay every 10.
+- **Per-update cost:** O(liveShips) for density fields; O(events) for combat/opportunity. Linear in arena population; expected bounded (Subspace arenas rarely exceed 64 ships).
+- **Per-sample lookup:** O(1) array index. Negligible per consumer.
+
+Numbers are seeds; first impl slice that lands a dynamic field measures actuals and updates this section.
 
 ### Neutral
 
-- **Service granularity is a per-service judgment.** "Should `MinePlacementScorer` be its own service, or a method on `TrafficHeatmap`?" — start coarse (compose at the consumer), split when a second consumer wants the same query. The catalog above is the minimal first cut; expect ~6-10 services by v2 stability.
-- **Debug visualization is high-value but out of scope.** Reading heatmap → ECS wire-crossing → client HUD is straightforward but not core. Reserve a `BotSpatialDebug` component for v2.x.
+- **`BounceTracer` stays its own thing.** It's not a field; bundling it would be category-error. Lives in the context as a separate accessor.
+- **No service-per-bot scratch.** All fields are arena-scoped + omniscient (read from authoritative server state, not per-bot perception). Same trade-off the prior draft accepted for `ArenaCongestionField`: bots "know" cluster locations even where their personal perception wouldn't. v2.0 accepts this; per-bot perception masking is a v2.x query parameter if it matters.
+- **No GOAP-shaped service dispatch.** Behaviour scorers know which fields they want; no central service registry routes queries. Flatter than the prior draft.
 
 ## Alternatives considered
 
-### A. Inline computation in BT leaves
+### A. The prior service-suite design (6 distinct services with bespoke interfaces)
+
+**Why considered:** This was the original v0 of this ADR. Modeled each spatial concern as its own service.
+**Why rejected:** Most of the services were producing semantically-similar data through divergent APIs. `TrafficHeatmap.heatAt(tile)` and `ArenaCongestionField.densityAt(tile)` are both "sample a 2D scalar at this cell." The unification under `ScalarField` collapses the API surface 6× and makes composition (blend, gradient) work uniformly. `CoverFinder` + `LineOfSightOracle` were the genre-mismatched services — they belong to FPS-with-cover games; in 2D top-down they're per-call raycasts at the leaf level.
+
+### B. Pure raw-data services (each field is a `double[][]` returned directly)
+
+**Why considered:** No interface ceremony; consumers index into arrays.
+**Why rejected:** Loses the type discrimination (`DistanceField` vs `ThreatField` — same shape, different semantics). Also forces consumers to know storage layout (row-major? column-major?). The interface abstracts storage choice (`ScalarField` impls may use run-length, quadtree, or dense arrays depending on what fits the data); consumers don't care.
+
+### C. Push services into Groovy
+
+**Why considered:** Operator-extensible "new spatial concern" without Java edits.
+**Why rejected:** Field impls do real computation (Dijkstra, decay loops, event-driven updates) — not closure-tunable. The synergy table ([ADR-0014](./0014-capability-derived-bot-composition.md)) is the Groovy-tier knob; field impls are engine code.
+
+### D. Inline computation in BT leaves
 
 **Why considered:** No new layer; each leaf does what it needs.
-**Why rejected:** Catastrophic redundant computation. 8 Shark miners in the same arena each rebuilding a traffic heatmap = 8× the work. Also untestable in isolation — leaf tests would need a whole arena.
+**Why rejected:** Catastrophic redundant computation. 8 bots each rebuilding a threat field per tick = 8× the work. Also untestable in isolation.
 
-### B. One monolithic `SpatialAI` service
+### E. One monolithic `SpatialAI` service
 
 **Why considered:** One thing to instantiate per arena.
-**Why rejected:** Same anti-pattern as splitting `infinity.systems.*` into focused systems. Each spatial service has its own update cadence (static vs dynamic), its own data shape, its own consumers. Bundling them makes the update loop tangled + harder to test.
-
-### C. Client-side computation (visualization-only)
-
-**Why considered:** Client renders heatmaps from observable state for debug.
-**Why rejected for the primary path:** Server owns gameplay state per [ADR-0005](./0005-layered-architecture.md); spatial AI is a gameplay-relevant computation, not a presentation concern. Brain runs server-side; spatial services must be server-side. (Client visualization on top is a separate, additive concern.)
-
-### D. Compute services eagerly for every potential consumer
-
-**Why considered:** Have everything ready in case someone needs it.
-**Why rejected:** Build only what current behaviours consume. The deferred services in the catalog above wait until their archetype lands; otherwise we pay ongoing CPU for unused state.
+**Why rejected:** Each field has its own update cadence + build mechanic; bundling them tangles the update loop. The `BotAiArenaContext` is *already* the bundle — it just exposes typed accessors per field rather than burying everything in one fat service.
 
 ## Resolved decisions (TL;DR)
 
 | Decision | Resolution |
 |---|---|
-| Where do services live? | `api/infinity.ai.spatial.*` interfaces + `infinity-server/.../ai/spatial/*` impls; **consolidated per-arena `BotAiArenaContext`** bundle (cross-cutting with ADR-0011 / ADR-0013) owned by zone-global `BotAiHostService` |
-| What's the v2.0 service set? | TrafficHeatmap (dynamic), ChokepointAnalyzer (static, width-narrow + clearance-based), ArenaCongestionField (dynamic, arena-wide knowledge) |
-| Update modes | Static (arena-load async, O(1) query); dynamic (tick-cadence, throttled) |
-| `ChokepointAnalyzer` algorithm | Width-narrow tile detection using `NavMeshService` clearance data; rank by `1/clearance × log(regionSize)` |
-| `ArenaCongestionField` scope | Arena-wide knowledge (all live ships counted); not per-bot perception. "Every player knows congestion points." |
-| Per-arena vs zone-global? | Per-arena bundle; zone-global host. Single `BotAiHostService` shared with ADR-0011 / ADR-0013. |
-| Query API shape | Data records out, no BT semantics. Translation to BT-blackboard state is the planner's job. |
-| Knowledge injection into bot | `BotBrainSystem.BrainContainer.addObject` injects `BotAiArenaContext` reference into `Blackboard` |
-| Load-order safety | Empty results during async build window; bot wanders; no crash |
-| Deferred services | BounceTracer, CoverFinder, MinePlacementScorer, LineOfSightOracle — add when first consumer behaviour lands. |
-| Door / wormhole topology changes | Deferred per ADR-0011's matching deferral; v2.0 chokepoints frozen at arena-load |
+| Primitive | **`ScalarField` + `GradientField`**. One shape, many specializations. |
+| v2.0 concrete fields | `DistanceField` (navigation — [ADR-0011](./0011-bot-navigation-navmesh.md)), `ThreatField`, `OpportunityField`, `CombatDensityField`, `AllyDensityField`, `EnemyDensityField`. Land on-demand per consumer. |
+| Composition | `FieldBlend(Weighted...)` for blended scalars; per-cell gradient blending for one-cell consumers. |
+| `ChokepointAnalyzer` | Load-time *tile-list producer*, not runtime service. Feeds [ADR-0015](./0015-arena-objective-and-roles.md) static goal-tile registration. |
+| `BounceTracer` | Its own non-field service; lands when Javelin behaviour lands. Reserved cross-reference. |
+| `CoverFinder` / `LineOfSightOracle` | **Dropped as services.** Replaced by one-off raycasts at the BT-leaf level. |
+| Per-arena vs zone-global | Per-arena fields; zone-global host. Single `BotAiHostService` shared with [ADR-0011](./0011-bot-navigation-navmesh.md) + [ADR-0013](./0013-bot-tactical-goal-layer.md). |
+| Lifecycle | `BotAiArenaContext` bundle. Build on arena load (static) / lazily on first sample (dynamic, transient). Default-value reads while building; no crash. |
+| Update cadence | Tunable in `engine-bot-ai.groovy`. Default: every 10 ticks for density fields; per-event for combat / opportunity. |
+| Knowledge scope | Omniscient (server-authoritative state, not per-bot perception). v2.x can mask per-bot if needed. |
 
 ## Open work
 
-- **Implementation slicing in the v2 PRD.** Each service is one slice (small) or a half-slice if grouped with its first consumer. Recommended order: ChokepointAnalyzer + Shark-miner together (forces both to design coherently); TrafficHeatmap with Shark/Leviathan; EnemyDensityField with Leviathan; BounceTracer with Javelin.
-- **Test infrastructure.** `FakeTrafficHeatmap` / `FakeChokepointAnalyzer` etc. in `api/src/test/java/infinity/ai/spatial/fake/` for brain tests. Real impls get their own unit tests at the service level.
-- **Performance budget.** Document target update-cost per service in the v2 PRD. Profile after v2.0 lands; throttle the dynamic services if they exceed budget.
-- **Debug visualization design.** Reserve `BotSpatialDebug` wire-crossing component shape; full implementation in v2.x.
+- **Implementation slicing.** First field to land is `DistanceField` (paired with navigation slice — [ADR-0011](./0011-bot-navigation-navmesh.md)). Next is whichever field the first non-navigation behaviour needs (likely `ThreatField` for evade scoring, or `CombatDensityField` for engage scoring).
+- **Field-update budget.** Document target update-cost per field; profile after v2.0; throttle if any field exceeds budget.
+- **Test infrastructure.** `FakeScalarField` (constructed from a `(x,y) → double` lambda) for behaviour-scorer tests. Real-impl tests at the field level.
+- **Debug HUD overlay.** Render any selected field as a tile-color heatmap; render its gradient as arrows. Cheap once a debug-overlay system exists.
+- **Sparse storage** for mostly-empty Subspace maps. Run-length or quadtree backing for `ScalarField` when profiling shows dense arrays are wasteful.
+- **`BounceTracer` design.** Standalone ADR or impl PR when Javelin behaviour lands.
 
 ## References
 
 ### Internal
 
-- [ADR-0005](./0005-layered-architecture.md) — api purity. Service interfaces are api; impls are server.
-- [ADR-0008](./0008-arena-composition-and-modules.md) — `onArenaLoad`/`onArenaUnload` lifecycle; spatial host hooks here.
-- [ADR-0009](./0009-bot-ai-architecture.md) — Bot AI architecture; this ADR adds the spatial-reasoning layer the v1 architecture didn't have.
-- [ADR-0011](./0011-bot-navigation-navmesh.md) — Navmesh; this ADR's services often consume the navmesh for reachability queries.
-- [ADR-0013](./0013-bot-tactical-goal-layer.md) — Tactical-goal layer; primary consumer of the spatial query API.
+- [ADR-0005](./0005-layered-architecture.md) — api purity. Field interfaces are api; impls are server.
+- [ADR-0008](./0008-arena-composition-and-modules.md) — `onArenaLoad`/`onArenaUnload` lifecycle; field host hooks here.
+- [ADR-0009](./0009-bot-ai-architecture.md) — Bot AI architecture; this ADR adds the spatial substrate the v1 architecture didn't have.
+- [ADR-0011](./0011-bot-navigation-navmesh.md) — Navigation flow fields are one `ScalarField` specialization. Shared `BotAiArenaContext`.
+- [ADR-0013](./0013-bot-tactical-goal-layer.md) — Tactical-goal layer; primary consumer of field sampling.
+- [ADR-0014](./0014-capability-derived-bot-composition.md) — Capability derivation; `ArenaCapabilityNorms` also lives on `BotAiArenaContext`.
+- [ADR-0015](./0015-arena-objective-and-roles.md) — Arena objectives; `ChokepointAnalyzer` tile-list feeds objective goal-tile registration.
 
 ### External
 
-- **Paul Tozour, "Influence Mapping"** in *Game Programming Gems 2* (2001) — the canonical reference for tile-grid scalar fields driving AI decisions.
-- **Damian Isla, "Halo 2 AI"** (GDC 2005) — encounter-level spatial reasoning; "tactical positions" service shape inspires the design here.
-- **Naughty Dog, *The Last of Us* AI talks** (multiple GDCs) — cover-finder + tactical-position selection as a service consumed by behaviour layer.
-- **David Mark, *Behavioral Mathematics for Game AI*** (2009) — utility scoring chapter pairs naturally with [ADR-0013](./0013-bot-tactical-goal-layer.md).
-- **Mat Buckland, *Programming Game AI by Example*** (2005) — chapter on territorial/influence maps in RTS-style AI.
+- **Paul Tozour, "Influence Mapping"** in *Game Programming Gems 2* (2001). The canonical reference for 2D scalar fields driving AI decisions.
+- **Damian Isla, "Halo 2 AI"** (GDC 2005). Encounter-level spatial reasoning; "tactical positions" service shape inspires the field-sampling consumer pattern.
+- **David Mark, *Behavioral Mathematics for Game AI*** (2009). Ch. 12 — influence maps + utility scoring with field-sampled inputs.
+- **Mat Buckland, *Programming Game AI by Example*** (2005). Chapter on territorial / influence maps in RTS-style AI.
+- **StarCraft 2** (Blizzard) and **Supreme Commander** (GPG) — production examples of scalar fields for unit pathing + threat / opportunity reasoning.

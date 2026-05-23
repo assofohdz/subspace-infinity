@@ -27,15 +27,17 @@ that picks named behaviours via utility scoring.
 
 ## Architecture anchors
 
-Three ADRs reserve the design space; v2 implements them:
+**Substrate revised 2026-05-23.** The original v2 ADR set (0011 grid A*, 0012 service suite, 0010 authored archetypes) was reviewed against the actual game shape (2D top-down momentum physics, fast TTK, sparse obstacles, 8 ships × per-zone tuning) and substantively reshaped. The v2 PRD slices below remain valid in *intent* (each slice demos a complete tactical pattern end-to-end) but their *implementation shape* now follows the revised substrate. Per-slice re-scoping happens as each slice picks up.
 
-- [ADR-0011](../../docs/adr/0011-bot-navigation-navmesh.md) — Clearance-aware grid A* over `.lvl` tile grid; Floyd LoS smoothing; async per-arena build.
-- [ADR-0012](../../docs/adr/0012-bot-spatial-analysis-services.md) — `BotAiArenaContext` bundling `TrafficHeatmap` + `ChokepointAnalyzer` + `ArenaCongestionField`; weapon-specific services (BounceTracer, CoverFinder, MinePlacementScorer, LineOfSightOracle) deferred until first consumer.
-- [ADR-0013](../../docs/adr/0013-bot-tactical-goal-layer.md) — Named `Behaviour` building blocks (`mine-congestion-points`, `bullet-snipe-from-afar`, etc.); archetypes = weight vector over behaviour names; utility-based goal selection with additive stickiness; three-tier tuning (zone / arena / archetype).
+Revised substrate (six ADRs):
 
-Also extending:
-- [ADR-0010](../../docs/adr/0010-bot-composition-dsl.md) — Per-arena `bots { ship 'X', archetype: 'Y' }` block (implemented in Slice #01).
-- [ADR-0009](../../docs/adr/0009-bot-ai-architecture.md) — v1 substrate; v2 adds layers above the existing BT, doesn't replace it.
+- [ADR-0009](../../docs/adr/0009-bot-ai-architecture.md) — v1 substrate; v2 adds layers above the existing BT. **Amended:** BT is engineer-authored only; zone/arena admins tune numeric knobs.
+- [ADR-0010](../../docs/adr/0010-bot-composition-dsl.md) — Per-arena `bots { }` block. **Superseded in part by ADR-0014:** authored weights → capability-derived; `tweak: [...]` overlay replaces `weights:`.
+- [ADR-0011](../../docs/adr/0011-bot-navigation-navmesh.md) — **Revised:** flow fields per goal tile (Dijkstra-derived gradient sampled by steering layer). Replaces grid A* + waypoint following; better fit for momentum physics.
+- [ADR-0012](../../docs/adr/0012-bot-spatial-analysis-services.md) — **Revised:** `ScalarField` / `GradientField` / `FieldBlend` as the unified primitive. Concrete fields (DistanceField, ThreatField, OpportunityField, CombatDensityField, AllyDensityField, EnemyDensityField) are specializations. CoverFinder / LineOfSightOracle dropped as services; ChokepointAnalyzer reshaped as load-time tile-list producer.
+- [ADR-0013](../../docs/adr/0013-bot-tactical-goal-layer.md) — Tactical-goal layer (utility scoring + additive stickiness). **Amended:** planner cadence default ~150ms (was 500ms) for fast-combat zones; slow-game-mode zones override.
+- [ADR-0014](../../docs/adr/0014-capability-derived-bot-composition.md) — **New (2026-05-23):** Behaviour weights derive from `CapabilityProfile` × engine-authored `synergy { }` table × per-arena `tweak: [...]` overlay. Resolves the archetype-design step-back below.
+- [ADR-0015](../../docs/adr/0015-arena-objective-and-roles.md) — **New (2026-05-23):** Mechanic modules produce `ArenaObjective` (KOTH, CTF, Hockey, Powerball, Turf, Deathmatch) with per-bot `BotRole` assignment. Closes the "what is this arena trying to win at?" gap that pure capability derivation cannot express.
 
 ## User stories (informally numbered)
 
@@ -60,6 +62,10 @@ Also extending:
 - **Goal *sequence* synthesis (full GOAP).** v2 selects ONE goal per planner tick; goal-satisfaction is a hand-authored BT Sequence. Promote if the authoring rate of new behaviours warrants the planner-graph cost.
 
 ## Archetype-design step-back
+
+**Resolved 2026-05-23 by [ADR-0014](../../docs/adr/0014-capability-derived-bot-composition.md).** The deliberate-roster workstream is replaced by capability-derived composition: each bot's behaviour weight vector is derived from its ship's `CapabilityProfile` (a normalized read of `ShipConfig`) crossed with a zone-tier Groovy `synergy { }` table. Slices #04/06/07/08 unblock — they no longer invent named archetypes; each demos one spatial service or weapon-specific behaviour, with the "what bot is this?" answer falling out of derivation. Named identities (`MinerShark` / `JavelinBouncer` / `LeviathanSetup`) are deferred to v2.1 pending first-playtest feedback on whether derived bots feel distinct enough on their own.
+
+### Original framing (preserved for context)
 
 **Surfaced 2026-05-23 during the post-/to-issues review.** Slices #04, #06,
 #07, #08 each invent a new archetype (`ChokeCamper`, `LeviathanSetup`,

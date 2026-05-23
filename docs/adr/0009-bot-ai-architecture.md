@@ -3,6 +3,7 @@
 **Status:** Proposed
 **Date:** 2026-05-22
 **Deciders:** Asser Fahrenholz
+**Amended by:** [ADR-0014](./0014-capability-derived-bot-composition.md) (2026-05-23) — `BotBrainConfig` "archetype name" + authored weights replaced by capability-derived weights; [ADR-0015](./0015-arena-objective-and-roles.md) (2026-05-23) — arena objective + per-bot `BotRole` add two more multiplicative weight sources; **authoring-tier clarification:** Behaviour Trees + `BrainArchetype` factories are **engineer-authored only**. Zone and arena admins do not author BTs; they tune numeric `BotBrainConfig` knobs (perceptionRadius, aimConeDegrees) and the per-arena `bots { tweak: [...] }` overlay (per [ADR-0014](./0014-capability-derived-bot-composition.md)). The "module-extensibility" framing below applies to module *authors* (engine + community Groovy modules per [ADR-0008](./0008-arena-composition-and-modules.md)), not to per-server zone admins.
 
 ## Context
 
@@ -104,7 +105,7 @@ Subspace arenas are open 2D fields. Steering-layer `AvoidObstacles` covers stati
 
 ### Costs
 
-- **~8-12 days initial investment.** Steering primitives (~1200 LOC), BT framework (~250 LOC), brain composition (~200 LOC), system (~350 LOC), tests (~600 LOC). Hand-rolling is slower than vendoring — accepted because the code lives in our patterns from line 1.
+- **Large complexity, standard risk.** Hand-rolled steering primitives + BT framework + brain composition + ECS-boundary system + tests. Complexity is in the scope (each layer is small individually; the assembly is the bulk); risk is standard because BT + Reynolds steering are well-documented references with no novel substrate. Hand-rolling chosen over vendoring so the code lives in our patterns from line 1; vendoring would have been faster but inherits a cleanup + ongoing-coordination story.
 - **Hand-rolled steering math carries risk.** Lead-prediction and arrive-smoothing have known traps (overshoot, ringing oscillation, frame-rate-dependent behaviour). Mitigated by unit tests on each primitive and by treating Reynolds-1999 + Millington-2019 as the reference shape — same math the field has run for two decades.
 - **No off-the-shelf fixes.** When a behaviour misbehaves, we own debugging it. There is no upstream issue tracker to file against.
 - **BT framework is one more in-house primitive.** ~250 LOC of `Behavior`/`Selector`/`Sequence`/`Parallel`/decorators that future contributors need to learn. Mitigated by BT being a well-documented standard — anyone with game-AI background recognises it.
