@@ -7,40 +7,6 @@ Each row: actionable item + source file:line + brief context.
 
 ## Backlog
 
-### Bot AI — steering / control
-
-- [ ] **Bots oversteer at high thrust — momentum overshoots heading turns.**
-  Rate-shaped intent feeds turn rate (`intent.x`) and thrust (`intent.z`)
-  independently into PlayerDriver. The driver applies turn as direct angular
-  velocity (via the responsiveness ease) while continuing full forward thrust.
-  Result: bot's heading rotates faster than its linear momentum can follow →
-  the body keeps drifting in its old direction while the nose has already
-  swung to the new target. Visible as a wide arc / oversteer past the target
-  instead of a clean turn-and-approach. Pursue's lead-prediction (0.5s default)
-  helps with moving targets but doesn't address the self-momentum coupling.
-  Surfaced 2026-05-23 during bot-AI Issue #05 demo testing.
-  Possible directions (each has trade-offs):
-    1. **Couple thrust to turn magnitude in the steering layer**: when |intent.x| is
-       large, reduce intent.z proportionally — e.g. `intent.z *= max(0.3, 1 - |intent.x|)`.
-       One-line fix at the BT-action boundary; loses some pursue speed in turns.
-    2. **Arrival / approach slow-down**: scale thrust by distance-to-target —
-       cruise at full thrust when far, ease off as the target gets close. Classic
-       Reynolds Arrive behaviour. Doesn't directly fix the oversteer but reduces
-       its severity at the engagement radius.
-    3. **Anticipate momentum in the steering math**: extend Pursue to predict
-       where the bot itself will be in N ticks (not just where the target will be),
-       and aim for the intercept that accounts for the bot's velocity vector.
-       More accurate but more compute.
-    4. **Bang-bang turn-only mode**: when angle-to-target exceeds a threshold,
-       drop thrust to zero and turn in place; resume thrust when within tolerance.
-       Cheap, very stable, but feels robotic and loses pursuit ground.
-    5. **Tune `TurnResponsiveness` lower for bots** so the ease blends slower
-       and angular velocity stays under linear-velocity's turning radius. Per-ship
-       knob already exists in `ShipSpawnSystem`; needs a bot-specific override.
-  Likely the right composite for v1.x is (1) + (2) — keeps the steering layer
-  responsible for its own dynamics and avoids per-ship knob proliferation. Defer
-  (3) and (4) unless (1)+(2) prove insufficient.
-
 ### Physics / collision response
 
 - [ ] **Rigid-body-vs-rigid-body collision torque spins the ship's nose into the contact.**
