@@ -2,6 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.ai.brain;
 
+import infinity.ai.bt.AlwaysSucceed;
 import infinity.ai.bt.Behavior;
 import infinity.ai.bt.Selector;
 import infinity.ai.bt.Sequence;
@@ -35,6 +36,9 @@ public final class CombatantBrain implements BrainArchetype {
   // in slice #08 (BotBrainConfig + per-archetype tunables).
   private static final double WEAPON_RANGE_WORLD_UNITS = 20.0;
   private static final double ORBIT_RADIUS_WORLD_UNITS = 15.0;
+  // Half-angle of the firing cone (deg). Bullets fly along body forward, so unaimed
+  // shots always miss; gate FireWeapon behind this so bots only fire when roughly aimed.
+  private static final double FIRING_AIM_CONE_DEGREES = 15.0;
 
   // Evade threshold — flee when current energy drops below 60% of max. Subspace canon
   // pubs commonly tune disengage around half pool; 0.6 gives the bot a recovery buffer.
@@ -50,7 +54,13 @@ public final class CombatantBrain implements BrainArchetype {
               new HasTarget(),
               new InWeaponRange(WEAPON_RANGE_WORLD_UNITS),
               new SteerOrbitTarget(),
-              new FireWeapon(WeaponType.BULLET)),
+              // Fire-when-aimed: inner Selector swallows mis-aim so the orbit intent
+              // written by SteerOrbitTarget survives even when we can't shoot this tick.
+              new Selector(
+                  new Sequence(
+                      new InAimRange(FIRING_AIM_CONE_DEGREES),
+                      new FireWeapon(WeaponType.BULLET)),
+                  new AlwaysSucceed())),
           new Sequence(new HasTarget(), new SteerPursue()),
           new SteerWander());
 

@@ -28,6 +28,7 @@ ADRs are mostly independent but some build on each other. Suggested read order f
 | [0007](./0007-entity-ttl-decay.md) | Entity TTL: one mechanism, deadline-shaped (`Decay`) | Proposed | 2026-05-13 |
 | [0008](./0008-arena-composition-and-modules.md) | Arena composition: gametypes as compositions of horizontal modules | Proposed | 2026-05-15 |
 | [0009](./0009-bot-ai-architecture.md) | Bot AI architecture: layered hand-roll with Behaviour Trees | Proposed | 2026-05-22 |
+| [0010](./0010-bot-composition-dsl.md) | Bot composition DSL: per-arena archetype × ship-type × weights | Proposed | 2026-05-23 |
 
 ## Backlog
 

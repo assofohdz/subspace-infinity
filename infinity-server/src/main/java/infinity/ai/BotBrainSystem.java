@@ -53,6 +53,12 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   // AvoidObstacles thrust magnitude when the reactive steer overrides the BT decision.
   private static final double AVOID_THRUST = 1.0;
 
+  // Oversteer damping floor — minimum thrust multiplier even at max turn rate. Empirical:
+  // 0.3 keeps the bot moving (so it doesn't stall mid-turn) while reducing momentum
+  // overshoot enough that sharp turns actually clear. See "Bots oversteer at high thrust"
+  // entry in .scratch/code-todos-backlog.md.
+  private static final double OVERSTEER_THRUST_FLOOR = 0.3;
+
   private EntityData ed;
   private Perception perception;
   private PhysicsSpace<EntityId, MBlockShape> space;
@@ -129,8 +135,20 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     final Vec3d avoid = this.avoidObstacles.steer(self, snapshot);
     final boolean avoiding = avoid != null;
     final Vec3d move = avoiding ? avoid : bb.intent().clone();
+    dampOversteer(move);
     this.ed.setComponent(wiring.botId, new MovementInput(move, new Quatd(), MovementInput.NONE));
     writeDebugSnapshot(wiring.botId, self, target, move, bb.lastBranch(), avoiding);
+  }
+
+  /**
+   * Couples thrust magnitude to turn magnitude — sharp turns ease off thrust so
+   * momentum doesn't overshoot the new heading. Applied to whatever intent reached us
+   * (BT result or AvoidObstacles override). Factor floors at
+   * {@link #OVERSTEER_THRUST_FLOOR} so the bot doesn't stall mid-turn.
+   */
+  private static void dampOversteer(final Vec3d move) {
+    final double factor = Math.max(OVERSTEER_THRUST_FLOOR, 1.0 - Math.abs(move.x));
+    move.z *= factor;
   }
 
   /**
