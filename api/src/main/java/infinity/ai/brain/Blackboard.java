@@ -7,6 +7,7 @@ import com.simsilica.mathd.Vec3d;
 import infinity.ai.MoverState;
 import infinity.ai.NearbyShip;
 import infinity.ai.PerceptionSnapshot;
+import infinity.ai.steer.Evade;
 import infinity.ai.steer.OrbitTarget;
 import infinity.ai.steer.Pursue;
 import infinity.ai.steer.Wander;
@@ -25,6 +26,7 @@ public final class Blackboard {
   private final Pursue pursue;
   private final Wander wander;
   private final OrbitTarget orbit;
+  private final Evade evade;
 
   private EntityId selfId;
   private MoverState self;
@@ -32,11 +34,19 @@ public final class Blackboard {
   private NearbyShip target;
   private String lastBranch = "";
   private WeaponsFiring firing;
+  // -1 sentinels = "not yet sampled" (e.g. Energy / EnergyStats components absent).
+  private int currentEnergy = -1;
+  private int maxEnergy = -1;
 
-  public Blackboard(final Pursue pursue, final Wander wander, final OrbitTarget orbit) {
+  public Blackboard(
+      final Pursue pursue,
+      final Wander wander,
+      final OrbitTarget orbit,
+      final Evade evade) {
     this.pursue = pursue;
     this.wander = wander;
     this.orbit = orbit;
+    this.evade = evade;
   }
 
   /** Last BT branch that wrote intent this tick — set by {@code Steer*} actions for debug HUD. */
@@ -108,5 +118,24 @@ public final class Blackboard {
 
   public OrbitTarget orbit() {
     return this.orbit;
+  }
+
+  public Evade evade() {
+    return this.evade;
+  }
+
+  /** Current energy pool; {@code -1} when the bot has no {@code Energy} component yet. */
+  public int currentEnergy() {
+    return this.currentEnergy;
+  }
+
+  /** Max energy pool; {@code -1} when the bot has no {@code EnergyStats} component yet. */
+  public int maxEnergy() {
+    return this.maxEnergy;
+  }
+
+  public void setEnergy(final int currentEnergy, final int maxEnergy) {
+    this.currentEnergy = currentEnergy;
+    this.maxEnergy = maxEnergy;
   }
 }

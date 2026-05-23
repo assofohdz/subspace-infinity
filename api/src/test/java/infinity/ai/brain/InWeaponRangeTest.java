@@ -11,6 +11,7 @@ import infinity.ai.MoverState;
 import infinity.ai.NearbyShip;
 import infinity.ai.PerceptionSnapshot;
 import infinity.ai.bt.Status;
+import infinity.ai.steer.Evade;
 import infinity.ai.steer.OrbitTarget;
 import infinity.ai.steer.Pursue;
 import infinity.ai.steer.Wander;
@@ -30,7 +31,11 @@ public class InWeaponRangeTest {
   @Before
   public void setUp() {
     blackboard =
-        new Blackboard(new Pursue(0.5, 1.0), new Wander(1, 2, 0.5, 1.0), new OrbitTarget(15, 1.0));
+        new Blackboard(
+            new Pursue(0.5, 1.0),
+            new Wander(1, 2, 0.5, 1.0),
+            new OrbitTarget(15, 1.0),
+            new Evade(0.5, 1.0));
     blackboard.setSelf(new MoverState(new Vec3d(), new Quatd(), new Vec3d()));
     blackboard.setPerception(EMPTY);
     condition = new InWeaponRange(RANGE);

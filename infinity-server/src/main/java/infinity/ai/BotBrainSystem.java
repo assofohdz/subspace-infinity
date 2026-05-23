@@ -22,6 +22,8 @@ import infinity.ai.steer.AvoidObstacles;
 import infinity.es.BotDebug;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.BotShip;
+import infinity.es.ship.Energy;
+import infinity.es.ship.EnergyStats;
 import infinity.es.ship.RadarRange;
 import infinity.sim.WeaponsFiring;
 import infinity.systems.BaseInfinitySystem;
@@ -116,6 +118,11 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     bb.setPerception(snapshot);
     final NearbyShip target = pickNearestThreat(self, snapshot);
     bb.setTarget(target);
+    final Energy energy = this.ed.getComponent(wiring.botId, Energy.class);
+    final EnergyStats energyStats = this.ed.getComponent(wiring.botId, EnergyStats.class);
+    bb.setEnergy(
+        energy != null ? energy.getEnergy() : -1,
+        energyStats != null ? energyStats.max() : -1);
     bb.resetIntent();
     bb.setLastBranch("Idle");
     wiring.brain.tick(bb);
