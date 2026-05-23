@@ -1,8 +1,18 @@
 # `ArenaCongestionField` + Leviathan splash behaviour
 
-Status: needs-triage
+Status: needs-info
 Category: enhancement
 Type: HITL
+
+> **PENDING archetype-design workstream.** This issue invents a
+> `LeviathanSetup` archetype as a side-effect of demoing the service +
+> behaviour. Per the 2026-05-23 step-back, archetypes want deliberate
+> design (which roster ships, what behaviours each composes, per-archetype
+> tuning). When the archetype-design workstream lands, re-scope this issue:
+> either confirm the `LeviathanSetup` invention, or split into
+> "service + behaviour only" + a separate later issue that consumes the
+> behaviour from a designed archetype.
+> See [PRD §"Archetype-design step-back"](../PRD.md#archetype-design-step-back).
 
 ## Parent
 

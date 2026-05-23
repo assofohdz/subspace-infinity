@@ -1,8 +1,19 @@
 # Mine-placement behaviours + full `MinerShark` archetype
 
-Status: needs-triage
+Status: needs-info
 Category: enhancement
 Type: HITL
+
+> **PENDING archetype-design workstream.** This issue invents the marquee
+> `MinerShark` archetype as a side-effect of implementing mine-placement
+> behaviours. Per the 2026-05-23 step-back, archetypes want deliberate
+> design (which roster ships, what behaviours each composes, per-archetype
+> tuning). MinerShark is the chat-thread's flagship scenario; warrants its
+> own design pass before being side-effected into existence. When the
+> archetype-design workstream lands, re-scope this issue: either confirm
+> the MinerShark composition (move to `needs-triage`), or split into
+> "mine behaviours only" + a separate "MinerShark composition" issue.
+> See [PRD §"Archetype-design step-back"](../PRD.md#archetype-design-step-back).
 
 ## Parent
 

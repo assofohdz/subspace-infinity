@@ -59,6 +59,48 @@ Also extending:
 - **Door-state event subscription.** Cached paths re-validate the current waypoint each tick; full event-driven invalidation deferred. v2.x+.
 - **Goal *sequence* synthesis (full GOAP).** v2 selects ONE goal per planner tick; goal-satisfaction is a hand-authored BT Sequence. Promote if the authoring rate of new behaviours warrants the planner-graph cost.
 
+## Archetype-design step-back
+
+**Surfaced 2026-05-23 during the post-/to-issues review.** Slices #04, #06,
+#07, #08 each invent a new archetype (`ChokeCamper`, `LeviathanSetup`,
+`MinerShark`, `JavelinBouncer`) as a side-effect of demoing a spatial
+service or behaviour. That's the wrong direction — archetypes are the
+user-facing artifact (the answer to "what kind of bot is this?"); they
+warrant deliberate roster design, not emergence-from-infrastructure-slices.
+
+Questions a dedicated archetype-design workstream should settle before
+slices #04 / #06 / #07 / #08 can be re-scoped to `needs-triage`:
+
+- **Roster.** Which archetypes ship in v2.0? The three chat-thread
+  scenarios (MinerShark, JavelinBouncer, LeviathanSetup) plus the v1
+  Brawler default? Or also a Defender / FlagCarrier / Bomber /
+  AggressiveTerrierEscort / etc.?
+- **Composition.** For each archetype: which named behaviours, at what
+  weights, given which ship hull's weapons. Independent of which spatial
+  service each behaviour happens to need.
+- **Discovery.** How does an operator learn which archetypes exist?
+  Registry exposure (auto-loaded list); default arena rosters; HUD
+  surfacing; documented catalog?
+- **Per-archetype tuning.** Shared `BotBrainConfig` knobs vs
+  archetype-specific overrides — does `MinerShark` want a wider perception
+  than `Brawler`? (ADR-0013 reserves the three-tier shape; archetype
+  design fills in the concrete overrides per archetype.)
+- **Ship-hull-to-archetype mapping defaults.** Should the registry ship
+  a recommended `Ship.SHARK → MinerShark` default, or are all assignments
+  arena-author-controlled?
+- **Future expansion path.** When v2.x adds a new archetype, what's the
+  workflow? New `Behaviour` + new `ArchetypeConfig` entry + arena.groovy
+  reference — sufficient, or does the registry need richer machinery?
+
+**Recommended form for the workstream:** new ADR (0014?) covering the
+archetype roster + per-archetype composition + discovery + tuning
+defaults. Alternatively, a dedicated section in this PRD with the same
+content. Decision lands when the workstream kicks off.
+
+**Until that workstream completes, slices #04 / #06 / #07 / #08 sit at
+`needs-info`.** Slices #01 / #02 / #03 / #05 / #09 are pure infrastructure
++ Brawler-extending and can proceed independently.
+
 ## Implementation slices
 
 See `.scratch/bot-ai-v2/issues/01-09.md`. Vertical tracer bullets — each slice
