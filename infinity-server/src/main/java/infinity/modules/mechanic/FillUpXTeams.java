@@ -63,6 +63,7 @@ public class FillUpXTeams implements MechanicModule {
   private final ArenaId arenaId;
   private final PhysicsSpace<?, ?> phys;
   private final int teams;
+  private final int countPerPlayer;
   private final ArenaModuleSetLookup modules;
   /** Set (not List) so per-tick prune on bot reap is O(1). */
   private final Set<EntityId> spawnedBots = new HashSet<>();
@@ -76,6 +77,7 @@ public class FillUpXTeams implements MechanicModule {
     this.arenaId = ctx.arenaId();
     this.phys = ctx.physics() == null ? null : ctx.physics().getPhysics();
     this.teams = config.effectiveTeams();
+    this.countPerPlayer = config.countPerPlayer();
     this.modules = ctx.modules();
   }
 
@@ -120,13 +122,41 @@ public class FillUpXTeams implements MechanicModule {
       }
     }
     drainPendingNerf();
+    final int effectiveSpawnCount = teams + countPerPlayer * countActivePlayers();
     final Set<Integer> presentFreqs = countOccupiedFreqs();
-    for (int freq = 0; freq < teams; freq++) {
+    for (int freq = 0; freq < effectiveSpawnCount; freq++) {
       if (presentFreqs.contains(freq)) {
         continue;
       }
       spawnBot(time.getTime(), freq);
     }
+  }
+
+  /**
+   * Count {@link PlayerShip}-marked entities in this arena. Used by the
+   * {@code countPerPlayer} additive scaling per {@code player-scaling.md}. Walks
+   * {@link #arenaShips} (already filtered by {@link ArenaId} + {@link Frequency}) and
+   * checks {@link PlayerShip} membership per entity.
+   */
+  private int countActivePlayers() {
+    if (countPerPlayer == 0 || arenaShips == null) {
+      return 0;
+    }
+    final String arenaName = arenaId.getArena();
+    int count = 0;
+    for (final Entity e : arenaShips) {
+      if (ed.getComponent(e.getId(), Dead.class) != null) {
+        continue;
+      }
+      final ArenaId shipArena = e.get(ArenaId.class);
+      if (shipArena == null || !arenaName.equals(shipArena.getArena())) {
+        continue;
+      }
+      if (ed.getComponent(e.getId(), infinity.es.ship.PlayerShip.class) != null) {
+        count++;
+      }
+    }
+    return count;
   }
 
   /**

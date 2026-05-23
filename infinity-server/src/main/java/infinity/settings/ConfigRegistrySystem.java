@@ -6,6 +6,7 @@ package infinity.settings;
 import com.simsilica.sim.AbstractGameSystem;
 import infinity.config.ArenaConfig;
 import infinity.config.BombConfig;
+import infinity.config.BotBrainConfig;
 import infinity.config.BrickConfig;
 import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
@@ -58,7 +59,9 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
           FragmentBinding.of(
               "prize-weights.groovy",
               PrizeWeightsConfig.class,
-              PrizeWeightsAdapter.INSTANCE));
+              PrizeWeightsAdapter.INSTANCE),
+          FragmentBinding.of(
+              "bot-tuning.groovy", BotBrainConfig.class, BotBrainAdapter.INSTANCE));
 
   private static final Map<String, FragmentBinding<?>> BY_BASENAME = indexByBasename();
 

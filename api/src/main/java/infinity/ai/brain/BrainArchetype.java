@@ -3,15 +3,17 @@
 package infinity.ai.brain;
 
 import infinity.ai.bt.Behavior;
+import infinity.config.BotBrainConfig;
 
 /**
- * Factory for a named brain archetype. {@link #createRoot()} may return a shared
- * stateless BT — per-bot state lives in {@link #createBlackboard()}. See ADR-0009.
+ * Factory for a named brain archetype. {@code createRoot} + {@code createBlackboard}
+ * both take a {@link BotBrainConfig} so per-arena Groovy tunables flow into the BT
+ * leaves and steering primitives at spawn. See ADR-0009 / ADR-0010.
  */
 public interface BrainArchetype {
   String name();
 
-  Behavior createRoot();
+  Behavior createRoot(BotBrainConfig config);
 
-  Blackboard createBlackboard();
+  Blackboard createBlackboard(BotBrainConfig config);
 }

@@ -58,14 +58,17 @@ ConfigRegistry (per-arena snapshot, owned by ConfigRegistrySystem)
 │   ├── wormhole          : WormholeConfig       ← wormhole.groovy      [Wormhole]
 │   └── door              : DoorConfig           ← door.groovy          [Door]
 │
-└── Cosmetic / metadata
-    ├── radar             : RadarConfig          ← radar.groovy         [Radar]
-    ├── toggle            : ToggleConfig         ← toggle.groovy        [Toggle]
-    ├── spectator         : SpectatorConfig      ← spectator.groovy     [Spectator]
-    ├── message           : MessageConfig        ← message.groovy       [Message]
-    ├── misc              : MiscConfig           ← misc.groovy          [Misc]   *narrow — only wired knobs
-    ├── custom            : CustomConfig         ← custom.groovy        [Custom]
-    └── owner             : OwnerConfig          ← owner.groovy         [Owner]
+├── Cosmetic / metadata
+│   ├── radar             : RadarConfig          ← radar.groovy         [Radar]
+│   ├── toggle            : ToggleConfig         ← toggle.groovy        [Toggle]
+│   ├── spectator         : SpectatorConfig      ← spectator.groovy     [Spectator]
+│   ├── message           : MessageConfig        ← message.groovy       [Message]
+│   ├── misc              : MiscConfig           ← misc.groovy          [Misc]   *narrow — only wired knobs
+│   ├── custom            : CustomConfig         ← custom.groovy        [Custom]
+│   └── owner             : OwnerConfig          ← owner.groovy         [Owner]
+│
+└── Bot AI tuning (Infinity addition; ADR-0009 / ADR-0010)
+    └── botBrain          : BotBrainConfig       ← bot-tuning.groovy    *Infinity native
 ```
 
 ### Lives outside `ConfigRegistry`

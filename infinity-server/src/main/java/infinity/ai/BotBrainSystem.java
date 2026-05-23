@@ -19,12 +19,16 @@ import infinity.ai.brain.BrainRegistry;
 import infinity.ai.brain.CombatantBrain;
 import infinity.ai.bt.Behavior;
 import infinity.ai.steer.AvoidObstacles;
+import infinity.config.BotBrainConfig;
 import infinity.es.BotDebug;
+import infinity.es.arena.ArenaId;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.BotShip;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyStats;
 import infinity.es.ship.RadarRange;
+import infinity.settings.ConfigRegistry;
+import infinity.settings.ConfigRegistrySystem;
 import infinity.sim.WeaponsFiring;
 import infinity.systems.BaseInfinitySystem;
 import infinity.systems.ship.WeaponsFireEligibilitySystem;
@@ -39,7 +43,8 @@ import infinity.systems.ship.WeaponsFireEligibilitySystem;
  */
 public final class BotBrainSystem extends BaseInfinitySystem {
 
-  // Default perception radius (world units) when the bot ship has no RadarRange.
+  // Default perception radius (world units) when neither RadarRange nor BotBrainConfig
+  // is available — preserved for safety; live arenas should always have BotBrainConfig.
   private static final double DEFAULT_PERCEPTION_RADIUS = 30.0;
 
   // AvoidObstacles look-ahead corridor (world units). Roughly 5 cells of lookahead at
@@ -63,6 +68,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   private Perception perception;
   private PhysicsSpace<EntityId, MBlockShape> space;
   private WeaponsFiring firing;
+  private ConfigRegistrySystem configRegistrySystem;
   private BrainContainer brains;
   private final BrainRegistry brainRegistry = new BrainRegistry();
   // Shared reactive layer — stateless across bots, so one instance suffices.
@@ -77,6 +83,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     final MPhysSystem<MBlockShape> physics = requireSystem(MPhysSystem.class);
     this.space = physics.getPhysicsSpace();
     this.firing = requireSystem(WeaponsFireEligibilitySystem.class);
+    this.configRegistrySystem = requireSystem(ConfigRegistrySystem.class);
     this.brainRegistry.register(new CombatantBrain());
   }
 
@@ -87,7 +94,9 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
   @Override
   public void start() {
-    this.brains = new BrainContainer(this.ed, this.brainRegistry, this.firing);
+    this.brains =
+        new BrainContainer(
+            this.ed, this.brainRegistry, this.firing, this.configRegistrySystem);
     this.brains.start();
   }
 
@@ -199,10 +208,24 @@ public final class BotBrainSystem extends BaseInfinitySystem {
         body.position.clone(), body.orientation.clone(), body.getLinearVelocity().clone());
   }
 
-  /** Read the bot's per-ship RadarRange, or fall back to the system default. */
+  /**
+   * Resolve the bot's perception radius. Per-ship {@code RadarRange} (if present and
+   * positive) wins; otherwise fall back to the arena's {@link BotBrainConfig#perceptionRadius()};
+   * lastly to {@link #DEFAULT_PERCEPTION_RADIUS} when no config is loaded.
+   */
   private double perceptionRadius(final EntityId botId) {
     final RadarRange rr = this.ed.getComponent(botId, RadarRange.class);
-    return (rr != null && rr.getRange() > 0.0) ? rr.getRange() : DEFAULT_PERCEPTION_RADIUS;
+    if (rr != null && rr.getRange() > 0.0) {
+      return rr.getRange();
+    }
+    final ArenaId arenaId = this.ed.getComponent(botId, ArenaId.class);
+    if (arenaId != null) {
+      final ConfigRegistry registry = this.configRegistrySystem.forArena(arenaId);
+      if (registry != null) {
+        return registry.botBrain().perceptionRadius();
+      }
+    }
+    return DEFAULT_PERCEPTION_RADIUS;
   }
 
   /** Pick the nearest threat from the snapshot. Returns null if the threat list is empty. */
@@ -226,26 +249,35 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     final Behavior brain;
     final Blackboard blackboard;
 
-    BrainWiring(final EntityId botId, final BrainArchetype archetype, final WeaponsFiring firing) {
+    BrainWiring(
+        final EntityId botId,
+        final BrainArchetype archetype,
+        final BotBrainConfig config,
+        final WeaponsFiring firing) {
       this.botId = botId;
-      this.brain = archetype.createRoot();
-      this.blackboard = archetype.createBlackboard();
+      this.brain = archetype.createRoot(config);
+      this.blackboard = archetype.createBlackboard(config);
       this.blackboard.setSelfId(botId);
       this.blackboard.setFiring(firing);
     }
   }
 
   /** Per-{@link BotShip} sidecar holding the brain wiring; see entity-containers.md. */
-  private static final class BrainContainer extends EntityContainer<BrainWiring> {
+  private final class BrainContainer extends EntityContainer<BrainWiring> {
 
     private final BrainRegistry registry;
     private final WeaponsFiring firing;
+    private final ConfigRegistrySystem configs;
 
     BrainContainer(
-        final EntityData ed, final BrainRegistry registry, final WeaponsFiring firing) {
+        final EntityData ed,
+        final BrainRegistry registry,
+        final WeaponsFiring firing,
+        final ConfigRegistrySystem configs) {
       super(ed, BotShip.class);
       this.registry = registry;
       this.firing = firing;
+      this.configs = configs;
     }
 
     @Override
@@ -255,13 +287,27 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
     @Override
     protected BrainWiring addObject(final Entity e) {
-      // Slice #08 reads a per-ship BotBrainConfig component to pick the archetype name.
-      return new BrainWiring(e.getId(), this.registry.get(CombatantBrain.NAME), this.firing);
+      final BotBrainConfig config = resolveConfig(e.getId());
+      final BrainArchetype archetype = this.registry.get(config.archetypeName());
+      return new BrainWiring(e.getId(), archetype, config, this.firing);
+    }
+
+    /**
+     * Look up the bot's arena, fetch its {@code BotBrainConfig}; fall back to
+     * {@link BotBrainConfig#DEFAULTS} when the arena hasn't loaded a {@code bot-tuning.groovy}.
+     */
+    private BotBrainConfig resolveConfig(final EntityId botId) {
+      final ArenaId arenaId = ed.getComponent(botId, ArenaId.class);
+      if (arenaId == null) {
+        return BotBrainConfig.DEFAULTS;
+      }
+      final ConfigRegistry registry = this.configs.forArena(arenaId);
+      return registry != null ? registry.botBrain() : BotBrainConfig.DEFAULTS;
     }
 
     @Override
     protected void updateObject(final BrainWiring wiring, final Entity e) {
-      // BotShip is a marker; slice #08 watches BotBrainConfig and re-wires on change.
+      // BotShip is a marker; ADR-0010 implementation watches BotBrainConfig and re-wires.
     }
 
     @Override

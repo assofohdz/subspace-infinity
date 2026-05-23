@@ -5,6 +5,7 @@ package infinity.settings;
 
 import infinity.Ship;
 import infinity.config.BombConfig;
+import infinity.config.BotBrainConfig;
 import infinity.config.BrickConfig;
 import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
@@ -59,6 +60,7 @@ public final class ConfigRegistry {
           Slot.of(ThorConfig.class, ThorConfig.DEFAULTS),
           Slot.of(PrizeConfig.class, PrizeConfig.DEFAULTS),
           Slot.of(PrizeWeightsConfig.class, PrizeWeightsConfig.DEFAULTS),
+          Slot.of(BotBrainConfig.class, BotBrainConfig.DEFAULTS),
           Slot.of(ArenaModuleDeclarations.class, ArenaModuleDeclarations.DEFAULTS));
 
   public static final ConfigRegistry EMPTY = builder().build();
@@ -148,6 +150,10 @@ public final class ConfigRegistry {
 
   public PrizeWeightsConfig prizeWeights() {
     return get(PrizeWeightsConfig.class);
+  }
+
+  public BotBrainConfig botBrain() {
+    return get(BotBrainConfig.class);
   }
 
   public static Builder builder() {

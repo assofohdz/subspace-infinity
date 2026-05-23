@@ -40,7 +40,7 @@
 //      whichever freq has the highest total.
 
 arena {
-    map 'koth.lvl'
+    map 'elim.lvl'
     shipsScript '/conf/testconf/ships.groovy'
     includeFragment '/conf/testconf/prize-weights.groovy'
     includeFragment '/conf/testconf/ship-warbird.groovy'
@@ -62,18 +62,23 @@ arena {
     includeFragment '/conf/testconf/decoy.groovy'
     includeFragment '/conf/testconf/portal.groovy'
     includeFragment '/conf/testconf/prize.groovy'
-    wallFriction 0.1
+    includeFragment '/conf/testconf/bot-tuning.groovy'
+    wallFriction 0.0
     // Every player on own freq via ffa-private-freqs — friendlyFire 2 keeps
     // canon "anything damages anyone" so single-arena testing works.
     friendlyFire 2
 
     // F5 composition — KOTH end-to-end.
     //
-    // mechanic 'fill-up-x-teams', teams: 3 keeps freqs 0..2 populated. Player
-    // joins on freq 0 (ffa-private-freqs claims lowest free freq); freqs 1+2
-    // get a Javelin bot each. Bots inherit the round's crown distribution
-    // (Crowns mechanic filters on ShipType, not PlayerShip) so the player has
-    // someone to kill for a crown transfer + last-crown-standing can converge.
+    // mechanic 'fill-up-x-teams', teams: N keeps freqs 0..N-1 populated with one
+    // Javelin bot each. ffa-private-freqs claims lowest-free freq, so the player
+    // joins above the bot range (teams:1 → bot on freq 0, player on freq 1; teams:2
+    // → bots on 0+1, player on freq 2; etc.). Bots inherit the round's crown
+    // distribution (Crowns mechanic filters on ShipType, not PlayerShip) so the
+    // player has someone to kill for crown transfer + last-crown-standing can converge.
+    //
+    // teams:1 chosen for bot-AI iteration — exactly one opponent bot. Bump back
+    // up when KOTH testing wants a busier arena.
     //
     // Round at 1 minute (rather than the default 5) keeps the smoke cycle
     // fast — wait ~60s for round-end → onRoundStart redistributes crowns to
@@ -81,9 +86,9 @@ arena {
     teamSetup      'ffa-private-freqs'
     roster         'all-ships'
     respawnPolicy  'lockout-no-crown-respawn'
-    spawnPlacement 'random-radius',    center: [512, 512], radius: 50
+    spawnPlacement 'random-radius',    center: [830, 130], radius: 5
     mechanic       'crowns'
-    mechanic       'fill-up-x-teams',  teams: 3
+    mechanic       'fill-up-x-teams',  teams: 2
     scoring        'kill-points',      perKill: 100
     scoring        'crown-kill-bonus', perCrownKill: 50
     roundStructure 'crown-reset',      minutes: 1
