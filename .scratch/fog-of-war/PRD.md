@@ -3,6 +3,7 @@
 Status: ready-for-human
 Category: enhancement
 Date: 2026-05-24
+Anchor: [ADR-0017 — Server-side visibility & fog-of-war](../../docs/adr/0017-server-side-visibility-fog-of-war.md)
 
 ## Problem Statement
 
@@ -95,13 +96,14 @@ bot-AI v1 PRD already gestured at ("perception radius = ship's `RadarRange`").
 
 ## Further Notes
 
-**This warrants an ADR.** Server-side visibility / interest management is a new
-architectural area touching server authority, the SimEthereal sync boundary,
-and the cloak/stealth/xradar effect semantics. Recommend a companion **ADR-0017
-— Server-side visibility & fog-of-war** (decision: enforce at the
-`ComponentVisibility` / interest layer; two-channel model; bot parity) captured
-via a grill pass before implementation. This PRD is the scope; the ADR is the
-rationale anchor.
+**Architectural decision captured in [ADR-0017](../../docs/adr/0017-server-side-visibility-fog-of-war.md)**
+(Proposed, 2026-05-24): enforce server-side by withholding entities at the
+existing `ComponentVisibility` (`BodyVisibility`) hook; two-channel model
+(visual = Cloak, radar = Stealth/XRadar); one resolver feeds both network
+filtering and bot perception. **Before implementing**, clear the ADR's Open
+Work — chiefly the SimEthereal position-channel spike (confirm component
+withholding fully hides a ship) and the XRadar-vs-Stealth interaction cell.
+This PRD is the scope; ADR-0017 is the rationale anchor.
 
 **Subspace canon** (REFERENCE.md): `## Radar` `RadarMode` (0..4); per-ship
 `StealthStatus` / `CloakStatus` / `XRadarStatus` (0..2 tri-state) +
