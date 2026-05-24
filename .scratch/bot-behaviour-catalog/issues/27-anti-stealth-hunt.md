@@ -32,6 +32,7 @@ Register the `anti-stealth hunt` `Behaviour` ([ADR-0013](../../../docs/adr/0013-
 
 ## Blocked by
 
-- needs xRadar/antiwarp + cloak-inference + fog-of-war (no PRD yet)
+- [fog-of-war PRD](../../fog-of-war/PRD.md) — cloak-inference + the visibility model `concealment` reads
+- needs AntiWarp field effect (separate gap; see fog-of-war PRD Out of Scope)
 
 ## Comments

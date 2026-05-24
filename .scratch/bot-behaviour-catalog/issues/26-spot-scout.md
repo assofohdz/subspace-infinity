@@ -32,6 +32,6 @@ Register the `spot / scout` `Behaviour` ([ADR-0013](../../../docs/adr/0013-bot-t
 
 ## Blocked by
 
-- needs xRadar + fog-of-war model (no PRD yet)
+- [fog-of-war PRD](../../fog-of-war/PRD.md) — gives XRadar its radar-reveal effect + the visibility model `intel_gap` reads
 
 ## Comments

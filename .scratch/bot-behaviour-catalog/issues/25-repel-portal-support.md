@@ -32,6 +32,6 @@ Register the `repel/portal support` `Behaviour` ([ADR-0013](../../../docs/adr/00
 
 ## Blocked by
 
-- needs repel/portal item systems (no PRD yet)
+- [portal-warp PRD](../../portal-warp/PRD.md) — portal-use action (repel item system is already shipped)
 
 ## Comments
