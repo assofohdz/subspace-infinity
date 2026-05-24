@@ -33,6 +33,7 @@ Register the `choke / cut-off` `Behaviour` ([ADR-0013](../../../docs/adr/0013-bo
 ## Blocked by
 
 - [#06 — Arena objectives + roles](../../bot-ai-v2/issues/06-arena-objectives-roles.md)
-- [portal-warp PRD](../../portal-warp/PRD.md) — portal-use action; plus AntiWarp field effect (separate gap)
+- [portal-warp PRD](../../portal-warp/PRD.md) — portal-use action
+- [antiwarp-field PRD](../../antiwarp-field/PRD.md) — the AntiWarp cut-off effect this behaviour exploits
 
 ## Comments
