@@ -34,6 +34,7 @@ ADRs are mostly independent but some build on each other. Suggested read order f
 | [0013](./0013-bot-tactical-goal-layer.md) | Bot tactical-goal layer: GOAP-lite utility-scored Goals above the BT | Proposed (amended by 0014) | 2026-05-23 |
 | [0014](./0014-capability-derived-bot-composition.md) | Capability-derived bot composition: archetypes as data-driven overlays | Proposed | 2026-05-23 |
 | [0015](./0015-arena-objective-and-roles.md) | Arena objectives: per-mechanic behaviour bias + per-bot role assignment | Proposed | 2026-05-23 |
+| [0016](./0016-bot-behaviour-catalog.md) | Bot behaviour catalog + utility-score specification | Proposed | 2026-05-24 |
 
 ## Backlog
 
