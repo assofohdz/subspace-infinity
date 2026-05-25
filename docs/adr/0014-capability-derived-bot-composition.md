@@ -64,6 +64,9 @@ public record CapabilityProfile(
     // relevant tri-state (*Status > 0) or count (max > 0) qualifies.
     boolean bulletBounce, boolean bombBounce,
     boolean stealth, boolean cloak, boolean xRadar, boolean antiwarp,
+    boolean attachReceive,    // added 2026-05-25: gate for anchor / attach-to-anchor (ADR-0016 catalog
+                              // cross-check). No ShipConfig source yet → placeholder-derives false; see
+                              // docs/bot-ai/capability-derivation.md.
     // Raw inventory counts (NOT normalized — eligibility scorers read these directly).
     int maxMines, int maxRepels, int maxBursts, int maxDecoys,
     int maxPortals, int maxThors, int maxBricks) {}
