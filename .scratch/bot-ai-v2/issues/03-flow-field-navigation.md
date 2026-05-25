@@ -1,6 +1,6 @@
 # Production flow-field navigation: async build, caching, door invalidation
 
-Status: needs-triage
+Status: done
 Category: enhancement
 Type: HITL
 
@@ -44,3 +44,19 @@ unchanged (gradient is the direct line).
 - [#02 — `BotAiArenaContext` + flow-field tracer](./02-arena-context-flowfield-tracer.md)
 
 ## Comments
+
+### Landed (2026-05-25, commit `1080a9aa`)
+
+Core substrate + steering shipped and validated in the `baseelim` corridor arena
+(bots no longer grind into walls or get stuck):
+
+- `AsyncNavigationFields` — per-goal Dijkstra on a worker `Executor`; `getNow(DistanceField.EMPTY)` non-blocking reads (zero-gradient → reactive fallthrough, no crash); failed-future evict+rebuild; static `pin()`; transient TTL + LRU cap; goal-snap to nearest passable cell.
+- `MapSystem` arena passability seam (`MapSystemLogic.derivePassability`, projector axis-flip); **raw** passability on the nav path (clearance erosion marked wall-adjacent bot cells impassable → reverted to local `AvoidObstacles`/`WallRepulsion` handling).
+- `SteerApproachTarget` + `HasLineOfSight` LoS gate; `WallRepulsion` omnidirectional reverse-rotate-thrust escape; BotDebug nav-mode diagnostics + stuck-velocity log.
+- Tests: `AsyncNavigationFieldsTest`, `MapSystemLogicPassabilityTest`, `NavGridsTest`, `WallRepulsionTest`. Offline analysis scripts (`scripts/lvl_*`) committed separately (`2d544480`).
+
+**Deferred (not blocking; tracked here):**
+- Per-field door-tile tracking — currently coarse `evictAll()` on any door change (doors rare; full arena rebuild on worker acceptable). The granular criterion (track crossed door tiles, rebuild only affected fields) is the ADR-0011 optimization.
+- `BotAiHostService.onArenaLoad` static-goal registration — waits on #06 (`ArenaObjective.staticGoalTiles()`) and #07 (chokepoint top-N); `pin()` is wired, no producers yet.
+- Tile-supersampling toggle — not implemented; 1 tile = 1 cell holds memory fine at 1024² so far.
+- Soft-clearance (cost penalty vs hard erosion) and navigate-to-LoS-firing-position (vs raw target tile) — quality follow-ups.

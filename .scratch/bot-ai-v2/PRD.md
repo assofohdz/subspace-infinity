@@ -109,7 +109,7 @@ See `.scratch/bot-ai-v2/issues/01-08.md`. Vertical tracer bullets, dependency-or
 |---|---|---|---|---|
 | 01 | `bots { }` block + multi-ship spawn (tweak overlay) | 0010/0014 | — | ✅ done (e9861a40) |
 | 02 | `BotAiArenaContext` scaffold + flow-field tracer | 0011/0012 | — | ✅ done (db90765e) |
-| 03 | Production flow-field nav (async, cache, doors) | 0011 | 02 | ⏸ deferred — needs MapSystem passability seam |
+| 03 | Production flow-field nav (async, cache, doors) | 0011 | 02 | ✅ done (1080a9aa) — async+cache+TTL+LoS+wall-repel; door-tile tracking + static-goal registration deferred |
 | 04 | **Capability-derivation pipeline** | 0014 | (02) | ✅ done (49a0dcd0 + #05 wiring) |
 | 05 | `TacticalPlanner` + baseline behaviours | 0013 | 04, 02 | ✅ done (24db369f) |
 | 06 | **Arena objectives + roles** | 0015 | 03, 04, 05 | ⬜ not started |
