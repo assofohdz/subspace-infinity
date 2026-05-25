@@ -64,6 +64,9 @@ import javax.annotation.Nullable;
  */
 public final class BotBrainSystem extends BaseInfinitySystem {
 
+  // Sentinel for "planner has never run for this bot" — the first tick plans unconditionally.
+  private static final long UNPLANNED = Long.MIN_VALUE;
+
   // Default perception radius (world units) when neither RadarRange nor BotBrainConfig
   // is available — preserved for safety; live arenas should always have BotBrainConfig.
   private static final double DEFAULT_PERCEPTION_RADIUS = 30.0;
@@ -184,14 +187,14 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     final Vec3d move = avoiding ? avoid : bb.intent().clone();
     dampOversteer(move);
     this.ed.setComponent(wiring.botId, new MovementInput(move, new Quatd(), MovementInput.NONE));
-    writeDebugSnapshot(wiring.botId, self, target, move, bb.lastBranch(), avoiding);
+    writeDebugSnapshot(wiring, self, target, move, bb, avoiding);
   }
 
   /** Re-select the bot's {@link TacticalGoal} once the planner cadence has elapsed (ADR-0013). */
   private void planOnCadence(final BrainWiring wiring, final Blackboard bb, final long nowNanos) {
     final ZoneBotAiConfig zoneCfg = this.zoneBotAi.get();
     final long cadenceNanos = zoneCfg.plannerCadenceMillis() * 1_000_000L;
-    if (nowNanos - wiring.lastPlanNanos < cadenceNanos) {
+    if (!shouldPlan(wiring.lastPlanNanos, nowNanos, cadenceNanos)) {
       return;
     }
     wiring.lastPlanNanos = nowNanos;
@@ -199,6 +202,16 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     if (goal != null) {
       bb.setCurrentGoal(goal); // null ⇒ nothing offered; keep the running goal
     }
+  }
+
+  /**
+   * Whether the planner should re-select this tick: the first run ({@link #UNPLANNED}) always
+   * plans; otherwise the cadence must have elapsed. The {@code == UNPLANNED} short-circuit runs
+   * before the subtraction so {@code nowNanos - Long.MIN_VALUE} can't overflow into a spurious
+   * "not yet" — the bug that left bots permanently goal-less on the v1 fallback branch.
+   */
+  static boolean shouldPlan(final long lastPlanNanos, final long nowNanos, final long cadenceNanos) {
+    return lastPlanNanos == UNPLANNED || nowNanos - lastPlanNanos >= cadenceNanos;
   }
 
   /**
@@ -271,20 +284,71 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   /**
    * Write the per-tick {@link BotDebug} snapshot. {@code branch} is suffixed with "+Avoid"
    * when {@link AvoidObstacles} overrode the BT decision. Clock hour is {@code 0} when
-   * there's no target; otherwise {@code 1..12} relative to the bot's forward.
+   * there's no target; otherwise {@code 1..12} relative to the bot's forward. The v2 fields
+   * (goal / weights / nav mode) surface the tactical layer for the debug HUD (#08); objective
+   * + role stay empty until #06.
    */
   private void writeDebugSnapshot(
-      final EntityId botId,
+      final BrainWiring wiring,
       final MoverState self,
       final NearbyShip target,
       final Vec3d move,
-      final String branch,
+      final Blackboard bb,
       final boolean avoiding) {
-    final String effectiveBranch = avoiding ? branch + "+Avoid" : branch;
+    final String effectiveBranch = avoiding ? bb.lastBranch() + "+Avoid" : bb.lastBranch();
     final long targetId = target != null ? target.id().getId() : -1L;
     final int clockHour = target != null ? clockHourToTarget(self, target.position()) : 0;
+    final TacticalGoal goal = bb.currentGoal();
+    final String navMode = goal instanceof infinity.ai.tactical.NavigateToTile ? "flow" : "reactive";
     this.ed.setComponent(
-        botId, new BotDebug(effectiveBranch, targetId, move.x, move.z, clockHour));
+        wiring.botId,
+        new BotDebug(
+            effectiveBranch,
+            targetId,
+            move.x,
+            move.z,
+            clockHour,
+            "", // objectiveName — #06
+            "", // roleName — #06
+            formatGoal(goal),
+            formatTopScores(wiring.archetype),
+            formatBreakdown(wiring.archetype),
+            navMode));
+  }
+
+  /** Compact goal label, e.g. {@code Engage(42)} / {@code Search} / {@code none}. */
+  private static String formatGoal(@Nullable final TacticalGoal goal) {
+    if (goal instanceof infinity.ai.tactical.Engage e) {
+      return "Engage(" + e.target().getId() + ")";
+    }
+    if (goal instanceof infinity.ai.tactical.Disengage d) {
+      return "Disengage(" + d.threat().getId() + ")";
+    }
+    if (goal instanceof infinity.ai.tactical.NavigateToTile n) {
+      return "NavTile(" + n.tile().getId() + ")";
+    }
+    if (goal instanceof infinity.ai.tactical.Search) {
+      return "Search";
+    }
+    return "none";
+  }
+
+  /** Top-3 {@code behaviour=weight} pairs from the derived archetype, descending; {@code -} if empty. */
+  private static String formatTopScores(final ArchetypeConfig archetype) {
+    return archetype.behaviourWeights().entrySet().stream()
+        .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+        .limit(3)
+        .map(e -> String.format("%s=%.2f", e.getKey(), e.getValue()))
+        .reduce((a, b) -> a + " " + b)
+        .orElse("-");
+  }
+
+  /** Factor breakdown for the top behaviour — capability only today (× obj × role with #06). */
+  private static String formatBreakdown(final ArchetypeConfig archetype) {
+    return archetype.behaviourWeights().entrySet().stream()
+        .max(Map.Entry.comparingByValue())
+        .map(e -> String.format("%s cap=%.2f", e.getKey(), e.getValue()))
+        .orElse("-");
   }
 
   /**
@@ -359,7 +423,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
     // Tactical-planner state (ADR-0013). Re-derived when derivedFrom changes; goal re-selected
     // when lastPlanNanos is older than the zone cadence.
-    long lastPlanNanos = Long.MIN_VALUE;
+    long lastPlanNanos = UNPLANNED;
     ArchetypeConfig archetype = new ArchetypeConfig("none", Map.of());
     @Nullable ConfigRegistry derivedFrom;
     @Nullable ServerBotAiArenaContext arenaContext;

@@ -27,15 +27,14 @@ import java.util.Map;
  */
 public class BotDebugHudState extends BaseAppState {
 
-  private EntityData ed;
   private EntitySet bots;
   private Container hud;
   private final Map<EntityId, Label> rowLabels = new HashMap<>();
 
   @Override
   protected void initialize(final Application app) {
-    this.ed = getState(ConnectionState.class).getEntityData();
-    this.bots = this.ed.getEntities(BotShip.class, BotDebug.class);
+    final EntityData ed = getState(ConnectionState.class).getEntityData();
+    this.bots = ed.getEntities(BotShip.class, BotDebug.class);
     this.hud = new Container();
     this.hud.addChild(new Label("Bots")).setInsets(new Insets3f(2, 6, 2, 6));
   }
@@ -90,13 +89,24 @@ public class BotDebugHudState extends BaseAppState {
     final BotDebug debug = bot.get(BotDebug.class);
     final String targetStr = debug.targetId() < 0 ? "none" : Long.toString(debug.targetId());
     final String clockStr = debug.clockHour() == 0 ? "-" : debug.clockHour() + "h";
+    // objective/role bracket only when populated (lands with #06).
+    final String objRole =
+        debug.objectiveName().isEmpty()
+            ? ""
+            : String.format(" [%s/%s]", debug.objectiveName(), debug.roleName());
     return String.format(
-        "Bot %s  %s  tgt=%s @%s  turn=%+.2f thrust=%+.2f",
+        "Bot %s%s  %s  tgt=%s @%s  turn=%+.2f thrust=%+.2f%n"
+            + "  Goal:%s  Nav:%s  W:{%s}  top:%s",
         bot.getId().getId(),
+        objRole,
         debug.branch(),
         targetStr,
         clockStr,
         debug.intentTurn(),
-        debug.intentThrust());
+        debug.intentThrust(),
+        debug.currentGoalLabel(),
+        debug.navMode(),
+        debug.topScores(),
+        debug.weightBreakdown());
   }
 }
