@@ -16,7 +16,8 @@ import org.junit.Test;
 public class GroovyBotSynergyLoaderTest {
 
   private static final double MIN_WEIGHT = 0.05;
-  private static final int CATALOG_SIZE = 30;
+  // 30 catalogued behaviours + follow-traffic (the #07 spatial-fields consumer).
+  private static final int CATALOG_SIZE = 31;
 
   @Test
   public void realFileParsesAllEntries() {

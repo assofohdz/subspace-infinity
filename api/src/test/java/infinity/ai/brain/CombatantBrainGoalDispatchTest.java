@@ -81,9 +81,9 @@ public class CombatantBrainGoalDispatchTest {
   }
 
   @Test
-  public void navigateGoalIsDormantAndFallsThrough() {
-    // No arena context wired (slice #03 pending) → SteerToGoalTile fails → v1 fallback wander.
-    bb.setCurrentGoal(new infinity.ai.tactical.NavigateToTile(new com.simsilica.mworld.TileId(0L)));
+  public void navigateGoalFallsThroughWithoutArenaContext() {
+    // No arena context wired (no nav fields) → SteerToGoalTile fails → v1 fallback wander.
+    bb.setCurrentGoal(new infinity.ai.tactical.NavigateToTile(0, 0));
     root.tick(bb);
     assertEquals("Wander", bb.lastBranch());
   }

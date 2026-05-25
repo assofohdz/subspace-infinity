@@ -113,7 +113,7 @@ See `.scratch/bot-ai-v2/issues/01-08.md`. Vertical tracer bullets, dependency-or
 | 04 | **Capability-derivation pipeline** | 0014 | (02) | ✅ done (49a0dcd0 + #05 wiring) |
 | 05 | `TacticalPlanner` + baseline behaviours | 0013 | 04, 02 | ✅ done (24db369f) |
 | 06 | **Arena objectives + roles** | 0015 | 03, 04, 05 | ⬜ not started |
-| 07 | Dynamic scalar fields + chokepoints + follow-traffic | 0012 | 03, 04, 05 | 🔶 substrate landed (565a8977) — density/threat/opportunity/combat/chokepoints (Inc 1–4); follow-traffic + blended nav (Inc 5) pending |
+| 07 | Dynamic scalar fields + chokepoints + follow-traffic | 0012 | 03, 04, 05 | ✅ done (565a8977 Inc 1–4 substrate + Inc 5 follow-traffic/blended-nav) — smoke-accepted in trench; `ArenaSpatialFields` extraction spun out as follow-up |
 | 08 | `BotDebug` HUD v2 extension (AFK) | 0013/0014/0015 | 05 | ✅ done (7c028117) |
 
 The behaviour roster (engage, area-denial, mine behaviours, splash, bounce-shot, …) lives in the [behaviour catalog](../bot-behaviour-catalog/), one issue per behaviour — **not** as v2 slices. This keeps the substrate PRD bounded and stops behaviours being invented as a side-effect of substrate work.

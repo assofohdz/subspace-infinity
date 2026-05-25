@@ -55,6 +55,11 @@ synergy {
     behaviour 'flank', {
         bonus    { profile -> 0.4 * profile.mobility() }
     }
+    behaviour 'follow-traffic', {
+        // Drift toward where the action is (combat/density × chokepoints, ADR-0012). No hard gate —
+        // any ship can follow traffic; mobile hulls do it best, xRadar reads the action from afar.
+        bonus    { profile -> 0.3 * profile.mobility() + (profile.xRadar() ? 0.15 : 0.0) }
+    }
     behaviour 'choke', {
         requires { profile -> profile.antiwarp() || profile.maxPortals() > 0 }
         bonus    { profile -> (profile.antiwarp() ? 0.4 : 0.0) + (profile.maxPortals() > 0 ? 0.3 : 0.0) }

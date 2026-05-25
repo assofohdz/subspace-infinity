@@ -34,6 +34,10 @@ package infinity.config;
  *       chokepoint pinch</li>
  *   <li>{@code chokepointDensityWeight} — weight {@code k} on position-density in the chokepoint
  *       hotness combo {@code pinch × (1 + combat + k·totalDensity)}</li>
+ *   <li>{@code navThreatWeight} — weight on the threat-descent (avoid) direction blended into the
+ *       flow-field nav heading: {@code navDir + navThreatWeight·threatDescent}</li>
+ *   <li>{@code navOpportunityWeight} — weight on the opportunity-ascent (seek) direction blended
+ *       into the nav heading</li>
  * </ul>
  */
 public record ZoneBotAiConfig(
@@ -50,12 +54,15 @@ public record ZoneBotAiConfig(
     double combatDecayPerCadence,
     int chokepointTopN,
     int chokepointMaxWidth,
-    double chokepointDensityWeight) {
+    double chokepointDensityWeight,
+    double navThreatWeight,
+    double navOpportunityWeight) {
 
   public static final ZoneBotAiConfig DEFAULTS =
-      new ZoneBotAiConfig(150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5);
+      new ZoneBotAiConfig(
+          150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3);
 
   public ZoneBotAiConfig() {
-    this(150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5);
+    this(150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3);
   }
 }

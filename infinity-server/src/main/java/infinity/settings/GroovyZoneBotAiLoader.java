@@ -98,6 +98,8 @@ public class GroovyZoneBotAiLoader {
     private int chokepointTopN = ZoneBotAiConfig.DEFAULTS.chokepointTopN();
     private int chokepointMaxWidth = ZoneBotAiConfig.DEFAULTS.chokepointMaxWidth();
     private double chokepointDensityWeight = ZoneBotAiConfig.DEFAULTS.chokepointDensityWeight();
+    private double navThreatWeight = ZoneBotAiConfig.DEFAULTS.navThreatWeight();
+    private double navOpportunityWeight = ZoneBotAiConfig.DEFAULTS.navOpportunityWeight();
 
     ZoneBotAiConfigBuilder() {}
 
@@ -242,6 +244,17 @@ public class GroovyZoneBotAiLoader {
           unitFraction("chokepointDensityWeight", value, this.chokepointDensityWeight);
     }
 
+    /** Weight on threat-avoidance blended into the nav heading; {@code [0,1]}. */
+    public void navThreatWeight(final Number value) {
+      this.navThreatWeight = unitFraction("navThreatWeight", value, this.navThreatWeight);
+    }
+
+    /** Weight on opportunity-seeking blended into the nav heading; {@code [0,1]}. */
+    public void navOpportunityWeight(final Number value) {
+      this.navOpportunityWeight =
+          unitFraction("navOpportunityWeight", value, this.navOpportunityWeight);
+    }
+
     private static double unitFraction(
         final String key, final Number value, final double current) {
       if (value == null) {
@@ -269,7 +282,9 @@ public class GroovyZoneBotAiLoader {
           combatDecayPerCadence,
           chokepointTopN,
           chokepointMaxWidth,
-          chokepointDensityWeight);
+          chokepointDensityWeight,
+          navThreatWeight,
+          navOpportunityWeight);
     }
   }
 }

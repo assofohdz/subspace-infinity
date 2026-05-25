@@ -55,6 +55,10 @@ arena {
     // (LegacyMapProjector) — no `mechanic 'static-flag'` needed because FlagSystem is an
     // always-loaded server system that handles flag-touch contacts on every arena.
     teamSetup      'two-fixed-teams'
+    // Bounded team-setup → fill-up targets `fixedTeamCount(2) × capacity(2)` = 4 live ships.
+    // Bots fill seats humans don't and are culled as players join; the team setup assigns
+    // each bot's freq (least-full team), so the bots{} roster below is just the hull pool.
+    mechanic       'fill-up-x-teams', capacity: 2
     roster         'all-ships'
     respawnPolicy  'instant-respawn'
     spawnPlacement 'random-radius',    center: [512, 512], radius: 0
@@ -64,6 +68,17 @@ arena {
     matchStructure 'continuous'
     winCondition   'most-flag-occupancy'
     winCondition   'highest-score'
+
+    // Bot-AI #07 trench-goal test: two-fixed-teams + the map's stationary turf flag give bots a real
+    // objective. follow-traffic drifts them toward the contested flag/chokepoints; engage takes over
+    // in close combat. Hull pool (cycled by spawn order — counts weight the mix): with capacity 2 ×
+    // 2 teams the four seats draw warbird, warbird, spider, leviathan, so capability divergence
+    // (fast Warbird vs slow Leviathan) shows in the routing across both teams.
+    bots {
+        ship 'warbird',   count: 2
+        ship 'spider',    count: 1
+        ship 'leviathan', count: 1
+    }
 
     spawners {
         // Centre of the arena. No weights override → uses the typed

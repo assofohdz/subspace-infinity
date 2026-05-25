@@ -41,6 +41,11 @@ public final class Blackboard {
   private NearbyShip target;
   private String lastBranch = "";
   private String navDiag = "";
+  // The bot's own frequency; -1 = not yet sampled. Lets a behaviour read enemy density/threat as the
+  // blend of activeTeamFreqs() minus own (relativity in the consumer, not the arena-scoped field).
+  private int ownFreq = -1;
+  private double navThreatWeight;
+  private double navOpportunityWeight;
   private WeaponsFiring firing;
   // -1 sentinels = "not yet sampled" (e.g. Energy / EnergyStats components absent).
   private int currentEnergy = -1;
@@ -83,6 +88,29 @@ public final class Blackboard {
 
   public void setSelf(final MoverState self) {
     this.self = self;
+  }
+
+  /** The bot's own frequency, or {@code -1} if not yet sampled this tick. */
+  public int ownFreq() {
+    return this.ownFreq;
+  }
+
+  public void setOwnFreq(final int ownFreq) {
+    this.ownFreq = ownFreq;
+  }
+
+  /** Weight on threat-avoidance / opportunity-seeking blended into the flow-field nav heading. */
+  public double navThreatWeight() {
+    return this.navThreatWeight;
+  }
+
+  public double navOpportunityWeight() {
+    return this.navOpportunityWeight;
+  }
+
+  public void setNavBlendWeights(final double threat, final double opportunity) {
+    this.navThreatWeight = threat;
+    this.navOpportunityWeight = opportunity;
   }
 
   public PerceptionSnapshot perception() {

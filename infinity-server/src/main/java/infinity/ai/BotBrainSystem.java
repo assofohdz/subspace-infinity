@@ -33,6 +33,7 @@ import infinity.ai.tactical.ArchetypeConfig;
 import infinity.ai.tactical.Behaviour;
 import infinity.ai.tactical.DisengageBehaviour;
 import infinity.ai.tactical.EngageBehaviour;
+import infinity.ai.tactical.FollowTrafficBehaviour;
 import infinity.ai.tactical.SearchBehaviour;
 import infinity.ai.tactical.ServerBotAiArenaContext;
 import infinity.ai.tactical.TacticalGoal;
@@ -166,7 +167,11 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     this.zoneBotAi = requireSystem(ZoneBotAiConfigSystem.class);
     this.mapSystem = requireSystem(MapSystem.class);
     final List<Behaviour> behaviours =
-        List.of(new EngageBehaviour(), new DisengageBehaviour(), new SearchBehaviour());
+        List.of(
+            new EngageBehaviour(),
+            new DisengageBehaviour(),
+            new SearchBehaviour(),
+            new FollowTrafficBehaviour());
     this.planner = new TacticalPlannerImpl(behaviours, this.zoneBotAi::get);
     this.selectableBehaviours =
         behaviours.stream().map(Behaviour::name).collect(Collectors.toUnmodifiableSet());
@@ -347,6 +352,10 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     bb.setPerception(snapshot);
     final NearbyShip target = pickNearestThreat(self, snapshot);
     bb.setTarget(target);
+    final Frequency freq = this.ed.getComponent(wiring.botId, Frequency.class);
+    bb.setOwnFreq(freq != null ? freq.getFrequency() : -1);
+    final ZoneBotAiConfig zoneCfg = this.zoneBotAi.get();
+    bb.setNavBlendWeights(zoneCfg.navThreatWeight(), zoneCfg.navOpportunityWeight());
     final Energy energy = this.ed.getComponent(wiring.botId, Energy.class);
     final EnergyStats energyStats = this.ed.getComponent(wiring.botId, EnergyStats.class);
     bb.setEnergy(
@@ -733,7 +742,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       return "Disengage(" + d.threat().getId() + ")";
     }
     if (goal instanceof infinity.ai.tactical.NavigateToTile n) {
-      return "NavTile(" + n.tile().getId() + ")";
+      return "NavTile(" + n.cellX() + "," + n.cellZ() + ")";
     }
     if (goal instanceof infinity.ai.tactical.Search) {
       return "Search";

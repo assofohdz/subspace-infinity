@@ -47,4 +47,10 @@ botAi {
     chokepointTopN          5
     chokepointMaxWidth      4
     chokepointDensityWeight 0.5
+
+    // Blended-gradient nav (ADR-0012): the flow-field heading toward a goal is bent away from
+    // incoming threat (enemy weapon-range, LoS-gated) and toward opportunity (prizes).
+    // heading = navDir + navThreatWeight·threatDescent + navOpportunityWeight·opportunityAscent.
+    navThreatWeight      0.6
+    navOpportunityWeight 0.3
 }
