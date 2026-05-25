@@ -317,7 +317,8 @@ public final class ArenaLogic {
         oldConfig.wallFriction(),
         oldConfig.spawners(),
         oldConfig.friendlyFire(),
-        oldConfig.modules());
+        oldConfig.modules(),
+        oldConfig.bots());
     return SwapMapOutcome.success(
         nextConfig,
         ARENA_PREFIX + arenaName + " map swapped from " + oldMap + " to " + newMap);

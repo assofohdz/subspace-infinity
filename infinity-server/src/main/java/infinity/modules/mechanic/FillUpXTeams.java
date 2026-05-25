@@ -24,6 +24,7 @@ import infinity.modules.SpawnPlacementModule;
 import infinity.sim.AIEntities;
 import java.util.Optional;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -54,6 +55,8 @@ public class FillUpXTeams implements MechanicModule {
   private final int teams;
   private final int countPerPlayer;
   private final ArenaModuleSetLookup modules;
+  // Expanded bots { } roster (ADR-0010/0014): freq i → roster[i % size]. Empty ⇒ Javelin fallback.
+  private final List<Ship> roster;
   /** Set (not List) so per-tick prune on bot reap is O(1). */
   private final Set<EntityId> spawnedBots = new HashSet<>();
   private EntitySet arenaShips;
@@ -67,6 +70,7 @@ public class FillUpXTeams implements MechanicModule {
     this.teams = config.effectiveTeams();
     this.countPerPlayer = config.countPerPlayer();
     this.modules = ctx.modules();
+    this.roster = ctx.bots().expandedRoster();
   }
 
   @Override
@@ -108,7 +112,8 @@ public class FillUpXTeams implements MechanicModule {
         spawnedBots.remove(removed.getId());
       }
     }
-    final int effectiveSpawnCount = teams + countPerPlayer * countActivePlayers();
+    final int baseCount = roster.isEmpty() ? teams : roster.size();
+    final int effectiveSpawnCount = baseCount + countPerPlayer * countActivePlayers();
     final Set<Integer> presentFreqs = countOccupiedFreqs();
     for (int freq = 0; freq < effectiveSpawnCount; freq++) {
       if (presentFreqs.contains(freq)) {
@@ -176,11 +181,9 @@ public class FillUpXTeams implements MechanicModule {
   /** Test seam — override to record spawn requests without invoking the physics-bound factory. */
   protected EntityId spawnBot(final long createdTimeNanos, final int freq) {
     final Vec3d loc = resolveBotSpawn(freq);
-    // Interim multi-hull demo: map freq → a distinct hull (freqs 0..7 → ships 1..8, cycling
-    // beyond). Lets the ffa-bots smoke arena put one of each hull on the map so capability-
-    // derived behaviour divergence is observable. Superseded by the per-arena `bots { }`
-    // authoring in bot-ai-v2 slice #01.
-    final byte shipId = (byte) (freq % Ship.values().length + 1);
+    // Ship per the arena's bots { } roster (freq cycles the roster); Javelin when unauthored.
+    final byte shipId =
+        roster.isEmpty() ? Ship.JAVELIN.getId() : roster.get(freq % roster.size()).getId();
     final EntityId bot =
         AIEntities.createMobShip(loc, ed, EntityId.NULL_ID, phys, createdTimeNanos, shipId);
     ed.setComponent(bot, arenaId);

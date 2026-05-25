@@ -4,6 +4,7 @@ package infinity.modules;
 
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
+import infinity.config.BotsConfig;
 import infinity.es.arena.ArenaId;
 import infinity.sim.ChatHostedPoster;
 import infinity.sim.PhysicsManager;
@@ -18,7 +19,8 @@ import javax.annotation.Nullable;
  * supplies real impls.
  *
  * <p>F1 minimum was {@code (arenaId, arenaEntity, ed)}; extend as concrete modules
- * need additional services.
+ * need additional services. {@code bots} is the arena's {@code bots { }} roster + tweak
+ * overlay (ADR-0010/0014); never null (empty {@link BotsConfig#DEFAULTS} when unauthored).
  */
 public record ModuleContext(
     ArenaId arenaId,
@@ -26,15 +28,16 @@ public record ModuleContext(
     EntityData ed,
     @Nullable ChatHostedPoster chat,
     @Nullable PhysicsManager physics,
-    @Nullable ArenaModuleSetLookup modules) {
+    @Nullable ArenaModuleSetLookup modules,
+    BotsConfig bots) {
 
-  /** Test-friendly constructor — defaults {@code modules} to {@code null}. */
+  /** Test-friendly constructor — defaults {@code modules} to {@code null}, {@code bots} to empty. */
   public ModuleContext(
       final ArenaId arenaId,
       final EntityId arenaEntity,
       final EntityData ed,
       @Nullable final ChatHostedPoster chat,
       @Nullable final PhysicsManager physics) {
-    this(arenaId, arenaEntity, ed, chat, physics, null);
+    this(arenaId, arenaEntity, ed, chat, physics, null, BotsConfig.DEFAULTS);
   }
 }

@@ -55,4 +55,19 @@ arena {
     // of stacking at one point.
     spawnPlacement 'random-radius',    center: [830, 150], radius: 15
     mechanic       'fill-up-x-teams', teams:   8
+
+    // Real per-arena bot roster (ADR-0010/0014) — one of each hull, replacing the old
+    // hard-coded freq→ship mapping. Behaviour weights stay capability-derived; the
+    // leviathan carries a sample tweak overlay (×1.4 hold-position) to exercise the
+    // overlay end-to-end (visible in the BotDebug HUD W:{} line).
+    bots {
+        ship 'warbird'
+        ship 'javelin'
+        ship 'spider'
+        ship 'leviathan', tweak: [['hold-position', '*', 1.4]]
+        ship 'terrier'
+        ship 'weasel'
+        ship 'lancaster'
+        ship 'shark'
+    }
 }

@@ -5,11 +5,17 @@ package infinity.settings;
 
 import groovy.lang.Binding;
 import groovy.lang.Closure;
+import infinity.Ship;
 import infinity.config.ArenaConfig;
+import infinity.config.BehaviourTweak;
+import infinity.config.BotShipConfig;
+import infinity.config.BotsConfig;
 import infinity.config.SpawnerSpec;
+import infinity.config.TweakOp;
 import infinity.modules.ArenaModuleDeclarations;
 import infinity.modules.ModuleSpec;
 import java.util.LinkedHashMap;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.ArrayList;
 import java.util.List;
@@ -117,6 +123,7 @@ public final class GroovyArenaLoader {
     private final List<SpawnerSpec> spawners = new ArrayList<>();
     private int friendlyFire = ArenaConfig.EMPTY.friendlyFire();
     private final ModuleDeclarationsBuilder modules = new ModuleDeclarationsBuilder();
+    private final List<BotShipConfig> botEntries = new ArrayList<>();
 
     ArenaConfigBuilder() {}
 
@@ -172,6 +179,18 @@ public final class GroovyArenaLoader {
      */
     public void spawners(final Closure<?> body) {
       final SpawnersBlock block = new SpawnersBlock(spawners);
+      body.setDelegate(block);
+      body.setResolveStrategy(Closure.DELEGATE_FIRST);
+      body.call();
+    }
+
+    /**
+     * {@code bots { ship 'warbird', count: 2; ship 'leviathan', count: 1, tweak: [['anchor','*',1.3]] }}
+     * block (ADR-0010 / ADR-0014). Each {@code ship} call appends a {@link BotShipConfig}; the
+     * spawner reads the roster, the planner reads the per-ship tweak overlay. Absent ⇒ pure-derived.
+     */
+    public void bots(final Closure<?> body) {
+      final BotsBlock block = new BotsBlock(botEntries);
       body.setDelegate(block);
       body.setResolveStrategy(Closure.DELEGATE_FIRST);
       body.call();
@@ -272,7 +291,8 @@ public final class GroovyArenaLoader {
           wallFriction,
           List.copyOf(spawners),
           friendlyFire,
-          modules.build());
+          modules.build(),
+          new BotsConfig(List.copyOf(botEntries)));
     }
   }
 
@@ -301,6 +321,94 @@ public final class GroovyArenaLoader {
           scoring,
           winConditions,
           mechanics);
+    }
+  }
+
+  /**
+   * Delegate for the {@code bots { ... }} block. Each {@code ship} call appends a typed
+   * {@link BotShipConfig}; {@code count} defaults to 1; {@code tweak} is a list of
+   * {@code [behaviour, op, value]} triples parsed into {@link BehaviourTweak}s (ADR-0014 overlay).
+   */
+  public static final class BotsBlock {
+
+    private final List<BotShipConfig> entries;
+
+    BotsBlock(final List<BotShipConfig> entries) {
+      this.entries = entries;
+    }
+
+    /** {@code ship 'warbird', count: 2, tweak: [['anchor','*',1.3]]} — kwargs map first per Groovy. */
+    public void ship(final Map<String, ?> kwargs, final String shipName) {
+      entries.add(
+          new BotShipConfig(resolveShip(shipName), countArg(kwargs), tweakArg(kwargs.get("tweak"))));
+    }
+
+    /** {@code ship 'warbird'} — bare form: count 1, no tweak. */
+    public void ship(final String shipName) {
+      ship(Map.of(), shipName);
+    }
+
+    private static Ship resolveShip(final String name) {
+      if (name == null || name.isBlank()) {
+        throw new IllegalArgumentException("bots.ship requires a ship name");
+      }
+      try {
+        return Ship.valueOf(name.trim().toUpperCase(Locale.ROOT));
+      } catch (final IllegalArgumentException e) {
+        throw new IllegalArgumentException(
+            "bots.ship '" + name + "' is not a known ship (warbird, javelin, ... shark)", e);
+      }
+    }
+
+    private static int countArg(final Map<String, ?> kwargs) {
+      final Object v = kwargs.get("count");
+      if (v == null) {
+        return 1;
+      }
+      if (v instanceof Number n) {
+        return n.intValue();
+      }
+      throw new IllegalArgumentException("bots.ship 'count' must be numeric (got " + v + ")");
+    }
+
+    private static List<BehaviourTweak> tweakArg(@Nullable final Object raw) {
+      if (raw == null) {
+        return List.of();
+      }
+      if (!(raw instanceof List<?> list)) {
+        throw new IllegalArgumentException(
+            "bots.ship 'tweak' must be a list of [behaviour, op, value] (got " + raw + ")");
+      }
+      final List<BehaviourTweak> out = new ArrayList<>();
+      for (final Object element : list) {
+        out.add(parseTweak(element));
+      }
+      return out;
+    }
+
+    private static BehaviourTweak parseTweak(final Object element) {
+      if (!(element instanceof List<?> triple) || triple.size() != 3) {
+        throw new IllegalArgumentException(
+            "bots tweak entry must be [behaviour, op, value]; got " + element);
+      }
+      final String behaviour = stringAt(triple, 0, "behaviour");
+      final TweakOp op = TweakOp.fromSymbol(stringAt(triple, 1, "op"));
+      return new BehaviourTweak(behaviour, op, numberAt(triple, 2).doubleValue());
+    }
+
+    private static String stringAt(final List<?> triple, final int i, final String what) {
+      if (triple.get(i) instanceof String s) {
+        return s;
+      }
+      throw new IllegalArgumentException(
+          "bots tweak " + what + " must be a String; got " + triple.get(i));
+    }
+
+    private static Number numberAt(final List<?> triple, final int i) {
+      if (triple.get(i) instanceof Number n) {
+        return n;
+      }
+      throw new IllegalArgumentException("bots tweak value must be numeric; got " + triple.get(i));
     }
   }
 

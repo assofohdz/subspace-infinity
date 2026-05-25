@@ -25,6 +25,7 @@ import infinity.ai.capability.CapabilityDeriver;
 import infinity.ai.capability.CapabilityProfile;
 import infinity.ai.steer.AvoidObstacles;
 import infinity.ai.tactical.ArchetypeConfig;
+import infinity.ai.tactical.Behaviour;
 import infinity.ai.tactical.DisengageBehaviour;
 import infinity.ai.tactical.EngageBehaviour;
 import infinity.ai.tactical.SearchBehaviour;
@@ -32,7 +33,9 @@ import infinity.ai.tactical.ServerBotAiArenaContext;
 import infinity.ai.tactical.TacticalGoal;
 import infinity.ai.tactical.TacticalPlanner;
 import infinity.ai.tactical.TacticalPlannerImpl;
+import infinity.config.BehaviourTweak;
 import infinity.config.BotBrainConfig;
+import infinity.config.BotsConfig;
 import infinity.config.ShipConfig;
 import infinity.config.ZoneBotAiConfig;
 import infinity.es.BotDebug;
@@ -52,6 +55,8 @@ import infinity.systems.BaseInfinitySystem;
 import infinity.systems.ship.WeaponsFireEligibilitySystem;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 
 /**
@@ -96,6 +101,9 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   private EngineBotAiSystem engineBotAi;
   private ZoneBotAiConfigSystem zoneBotAi;
   private TacticalPlanner planner;
+  // Names of the behaviours the planner can actually enumerate — others carry a derived weight
+  // but can't yet become a goal (no Behaviour impl); the HUD marks the difference.
+  private Set<String> selectableBehaviours = Set.of();
   private BrainContainer brains;
   private final BrainRegistry brainRegistry = new BrainRegistry();
   // Shared reactive layer — stateless across bots, so one instance suffices.
@@ -113,10 +121,11 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     this.configRegistrySystem = requireSystem(ConfigRegistrySystem.class);
     this.engineBotAi = requireSystem(EngineBotAiSystem.class);
     this.zoneBotAi = requireSystem(ZoneBotAiConfigSystem.class);
-    this.planner =
-        new TacticalPlannerImpl(
-            List.of(new EngageBehaviour(), new DisengageBehaviour(), new SearchBehaviour()),
-            this.zoneBotAi::get);
+    final List<Behaviour> behaviours =
+        List.of(new EngageBehaviour(), new DisengageBehaviour(), new SearchBehaviour());
+    this.planner = new TacticalPlannerImpl(behaviours, this.zoneBotAi::get);
+    this.selectableBehaviours =
+        behaviours.stream().map(Behaviour::name).collect(Collectors.toUnmodifiableSet());
     this.brainRegistry.register(new CombatantBrain());
   }
 
@@ -238,7 +247,8 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
     final CapabilityProfile profile = deriveProfile(wiring.botId, registry, norms);
     this.ed.setComponent(wiring.botId, new BotCapability(profile));
-    wiring.archetype = toArchetype(profile, synergy, this.zoneBotAi.get().minBehaviourWeight());
+    wiring.archetype =
+        toArchetype(profile, synergy, this.zoneBotAi.get().minBehaviourWeight(), registry.bots());
   }
 
   /** Profile for the bot's ship type against {@code norms}, or {@code null} when the type isn't configured. */
@@ -253,16 +263,43 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     return shipConfig == null ? null : CapabilityDeriver.derive(shipConfig, norms);
   }
 
-  /** Cross {@code profile} through the synergy table into an {@link ArchetypeConfig} weight vector. */
+  /**
+   * Cross {@code profile} through the synergy table into raw weights, then apply the arena's
+   * per-ship {@code bots { tweak: [...] }} overlay (ADR-0014) → effective {@link ArchetypeConfig}.
+   */
   private static ArchetypeConfig toArchetype(
       @Nullable final CapabilityProfile profile,
       final BotSynergyTable synergy,
-      final double minBehaviourWeight) {
+      final double minBehaviourWeight,
+      final BotsConfig bots) {
     if (profile == null) {
       return new ArchetypeConfig("none", Map.of());
     }
-    return new ArchetypeConfig(
-        profile.ship().name(), synergy.weightsFor(profile, minBehaviourWeight));
+    final Map<String, Double> raw = synergy.weightsFor(profile, minBehaviourWeight);
+    final Map<String, Double> effective = applyTweaks(raw, bots.tweakFor(profile.ship()));
+    return new ArchetypeConfig(profile.ship().name(), effective);
+  }
+
+  /**
+   * Overlay {@code tweaks} onto derived weights (ADR-0014): a tweak's op applies to the behaviour's
+   * derived weight ({@code 0} if not derived, so additive tweaks can re-introduce a behaviour);
+   * a result {@code <= 0} drops the behaviour.
+   */
+  private static Map<String, Double> applyTweaks(
+      final Map<String, Double> raw, final List<BehaviourTweak> tweaks) {
+    if (tweaks.isEmpty()) {
+      return raw;
+    }
+    final Map<String, Double> out = new java.util.LinkedHashMap<>(raw);
+    for (final BehaviourTweak t : tweaks) {
+      final double w = t.apply(out.getOrDefault(t.behaviour(), 0.0));
+      if (w > 0.0) {
+        out.put(t.behaviour(), w);
+      } else {
+        out.remove(t.behaviour());
+      }
+    }
+    return out;
   }
 
   /** The arena's configured {@link ShipConfig} templates (for capability normalization). */
@@ -300,6 +337,10 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     final int clockHour = target != null ? clockHourToTarget(self, target.position()) : 0;
     final TacticalGoal goal = bb.currentGoal();
     final String navMode = goal instanceof infinity.ai.tactical.NavigateToTile ? "flow" : "reactive";
+    final ShipType shipType = this.ed.getComponent(wiring.botId, ShipType.class);
+    final String shipName = shipType != null && shipType.getType() != null
+        ? shipType.getType().name()
+        : "";
     this.ed.setComponent(
         wiring.botId,
         new BotDebug(
@@ -308,10 +349,11 @@ public final class BotBrainSystem extends BaseInfinitySystem {
             move.x,
             move.z,
             clockHour,
+            shipName,
             "", // objectiveName — #06
             "", // roleName — #06
             formatGoal(goal),
-            formatTopScores(wiring.archetype),
+            formatTopScores(wiring.archetype, this.selectableBehaviours),
             formatBreakdown(wiring.archetype),
             navMode));
   }
@@ -333,12 +375,21 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     return "none";
   }
 
-  /** Top-3 {@code behaviour=weight} pairs from the derived archetype, descending; {@code -} if empty. */
-  private static String formatTopScores(final ArchetypeConfig archetype) {
+  /**
+   * Top-3 {@code behaviour=weight} pairs from the derived archetype, descending; {@code -} if empty.
+   * Selectable behaviours (those with a registered {@code Behaviour} impl) are prefixed {@code *} so
+   * a high but unimplemented weight (e.g. {@code hold-position}) reads as inert, not a bug.
+   */
+  private static String formatTopScores(
+      final ArchetypeConfig archetype, final Set<String> selectable) {
     return archetype.behaviourWeights().entrySet().stream()
         .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
         .limit(3)
-        .map(e -> String.format("%s=%.2f", e.getKey(), e.getValue()))
+        .map(
+            e ->
+                String.format(
+                    "%s%s=%.2f",
+                    selectable.contains(e.getKey()) ? "*" : "", e.getKey(), e.getValue()))
         .reduce((a, b) -> a + " " + b)
         .orElse("-");
   }

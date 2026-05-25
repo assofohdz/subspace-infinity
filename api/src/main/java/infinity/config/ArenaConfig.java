@@ -24,9 +24,10 @@ public record ArenaConfig(
     double wallFriction,
     List<SpawnerSpec> spawners,
     int friendlyFire,
-    ArenaModuleDeclarations modules) {
+    ArenaModuleDeclarations modules,
+    BotsConfig bots) {
 
-  /** Empty fallback — frictionless walls, friendly-fire off, no modules. */
+  /** Empty fallback — frictionless walls, friendly-fire off, no modules, no bot roster. */
   public static final ArenaConfig EMPTY =
       new ArenaConfig(
           "",
@@ -35,5 +36,6 @@ public record ArenaConfig(
           PhysicsDefaults.DEFAULT_WALL_FRICTION,
           List.of(),
           0,
-          ArenaModuleDeclarations.EMPTY);
+          ArenaModuleDeclarations.EMPTY,
+          BotsConfig.DEFAULTS);
 }

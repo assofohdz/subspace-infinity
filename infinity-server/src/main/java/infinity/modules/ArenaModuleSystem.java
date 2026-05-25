@@ -186,7 +186,7 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
     }
 
     final ModuleContext context =
-        new ModuleContext(arenaId, entityId, ed, chat, physics, this::moduleSetFor);
+        new ModuleContext(arenaId, entityId, ed, chat, physics, this::moduleSetFor, registry.bots());
     final ArenaModuleSet set = ModuleLoader.build(decls, context);
     loaded.put(entityId, new LoadedArena(arenaId, set, decls));
     bootstrapLifecycle(entityId, arenaId, set);
@@ -273,7 +273,14 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
 
     // Step B — merge: retain unchanged instances; instantiate added specs.
     final ModuleContext ctx =
-        new ModuleContext(current.arenaId(), arenaEntity, ed, chat, physics, this::moduleSetFor);
+        new ModuleContext(
+            current.arenaId(),
+            arenaEntity,
+            ed,
+            chat,
+            physics,
+            this::moduleSetFor,
+            configRegistry.forArena(current.arenaId()).bots());
     final ArenaModuleSet merged =
         ArenaModuleSetMerger.mergeAndRebuild(current.set(), current.decls(), newDecls, ctx);
 

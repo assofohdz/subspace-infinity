@@ -9,6 +9,9 @@ import com.simsilica.es.EntityId;
 import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.SimTime;
+import infinity.Ship;
+import infinity.config.BotShipConfig;
+import infinity.config.BotsConfig;
 import infinity.config.FillUpXTeamsConfig;
 import infinity.es.Dead;
 import infinity.es.Frequency;
@@ -43,6 +46,28 @@ public final class FillUpXTeamsTest {
     m.tickMechanic(arenaId, simTimeAt(0L));
 
     assertEquals("one spawn per freq 0..2", List.of(0, 1, 2), m.spawnedFreqs);
+  }
+
+  @Test
+  public void botsRoster_drivesSpawnCount_overridingTeams() {
+    final DefaultEntityData ed = new DefaultEntityData();
+    final EntityId arenaEntity = ed.createEntity();
+    final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
+    ed.setComponent(arenaEntity, arenaId);
+    ed.setComponent(arenaEntity, new ArenaMap(
+        new Vec3d(0, 0, 0), new Vec3d(1024, 4, 1024), MAP_FILE, 0));
+
+    // Roster of 3 (warbird×2 + shark×1) overrides teams=2 → 3 freqs filled.
+    final BotsConfig bots =
+        new BotsConfig(List.of(new BotShipConfig(Ship.WARBIRD, 2), new BotShipConfig(Ship.SHARK, 1)));
+    final RecordingFillUpXTeams m = new RecordingFillUpXTeams(
+        new ModuleContext(arenaId, arenaEntity, ed, null, null, null, bots),
+        new FillUpXTeamsConfig(2));
+    m.onArenaLoad(arenaId);
+
+    m.tickMechanic(arenaId, simTimeAt(0L));
+
+    assertEquals("roster size (3) drives spawn count, not teams (2)", List.of(0, 1, 2), m.spawnedFreqs);
   }
 
   @Test

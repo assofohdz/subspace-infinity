@@ -74,7 +74,8 @@ public class ConfigRegistrySystemLoadTest {
               0.0,
               List.of(),
               0,
-              ArenaModuleDeclarations.EMPTY);
+              ArenaModuleDeclarations.EMPTY,
+              infinity.config.BotsConfig.DEFAULTS);
 
       registry.load(arenaId, arenaConfig);
 

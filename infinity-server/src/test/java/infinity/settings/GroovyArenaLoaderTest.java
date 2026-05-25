@@ -9,8 +9,12 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import infinity.Ship;
 import infinity.config.ArenaConfig;
+import infinity.config.BehaviourTweak;
+import infinity.config.BotsConfig;
 import infinity.config.SpawnerSpec;
+import infinity.config.TweakOp;
 import infinity.modules.ArenaModuleDeclarations;
 import infinity.modules.ModuleSpec;
 import infinity.settings.GroovyArenaLoader.ArenaConfigBuilder;
@@ -256,6 +260,59 @@ public class GroovyArenaLoaderTest {
     builder.teamSetup("second");
     final ModuleSpec spec = build(builder).modules().teamSetup().orElseThrow();
     assertEquals("second", spec.moduleId());
+  }
+
+  @Test
+  public void evaluate_noBotsBlock_emptyRoster() {
+    final ArenaConfig cfg =
+        new GroovyArenaLoader()
+            .evaluateSourceForTest(ARENA_OPEN + "  map 'foo.lvl'\n" + BLOCK_CLOSE, "t.groovy");
+    assertTrue(cfg.bots().isEmpty());
+  }
+
+  @Test
+  public void evaluate_botsBlock_multiShipCountAndTweak() {
+    final String source =
+        ARENA_OPEN
+            + "  map 'foo.lvl'\n"
+            + "  bots {\n"
+            + "    ship 'warbird', count: 2\n"
+            + "    ship 'leviathan', count: 1, tweak: [['anchor', '*', 1.3], ['engage', '+', 0.2]]\n"
+            + "  }\n"
+            + BLOCK_CLOSE;
+
+    final BotsConfig bots =
+        new GroovyArenaLoader().evaluateSourceForTest(source, "t.groovy").bots();
+
+    assertEquals(2, bots.ships().size());
+    assertEquals(
+        List.of(Ship.WARBIRD, Ship.WARBIRD, Ship.LEVIATHAN), bots.expandedRoster());
+    assertTrue("warbird has no tweak", bots.tweakFor(Ship.WARBIRD).isEmpty());
+    assertEquals(
+        List.of(
+            new BehaviourTweak("anchor", TweakOp.MULTIPLY, 1.3),
+            new BehaviourTweak("engage", TweakOp.ADD, 0.2)),
+        bots.tweakFor(Ship.LEVIATHAN));
+  }
+
+  @Test
+  public void evaluate_botsBlock_bareShipDefaultsCountOne() {
+    final BotsConfig bots =
+        new GroovyArenaLoader()
+            .evaluateSourceForTest(
+                ARENA_OPEN + "  bots {\n    ship 'shark'\n  }\n" + BLOCK_CLOSE, "t.groovy")
+            .bots();
+    assertEquals(List.of(Ship.SHARK), bots.expandedRoster());
+  }
+
+  @Test
+  public void evaluate_botsBlock_unknownShip_yieldsEmptyConfig() {
+    // The builder throws on a bad ship name; the host catches and returns ArenaConfig.EMPTY.
+    final ArenaConfig cfg =
+        new GroovyArenaLoader()
+            .evaluateSourceForTest(
+                ARENA_OPEN + "  bots {\n    ship 'notaship'\n  }\n" + BLOCK_CLOSE, "t.groovy");
+    assertSame(ArenaConfig.EMPTY, cfg);
   }
 
   /** Reflective bridge to package-private build() — same trick as GroovyZoneLoaderTest. */

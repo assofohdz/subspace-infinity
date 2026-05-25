@@ -26,6 +26,7 @@ public final class BotDebug implements EntityComponent {
   private final double intentTurn;
   private final double intentThrust;
   private final int clockHour;
+  private final String shipType;
   private final String objectiveName;
   private final String roleName;
   private final String currentGoalLabel;
@@ -34,7 +35,7 @@ public final class BotDebug implements EntityComponent {
   private final String navMode;
 
   public BotDebug() {
-    this("", -1L, 0.0, 0.0, 0, "", "", "", "", "", "");
+    this("", -1L, 0.0, 0.0, 0, "", "", "", "", "", "", "");
   }
 
   // Wire-crossing data snapshot: the param list mirrors the serialized field set, so a
@@ -46,6 +47,7 @@ public final class BotDebug implements EntityComponent {
       final double intentTurn,
       final double intentThrust,
       final int clockHour,
+      final String shipType,
       final String objectiveName,
       final String roleName,
       final String currentGoalLabel,
@@ -57,6 +59,7 @@ public final class BotDebug implements EntityComponent {
     this.intentTurn = intentTurn;
     this.intentThrust = intentThrust;
     this.clockHour = clockHour;
+    this.shipType = shipType;
     this.objectiveName = objectiveName;
     this.roleName = roleName;
     this.currentGoalLabel = currentGoalLabel;
@@ -83,6 +86,11 @@ public final class BotDebug implements EntityComponent {
 
   public int clockHour() {
     return this.clockHour;
+  }
+
+  /** Bot's ship-type name (e.g. {@code WARBIRD}); empty before derivation. */
+  public String shipType() {
+    return this.shipType;
   }
 
   /** Arena objective name (e.g. {@code koth}); empty until objectives land (#06). */

@@ -7,6 +7,7 @@ import com.simsilica.sim.AbstractGameSystem;
 import infinity.config.ArenaConfig;
 import infinity.config.BombConfig;
 import infinity.config.BotBrainConfig;
+import infinity.config.BotsConfig;
 import infinity.config.BrickConfig;
 import infinity.config.BulletConfig;
 import infinity.config.BurstFireConfig;
@@ -177,6 +178,7 @@ public class ConfigRegistrySystem extends AbstractGameSystem {
 
     // Phase 4: arena-level inline blocks (parsed from arena.groovy, not a fragment include).
     current = current.with(ArenaModuleDeclarations.class, arenaConfig.modules());
+    current = current.with(BotsConfig.class, arenaConfig.bots());
 
     replace(arenaId, current);
   }

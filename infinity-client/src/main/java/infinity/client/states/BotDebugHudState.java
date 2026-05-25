@@ -36,7 +36,8 @@ public class BotDebugHudState extends BaseAppState {
     final EntityData ed = getState(ConnectionState.class).getEntityData();
     this.bots = ed.getEntities(BotShip.class, BotDebug.class);
     this.hud = new Container();
-    this.hud.addChild(new Label("Bots")).setInsets(new Insets3f(2, 6, 2, 6));
+    this.hud.addChild(new Label("Bots  (w: * = selectable behaviour)"))
+        .setInsets(new Insets3f(2, 6, 2, 6));
   }
 
   @Override
@@ -87,26 +88,32 @@ public class BotDebugHudState extends BaseAppState {
 
   private static String formatRow(final Entity bot) {
     final BotDebug debug = bot.get(BotDebug.class);
-    final String targetStr = debug.targetId() < 0 ? "none" : Long.toString(debug.targetId());
-    final String clockStr = debug.clockHour() == 0 ? "-" : debug.clockHour() + "h";
-    // objective/role bracket only when populated (lands with #06).
+    final String ship = debug.shipType().isEmpty() ? "?" : titleCase(debug.shipType());
+    final String tgt =
+        debug.targetId() < 0
+            ? "none"
+            : debug.targetId() + (debug.clockHour() == 0 ? "" : " @" + debug.clockHour() + "h");
+    // objective/role appended to the ship tag once populated (#06).
     final String objRole =
-        debug.objectiveName().isEmpty()
-            ? ""
-            : String.format(" [%s/%s]", debug.objectiveName(), debug.roleName());
+        debug.objectiveName().isEmpty() ? "" : " · " + debug.objectiveName() + "/" + debug.roleName();
+    // Line 1: identity + what it's doing. Line 2: how (BT leaf + steering) + why (weights).
     return String.format(
-        "Bot %s%s  %s  tgt=%s @%s  turn=%+.2f thrust=%+.2f%n"
-            + "  Goal:%s  Nav:%s  W:{%s}  top:%s",
+        "Bot %s [%s%s]  goal:%s  tgt:%s  nav:%s%n"
+            + "  %s  turn%+.2f thr%+.2f  w:{%s}",
         bot.getId().getId(),
+        ship,
         objRole,
+        debug.currentGoalLabel(),
+        tgt,
+        debug.navMode(),
         debug.branch(),
-        targetStr,
-        clockStr,
         debug.intentTurn(),
         debug.intentThrust(),
-        debug.currentGoalLabel(),
-        debug.navMode(),
-        debug.topScores(),
-        debug.weightBreakdown());
+        debug.topScores());
+  }
+
+  /** {@code WARBIRD} → {@code Warbird} for a tidier ship tag. */
+  private static String titleCase(final String name) {
+    return name.charAt(0) + name.substring(1).toLowerCase(java.util.Locale.ROOT);
   }
 }

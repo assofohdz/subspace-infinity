@@ -96,4 +96,13 @@ arena {
     winCondition   'last-crown-standing'
     winCondition   'most-crowns'
     shop           'flat-shop'
+
+    // Per-arena bot roster (ADR-0010/0014): 2 Warbirds + 1 Shark + 1 Leviathan instead of the
+    // old uniform fill. Roster size (4) drives the spawn count; the teams: 2 above is overridden.
+    // Behaviour weights are capability-derived; the leviathan nudges hold-position for the king tile.
+    bots {
+        ship 'warbird',   count: 2
+        ship 'shark',     count: 1
+        ship 'leviathan', count: 1, tweak: [['hold-position', '*', 1.3]]
+    }
 }
