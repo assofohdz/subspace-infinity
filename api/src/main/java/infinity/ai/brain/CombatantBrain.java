@@ -59,16 +59,24 @@ public final class CombatantBrain implements BrainArchetype {
         new Sequence(new IsGoal(Search.class), new SteerWander()),
 
         // v1 fallback when no goal is set (planner not yet run) or a goal branch failed
-        // (e.g. Engage out of range falls through to pursue).
+        // (e.g. Engage out of range). Flow-field approach first (rounds walls toward the target);
+        // straight-line pursue when nav isn't live (SteerApproachTarget fails through).
         engage,
+        new Sequence(new HasTarget(), new SteerApproachTarget()),
         new Sequence(new HasTarget(), new SteerPursue()),
         new SteerWander());
   }
 
-  /** Engage subtree (reused by the {@code Engage} goal branch + the no-goal fallback): orbit + fire-when-aimed. */
+  /**
+   * Engage subtree (reused by the {@code Engage} goal branch + the no-goal fallback): orbit +
+   * fire-when-aimed. Gated on {@link HasLineOfSight} — a wall-occluded target fails here so the BT
+   * falls through to {@code SteerApproachTarget} (navigate around the wall) instead of orbiting +
+   * firing through it. With no nav wired, LoS degrades to SUCCESS (v1 in-range orbit).
+   */
   private static Behavior engageBranch(final BotBrainConfig config) {
     return new Sequence(
         new HasTarget(),
+        new HasLineOfSight(),
         new InWeaponRange(config.engageRange()),
         new SteerOrbitTarget(),
         // Fire-when-aimed: inner Selector swallows mis-aim so the orbit intent written by

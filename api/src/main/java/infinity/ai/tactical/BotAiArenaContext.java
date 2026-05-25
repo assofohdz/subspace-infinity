@@ -14,7 +14,7 @@ import javax.annotation.Nullable;
  */
 public interface BotAiArenaContext {
 
-  /** Flow fields for goal-tile navigation, or {@code null} until production nav lands (slice #03). */
+  /** Flow fields for goal-tile navigation (arena-relative cells), or {@code null} until the arena's map loads. */
   @Nullable
   NavigationFields navigation();
 
@@ -23,4 +23,10 @@ public interface BotAiArenaContext {
 
   /** Engine-authored synergy table crossing a profile into capability-derived behaviour weights. */
   BotSynergyTable synergyTable();
+
+  /** Arena world-origin cell X — subtract from an absolute world cell to index {@link #navigation()}. */
+  int originCellX();
+
+  /** Arena world-origin cell Z — subtract from an absolute world cell to index {@link #navigation()}. */
+  int originCellZ();
 }

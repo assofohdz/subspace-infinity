@@ -48,6 +48,10 @@ public class MapSystem extends BaseInfinitySystem {
   // for asset loading + the LevelFile's display name; it doesn't disambiguate arenas.
   private final Map<String, Set<Vec3d>> arenaBlocks = new HashMap<>();
   private final Map<String, Vec3d> arenaCoordinates = new LinkedHashMap<>();
+  // Arena-relative bot-nav passability grids ([cz][cx], true = empty), derived at map load.
+  // Retained (the projector otherwise discards the LevelFile) so the nav layer can build flow
+  // fields without re-reading the asset. See ADR-0011 (#03).
+  private final Map<String, boolean[][]> arenaPassability = new HashMap<>();
   private Vec3d currentMapLoc = new Vec3d(-1, 0, -1);
   private SimTime time;
   private AssetLoaderService assetLoader;
@@ -190,6 +194,12 @@ public class MapSystem extends BaseInfinitySystem {
     final String fileName = MAP_DIRECTORY + "/" + mapName;
     final LevelFile res = (LevelFile) assetLoader.loadAsset(fileName);
 
+    // Derive the bot-nav passability grid synchronously (cheap; ~1024² booleans) and retain it —
+    // the async projector below would otherwise be the only LevelFile reader. Eroded by the ship
+    // radius (1 cell = 1 world unit per tile) so flow fields don't route bots through sub-body gaps.
+    // See ADR-0011 (#03).
+    arenaPassability.put(arenaName, navPassability(res));
+
     final int tileBase = InfinityConstants.arenaTileBase(arenaIndex);
 
     // Snapshot the sim timestamp synchronously on the caller thread. The async block
@@ -255,7 +265,27 @@ public class MapSystem extends BaseInfinitySystem {
         CompletableFuture.supplyAsync(() -> this.removeBlocksFromLegacyMap(coordinates));
     completableFuture.thenAccept(s -> arenaBlocks.remove(arenaName));
     completableFuture.thenAccept(s -> arenaCoordinates.remove(arenaName));
+    arenaPassability.remove(arenaName);
     return true;
+  }
+
+  /** Arena-relative bot-nav passability grid ({@code [cz][cx]}, true = empty); {@code null} until the map loads. See ADR-0011. */
+  public boolean[][] passability(final String arenaName) {
+    return arenaPassability.get(arenaName);
+  }
+
+  /**
+   * Flip the {@code .lvl} to world-cell passability for bot flow-field nav. <b>Raw, no clearance
+   * erosion</b>: eroding by the ship radius marks every cell within 1 tile of a wall impassable, but
+   * bots constantly sit wall-adjacent, so erosion excluded the bot's own cell from its flow field
+   * (Dijkstra built on the eroded grid never reaches it → ∞ distance → zero gradient → nav fails).
+   * The flow field is the global route; the reactive {@code AvoidObstacles} layer keeps the diameter-2
+   * hull off walls locally. A future "soft clearance" (wall-proximity cost penalty, not a hard cut)
+   * could bias routes away from walls without making wall-adjacent cells unreachable — see
+   * {@link MapSystemLogic#erodeClearance} (retained, currently unused on the nav path).
+   */
+  private boolean[][] navPassability(final LevelFile res) {
+    return MapSystemLogic.derivePassability(res.getMap());
   }
 
   /**
@@ -283,6 +313,8 @@ public class MapSystem extends BaseInfinitySystem {
 
     final LevelFile res = (LevelFile) assetLoader.loadAsset(MAP_DIRECTORY + "/" + newMapName);
     res.setMapName(newMapName);
+    // Re-derive passability for the new map (the nav holder evicts cached fields on swap).
+    arenaPassability.put(arenaName, navPassability(res));
     log.info("Swapping arena {} map -> {} at {}", arenaName, newMapName, tile);
 
     final int tileBase = InfinityConstants.arenaTileBase(arenaIndex);

@@ -40,6 +40,7 @@ public final class Blackboard {
   private PerceptionSnapshot perception;
   private NearbyShip target;
   private String lastBranch = "";
+  private String navDiag = "";
   private WeaponsFiring firing;
   // -1 sentinels = "not yet sampled" (e.g. Energy / EnergyStats components absent).
   private int currentEnergy = -1;
@@ -65,6 +66,15 @@ public final class Blackboard {
 
   public void setLastBranch(final String branch) {
     this.lastBranch = branch;
+  }
+
+  /** Why the flow-field approach did/didn't steer this tick (debug HUD); set by {@code SteerApproachTarget}. */
+  public String navDiag() {
+    return this.navDiag;
+  }
+
+  public void setNavDiag(final String navDiag) {
+    this.navDiag = navDiag;
   }
 
   public MoverState self() {

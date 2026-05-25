@@ -52,10 +52,10 @@ public class BotDebugHudState extends BaseAppState {
   @Override
   protected void onEnable() {
     final Node gui = ((SimpleApplication) getApplication()).getGuiNode();
-    final int width = getApplication().getCamera().getWidth();
     final int height = getApplication().getCamera().getHeight();
-    // Top-right, 300px wide column.
-    this.hud.setLocalTranslation(width - 310f, height - 10f, 100f);
+    // Lower-left: clear of the top-anchored ECS bin-debug HUD, and left-anchored so long rows
+    // (the nav:/weights tail of each line) stay on-screen instead of running off the right edge.
+    this.hud.setLocalTranslation(10f, height * 0.42f, 100f);
     gui.attachChild(this.hud);
   }
 
@@ -99,7 +99,7 @@ public class BotDebugHudState extends BaseAppState {
     // Line 1: identity + what it's doing. Line 2: how (BT leaf + steering) + why (weights).
     return String.format(
         "Bot %s [%s%s]  goal:%s  tgt:%s  nav:%s%n"
-            + "  %s  turn%+.2f thr%+.2f  w:{%s}",
+            + "  bt:%s  turn%+.2f thr%+.2f  w:{%s}",
         bot.getId().getId(),
         ship,
         objRole,

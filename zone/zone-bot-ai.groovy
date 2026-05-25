@@ -20,4 +20,9 @@ botAi {
 
     // Absolute floor dropping near-zero synergy bonuses when weights are derived.
     minBehaviourWeight 0.05
+
+    // Flow-field nav cache (ADR-0011): idle TTL before a transient field is evicted, and the
+    // LRU cap on transient fields per arena. Static (pinned) goal fields are exempt from both.
+    navFieldTtlMs 5000
+    navMaxFields  16
 }

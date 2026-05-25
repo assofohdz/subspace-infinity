@@ -8,16 +8,22 @@ import infinity.ai.field.NavigationFields;
 import javax.annotation.Nullable;
 
 /**
- * Per-arena {@link BotAiArenaContext} the brain reads through the blackboard. Navigation is
- * {@code null} until production flow-field nav lands (slice #03); norms + synergy are live. See
- * ADR-0012 / ADR-0014.
+ * Per-arena {@link BotAiArenaContext} the brain reads through the blackboard (ADR-0012). Navigation
+ * is {@code null} until the arena's map (hence its passability grid) has loaded; norms + synergy are
+ * always present. {@code originCell*} is the arena's world-min corner, used to convert a bot's
+ * absolute world cell into the arena-relative cell the {@link NavigationFields} grid is indexed by.
  */
 public record ServerBotAiArenaContext(
-    ArenaCapabilityNorms norms, BotSynergyTable synergyTable) implements BotAiArenaContext {
+    ArenaCapabilityNorms norms,
+    BotSynergyTable synergyTable,
+    @Nullable NavigationFields navigation,
+    int originCellX,
+    int originCellZ)
+    implements BotAiArenaContext {
 
   @Override
   @Nullable
   public NavigationFields navigation() {
-    return null; // wired in slice #03 when MapSystem exposes a passability grid
+    return this.navigation;
   }
 }

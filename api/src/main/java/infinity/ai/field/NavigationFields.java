@@ -13,4 +13,10 @@ public interface NavigationFields {
 
   /** Drop a cached field (transient goals). */
   void evict(int goalX, int goalY);
+
+  /** True if the straight line of cells from {@code (ax,ay)} to {@code (bx,by)} is unobstructed (LoS). */
+  boolean lineOfSight(int ax, int ay, int bx, int by);
+
+  /** Passable at cell {@code (x,y)}; out-of-bounds counts as wall. For reactive wall avoidance. */
+  boolean passableAt(int x, int y);
 }

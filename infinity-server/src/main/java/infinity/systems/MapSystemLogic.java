@@ -18,6 +18,65 @@ public final class MapSystemLogic {
   }
 
   /**
+   * Arena-relative passability grid for bot navigation (ADR-0011): {@code passable[cz][cx]} is true
+   * where world cell {@code (cx, cz)} is empty. Mirrors {@link LegacyMapProjector}'s axis-flip exactly
+   * — that projector places a solid block at world cell {@code (cx, cz)} reading
+   * {@code tiles[extentX - cx][extentZ - cz]} — so a cell is passable iff that flipped tile is
+   * {@code 0}. Any non-zero tile (wall, door, wormhole, flag) is treated as impassable; door dynamics
+   * are handled by field eviction, not this static grid. Rectangular {@code .lvl} grid assumed.
+   */
+  public static boolean[][] derivePassability(final short[][] tiles) {
+    final int nx = tiles.length;
+    final int nz = nx == 0 ? 0 : tiles[0].length;
+    final int extentX = nx - 1;
+    final int extentZ = nz - 1;
+    final boolean[][] passable = new boolean[nz][nx];
+    for (int cx = 0; cx < nx; cx++) {
+      for (int cz = 0; cz < nz; cz++) {
+        passable[cz][cx] = tiles[extentX - cx][extentZ - cz] == 0;
+      }
+    }
+    return passable;
+  }
+
+  /**
+   * Erodes {@code passable} by {@code clearanceCells} so a ship of that radius (in cells) can center
+   * on a nav-passable cell without its body overlapping a wall — a cell stays passable only if every
+   * cell within Chebyshev distance {@code clearanceCells} (out-of-bounds counts as wall) is passable.
+   * Ships are radius-1 (diameter 2 world units), so the default clearance is 1 cell: corridors
+   * narrower than the ship collapse to impassable, which is correct — the bot couldn't fit anyway.
+   * {@code clearanceCells <= 0} returns the input unchanged.
+   */
+  public static boolean[][] erodeClearance(final boolean[][] passable, final int clearanceCells) {
+    if (clearanceCells <= 0 || passable.length == 0) {
+      return passable;
+    }
+    final int nz = passable.length;
+    final int nx = passable[0].length;
+    final boolean[][] eroded = new boolean[nz][nx];
+    for (int cz = 0; cz < nz; cz++) {
+      for (int cx = 0; cx < nx; cx++) {
+        eroded[cz][cx] = clears(passable, cx, cz, clearanceCells, nx, nz);
+      }
+    }
+    return eroded;
+  }
+
+  private static boolean clears(
+      final boolean[][] passable, final int cx, final int cz, final int r, final int nx, final int nz) {
+    for (int dz = -r; dz <= r; dz++) {
+      for (int dx = -r; dx <= r; dx++) {
+        final int x = cx + dx;
+        final int z = cz + dz;
+        if (x < 0 || z < 0 || x >= nx || z >= nz || !passable[z][x]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
    * Center of the arena tile that contains {@code (currentxCoord, currentzCoord)}.
    * Pure math — no {@link MapSystem} state read — so lives here. {@code MapSystem}
    * has a thin delegating wrapper for backward-compat with {@code mapSystem.getCenterOfArena(...)}

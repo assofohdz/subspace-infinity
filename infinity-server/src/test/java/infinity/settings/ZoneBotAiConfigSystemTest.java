@@ -46,7 +46,7 @@ public class ZoneBotAiConfigSystemTest {
     try {
       Files.write(temp, "// initial".getBytes(StandardCharsets.UTF_8));
       final ZoneBotAiConfig first = ZoneBotAiConfig.DEFAULTS;
-      final ZoneBotAiConfig second = new ZoneBotAiConfig(500L, 0.20, 0.40, 0.10);
+      final ZoneBotAiConfig second = new ZoneBotAiConfig(500L, 0.20, 0.40, 0.10, 8000L, 8);
       final SequencedLoader loader = new SequencedLoader(first, second);
 
       final ZoneBotAiConfigSystem sys =

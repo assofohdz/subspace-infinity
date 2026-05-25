@@ -88,6 +88,8 @@ public class GroovyZoneBotAiLoader {
     private double stickinessMargin = ZoneBotAiConfig.DEFAULTS.stickinessMargin();
     private double minFraction = ZoneBotAiConfig.DEFAULTS.minFraction();
     private double minBehaviourWeight = ZoneBotAiConfig.DEFAULTS.minBehaviourWeight();
+    private long navFieldTtlMs = ZoneBotAiConfig.DEFAULTS.navFieldTtlMs();
+    private int navMaxFields = ZoneBotAiConfig.DEFAULTS.navMaxFields();
 
     ZoneBotAiConfigBuilder() {}
 
@@ -118,6 +120,30 @@ public class GroovyZoneBotAiLoader {
       this.minBehaviourWeight = unitFraction("minBehaviourWeight", value, this.minBehaviourWeight);
     }
 
+    /** Idle-timeout (ms) before a transient flow field is evicted; must be {@code > 0}. */
+    public void navFieldTtlMs(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final long v = value.longValue();
+      if (v <= 0L) {
+        throw new IllegalArgumentException("navFieldTtlMs must be > 0; got " + value);
+      }
+      this.navFieldTtlMs = v;
+    }
+
+    /** LRU cap on transient flow fields per arena; must be {@code > 0}. */
+    public void navMaxFields(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final int v = value.intValue();
+      if (v <= 0) {
+        throw new IllegalArgumentException("navMaxFields must be > 0; got " + value);
+      }
+      this.navMaxFields = v;
+    }
+
     private static double unitFraction(
         final String key, final Number value, final double current) {
       if (value == null) {
@@ -132,7 +158,12 @@ public class GroovyZoneBotAiLoader {
 
     ZoneBotAiConfig build() {
       return new ZoneBotAiConfig(
-          plannerCadenceMillis, stickinessMargin, minFraction, minBehaviourWeight);
+          plannerCadenceMillis,
+          stickinessMargin,
+          minFraction,
+          minBehaviourWeight,
+          navFieldTtlMs,
+          navMaxFields);
     }
   }
 }

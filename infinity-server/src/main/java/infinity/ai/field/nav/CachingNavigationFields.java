@@ -40,6 +40,16 @@ public final class CachingNavigationFields implements NavigationFields {
     this.cache.remove(key(goalX, goalY));
   }
 
+  @Override
+  public boolean lineOfSight(final int ax, final int ay, final int bx, final int by) {
+    return infinity.ai.field.NavGrids.lineOfSight(this.passable, ax, ay, bx, by);
+  }
+
+  @Override
+  public boolean passableAt(final int x, final int y) {
+    return infinity.ai.field.NavGrids.passable(this.passable, x, y);
+  }
+
   private static Long key(final int goalX, final int goalY) {
     return (((long) goalX) << 32) ^ (goalY & 0xffffffffL);
   }
