@@ -5,11 +5,14 @@ package infinity.ai;
 import com.simsilica.es.Entity;
 import com.simsilica.es.EntityContainer;
 import com.simsilica.es.EntityData;
+import com.simsilica.es.EntitySet;
+import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.es.EntityId;
 import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mblock.phys.MBlockShape;
+import com.simsilica.mphys.Bin;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
 import com.simsilica.sim.SimTime;
@@ -37,15 +40,26 @@ import infinity.ai.tactical.TacticalPlanner;
 import infinity.ai.tactical.TacticalPlannerImpl;
 import infinity.config.BehaviourTweak;
 import infinity.config.BotBrainConfig;
+import infinity.ai.field.TileScored;
+import infinity.ai.field.chokepoint.ChokepointAnalyzer;
+import infinity.ai.field.combat.CombatDensityField;
+import infinity.ai.field.density.ArenaDensity;
+import infinity.ai.field.opportunity.OpportunityField;
+import infinity.ai.field.threat.ArenaThreat;
 import infinity.config.BotsConfig;
 import infinity.config.ShipConfig;
 import infinity.config.ZoneBotAiConfig;
 import infinity.es.BotDebug;
+import infinity.es.Dead;
+import infinity.es.Frequency;
+import infinity.es.PrizeType;
+import infinity.es.WeaponType;
 import infinity.es.arena.ArenaId;
 import infinity.es.input.MovementInput;
 import infinity.es.ship.BotShip;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyStats;
+import infinity.es.ship.PlayerShip;
 import infinity.es.ship.RadarRange;
 import infinity.es.ship.ShipType;
 import infinity.settings.ConfigRegistry;
@@ -56,6 +70,8 @@ import infinity.sim.WeaponsFiring;
 import infinity.systems.BaseInfinitySystem;
 import infinity.systems.MapSystem;
 import infinity.systems.ship.WeaponsFireEligibilitySystem;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -121,6 +137,9 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   // single worker thread off the sim tick. Rebuilt when the arena's passability grid is replaced.
   private java.util.concurrent.ExecutorService navBuilder;
   private final Map<String, ArenaNav> navByArena = new java.util.HashMap<>();
+  private long lastDensityNanos = UNPLANNED;
+  private EntitySet prizes;
+  private EntitySet projectiles;
   // Names of the behaviours the planner can actually enumerate — others carry a derived weight
   // but can't yet become a goal (no Behaviour impl); the HUD marks the difference.
   private Set<String> selectableBehaviours = Set.of();
@@ -172,6 +191,8 @@ public final class BotBrainSystem extends BaseInfinitySystem {
         new BrainContainer(
             this.ed, this.brainRegistry, this.firing, this.configRegistrySystem);
     this.brains.start();
+    this.prizes = this.ed.getEntities(PrizeType.class, SpawnPosition.class);
+    this.projectiles = this.ed.getEntities(WeaponType.class, SpawnPosition.class);
   }
 
   @Override
@@ -184,7 +205,16 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       this.navBuilder.shutdownNow();
       this.navBuilder = null;
     }
+    if (this.prizes != null) {
+      this.prizes.release();
+      this.prizes = null;
+    }
+    if (this.projectiles != null) {
+      this.projectiles.release();
+      this.projectiles = null;
+    }
     this.navByArena.clear();
+    this.lastDensityNanos = UNPLANNED;
   }
 
   @Override
@@ -197,10 +227,110 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     for (final BrainWiring wiring : this.brains.getArray()) {
       tickBot(wiring, nowNanos);
     }
+    refreshDynamicFields(nowNanos);
     // Idle-timeout sweep of transient flow fields (pinned static goals survive).
     for (final ArenaNav arenaNav : this.navByArena.values()) {
       arenaNav.fields.evictExpired();
     }
+  }
+
+  /**
+   * Rebuild every arena's dynamic spatial fields on the density cadence (ADR-0012): per-team density
+   * + threat from one active-bin ship pass, opportunity from the prize set + combat (fire) heatmap
+   * from new projectiles this cadence, both assigned to arenas by map-bounds (neither carry an
+   * {@link ArenaId}). Combat decays then accumulates; the others are full rebuilds.
+   */
+  private void refreshDynamicFields(final long nowNanos) {
+    if (this.navByArena.isEmpty()) {
+      return;
+    }
+    final long cadenceNanos = this.zoneBotAi.get().densityCadenceMillis() * 1_000_000L;
+    if (!shouldPlan(this.lastDensityNanos, nowNanos, cadenceNanos)) {
+      return;
+    }
+    this.lastDensityNanos = nowNanos;
+    final Map<String, Map<Integer, List<int[]>>> shipsByArenaFreq = gatherShipCells();
+    final List<int[]> prizeCells = gatherPrizeCells();
+    final List<int[]> shotCells = gatherNewShotCells();
+    for (final Map.Entry<String, ArenaNav> e : this.navByArena.entrySet()) {
+      final ArenaNav nav = e.getValue();
+      final Map<Integer, List<int[]>> ships = shipsByArenaFreq.getOrDefault(e.getKey(), Map.of());
+      nav.density().rebuild(ships);
+      nav.threat().rebuild(ships);
+      nav.opportunity().rebuild(prizesInArena(prizeCells, nav));
+      nav.combat().decay();
+      for (final int[] shot : shotCells) {
+        final int rx = shot[0] - nav.originX();
+        final int rz = shot[1] - nav.originZ();
+        if (rx >= 0 && rz >= 0 && rx < nav.width() && rz < nav.height()) {
+          nav.combat().addShot(shot[0], shot[1]);
+        }
+      }
+    }
+  }
+
+  /** Fire-origin world-cells of projectiles spawned since the last cadence (new shots = combat heat). */
+  private List<int[]> gatherNewShotCells() {
+    this.projectiles.applyChanges();
+    final List<int[]> cells = new ArrayList<>();
+    for (final com.simsilica.es.Entity e : this.projectiles.getAddedEntities()) {
+      final Vec3d loc = e.get(SpawnPosition.class).getLocation();
+      cells.add(new int[] {(int) Math.floor(loc.x), (int) Math.floor(loc.z)});
+    }
+    return cells;
+  }
+
+  /** Prize world-cells falling inside this arena's grid box ({@code [origin, origin+dims)}). */
+  private static List<int[]> prizesInArena(final List<int[]> prizeCells, final ArenaNav nav) {
+    final List<int[]> in = new ArrayList<>();
+    for (final int[] cell : prizeCells) {
+      final int rx = cell[0] - nav.originX();
+      final int rz = cell[1] - nav.originZ();
+      if (rx >= 0 && rz >= 0 && rx < nav.width() && rz < nav.height()) {
+        in.add(cell);
+      }
+    }
+    return in;
+  }
+
+  /**
+   * One pass over the physics active bins, grouping live ship world-cells by arena then by freq.
+   * Active-bin scoped (not every body) so distant/asleep zones cost nothing; ships are bodies
+   * carrying {@link BotShip} or {@link PlayerShip} and a {@link Frequency}.
+   */
+  private Map<String, Map<Integer, List<int[]>>> gatherShipCells() {
+    final Map<String, Map<Integer, List<int[]>>> out = new HashMap<>();
+    for (final Bin<EntityId, MBlockShape> bin : this.space.getBinIndex().getActiveBins()) {
+      for (final RigidBody<EntityId, MBlockShape> body : bin.getActiveObjects().getArray()) {
+        final EntityId id = body.id;
+        final boolean isShip =
+            this.ed.getComponent(id, BotShip.class) != null
+                || this.ed.getComponent(id, PlayerShip.class) != null;
+        if (!isShip || this.ed.getComponent(id, Dead.class) != null) {
+          continue;
+        }
+        final ArenaId arenaId = this.ed.getComponent(id, ArenaId.class);
+        final Frequency freq = this.ed.getComponent(id, Frequency.class);
+        if (arenaId == null || freq == null) {
+          continue;
+        }
+        out.computeIfAbsent(arenaId.getArena(), a -> new HashMap<>())
+            .computeIfAbsent(freq.getFrequency(), f -> new ArrayList<>())
+            .add(new int[] {(int) Math.floor(body.position.x), (int) Math.floor(body.position.z)});
+      }
+    }
+    return out;
+  }
+
+  /** All prize world-cells this cadence (arena assignment happens later by map-bounds). */
+  private List<int[]> gatherPrizeCells() {
+    this.prizes.applyChanges();
+    final List<int[]> cells = new ArrayList<>(this.prizes.size());
+    for (final com.simsilica.es.Entity e : this.prizes) {
+      final Vec3d loc = e.get(SpawnPosition.class).getLocation();
+      cells.add(new int[] {(int) Math.floor(loc.x), (int) Math.floor(loc.z)});
+    }
+    return cells;
   }
 
   /** Compute and write this tick's {@link MovementInput} for one bot. */
@@ -382,7 +512,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     }
   }
 
-  /** Bundle the per-arena bot-AI context: norms + synergy + (once the map loads) flow-field nav + origin. */
+  /** Bundle the per-arena bot-AI context: norms + synergy + (once the map loads) flow-field nav, density + origin. */
   // PMD UnusedPrivateMethod false-positives on the boolean[][] param; called from refreshDerivation.
   @SuppressWarnings("PMD.UnusedPrivateMethod")
   private ServerBotAiArenaContext buildArenaContext(
@@ -391,19 +521,29 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       final ArenaCapabilityNorms norms,
       final BotSynergyTable synergy) {
     if (arenaId == null || passable == null) {
-      return new ServerBotAiArenaContext(norms, synergy, null, 0, 0);
+      return new ServerBotAiArenaContext(
+          norms, synergy, null, 0, 0, null, null, null, null, List.of(), 0.0);
     }
-    final NavigationFields nav = navFor(arenaId.getArena(), passable);
-    final Vec3d min = this.mapSystem.getMapBoundsMin(arenaId.getArena());
+    final ArenaNav nav = arenaNav(arenaId.getArena(), passable);
     return new ServerBotAiArenaContext(
-        norms, synergy, nav, (int) Math.floor(min.x), (int) Math.floor(min.z));
+        norms,
+        synergy,
+        nav.fields(),
+        nav.originX(),
+        nav.originZ(),
+        nav.density(),
+        nav.threat(),
+        nav.opportunity(),
+        nav.combat(),
+        nav.chokepointPool(),
+        this.zoneBotAi.get().chokepointDensityWeight());
   }
 
-  /** Per-arena flow-field nav, rebuilt when MapSystem hands back a new passability grid (map swap). */
+  /** Per-arena nav + density holder, rebuilt when MapSystem hands back a new passability grid (map swap). */
   // CompareObjectsWithEquals: grid reference identity = "map changed". UnusedPrivateMethod is a
   // false positive on the boolean[][] param; called from buildArenaContext.
   @SuppressWarnings({"PMD.CompareObjectsWithEquals", "PMD.UnusedPrivateMethod"})
-  private NavigationFields navFor(final String arena, final boolean[][] passable) {
+  private ArenaNav arenaNav(final String arena, final boolean[][] passable) {
     ArenaNav existing = this.navByArena.get(arena);
     if (existing == null || existing.grid != passable) {
       final ZoneBotAiConfig cfg = this.zoneBotAi.get();
@@ -414,18 +554,45 @@ public final class BotBrainSystem extends BaseInfinitySystem {
               System::nanoTime,
               cfg.navFieldTtlMs() * 1_000_000L,
               cfg.navMaxFields());
-      existing = new ArenaNav(passable, fields);
+      final Vec3d min = this.mapSystem.getMapBoundsMin(arena);
+      final int originX = (int) Math.floor(min.x);
+      final int originZ = (int) Math.floor(min.z);
+      final int height = passable.length;
+      final int width = height == 0 ? 0 : passable[0].length;
+      final ArenaDensity density =
+          new ArenaDensity(width, height, originX, originZ, cfg.densityKernelRadius());
+      final ArenaThreat threat =
+          new ArenaThreat(width, height, originX, originZ, cfg.threatRadius(), passable);
+      final OpportunityField opportunity =
+          new OpportunityField(width, height, originX, originZ, cfg.opportunityRadius());
+      final CombatDensityField combat =
+          new CombatDensityField(
+              width, height, originX, originZ, cfg.densityKernelRadius(), cfg.combatDecayPerCadence());
+      // Pool extra geometric candidates so runtime heatmap re-ranking has material; pin the top-N
+      // (geometric, traffic-independent — static flow-field goals built at arena load).
+      final int topN = cfg.chokepointTopN();
+      final List<TileScored> chokepoints =
+          new ChokepointAnalyzer(passable, cfg.chokepointMaxWidth()).hottest(topN * 3);
+      for (int i = 0; i < Math.min(topN, chokepoints.size()); i++) {
+        fields.pin(chokepoints.get(i).x(), chokepoints.get(i).y());
+      }
+      existing =
+          new ArenaNav(
+              passable, fields, density, threat, opportunity, combat, chokepoints, originX, originZ,
+              width, height);
       this.navByArena.put(arena, existing);
       if (log.isInfoEnabled()) {
         log.info(
-            "bot-nav grid built for arena '{}': {}x{} cells, {} passable",
+            "bot-nav grid built for arena '{}': {}x{} cells, {} passable, {} chokepoints ({} pinned)",
             arena,
-            passable.length == 0 ? 0 : passable[0].length,
-            passable.length,
-            countPassable(passable));
+            width,
+            height,
+            countPassable(passable),
+            chokepoints.size(),
+            Math.min(topN, chokepoints.size()));
       }
     }
-    return existing.fields;
+    return existing;
   }
 
   private static int countPassable(final boolean[][] grid) {
@@ -694,7 +861,18 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   }
 
   /** Per-arena flow-field nav + the passability grid it was built from (rebuilt on grid swap). */
-  private record ArenaNav(boolean[][] grid, AsyncNavigationFields fields) {}
+  private record ArenaNav(
+      boolean[][] grid,
+      AsyncNavigationFields fields,
+      ArenaDensity density,
+      ArenaThreat threat,
+      OpportunityField opportunity,
+      CombatDensityField combat,
+      List<TileScored> chokepointPool,
+      int originX,
+      int originZ,
+      int width,
+      int height) {}
 
   /** Per-{@link BotShip} sidecar holding the brain wiring; see entity-containers.md. */
   private final class BrainContainer extends EntityContainer<BrainWiring> {

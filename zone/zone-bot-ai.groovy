@@ -25,4 +25,26 @@ botAi {
     // LRU cap on transient fields per arena. Static (pinned) goal fields are exempt from both.
     navFieldTtlMs 5000
     navMaxFields  16
+
+    // Per-team density scalar fields (ADR-0012): how often they rebuild from live ship positions,
+    // and the per-ship splat radius (tile cells, linear falloff). Wider radius = smoother gradient
+    // for "drift toward the action" but more cells touched per ship.
+    densityCadenceMillis 330
+    densityKernelRadius  6
+
+    // Threat field (ADR-0012): weapon-range falloff radius (tile cells) each ship adds to its
+    // team's threat surface, line-of-sight gated so walls give cover. Approximates per-weapon range.
+    // Opportunity field: per-prize splat radius for the "bend toward pickups" gradient.
+    threatRadius      20
+    opportunityRadius 8
+
+    // Chokepoints (ADR-0012) = narrow space to pass × traffic heatmap. Geometry: a cell whose
+    // corridor is <= chokepointMaxWidth cells wide. Hotness ranking combines that pinch with the
+    // combat (fire) heatmap + position density: pinch × (1 + combat + chokepointDensityWeight·density).
+    // combatDecayPerCadence fades the fire heatmap each density cadence. chokepointTopN tiles are
+    // pinned as static nav goals per arena.
+    combatDecayPerCadence   0.85
+    chokepointTopN          5
+    chokepointMaxWidth      4
+    chokepointDensityWeight 0.5
 }

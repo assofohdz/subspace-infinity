@@ -90,6 +90,14 @@ public class GroovyZoneBotAiLoader {
     private double minBehaviourWeight = ZoneBotAiConfig.DEFAULTS.minBehaviourWeight();
     private long navFieldTtlMs = ZoneBotAiConfig.DEFAULTS.navFieldTtlMs();
     private int navMaxFields = ZoneBotAiConfig.DEFAULTS.navMaxFields();
+    private long densityCadenceMillis = ZoneBotAiConfig.DEFAULTS.densityCadenceMillis();
+    private int densityKernelRadius = ZoneBotAiConfig.DEFAULTS.densityKernelRadius();
+    private int threatRadius = ZoneBotAiConfig.DEFAULTS.threatRadius();
+    private int opportunityRadius = ZoneBotAiConfig.DEFAULTS.opportunityRadius();
+    private double combatDecayPerCadence = ZoneBotAiConfig.DEFAULTS.combatDecayPerCadence();
+    private int chokepointTopN = ZoneBotAiConfig.DEFAULTS.chokepointTopN();
+    private int chokepointMaxWidth = ZoneBotAiConfig.DEFAULTS.chokepointMaxWidth();
+    private double chokepointDensityWeight = ZoneBotAiConfig.DEFAULTS.chokepointDensityWeight();
 
     ZoneBotAiConfigBuilder() {}
 
@@ -144,6 +152,96 @@ public class GroovyZoneBotAiLoader {
       this.navMaxFields = v;
     }
 
+    /** Min wall-time (ms) between team-density-field rebuilds; must be {@code > 0}. */
+    public void densityCadenceMillis(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final long v = value.longValue();
+      if (v <= 0L) {
+        throw new IllegalArgumentException("densityCadenceMillis must be > 0; got " + value);
+      }
+      this.densityCadenceMillis = v;
+    }
+
+    /** Per-ship density splat radius in tile cells; must be {@code > 0}. */
+    public void densityKernelRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final int v = value.intValue();
+      if (v <= 0) {
+        throw new IllegalArgumentException("densityKernelRadius must be > 0; got " + value);
+      }
+      this.densityKernelRadius = v;
+    }
+
+    /** Per-ship threat (weapon-range) falloff radius in tile cells; must be {@code > 0}. */
+    public void threatRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final int v = value.intValue();
+      if (v <= 0) {
+        throw new IllegalArgumentException("threatRadius must be > 0; got " + value);
+      }
+      this.threatRadius = v;
+    }
+
+    /** Per-prize opportunity splat radius in tile cells; must be {@code > 0}. */
+    public void opportunityRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final int v = value.intValue();
+      if (v <= 0) {
+        throw new IllegalArgumentException("opportunityRadius must be > 0; got " + value);
+      }
+      this.opportunityRadius = v;
+    }
+
+    /** Combat-heatmap fade per cadence; {@code (0,1)} exclusive. */
+    public void combatDecayPerCadence(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || v <= 0.0 || v >= 1.0) {
+        throw new IllegalArgumentException("combatDecayPerCadence must be in (0,1); got " + value);
+      }
+      this.combatDecayPerCadence = v;
+    }
+
+    /** Number of chokepoint tiles pinned as static nav goals; must be {@code > 0}. */
+    public void chokepointTopN(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final int v = value.intValue();
+      if (v <= 0) {
+        throw new IllegalArgumentException("chokepointTopN must be > 0; got " + value);
+      }
+      this.chokepointTopN = v;
+    }
+
+    /** Max corridor width (tile cells) for a chokepoint pinch; must be {@code > 0}. */
+    public void chokepointMaxWidth(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final int v = value.intValue();
+      if (v <= 0) {
+        throw new IllegalArgumentException("chokepointMaxWidth must be > 0; got " + value);
+      }
+      this.chokepointMaxWidth = v;
+    }
+
+    /** Weight on position-density in the chokepoint hotness combo; {@code [0,1]}. */
+    public void chokepointDensityWeight(final Number value) {
+      this.chokepointDensityWeight =
+          unitFraction("chokepointDensityWeight", value, this.chokepointDensityWeight);
+    }
+
     private static double unitFraction(
         final String key, final Number value, final double current) {
       if (value == null) {
@@ -163,7 +261,15 @@ public class GroovyZoneBotAiLoader {
           minFraction,
           minBehaviourWeight,
           navFieldTtlMs,
-          navMaxFields);
+          navMaxFields,
+          densityCadenceMillis,
+          densityKernelRadius,
+          threatRadius,
+          opportunityRadius,
+          combatDecayPerCadence,
+          chokepointTopN,
+          chokepointMaxWidth,
+          chokepointDensityWeight);
     }
   }
 }
