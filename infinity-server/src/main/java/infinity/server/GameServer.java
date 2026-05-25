@@ -151,7 +151,9 @@ import infinity.modules.ArenaLifecycleDispatcherSystem;
 import infinity.modules.ArenaModuleSystem;
 import infinity.modules.ScoreCoordinatorSystem;
 import infinity.settings.ConfigRegistrySystem;
+import infinity.settings.EngineBotAiSystem;
 import infinity.settings.EngineConfigSystem;
+import infinity.settings.ZoneBotAiConfigSystem;
 import infinity.settings.GroovyShipLoader;
 import infinity.systems.SettingsSystem;
 import infinity.systems.ship.ShipSpawnSystem;
@@ -455,6 +457,10 @@ public class GameServer {
 
     systems.register(SettingsSystem.class, new SettingsSystem());
     systems.register(EngineConfigSystem.class, new EngineConfigSystem());
+    // Bot-AI config tiers (ADR-0013 / ADR-0014): engine synergy table + zone tactical knobs.
+    // BotBrainSystem.requireSystem resolves both at init regardless of registration order.
+    systems.register(EngineBotAiSystem.class, new EngineBotAiSystem());
+    systems.register(ZoneBotAiConfigSystem.class, new ZoneBotAiConfigSystem());
     final ConfigRegistrySystem configRegistry = new ConfigRegistrySystem();
     systems.register(ConfigRegistrySystem.class, configRegistry);
     // ADR-0008 arena-module framework. Registers after ConfigRegistry (reads

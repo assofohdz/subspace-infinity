@@ -10,6 +10,11 @@ import infinity.ai.steer.Evade;
 import infinity.ai.steer.OrbitTarget;
 import infinity.ai.steer.Pursue;
 import infinity.ai.steer.Wander;
+import infinity.ai.tactical.Disengage;
+import infinity.ai.tactical.Engage;
+import infinity.ai.tactical.IsGoal;
+import infinity.ai.tactical.NavigateToTile;
+import infinity.ai.tactical.Search;
 import infinity.config.BotBrainConfig;
 import infinity.es.ship.weapons.WeaponType;
 
@@ -41,22 +46,37 @@ public final class CombatantBrain implements BrainArchetype {
 
   @Override
   public Behavior createRoot(final BotBrainConfig config) {
+    final Behavior engage = engageBranch(config);
     return new Selector(
+        // Per-tick reactive override — preempts the chosen goal mid-execution (ADR-0013).
         new Sequence(
             new LowEnergy(config.evadeEnergyFraction()), new HasTarget(), new SteerEvade()),
-        new Sequence(
-            new HasTarget(),
-            new InWeaponRange(config.engageRange()),
-            new SteerOrbitTarget(),
-            // Fire-when-aimed: inner Selector swallows mis-aim so the orbit intent
-            // written by SteerOrbitTarget survives even when we can't shoot this tick.
-            new Selector(
-                new Sequence(
-                    new InAimRange(config.aimConeDegrees()),
-                    new FireWeapon(WeaponType.BULLET)),
-                new AlwaysSucceed())),
+
+        // Goal-driven branches: the TacticalPlanner's choice dispatches here (ADR-0013).
+        new Sequence(new IsGoal(Engage.class), engage),
+        new Sequence(new IsGoal(Disengage.class), new HasTarget(), new SteerEvade()),
+        new Sequence(new IsGoal(NavigateToTile.class), new SteerToGoalTile()),
+        new Sequence(new IsGoal(Search.class), new SteerWander()),
+
+        // v1 fallback when no goal is set (planner not yet run) or a goal branch failed
+        // (e.g. Engage out of range falls through to pursue).
+        engage,
         new Sequence(new HasTarget(), new SteerPursue()),
         new SteerWander());
+  }
+
+  /** Engage subtree (reused by the {@code Engage} goal branch + the no-goal fallback): orbit + fire-when-aimed. */
+  private static Behavior engageBranch(final BotBrainConfig config) {
+    return new Sequence(
+        new HasTarget(),
+        new InWeaponRange(config.engageRange()),
+        new SteerOrbitTarget(),
+        // Fire-when-aimed: inner Selector swallows mis-aim so the orbit intent written by
+        // SteerOrbitTarget survives even when we can't shoot this tick.
+        new Selector(
+            new Sequence(
+                new InAimRange(config.aimConeDegrees()), new FireWeapon(WeaponType.BULLET)),
+            new AlwaysSucceed()));
   }
 
   @Override

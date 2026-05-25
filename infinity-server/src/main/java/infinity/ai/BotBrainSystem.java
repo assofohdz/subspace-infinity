@@ -18,8 +18,23 @@ import infinity.ai.brain.BrainArchetype;
 import infinity.ai.brain.BrainRegistry;
 import infinity.ai.brain.CombatantBrain;
 import infinity.ai.bt.Behavior;
+import infinity.ai.capability.ArenaCapabilityNorms;
+import infinity.ai.capability.BotCapability;
+import infinity.ai.capability.BotSynergyTable;
+import infinity.ai.capability.CapabilityDeriver;
+import infinity.ai.capability.CapabilityProfile;
 import infinity.ai.steer.AvoidObstacles;
+import infinity.ai.tactical.ArchetypeConfig;
+import infinity.ai.tactical.DisengageBehaviour;
+import infinity.ai.tactical.EngageBehaviour;
+import infinity.ai.tactical.SearchBehaviour;
+import infinity.ai.tactical.ServerBotAiArenaContext;
+import infinity.ai.tactical.TacticalGoal;
+import infinity.ai.tactical.TacticalPlanner;
+import infinity.ai.tactical.TacticalPlannerImpl;
 import infinity.config.BotBrainConfig;
+import infinity.config.ShipConfig;
+import infinity.config.ZoneBotAiConfig;
 import infinity.es.BotDebug;
 import infinity.es.arena.ArenaId;
 import infinity.es.input.MovementInput;
@@ -27,11 +42,17 @@ import infinity.es.ship.BotShip;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyStats;
 import infinity.es.ship.RadarRange;
+import infinity.es.ship.ShipType;
 import infinity.settings.ConfigRegistry;
 import infinity.settings.ConfigRegistrySystem;
+import infinity.settings.EngineBotAiSystem;
+import infinity.settings.ZoneBotAiConfigSystem;
 import infinity.sim.WeaponsFiring;
 import infinity.systems.BaseInfinitySystem;
 import infinity.systems.ship.WeaponsFireEligibilitySystem;
+import java.util.List;
+import java.util.Map;
+import javax.annotation.Nullable;
 
 /**
  * Canonical writer of {@link MovementInput} on {@link BotShip} entities. Per-tick: sample
@@ -69,6 +90,9 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   private PhysicsSpace<EntityId, MBlockShape> space;
   private WeaponsFiring firing;
   private ConfigRegistrySystem configRegistrySystem;
+  private EngineBotAiSystem engineBotAi;
+  private ZoneBotAiConfigSystem zoneBotAi;
+  private TacticalPlanner planner;
   private BrainContainer brains;
   private final BrainRegistry brainRegistry = new BrainRegistry();
   // Shared reactive layer — stateless across bots, so one instance suffices.
@@ -84,6 +108,12 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     this.space = physics.getPhysicsSpace();
     this.firing = requireSystem(WeaponsFireEligibilitySystem.class);
     this.configRegistrySystem = requireSystem(ConfigRegistrySystem.class);
+    this.engineBotAi = requireSystem(EngineBotAiSystem.class);
+    this.zoneBotAi = requireSystem(ZoneBotAiConfigSystem.class);
+    this.planner =
+        new TacticalPlannerImpl(
+            List.of(new EngageBehaviour(), new DisengageBehaviour(), new SearchBehaviour()),
+            this.zoneBotAi::get);
     this.brainRegistry.register(new CombatantBrain());
   }
 
@@ -114,13 +144,14 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       return;
     }
     this.brains.update();
+    final long nowNanos = time.getTime();
     for (final BrainWiring wiring : this.brains.getArray()) {
-      tickBot(wiring);
+      tickBot(wiring, nowNanos);
     }
   }
 
   /** Compute and write this tick's {@link MovementInput} for one bot. */
-  private void tickBot(final BrainWiring wiring) {
+  private void tickBot(final BrainWiring wiring, final long nowNanos) {
     final MoverState self = sampleState(wiring.botId);
     if (self == null) {
       // Body not yet attached to the physics space; skip until next tick.
@@ -138,6 +169,13 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     bb.setEnergy(
         energy != null ? energy.getEnergy() : -1,
         energyStats != null ? energyStats.max() : -1);
+
+    // Refresh capability derivation when the arena config changed (incl. EMPTY→loaded once
+    // ArenaId is stamped by membership), then re-select a goal on the planner cadence.
+    refreshDerivation(wiring);
+    bb.setArenaContext(wiring.arenaContext);
+    planOnCadence(wiring, bb, nowNanos);
+
     bb.resetIntent();
     bb.setLastBranch("Idle");
     wiring.brain.tick(bb);
@@ -147,6 +185,76 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     dampOversteer(move);
     this.ed.setComponent(wiring.botId, new MovementInput(move, new Quatd(), MovementInput.NONE));
     writeDebugSnapshot(wiring.botId, self, target, move, bb.lastBranch(), avoiding);
+  }
+
+  /** Re-select the bot's {@link TacticalGoal} once the planner cadence has elapsed (ADR-0013). */
+  private void planOnCadence(final BrainWiring wiring, final Blackboard bb, final long nowNanos) {
+    final ZoneBotAiConfig zoneCfg = this.zoneBotAi.get();
+    final long cadenceNanos = zoneCfg.plannerCadenceMillis() * 1_000_000L;
+    if (nowNanos - wiring.lastPlanNanos < cadenceNanos) {
+      return;
+    }
+    wiring.lastPlanNanos = nowNanos;
+    final TacticalGoal goal = this.planner.select(bb, wiring.archetype);
+    if (goal != null) {
+      bb.setCurrentGoal(goal); // null ⇒ nothing offered; keep the running goal
+    }
+  }
+
+  /**
+   * Re-derive the bot's {@link CapabilityProfile} + {@link ArchetypeConfig} + arena context when its
+   * arena's config snapshot changes (cheap reference compare). Stamps the server-only
+   * {@link BotCapability} cache and rebuilds the weight vector the planner scores against.
+   */
+  // Intentional identity compare: ConfigRegistrySystem.replace() atomically swaps the snapshot
+  // reference on reload, so reference inequality is exactly the "config changed" signal (cheaper
+  // than, and not equivalent to, a deep ConfigRegistry.equals).
+  @SuppressWarnings("PMD.CompareObjectsWithEquals")
+  private void refreshDerivation(final BrainWiring wiring) {
+    final ArenaId arenaId = this.ed.getComponent(wiring.botId, ArenaId.class);
+    final ConfigRegistry registry =
+        arenaId == null ? ConfigRegistry.EMPTY : this.configRegistrySystem.forArena(arenaId);
+    if (registry == wiring.derivedFrom) {
+      return; // snapshot unchanged — derived state still valid
+    }
+    wiring.derivedFrom = registry;
+
+    final BotSynergyTable synergy = this.engineBotAi.get();
+    final ArenaCapabilityNorms norms = CapabilityDeriver.deriveNorms(shipConfigs(registry));
+    wiring.arenaContext = new ServerBotAiArenaContext(norms, synergy);
+
+    final CapabilityProfile profile = deriveProfile(wiring.botId, registry, norms);
+    this.ed.setComponent(wiring.botId, new BotCapability(profile));
+    wiring.archetype = toArchetype(profile, synergy, this.zoneBotAi.get().minBehaviourWeight());
+  }
+
+  /** Profile for the bot's ship type against {@code norms}, or {@code null} when the type isn't configured. */
+  @Nullable
+  private CapabilityProfile deriveProfile(
+      final EntityId botId, final ConfigRegistry registry, final ArenaCapabilityNorms norms) {
+    final ShipType shipType = this.ed.getComponent(botId, ShipType.class);
+    if (shipType == null || shipType.getType() == null) {
+      return null;
+    }
+    final ShipConfig shipConfig = registry.getShip(shipType.getType());
+    return shipConfig == null ? null : CapabilityDeriver.derive(shipConfig, norms);
+  }
+
+  /** Cross {@code profile} through the synergy table into an {@link ArchetypeConfig} weight vector. */
+  private static ArchetypeConfig toArchetype(
+      @Nullable final CapabilityProfile profile,
+      final BotSynergyTable synergy,
+      final double minBehaviourWeight) {
+    if (profile == null) {
+      return new ArchetypeConfig("none", Map.of());
+    }
+    return new ArchetypeConfig(
+        profile.ship().name(), synergy.weightsFor(profile, minBehaviourWeight));
+  }
+
+  /** The arena's configured {@link ShipConfig} templates (for capability normalization). */
+  private static List<ShipConfig> shipConfigs(final ConfigRegistry registry) {
+    return registry.configuredShips().stream().map(registry::getShip).filter(c -> c != null).toList();
   }
 
   /**
@@ -243,20 +351,27 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     return nearest;
   }
 
-  /** Per-bot brain instance + blackboard, instantiated from the registry archetype. */
+  /** Per-bot brain instance + blackboard + tactical-planner state, from the registry archetype. */
   private static final class BrainWiring {
     final EntityId botId;
     final Behavior brain;
     final Blackboard blackboard;
 
+    // Tactical-planner state (ADR-0013). Re-derived when derivedFrom changes; goal re-selected
+    // when lastPlanNanos is older than the zone cadence.
+    long lastPlanNanos = Long.MIN_VALUE;
+    ArchetypeConfig archetype = new ArchetypeConfig("none", Map.of());
+    @Nullable ConfigRegistry derivedFrom;
+    @Nullable ServerBotAiArenaContext arenaContext;
+
     BrainWiring(
         final EntityId botId,
-        final BrainArchetype archetype,
+        final BrainArchetype brainArchetype,
         final BotBrainConfig config,
         final WeaponsFiring firing) {
       this.botId = botId;
-      this.brain = archetype.createRoot(config);
-      this.blackboard = archetype.createBlackboard(config);
+      this.brain = brainArchetype.createRoot(config);
+      this.blackboard = brainArchetype.createBlackboard(config);
       this.blackboard.setSelfId(botId);
       this.blackboard.setFiring(firing);
     }

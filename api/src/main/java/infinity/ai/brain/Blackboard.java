@@ -10,8 +10,12 @@ import infinity.ai.PerceptionSnapshot;
 import infinity.ai.steer.Evade;
 import infinity.ai.steer.OrbitTarget;
 import infinity.ai.steer.Pursue;
+import infinity.ai.steer.SeekDirection;
 import infinity.ai.steer.Wander;
+import infinity.ai.tactical.BotAiArenaContext;
+import infinity.ai.tactical.TacticalGoal;
 import infinity.sim.WeaponsFiring;
+import javax.annotation.Nullable;
 
 /**
  * Per-bot scratchpad shared between BT nodes for one tick. {@link infinity.ai.bt.Action}
@@ -27,6 +31,9 @@ public final class Blackboard {
   private final Wander wander;
   private final OrbitTarget orbit;
   private final Evade evade;
+  // Flow-field heading consumer for the NavigateToTile goal; full-thrust like the other primitives.
+  // Field-initialized (not ctor-injected) so existing 4-arg callers are untouched; dormant until #03.
+  private final SeekDirection seek = new SeekDirection(1.0);
 
   private EntityId selfId;
   private MoverState self;
@@ -37,6 +44,8 @@ public final class Blackboard {
   // -1 sentinels = "not yet sampled" (e.g. Energy / EnergyStats components absent).
   private int currentEnergy = -1;
   private int maxEnergy = -1;
+  @Nullable private TacticalGoal currentGoal;
+  @Nullable private BotAiArenaContext arenaContext;
 
   public Blackboard(
       final Pursue pursue,
@@ -124,6 +133,11 @@ public final class Blackboard {
     return this.evade;
   }
 
+  /** Flow-field heading consumer for {@code NavigateToTile}; dormant until production nav (slice #03). */
+  public SeekDirection seek() {
+    return this.seek;
+  }
+
   /** Current energy pool; {@code -1} when the bot has no {@code Energy} component yet. */
   public int currentEnergy() {
     return this.currentEnergy;
@@ -137,5 +151,25 @@ public final class Blackboard {
   public void setEnergy(final int currentEnergy, final int maxEnergy) {
     this.currentEnergy = currentEnergy;
     this.maxEnergy = maxEnergy;
+  }
+
+  /** Goal chosen by the {@code TacticalPlanner}; the BT dispatches on its type. Null until first select. */
+  @Nullable
+  public TacticalGoal currentGoal() {
+    return this.currentGoal;
+  }
+
+  public void setCurrentGoal(@Nullable final TacticalGoal currentGoal) {
+    this.currentGoal = currentGoal;
+  }
+
+  /** Per-arena bot-AI services (navigation, norms, synergy); null in api-only tests + until injected. */
+  @Nullable
+  public BotAiArenaContext arenaContext() {
+    return this.arenaContext;
+  }
+
+  public void setArenaContext(@Nullable final BotAiArenaContext arenaContext) {
+    this.arenaContext = arenaContext;
   }
 }
