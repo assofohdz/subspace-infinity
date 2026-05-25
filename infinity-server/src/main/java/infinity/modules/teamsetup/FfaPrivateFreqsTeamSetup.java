@@ -11,7 +11,6 @@ import infinity.es.ChangeTarget;
 import infinity.es.Frequency;
 import infinity.es.FrequencyChange;
 import infinity.es.arena.ArenaId;
-import infinity.es.ship.PlayerShip;
 import infinity.es.ship.ShipType;
 import infinity.es.team.TeamEntity;
 import infinity.es.team.TeamMemberCount;
@@ -24,12 +23,12 @@ import java.util.NavigableSet;
 import java.util.TreeSet;
 
 /**
- * Each player ship in this arena gets its own freq. Per-tick: drains the {@code (ArenaId,
- * Frequency, ShipType, Player)} EntitySet — new player ships claim the lowest-free freq
- * (emits a {@link FrequencyChange} intent for {@code FrequencySystem} to drain), departing
- * ships release their freq. Per claimed freq, owns a {@code TeamEntity} entity carrying
- * {@code Frequency}, {@code ArenaId}, and {@link TeamMemberCount} — always 1 in FFA (the
- * type is forward-compat for multi-member team setups).
+ * Each ship in this arena — player <em>or</em> bot — gets its own freq. Per-tick: drains
+ * the {@code (ArenaId, Frequency, ShipType)} EntitySet — new ships claim the lowest-free
+ * freq (emits a {@link FrequencyChange} intent for {@code FrequencySystem} to drain),
+ * departing ships release their freq. Per claimed freq, owns a {@code TeamEntity} entity
+ * carrying {@code Frequency}, {@code ArenaId}, and {@link TeamMemberCount} — always 1 in
+ * FFA (the type is forward-compat for multi-member team setups).
  *
  * <p>Initial-assignment policy: subsequent {@code Frequency} changes (e.g. via the
  * {@code =N} admin chat command) are NOT enforced. FFA private-freqs is initial-only.
@@ -39,7 +38,7 @@ public final class FfaPrivateFreqsTeamSetup implements TeamSetupModule {
   private final EntityData ed;
   private final ArenaId arenaId;
   private final EntityId arenaEntityId;
-  private EntitySet playerShips;
+  private EntitySet ships;
   private final Map<EntityId, Integer> shipToFreq = new HashMap<>();
   private final Map<Integer, EntityId> teamByFreq = new HashMap<>();
   private final NavigableSet<Integer> claimedFreqs = new TreeSet<>();
@@ -48,18 +47,19 @@ public final class FfaPrivateFreqsTeamSetup implements TeamSetupModule {
     this.ed = ctx.ed();
     this.arenaId = ctx.arenaId();
     this.arenaEntityId = ctx.arenaEntity();
-    this.playerShips = ed.getEntities(ArenaId.class, Frequency.class, ShipType.class, PlayerShip.class);
+    // Claims every ship (player or bot) — bots carry ShipType but not PlayerShip.
+    this.ships = ed.getEntities(ArenaId.class, Frequency.class, ShipType.class);
   }
 
   @Override
   public void tickTeamSetup(final ArenaId arenaIdParam, final SimTime time) {
-    if (playerShips == null || !playerShips.applyChanges()) {
+    if (ships == null || !ships.applyChanges()) {
       return;
     }
-    for (final Entity removed : playerShips.getRemovedEntities()) {
+    for (final Entity removed : ships.getRemovedEntities()) {
       releaseShip(removed.getId());
     }
-    for (final Entity added : playerShips.getAddedEntities()) {
+    for (final Entity added : ships.getAddedEntities()) {
       if (!arenaId.equals(added.get(ArenaId.class))) {
         continue;
       }
@@ -69,9 +69,9 @@ public final class FfaPrivateFreqsTeamSetup implements TeamSetupModule {
 
   @Override
   public void onArenaUnload(final ArenaId unloadedArenaId) {
-    if (playerShips != null) {
-      playerShips.release();
-      playerShips = null;
+    if (ships != null) {
+      ships.release();
+      ships = null;
     }
     for (final EntityId teamId : teamByFreq.values()) {
       ed.removeEntity(teamId);

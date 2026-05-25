@@ -306,17 +306,23 @@ Each row: actionable item + source file:line + brief context.
   `ArenaMembershipSystem` / `ArenaSystem` writer split (per
   `replacement-as-mutation.md`) so the stamp doesn't create a second writer.
 
-- [ ] **Suspected entity churn / leak: with 8 bots, `EntityId` counter climbs
-  by ~1000s/sec.** Observed 2026-05-25 during bot-AI #07 testing. `EntityId`s
-  are a monotonic counter and never reused, so a *fast-climbing id number is
-  not itself a leak* — it just means lots of short-lived entities are being
-  created (projectiles, `*Change` holder entities per RaM, audio/effect
-  entities, Decay-reaped temporaries). The real question is whether the **live
-  entity count grows unbounded** (a leak — entities created but never
-  destroyed) vs. **stays bounded** (healthy churn — created and reaped each
-  tick). First step: log `DefaultEntityData` live-entity count over time with 8
-  bots idle vs. firing; if it plateaus, it's churn (consider rate, not leak).
-  If it grows without bound, hunt the unreleased creator — likely suspects:
+- [~] **Suspected entity churn / leak: with 8 bots, `EntityId` counter climbs
+  by ~1000s/sec.** Observed 2026-05-25 during bot-AI #07 testing. **Primary
+  cause found + fixed (2026-05-25):** `FillUpXTeams` counted live bots only via
+  the `ArenaId`-gated `arenaShips` set. A stuck (`v~0`) bot stops generating
+  arena-sensor contacts, so `ArenaMembershipSystem`'s exit-grace sweep strips
+  its `ArenaId` and it drops out of that set *while still alive* — so the
+  mechanic respawned a replacement every tick (and culled the overflow once
+  they re-registered), a spawn/cull storm. Fix: count bots from the
+  `spawnedBots` tracker (∪ registered, minus `Dead`, excluding bots migrated to
+  another arena); prune the tracker by `BotShip`-presence (reaped) rather than
+  by `arenaShips` membership. Regression test:
+  `FillUpXTeamsTest.boundedTwoTeams_stuckBotLosesArenaId_notRespawned`. Note
+  the deeper smell — `ArenaId` has two writers (`spawnBot`'s manual stamp +
+  `ArenaMembershipSystem`); the fix decouples bot-counting from that volatility
+  rather than resolving the multi-writer (left as a separate concern).
+  **Remaining:** manual in-game verify the id-climb actually stops with 8 bots;
+  if it still climbs, hunt secondary churn — likely suspects:
   a `*Change` holder entity created but not destroyed by its canonical writer
   (one-shot drain should `removeEntity`; see `replacement-as-mutation.md`
   four-line state machine), a per-tick spawn missing a `Decay`, or a bot

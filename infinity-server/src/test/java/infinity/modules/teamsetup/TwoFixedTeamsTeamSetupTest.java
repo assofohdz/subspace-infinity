@@ -14,6 +14,7 @@ import infinity.es.ChangeTarget;
 import infinity.es.Frequency;
 import infinity.es.FrequencyChange;
 import infinity.es.arena.ArenaId;
+import infinity.es.ship.BotShip;
 import infinity.es.ship.PlayerShip;
 import infinity.es.ship.ShipType;
 import infinity.es.team.TeamEntity;
@@ -135,21 +136,23 @@ public final class TwoFixedTeamsTeamSetupTest {
   }
 
   @Test
-  public void nonPlayerShipIsIgnored() {
+  public void botShip_isClaimedAndBalanced_likeAPlayer() {
     module.onArenaLoad(thisArena);
     final EntityId bot = ed.createEntity();
     ed.setComponent(bot, thisArena);
-    ed.setComponent(bot, new Frequency(0));
+    ed.setComponent(bot, new Frequency(1)); // factory seed; team setup reassigns
     ed.setComponent(bot, new ShipType(Ship.JAVELIN));
-    // no PlayerShip marker
+    ed.setComponent(bot, new BotShip()); // bot marker, not PlayerShip
 
     module.tickTeamSetup(thisArena, simTimeAt(0L));
 
     freqChanges.applyChanges();
-    assertEquals("bot generates no FrequencyChange", 0, freqChanges.size());
+    assertEquals("bot is claimed → one FrequencyChange", 1, freqChanges.size());
+    final Entity intent = freqChanges.iterator().next();
+    assertEquals(bot, intent.get(ChangeTarget.class).target());
+    assertEquals("first claimant ties to freq 0", 0, intent.get(FrequencyChange.class).newFrequency());
     teams.applyChanges();
-    assertEquals("both team counts unchanged",
-        List.of(0, 0), countsInFreqOrder());
+    assertEquals("bot counts toward freq 0", List.of(1, 0), countsInFreqOrder());
   }
 
   /** Reads [memberCount(freq=0), memberCount(freq=1)] off the live team entities. */

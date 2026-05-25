@@ -11,7 +11,6 @@ import infinity.es.ChangeTarget;
 import infinity.es.Frequency;
 import infinity.es.FrequencyChange;
 import infinity.es.arena.ArenaId;
-import infinity.es.ship.PlayerShip;
 import infinity.es.ship.ShipType;
 import infinity.es.team.TeamEntity;
 import infinity.es.team.TeamMemberCount;
@@ -19,13 +18,14 @@ import infinity.modules.ModuleContext;
 import infinity.modules.TeamSetupModule;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.OptionalInt;
 
 /**
  * Eager two-team setup (freq 0 + freq 1). Creates both {@link TeamEntity} instances at
  * {@code onArenaLoad}; team entities persist across the arena lifetime (members come and
- * go but the team slot does not). New player ships are balanced to the team with the
- * lower {@link TeamMemberCount} — tie breaks to freq 0. Ship-leave decrements the owning
- * team's count.
+ * go but the team slot does not). New ships — players <em>and</em> bots — are balanced to
+ * the team with the lower {@link TeamMemberCount} — tie breaks to freq 0. Ship-leave
+ * decrements the owning team's count.
  *
  * <p>Canonical writer of {@link TeamEntity}, {@link TeamMemberCount}, and the team's
  * {@link Frequency}. Ship-side {@code Frequency} flows via {@link FrequencyChange} intent
@@ -38,7 +38,7 @@ public final class TwoFixedTeamsTeamSetup implements TeamSetupModule {
   private final EntityData ed;
   private final ArenaId arenaId;
   private final EntityId arenaEntityId;
-  private EntitySet playerShips;
+  private EntitySet ships;
   private final Map<EntityId, Integer> shipToFreq = new HashMap<>();
   private final EntityId[] teamByFreq = new EntityId[TEAM_COUNT];
   private final int[] memberCounts = new int[TEAM_COUNT];
@@ -47,8 +47,13 @@ public final class TwoFixedTeamsTeamSetup implements TeamSetupModule {
     this.ed = ctx.ed();
     this.arenaId = ctx.arenaId();
     this.arenaEntityId = ctx.arenaEntity();
-    this.playerShips =
-        ed.getEntities(ArenaId.class, Frequency.class, ShipType.class, PlayerShip.class);
+    // Claims every ship (player or bot) — bots carry ShipType but not PlayerShip.
+    this.ships = ed.getEntities(ArenaId.class, Frequency.class, ShipType.class);
+  }
+
+  @Override
+  public OptionalInt fixedTeamCount() {
+    return OptionalInt.of(TEAM_COUNT);
   }
 
   @Override
@@ -68,13 +73,13 @@ public final class TwoFixedTeamsTeamSetup implements TeamSetupModule {
 
   @Override
   public void tickTeamSetup(final ArenaId arenaIdParam, final SimTime time) {
-    if (playerShips == null || !playerShips.applyChanges()) {
+    if (ships == null || !ships.applyChanges()) {
       return;
     }
-    for (final Entity removed : playerShips.getRemovedEntities()) {
+    for (final Entity removed : ships.getRemovedEntities()) {
       releaseShip(removed.getId());
     }
-    for (final Entity added : playerShips.getAddedEntities()) {
+    for (final Entity added : ships.getAddedEntities()) {
       if (!arenaId.equals(added.get(ArenaId.class))) {
         continue;
       }
@@ -84,9 +89,9 @@ public final class TwoFixedTeamsTeamSetup implements TeamSetupModule {
 
   @Override
   public void onArenaUnload(final ArenaId unloadedArenaId) {
-    if (playerShips != null) {
-      playerShips.release();
-      playerShips = null;
+    if (ships != null) {
+      ships.release();
+      ships = null;
     }
     for (int freq = 0; freq < TEAM_COUNT; freq++) {
       if (teamByFreq[freq] != null) {

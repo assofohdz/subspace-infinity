@@ -14,6 +14,7 @@ import infinity.es.ChangeTarget;
 import infinity.es.Frequency;
 import infinity.es.FrequencyChange;
 import infinity.es.arena.ArenaId;
+import infinity.es.ship.BotShip;
 import infinity.es.ship.PlayerShip;
 import infinity.es.ship.ShipType;
 import infinity.es.team.TeamEntity;
@@ -91,19 +92,21 @@ public final class FfaPrivateFreqsTeamSetupTest {
   }
 
   @Test
-  public void nonPlayerShipIsIgnored() {
+  public void botShip_claimsItsOwnFreq_likeAPlayer() {
     final EntityId bot = ed.createEntity();
     ed.setComponent(bot, thisArena);
-    ed.setComponent(bot, new Frequency(0));
+    ed.setComponent(bot, new Frequency(1)); // factory seed; team setup reassigns
     ed.setComponent(bot, new ShipType(Ship.JAVELIN));
-    // no Player marker
+    ed.setComponent(bot, new BotShip()); // bot marker, not PlayerShip
 
     module.tickTeamSetup(thisArena, simTimeAt(0L));
 
     freqChanges.applyChanges();
     teams.applyChanges();
-    assertEquals("bot generates no FrequencyChange", 0, freqChanges.size());
-    assertEquals("bot generates no TeamEntity", 0, teams.size());
+    assertEquals("bot is claimed → one FrequencyChange", 1, freqChanges.size());
+    assertEquals("freq 0 (lowest free) assigned",
+        0, freqChanges.iterator().next().get(FrequencyChange.class).newFrequency());
+    assertEquals("bot gets its own TeamEntity", 1, teams.size());
   }
 
   @Test
