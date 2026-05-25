@@ -12,14 +12,10 @@ import com.simsilica.sim.SimTime;
 import infinity.InfinityConstants;
 import infinity.Ship;
 import infinity.config.FillUpXTeamsConfig;
-import infinity.es.ChangeTarget;
 import infinity.es.Dead;
 import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
-import infinity.es.ship.EnergyChange;
-import infinity.es.ship.EnergyStats;
-import infinity.es.ship.EnergyStatsChange;
 import infinity.modules.ArenaModuleSet;
 import infinity.modules.ArenaModuleSetLookup;
 import infinity.modules.MechanicModule;
@@ -28,11 +24,10 @@ import infinity.modules.SpawnPlacementModule;
 import infinity.sim.AIEntities;
 import java.util.Optional;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 
 /**
- * Per-tick keeps freqs {@code 0..teams-1} populated by spawning a Javelin mob
+ * Per-tick keeps freqs {@code 0..teams-1} populated by spawning a bot mob
  * (via {@link AIEntities#createMobShip}) on any freq that currently has zero
  * non-{@link Dead} ships in this arena. Auto-respawns after a bot is reaped
  * (next tick after {@code DecaySystem} clears the corpse). Tracks spawned
@@ -46,17 +41,11 @@ import java.util.Set;
  * <p>Spawn loc: arena centre read from {@link ArenaMap}; first tick caches.
  * No spawn happens until {@code ArenaMap} is present (arena fully loaded).
  *
- * <p>Bots are nerfed after {@code ShipSpawnSystem} projects the canonical Ship
- * stats: {@link Energy} clamped to {@link #BOT_HP} and {@link EnergyStats}
- * rewritten so the cap can't recharge above {@code BOT_HP} and regen is zero
- * (no self-heal between shots). Picks up the bot the tick after spawn via a
- * {@code pendingNerf} drain. Tunable defaults to one-shot from a warbird
- * bullet (~520 dmg) — adjust {@code BOT_HP} when testing other weapon damage.
+ * <p>Bots spawn with full canonical {@code ShipConfig} stats. Tuning a ship to be
+ * one-shottable (e.g. for kill-test arenas) is a per-arena bullet-damage / ship-energy
+ * config concern, not a runtime spawner responsibility.
  */
 public class FillUpXTeams implements MechanicModule {
-
-  /** Bot max energy after the post-spawn nerf — well below warbird bullet damage (~520). */
-  private static final int BOT_HP = 100;
 
   private final EntityData ed;
   private final EntityId arenaEntity;
@@ -67,7 +56,6 @@ public class FillUpXTeams implements MechanicModule {
   private final ArenaModuleSetLookup modules;
   /** Set (not List) so per-tick prune on bot reap is O(1). */
   private final Set<EntityId> spawnedBots = new HashSet<>();
-  private final Set<EntityId> pendingNerf = new HashSet<>();
   private EntitySet arenaShips;
   private Vec3d cachedSpawnCenter;
 
@@ -118,10 +106,8 @@ public class FillUpXTeams implements MechanicModule {
       // satisfy this set's filter.
       for (final Entity removed : arenaShips.getRemovedEntities()) {
         spawnedBots.remove(removed.getId());
-        pendingNerf.remove(removed.getId());
       }
     }
-    drainPendingNerf();
     final int effectiveSpawnCount = teams + countPerPlayer * countActivePlayers();
     final Set<Integer> presentFreqs = countOccupiedFreqs();
     for (int freq = 0; freq < effectiveSpawnCount; freq++) {
@@ -159,73 +145,6 @@ public class FillUpXTeams implements MechanicModule {
     return count;
   }
 
-  /**
-   * Once {@link EnergyStats} is projected, emit canonical-writer change-entities
-   * to clamp Energy + max so warbird bullets one-shot. Direct setComponent
-   * would violate ADR-0001's single-canonical-writer rule for Energy /
-   * EnergyStats (those are owned by EnergySystem / EnergyStatsSystem).
-   *
-   * <p>Skips Dead bots — their EnergyStats projection survives until reap, but
-   * applying changes to a corpse is wasted work + the EnergySystem.applyDelta
-   * Dead-gate would no-op anyway.
-   */
-  private void drainPendingNerf() {
-    final Iterator<EntityId> it = pendingNerf.iterator();
-    while (it.hasNext()) {
-      final EntityId bot = it.next();
-      if (ed.getComponent(bot, Dead.class) != null) {
-        it.remove();
-        continue;
-      }
-      final EnergyStats existing = ed.getComponent(bot, EnergyStats.class);
-      if (existing == null) {
-        continue; // ShipSpawnSystem hasn't projected yet — retry next tick
-      }
-      emitNerfChanges(bot, existing);
-      it.remove();
-    }
-  }
-
-  /** Emits one Change-entity per Energy / EnergyStats field needed to clamp the bot to {@link #BOT_HP}. */
-  private void emitNerfChanges(final EntityId bot, final EnergyStats existing) {
-    emitEnergyClamp(bot);
-    emitStatsClamp(bot, existing);
-  }
-
-  private void emitEnergyClamp(final EntityId bot) {
-    final infinity.es.ship.Energy current = ed.getComponent(bot, infinity.es.ship.Energy.class);
-    final int delta = BOT_HP - (current == null ? 0 : current.getEnergy());
-    if (delta == 0) {
-      return;
-    }
-    final EntityId h = ed.createEntity();
-    ed.setComponents(h, ChangeTarget.self(bot), new EnergyChange(delta));
-  }
-
-  private void emitStatsClamp(final EntityId bot, final EnergyStats existing) {
-    final Integer dMax = nonZeroOrNull(BOT_HP - existing.max());
-    final Integer dHardMax = nonZeroOrNull(BOT_HP - existing.hardMax());
-    final Double dRps = nonZeroOrNull(-existing.rechargePerSecond());
-    final Double dRmax = nonZeroOrNull(-existing.rechargeMax());
-    final Double dRup = nonZeroOrNull(-existing.rechargeUpgrade());
-    if (dMax == null && dHardMax == null && dRps == null && dRmax == null && dRup == null) {
-      return;
-    }
-    final EntityId h = ed.createEntity();
-    ed.setComponents(
-        h,
-        ChangeTarget.self(bot),
-        new EnergyStatsChange(dMax, dHardMax, null, dRps, dRmax, dRup));
-  }
-
-  private static Integer nonZeroOrNull(final int v) {
-    return v == 0 ? null : v;
-  }
-
-  private static Double nonZeroOrNull(final double v) {
-    return Double.compare(v, 0.0) == 0 ? null : v;
-  }
-
   private Set<Integer> countOccupiedFreqs() {
     final Set<Integer> present = new HashSet<>();
     for (final Entity e : arenaShips) {
@@ -257,12 +176,16 @@ public class FillUpXTeams implements MechanicModule {
   /** Test seam — override to record spawn requests without invoking the physics-bound factory. */
   protected EntityId spawnBot(final long createdTimeNanos, final int freq) {
     final Vec3d loc = resolveBotSpawn(freq);
-    final EntityId bot = AIEntities.createMobShip(
-        loc, ed, EntityId.NULL_ID, phys, createdTimeNanos, Ship.JAVELIN.getId());
+    // Interim multi-hull demo: map freq → a distinct hull (freqs 0..7 → ships 1..8, cycling
+    // beyond). Lets the ffa-bots smoke arena put one of each hull on the map so capability-
+    // derived behaviour divergence is observable. Superseded by the per-arena `bots { }`
+    // authoring in bot-ai-v2 slice #01.
+    final byte shipId = (byte) (freq % Ship.values().length + 1);
+    final EntityId bot =
+        AIEntities.createMobShip(loc, ed, EntityId.NULL_ID, phys, createdTimeNanos, shipId);
     ed.setComponent(bot, arenaId);
     ed.setComponent(bot, new Frequency(freq));
     spawnedBots.add(bot);
-    pendingNerf.add(bot);
     return bot;
   }
 

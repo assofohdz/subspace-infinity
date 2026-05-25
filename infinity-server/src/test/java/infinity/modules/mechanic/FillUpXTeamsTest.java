@@ -3,11 +3,9 @@
 package infinity.modules.mechanic;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.simsilica.es.EntityId;
-import com.simsilica.es.EntitySet;
 import com.simsilica.es.base.DefaultEntityData;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.sim.SimTime;
@@ -16,10 +14,6 @@ import infinity.es.Dead;
 import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
-import infinity.es.ship.Energy;
-import infinity.es.ship.EnergyChange;
-import infinity.es.ship.EnergyStats;
-import infinity.es.ship.EnergyStatsChange;
 import infinity.modules.ModuleContext;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,67 +122,6 @@ public final class FillUpXTeamsTest {
   }
 
   @Test
-  public void pendingNerf_emitsCanonicalChangeEntities_onceProjected() {
-    // Routes through ADR-0001 canonical writers (EnergySystem / EnergyStatsSystem)
-    // rather than direct setComponent. Verifies the emitted Change holders carry
-    // the right deltas; the drain itself is covered by the writers' own tests.
-    final DefaultEntityData ed = new DefaultEntityData();
-    final EntityId arenaEntity = ed.createEntity();
-    final ArenaId arenaId = new ArenaId(ARENA_NAME, arenaEntity);
-    ed.setComponent(arenaEntity, arenaId);
-    ed.setComponent(arenaEntity, new ArenaMap(
-        new Vec3d(0, 0, 0), new Vec3d(1024, 4, 1024), MAP_FILE, 0));
-
-    final SpawnRecordingFillUpXTeams m = new SpawnRecordingFillUpXTeams(
-        new ModuleContext(arenaId, arenaEntity, ed, null, null),
-        new FillUpXTeamsConfig(1));
-    m.onArenaLoad(arenaId);
-
-    // Tick 1: bot spawn recorded; nerf pending.
-    m.tickMechanic(arenaId, simTimeAt(0L));
-    final EntityId bot = m.spawned.get(0);
-    assertTrue("bot tracked as pending", m.isPendingNerf(bot));
-
-    // Simulate ShipSpawnSystem projecting full Javelin stats.
-    ed.setComponent(bot, new Energy(1500));
-    ed.setComponent(bot, new EnergyStats(1500, 1500, 0, 150.0, 150.0, 0.0));
-
-    // Tick 2: nerf drain emits canonical Change-entity holders.
-    m.tickMechanic(arenaId, simTimeAt(0L));
-
-    assertTrue("removed from pending after emit", !m.isPendingNerf(bot));
-    // Find the emitted holders for this bot (ChangeTarget.target == bot).
-    final EntitySet energyChanges = ed.getEntities(
-        EnergyChange.class, infinity.es.ChangeTarget.class);
-    energyChanges.applyChanges();
-    final EnergyChange ec = findChangeFor(energyChanges, bot, EnergyChange.class);
-    assertNotNull("EnergyChange holder emitted for the bot", ec);
-    assertEquals("Energy delta = BOT_HP - currentEnergy (100 - 1500)", -1400, ec.delta());
-
-    final EntitySet statsChanges = ed.getEntities(
-        EnergyStatsChange.class, infinity.es.ChangeTarget.class);
-    statsChanges.applyChanges();
-    final EnergyStatsChange esc = findChangeFor(statsChanges, bot, EnergyStatsChange.class);
-    assertNotNull("EnergyStatsChange holder emitted", esc);
-    assertEquals("max delta = -1400", Integer.valueOf(-1400), esc.deltaMax());
-    assertEquals("rechargePerSecond delta = -150.0",
-        Double.valueOf(-150.0), esc.deltaRechargePerSecond());
-    energyChanges.release();
-    statsChanges.release();
-  }
-
-  private static <T extends com.simsilica.es.EntityComponent> T findChangeFor(
-      final EntitySet set, final EntityId target, final Class<T> componentClass) {
-    for (final com.simsilica.es.Entity e : set) {
-      final infinity.es.ChangeTarget ct = e.get(infinity.es.ChangeTarget.class);
-      if (target.equals(ct.target())) {
-        return e.get(componentClass);
-      }
-    }
-    return null;
-  }
-
-  @Test
   public void noArenaMapYet_doesNotSpawn() {
     final DefaultEntityData ed = new DefaultEntityData();
     final EntityId arenaEntity = ed.createEntity();
@@ -225,45 +158,6 @@ public final class FillUpXTeamsTest {
     protected EntityId spawnBot(final long createdTimeNanos, final int freq) {
       spawnedFreqs.add(freq);
       return null;
-    }
-  }
-
-  /** Records real spawned EntityIds + queues them for the nerf path via super.spawnBot's
-   * tracking. Exposes pendingNerf membership for assertions. */
-  private static final class SpawnRecordingFillUpXTeams extends FillUpXTeams {
-    final List<EntityId> spawned = new ArrayList<>();
-    private final DefaultEntityData ed;
-
-    SpawnRecordingFillUpXTeams(final ModuleContext ctx, final FillUpXTeamsConfig cfg) {
-      super(ctx, cfg);
-      this.ed = (DefaultEntityData) ctx.ed();
-    }
-
-    @Override
-    protected EntityId spawnBot(final long createdTimeNanos, final int freq) {
-      // Bypass the AIEntities factory (no PhysicsSpace in tests) but produce a
-      // real EntityId so the nerf drain has a target.
-      final EntityId bot = ed.createEntity();
-      ed.setComponent(bot, new Frequency(freq));
-      spawned.add(bot);
-      pendingNerfForTest().add(bot);
-      return bot;
-    }
-
-    private java.util.Set<EntityId> pendingNerfForTest() {
-      try {
-        final var f = FillUpXTeams.class.getDeclaredField("pendingNerf");
-        f.setAccessible(true);
-        @SuppressWarnings("unchecked")
-        final java.util.Set<EntityId> set = (java.util.Set<EntityId>) f.get(this);
-        return set;
-      } catch (final ReflectiveOperationException e) {
-        throw new AssertionError(e);
-      }
-    }
-
-    boolean isPendingNerf(final EntityId id) {
-      return pendingNerfForTest().contains(id);
     }
   }
 }
