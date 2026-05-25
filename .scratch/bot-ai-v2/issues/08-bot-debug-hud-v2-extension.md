@@ -1,6 +1,8 @@
 # `BotDebugHudState` extension for v2 observability
 
-Status: needs-triage
+Status: done
+Landed: 7c028117 (2026-05-25); ship-type + selectable-behaviour markers + layout cleanup in e9861a40.
+objective/role fields ship empty until #06; weightBreakdown's ×obj×role factors fill in then too.
 Category: enhancement
 Type: AFK
 

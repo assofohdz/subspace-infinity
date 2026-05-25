@@ -1,6 +1,7 @@
 # ADR 0014 — Capability-derived bot composition: archetypes as data-driven overlays
 
-**Status:** Proposed
+**Status:** Proposed — partially implemented
+**Implementation:** `CapabilityProfile` × `BotSynergyTable` derivation landed in slices #04 (49a0dcd0 + 7f4ebeb3) and #05 (24db369f, runtime wiring); the `bots { tweak: [...] }` overlay landed in #01 (e9861a40). Objective × role multipliers (the four-multiplier composition) are pending #06.
 **Date:** 2026-05-23
 **Deciders:** Asser Fahrenholz
 

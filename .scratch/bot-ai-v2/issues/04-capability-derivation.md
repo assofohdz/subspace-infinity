@@ -1,6 +1,7 @@
 # Capability-derivation pipeline: `CapabilityProfile` × synergy → behaviour weights
 
-Status: needs-triage
+Status: done
+Landed: 49a0dcd0 + 7f4ebeb3 (2026-05-24) pipeline + synergy table; runtime wiring in 24db369f (#05)
 Category: enhancement
 Type: HITL
 

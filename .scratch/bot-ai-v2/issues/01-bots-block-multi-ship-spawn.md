@@ -1,6 +1,7 @@
 # `bots { }` block + multi-ship spawn variety
 
-Status: needs-triage
+Status: done
+Landed: e9861a40 (2026-05-25) — also carried the BotDebug HUD cleanup
 Category: enhancement
 Type: HITL
 

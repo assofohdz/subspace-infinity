@@ -1,6 +1,7 @@
 # ADR 0011 — Bot navigation: flow fields per goal tile
 
-**Status:** Proposed (revised 2026-05-23)
+**Status:** Proposed (revised 2026-05-23) — partially implemented
+**Implementation:** Slice #02 (db90765e) landed the flow-field substrate (`DistanceField`/`GradientField`/`NavigationFields` + Dijkstra builder + tracer). Production nav (async build, MapSystem passability adapter, door invalidation) is slice #03, deferred — `NavigateToTile` ships dormant until then.
 **Date:** 2026-05-23
 **Deciders:** Asser Fahrenholz
 **Revision note:** This ADR was originally drafted as "grid A* over the `.lvl` tile grid" with clearance-aware A* + Floyd LoS smoothing + `FollowPath` BT action. That design was reviewed against the actual game shape (2D top-down momentum physics, fast TTK, sparse obstacles, open arenas) and rejected as a genre mismatch — A* returns waypoints, but the bot can't follow waypoints because it has thrust + rotational inertia + drag + bounce. The locomotion problem is closer to a rocket-landing problem than an FPS pathfinding problem. This revision replaces the A*-based design with **flow fields** as the navigation primitive. A* now appears as Alternative A (rejected).

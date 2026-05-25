@@ -1,6 +1,7 @@
 # ADR 0010 — Bot composition DSL: per-arena archetype × ship-type × weights
 
-**Status:** Proposed
+**Status:** Proposed — partially implemented
+**Implementation:** Slice #01 (e9861a40, 2026-05-25) landed the `bots { ship 'x', count: N, tweak: [...] }` block in the ADR-0014-amended overlay form (`tweak` deltas, no from-scratch `weights`/`archetype`). Non-behaviour `BotBrainConfig` knobs remain as described.
 **Date:** 2026-05-23
 **Deciders:** Asser Fahrenholz
 **Amended by:** [ADR-0014](./0014-capability-derived-bot-composition.md) (2026-05-23) — weight authoring superseded by capability derivation; `tweak: [...]` overlay replaces `weights: [...]` set-value semantics. The parameterize-don't-fork thesis + `BrainArchetype` registry + non-behaviour `BotBrainConfig` knobs (perceptionRadius, aimConeDegrees, etc.) are unaffected.

@@ -1,6 +1,9 @@
 # `TacticalPlanner` + `Behaviour` contract + baseline behaviours
 
-Status: needs-triage
+Status: done
+Landed: 24db369f (2026-05-25); cadence-overflow fix in 7c028117. Baseline behaviours align to the
+ADR-0016 catalog names (engage / disengage / search), not the draft engage/strafe/evade/wander/
+navigate-to-target; NavigateToTile goal ships dormant until #03.
 Category: enhancement
 Type: HITL
 

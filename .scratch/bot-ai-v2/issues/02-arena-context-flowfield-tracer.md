@@ -1,6 +1,7 @@
 # `BotAiArenaContext` + `BotAiHostService` scaffold + flow-field tracer
 
-Status: needs-triage
+Status: done
+Landed: db90765e (2026-05-23) — tracer substrate; production nav is #03 (deferred)
 Category: enhancement
 Type: HITL
 
