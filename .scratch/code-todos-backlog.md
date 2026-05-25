@@ -290,7 +290,39 @@ Each row: actionable item + source file:line + brief context.
 
 ### Identity / ECS
 
-- [ ] **Two `ed.createEntity()` calls per logged-in player — unify into one.**
+- [ ] **Everything created inside an arena should be stamped with `ArenaId`.**
+  Several entity types are spawned without an `ArenaId`, forcing consumers to
+  recover the arena by spatial bounds-testing the position against each arena's
+  map box — fragile and O(arenas) per query. Concrete case found 2026-05-25
+  during bot-AI spatial-fields (#07): `MapFactory.createPrize` stamps
+  `SpawnPosition` / `Bounty` / `PrizeType` / `Decay` but **no `ArenaId`**, so
+  `BotBrainSystem.refreshDynamicFields` has to assign prizes to arenas by
+  point-in-map-bounds (`prizesInArena`). Audit every `MapFactory.*` /
+  `WeaponFactory.*` spawn path (prizes, projectiles, doors, decorations,
+  effects) and the spawner systems: anything whose lifetime is arena-scoped
+  should carry `ArenaId` at creation (the spawner usually already has it —
+  `PrizeSpawnerSystem` reads `spawnerArenaId` then drops it). Once stamped,
+  replace bounds-test assignment with a direct `ArenaId` read. Watch the
+  `ArenaMembershipSystem` / `ArenaSystem` writer split (per
+  `replacement-as-mutation.md`) so the stamp doesn't create a second writer.
+
+- [ ] **Suspected entity churn / leak: with 8 bots, `EntityId` counter climbs
+  by ~1000s/sec.** Observed 2026-05-25 during bot-AI #07 testing. `EntityId`s
+  are a monotonic counter and never reused, so a *fast-climbing id number is
+  not itself a leak* — it just means lots of short-lived entities are being
+  created (projectiles, `*Change` holder entities per RaM, audio/effect
+  entities, Decay-reaped temporaries). The real question is whether the **live
+  entity count grows unbounded** (a leak — entities created but never
+  destroyed) vs. **stays bounded** (healthy churn — created and reaped each
+  tick). First step: log `DefaultEntityData` live-entity count over time with 8
+  bots idle vs. firing; if it plateaus, it's churn (consider rate, not leak).
+  If it grows without bound, hunt the unreleased creator — likely suspects:
+  a `*Change` holder entity created but not destroyed by its canonical writer
+  (one-shot drain should `removeEntity`; see `replacement-as-mutation.md`
+  four-line state machine), a per-tick spawn missing a `Decay`, or a bot
+  firing path creating projectiles faster than `WeaponsReaperSystem` reaps.
+  Bots fire far more than humans, so a small per-shot leak shows up fast under
+  8 bots. Cross-check: does the count keep climbing after bots are removed?
   `AccountHostedService.login` ([infinity-server/src/main/java/infinity/server/AccountHostedService.java:187](../infinity-server/src/main/java/infinity/server/AccountHostedService.java))
   creates a player entity and registers it in `playerConnectionMap` (the key
   `lookupConnection(EntityId)` walks for `postPrivateMessage`). Independently,
