@@ -84,7 +84,9 @@ import com.simsilica.mworld.db.ColumnDbLeafDbAdapter;
 import com.simsilica.mworld.db.LeafDb;
 import com.simsilica.mworld.net.server.WorldHostedService;
 import com.simsilica.sim.GameLoop;
+import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.GameSystemManager;
+import com.simsilica.sim.SimTime;
 import com.simsilica.sim.common.DecaySystem;
 import infinity.InfinityConstants;
 import infinity.es.AudioType;
@@ -251,7 +253,13 @@ public class GameServer {
         .addService(new WorldHostedService(world, InfinityConstants.TERRAIN_CHANNEL));
 
     // Add the game session service last so that it has access to everything else
-    server.getServices().addService(new GameSessionHostedService(systems));
+    final GameSessionHostedService gameSession = new GameSessionHostedService(systems);
+    server.getServices().addService(gameSession);
+
+    // Re-point each connection's SimEthereal "self" at respawn-created ships on the
+    // game tick. The composition root is the only place allowed to bridge the hosted
+    // service and the game systems (ADR-0005). See GameSessionHostedService#syncSelfBindings.
+    systems.addSystem(new SelfBindingSyncSystem(gameSession));
 
     systems.addSystem(new LargeGridIndexSystem(WorldGrids.TILE_GRID));
 
@@ -744,6 +752,31 @@ public class GameServer {
       log.debug("DelayService.connectionAdded({})", hc);
       safeSleep(500);
       log.debug("DelayService.delay done");
+    }
+  }
+
+  /** Drives {@link GameSessionHostedService#syncSelfBindings()} once per game tick. */
+  private static final class SelfBindingSyncSystem extends AbstractGameSystem {
+
+    private final GameSessionHostedService sessions;
+
+    SelfBindingSyncSystem(final GameSessionHostedService sessions) {
+      this.sessions = sessions;
+    }
+
+    @Override
+    protected void initialize() {
+      // no-op: stateless driver, all state lives in the hosted service
+    }
+
+    @Override
+    protected void terminate() {
+      // no-op: stateless driver
+    }
+
+    @Override
+    public void update(final SimTime time) {
+      sessions.syncSelfBindings();
     }
   }
 }

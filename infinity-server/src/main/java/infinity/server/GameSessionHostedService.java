@@ -51,6 +51,7 @@ import com.simsilica.es.server.EntityDataHostedService;
 import com.simsilica.es.server.HostedEntityData;
 import com.simsilica.ethereal.EtherealHost;
 import com.simsilica.ethereal.NetworkStateListener;
+import com.simsilica.ext.mphys.SpawnPosition;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 import com.simsilica.mphys.PhysicsSpace;
@@ -158,6 +159,13 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
     return conn.getAttribute(ATTRIBUTE_SESSION);
   }
 
+  /** Re-seeds every connection's SimEthereal "self" after a respawn; driven on the game tick. */
+  void syncSelfBindings() {
+    for (final GameSessionImpl session : players) {
+      session.syncSelfBinding();
+    }
+  }
+
   @Override
   public void stopHostingOnConnection(final HostedConnection conn) {
     log.debug("stopHostingOnConnection({})", conn);
@@ -208,6 +216,8 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
     private AvatarSystem avatarSys;
     private GameSessionListener callback;
     private boolean spawned;
+    /** Ship currently bound as the connection's SimEthereal "self"; re-seeded on respawn. */
+    private EntityId boundSelfShipId;
 
     public GameSessionImpl(final HostedConnection conn) {
       this.conn = conn;
@@ -326,6 +336,7 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       final EtherealHost ethereal = getService(EtherealHost.class);
       ethereal.startHostingOnConnection(conn);
       ethereal.setConnectionObject(conn, initialShipId.getId(), spawnLoc);
+      boundSelfShipId = initialShipId;
       final EntityDataHostedService eds = getService(EntityDataHostedService.class);
 
       // Setup a filter for BodyPosition components to match what
@@ -381,6 +392,33 @@ public final class GameSessionHostedService extends AbstractHostedConnectionServ
       final NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
       if (nsl != null) {
         nsl.setSelf(ship.getId(), location);
+      }
+    }
+
+    /**
+     * Re-points SimEthereal's per-connection "self" at the current ship after a respawn.
+     *
+     * <p>The new ship must become the zone-of-interest center or the client never receives
+     * its position state — leaving {@code InfinityCameraState} and {@code Body} both
+     * early-returning on a null transition (the "no transition frame" flood + invisible
+     * ship). The client's {@code setView()} that would push {@code setSelf} is itself gated
+     * on first receiving a frame, so the rebind has to be server-driven. Runs on the game
+     * tick (see {@code GameServer}'s self-binding driver); seeds with the ship's
+     * {@link SpawnPosition} so the right zones light up immediately.
+     */
+    void syncSelfBinding() {
+      final EntityId ship = currentShipId();
+      if (ship == null || ship.equals(boundSelfShipId)) {
+        return;
+      }
+      final SpawnPosition sp = ed.getComponent(ship, SpawnPosition.class);
+      if (sp == null) {
+        return; // spawn position not projected yet — retry next tick
+      }
+      final NetworkStateListener nsl = getService(EtherealHost.class).getStateListener(conn);
+      if (nsl != null) {
+        nsl.setSelf(ship.getId(), sp.getLocation());
+        boundSelfShipId = ship;
       }
     }
 

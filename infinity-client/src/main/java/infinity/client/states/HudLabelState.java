@@ -127,7 +127,10 @@ public class HudLabelState extends BaseAppState {
     public LabelHolder(final Entity entity) {
       this.entity = entity;
 
-      this.modelSpatial = modelView.getModelSpatial(entity.getId(), true);
+      // The label's EntitySet (Name+BodyPosition+Frequency) can complete a frame
+      // before ModelViewState builds this entity's model spatial, so don't throw
+      // when it's missing — lazy-bind it in update() once it exists.
+      this.modelSpatial = modelView.getModelSpatial(entity.getId(), false);
 
       this.label = new Label("Ship", new ElementId("ship.label"));
       label.setColor(ColorRGBA.Green);
@@ -154,11 +157,10 @@ public class HudLabelState extends BaseAppState {
     }
 
     protected void updateLabelPos(final Vector3f pos) {
-      Vector3f loc = modelSpatial.getWorldTranslation();
-
-      if (!visible || isPlayerEntity) {
+      if (!visible || isPlayerEntity || modelSpatial == null) {
         return;
       }
+      Vector3f loc = modelSpatial.getWorldTranslation();
       Vector3f camRelative = pos.subtract(camera.getLocation());
       float distance = camera.getDirection().dot(camRelative);
       if (distance < 0) {
@@ -180,6 +182,11 @@ public class HudLabelState extends BaseAppState {
     }
 
     public void update(final long time) {
+
+      // Lazy-bind the model spatial the first frame it exists (see ctor).
+      if (modelSpatial == null) {
+        modelSpatial = modelView.getModelSpatial(entity.getId(), false);
+      }
 
       // Look back in the brief history that we've kept and
       // pull an interpolated value.  To do this, we grab the
