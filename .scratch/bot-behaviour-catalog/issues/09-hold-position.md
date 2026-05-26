@@ -1,12 +1,26 @@
 # Hold-position / zone-control
 
-Status: needs-triage
+Status: in-progress (baseline landed with bot-ai-v2 #06 Inc A, 2026-05-26)
 Category: enhancement
 Type: HITL
 
 ## Parent
 
 [Bot behaviour catalog PRD](../PRD.md) — behaviour 09 of 30. Catalogued in [ADR-0016 §Spatial / map control](../../../docs/adr/0016-bot-behaviour-catalog.md). Phase 1.
+
+## Landed baseline (with bot-ai-v2 [#06 Inc A](../../bot-ai-v2/issues/06-arena-objectives-roles.md))
+
+`HoldPositionBehaviour` is registered + selectable: `enumerate()` emits a
+`NavigateToTile` toward the nearest arena-objective static goal (the turf flag);
+the `hold-position` synergy entry (tankiness + antiwarp) already existed in
+`engine-bot-ai.groovy`, so tanky hulls hold while glass cannons don't.
+
+**Still open (full ADR-0016 fit):** `intrinsicScore` is an idle-biased baseline,
+not yet the `0.40 position_value + 0.25 support + 0.20 defensive-item +
+0.15 energy_buffer` formula — those input-vocabulary terms aren't wired. Also
+no Execute-Sequence "resist displacement" beyond navigate-and-idle, and the
+unit tests cover enumerate/empty-cases but not the full fit. Finish when the
+ADR-0016 input vocabulary lands.
 
 ## What to build
 

@@ -7,6 +7,7 @@ import infinity.ai.capability.BotSynergyTable;
 import infinity.ai.field.NavigationFields;
 import infinity.ai.field.ScalarField;
 import infinity.ai.field.TileScored;
+import infinity.ai.objective.ArenaObjective;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
@@ -62,4 +63,7 @@ public interface BotAiArenaContext {
    * until the map loads. The {@code +1} keeps geometric ranking at cold start (no traffic yet).
    */
   List<TileScored> chokepoints();
+
+  /** The arena's active objective (ADR-0015); never {@code null} — {@link infinity.ai.objective.DeathmatchObjective} when no mechanic supplies one. */
+  ArenaObjective objective();
 }

@@ -11,6 +11,7 @@ import infinity.ai.field.combat.CombatDensityField;
 import infinity.ai.field.density.ArenaDensity;
 import infinity.ai.field.opportunity.OpportunityField;
 import infinity.ai.field.threat.ArenaThreat;
+import infinity.ai.objective.ArenaObjective;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -37,7 +38,8 @@ public record ServerBotAiArenaContext(
     @Nullable OpportunityField opportunityField,
     @Nullable CombatDensityField combat,
     List<TileScored> chokepointPool,
-    double chokepointDensityWeight)
+    double chokepointDensityWeight,
+    ArenaObjective objective)
     implements BotAiArenaContext {
 
   @Override

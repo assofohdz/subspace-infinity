@@ -26,12 +26,15 @@ import infinity.ai.capability.CapabilityProfile;
 import infinity.ai.field.ArenaNav;
 import infinity.ai.field.ArenaSpatialFields;
 import infinity.ai.field.NavigationFields;
+import infinity.ai.objective.ArenaObjective;
+import infinity.ai.objective.DeathmatchObjective;
 import infinity.ai.steer.AvoidObstacles;
 import infinity.ai.tactical.ArchetypeConfig;
 import infinity.ai.tactical.Behaviour;
 import infinity.ai.tactical.DisengageBehaviour;
 import infinity.ai.tactical.EngageBehaviour;
 import infinity.ai.tactical.FollowTrafficBehaviour;
+import infinity.ai.tactical.HoldPositionBehaviour;
 import infinity.ai.tactical.SearchBehaviour;
 import infinity.ai.tactical.ServerBotAiArenaContext;
 import infinity.ai.tactical.TacticalGoal;
@@ -56,6 +59,7 @@ import infinity.settings.ConfigRegistrySystem;
 import infinity.settings.EngineBotAiSystem;
 import infinity.settings.ZoneBotAiConfigSystem;
 import infinity.sim.WeaponsFiring;
+import infinity.modules.ArenaModuleSystem;
 import infinity.systems.BaseInfinitySystem;
 import infinity.systems.MapSystem;
 import infinity.systems.ship.WeaponsFireEligibilitySystem;
@@ -119,6 +123,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   private EngineBotAiSystem engineBotAi;
   private ZoneBotAiConfigSystem zoneBotAi;
   private MapSystem mapSystem;
+  private ArenaModuleSystem arenaModuleSystem;
   private TacticalPlanner planner;
   // Per-arena spatial-field production (nav builder, density/threat/opportunity/combat, chokepoint
   // pinning) lives here; the brain reads finished ArenaNavs. See ArenaSpatialFields.
@@ -148,12 +153,14 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     this.engineBotAi = requireSystem(EngineBotAiSystem.class);
     this.zoneBotAi = requireSystem(ZoneBotAiConfigSystem.class);
     this.mapSystem = requireSystem(MapSystem.class);
+    this.arenaModuleSystem = requireSystem(ArenaModuleSystem.class);
     final List<Behaviour> behaviours =
         List.of(
             new EngageBehaviour(),
             new DisengageBehaviour(),
             new SearchBehaviour(),
-            new FollowTrafficBehaviour());
+            new FollowTrafficBehaviour(),
+            new HoldPositionBehaviour());
     this.planner = new TacticalPlannerImpl(behaviours, this.zoneBotAi::get);
     this.selectableBehaviours =
         behaviours.stream().map(Behaviour::name).collect(Collectors.toUnmodifiableSet());
@@ -394,9 +401,12 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       final BotSynergyTable synergy) {
     if (arenaId == null || passable == null) {
       return new ServerBotAiArenaContext(
-          norms, synergy, null, 0, 0, null, null, null, null, List.of(), 0.0);
+          norms, synergy, null, 0, 0, null, null, null, null, List.of(), 0.0,
+          new DeathmatchObjective());
     }
-    final ArenaNav nav = this.spatialFields.forArena(arenaId.getArena(), passable);
+    final ArenaObjective objective = this.arenaModuleSystem.objectiveFor(arenaId);
+    final ArenaNav nav =
+        this.spatialFields.forArena(arenaId.getArena(), passable, objective.staticGoalTiles());
     return new ServerBotAiArenaContext(
         norms,
         synergy,
@@ -408,7 +418,8 @@ public final class BotBrainSystem extends BaseInfinitySystem {
         nav.opportunity(),
         nav.combat(),
         nav.chokepointPool(),
-        this.zoneBotAi.get().chokepointDensityWeight());
+        this.zoneBotAi.get().chokepointDensityWeight(),
+        objective);
   }
 
   /** Profile for the bot's ship type against {@code norms}, or {@code null} when the type isn't configured. */

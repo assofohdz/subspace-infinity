@@ -1,12 +1,35 @@
 # `ArenaObjective` + `BotRole`: per-mechanic bias + per-bot role assignment
 
-Status: needs-triage
+Status: in-progress (tracer cut — Inc A landed)
 Category: enhancement
 Type: HITL
 
 ## Parent
 
-[Bot AI v2 PRD](../PRD.md) — slice 6 of 12. Implements [ADR-0015](../../../docs/adr/0015-arena-objective-and-roles.md).
+[Bot AI v2 PRD](../PRD.md) — slice 6. Implements [ADR-0015](../../../docs/adr/0015-arena-objective-and-roles.md).
+
+## Increments (tracer cut 2026-05-26)
+
+Cut tracer-first so the visible "bots navigate to the turf flag" win lands early.
+
+- **Inc A — objective static-goal nav path** ✅ done (2026-05-26). `ArenaObjective`
+  (plain interface) + `GoalTile` (cell coords) + `DeathmatchObjective` +
+  `TurfObjective`; `MechanicModule.objective()` (placed on `MechanicModule`, not
+  `ArenaModule`, because `infinity.sim` must not depend on `infinity.ai` per the
+  layer rule); `TurfMechanic` (scopes orphan flags by `ArenaMap` bounds);
+  `ArenaModuleSystem.objectiveFor`; objective threaded onto
+  `ServerBotAiArenaContext` + static goals pinned in `ArenaSpatialFields.forArena`;
+  `HoldPositionBehaviour` (catalog #09, partial) navigates to the objective goal so
+  tanky hulls hold the flag. `mechanic 'turf'` added to trench.
+  **Divergence from ADR-0015:** `staticGoalTiles()` returns cell coords, not moss
+  `TileId` (an arena *is* one TileId; can't address a cell within it) — matches the
+  existing `DistanceField` / `NavigateToTile` cell-space decision.
+- **Inc B — objective `behaviourBias` consumption** ⬜ planner multiplies
+  `objectiveBias(B)` into effective weight; `TurfObjective.behaviourBias()` boosts
+  hold-position. (`behaviourBias()` is defined now but inert until the planner reads it.)
+- **Inc C — `BotRole` + roles** ⬜ `BotRole` component + `BotRoleConfig` +
+  `BotRoleRegistry` + `roles { }` Groovy + `GroovyBotRolesLoader` + `assignRole` +
+  `ArenaSnapshot` + role bias + event-driven reassignment.
 
 ## What to build
 

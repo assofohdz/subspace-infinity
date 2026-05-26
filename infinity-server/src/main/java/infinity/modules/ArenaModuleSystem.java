@@ -7,6 +7,8 @@ import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
 import com.simsilica.sim.SimTime;
+import infinity.ai.objective.ArenaObjective;
+import infinity.ai.objective.DeathmatchObjective;
 import infinity.es.arena.ArenaId;
 import infinity.es.arena.ArenaMap;
 import infinity.es.arena.MatchNumber;
@@ -69,6 +71,26 @@ public final class ArenaModuleSystem extends BaseInfinitySystem {
       }
     }
     return null;
+  }
+
+  /**
+   * The arena's active {@link ArenaObjective} (ADR-0015): the first non-null {@code objective()} from
+   * a loaded mechanic module, or {@link DeathmatchObjective} when none supplies one (or the arena
+   * isn't loaded). Read by the bot-AI layer when building the per-arena nav context.
+   */
+  public ArenaObjective objectiveFor(final ArenaId arenaId) {
+    final LoadedArena entry = loadedFor(arenaId);
+    if (entry != null) {
+      for (final ArenaModule module : entry.set().allModules()) {
+        if (module instanceof MechanicModule mechanic) {
+          final ArenaObjective objective = mechanic.objective();
+          if (objective != null) {
+            return objective;
+          }
+        }
+      }
+    }
+    return new DeathmatchObjective();
   }
 
   /** {@link ArenaModuleSetLookup} adapter for {@link ModuleContext}. {@code null} if not loaded. */

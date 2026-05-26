@@ -14,6 +14,7 @@ import infinity.config.TimedRoundStructureConfig;
 import infinity.modules.matchstructure.ContinuousMatchStructure;
 import infinity.modules.mechanic.Crowns;
 import infinity.modules.mechanic.FillUpXTeams;
+import infinity.modules.mechanic.TurfMechanic;
 import infinity.modules.respawn.CooldownRespawn;
 import infinity.modules.respawn.InstantRespawn;
 import infinity.modules.respawn.LockoutNoCrownRespawn;
@@ -74,6 +75,9 @@ public final class ModuleCatalog {
           Map.entry("crowns",
               new ModuleDescriptor(
                   Crowns.class, null, ModuleCategory.MECHANIC, Set.of())),
+          Map.entry("turf",
+              new ModuleDescriptor(
+                  TurfMechanic.class, null, ModuleCategory.MECHANIC, Set.of())),
           Map.entry("highest-score",
               new ModuleDescriptor(
                   HighestScoreWinCondition.class, null, ModuleCategory.WIN_CONDITION, Set.of())),

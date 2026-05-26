@@ -1,6 +1,7 @@
 # `ArenaSpatialFields` extraction — pull the spatial-field plumbing out of `BotBrainSystem`
 
 Status: done
+Landed: 2b7e23f2 (2026-05-26) — complexity 118 → 80; smoke-accepted in trench
 Category: refactor
 Type: no-behaviour-change
 

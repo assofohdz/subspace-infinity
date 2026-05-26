@@ -36,7 +36,8 @@ public class FollowTrafficBehaviourTest {
   private static ServerBotAiArenaContext ctx(
       final int ox, final int oz, final TileScored... pool) {
     return new ServerBotAiArenaContext(
-        null, null, null, ox, oz, null, null, null, null, List.of(pool), 0.5);
+        null, null, null, ox, oz, null, null, null, null, List.of(pool), 0.5,
+        new infinity.ai.objective.DeathmatchObjective());
   }
 
   @Test

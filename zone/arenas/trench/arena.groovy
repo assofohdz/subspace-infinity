@@ -59,6 +59,9 @@ arena {
     // Bots fill seats humans don't and are culled as players join; the team setup assigns
     // each bot's freq (least-full team), so the bots{} roster below is just the hull pool.
     mechanic       'fill-up-x-teams', capacity: 2
+    // Turf objective (ADR-0015): exposes the map's stationary flag(s) as bot static nav goals so
+    // tanky hulls hold the flag (hold-position behaviour), not just drift via traffic heat.
+    mechanic       'turf'
     roster         'all-ships'
     respawnPolicy  'instant-respawn'
     spawnPlacement 'random-radius',    center: [512, 512], radius: 0

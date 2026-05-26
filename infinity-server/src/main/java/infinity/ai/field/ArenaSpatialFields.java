@@ -18,6 +18,7 @@ import infinity.ai.field.density.ArenaDensity;
 import infinity.ai.field.nav.AsyncNavigationFields;
 import infinity.ai.field.opportunity.OpportunityField;
 import infinity.ai.field.threat.ArenaThreat;
+import infinity.ai.objective.GoalTile;
 import infinity.config.ZoneBotAiConfig;
 import infinity.es.Dead;
 import infinity.es.Frequency;
@@ -225,12 +226,15 @@ public final class ArenaSpatialFields {
 
   /**
    * The arena's nav holder, built lazily and rebuilt when {@link MapSystem} hands back a new
-   * passability grid (map swap). Chokepoint top-N are pinned as static flow-field goals at build.
+   * passability grid (map swap). Chokepoint top-N and the objective's {@code staticGoals} (ADR-0015)
+   * are pinned as static flow-field goals at build. The build that matters runs after the bot's
+   * {@code ArenaId} is stamped (post arena-load), so flag/objective tiles already exist.
    */
   // CompareObjectsWithEquals: grid reference identity = "map changed" (cheaper than, and not
   // equivalent to, a deep equals — MapSystem swaps the grid reference atomically on map change).
   @SuppressWarnings("PMD.CompareObjectsWithEquals")
-  public ArenaNav forArena(final String arena, final boolean[][] passable) {
+  public ArenaNav forArena(
+      final String arena, final boolean[][] passable, final List<GoalTile> staticGoals) {
     ArenaNav existing = this.navByArena.get(arena);
     if (existing == null || existing.grid() != passable) {
       final ZoneBotAiConfig cfg = this.zoneCfg.get();
@@ -263,6 +267,7 @@ public final class ArenaSpatialFields {
       for (int i = 0; i < Math.min(topN, chokepoints.size()); i++) {
         fields.pin(chokepoints.get(i).x(), chokepoints.get(i).y());
       }
+      final int pinnedGoals = pinStaticGoals(fields, staticGoals, originX, originZ, width, height);
       existing =
           new ArenaNav(
               passable, fields, density, threat, opportunity, combat, chokepoints, originX, originZ,
@@ -270,16 +275,37 @@ public final class ArenaSpatialFields {
       this.navByArena.put(arena, existing);
       if (log.isInfoEnabled()) {
         log.info(
-            "bot-nav grid built for arena '{}': {}x{} cells, {} passable, {} chokepoints ({} pinned)",
+            "bot-nav grid built for arena '{}': {}x{} cells, {} passable, {} chokepoints ({} pinned), {} objective goals pinned",
             arena,
             width,
             height,
             countPassable(passable),
             chokepoints.size(),
-            Math.min(topN, chokepoints.size()));
+            Math.min(topN, chokepoints.size()),
+            pinnedGoals);
       }
     }
     return existing;
+  }
+
+  /** Pin the objective's static goal tiles (world cells → arena-relative), skipping any outside the grid; returns the pinned count. */
+  private static int pinStaticGoals(
+      final AsyncNavigationFields fields,
+      final List<GoalTile> staticGoals,
+      final int originX,
+      final int originZ,
+      final int width,
+      final int height) {
+    int pinned = 0;
+    for (final GoalTile g : staticGoals) {
+      final int gx = g.worldCellX() - originX;
+      final int gz = g.worldCellZ() - originZ;
+      if (gx >= 0 && gz >= 0 && gx < width && gz < height) {
+        fields.pin(gx, gz);
+        pinned++;
+      }
+    }
+    return pinned;
   }
 
   private static int countPassable(final boolean[][] grid) {
