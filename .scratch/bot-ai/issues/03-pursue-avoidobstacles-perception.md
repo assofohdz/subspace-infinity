@@ -1,6 +1,6 @@
 # Bot chases nearest enemy via `Pursue` + `AvoidObstacles` + `Perception`
 
-Status: needs-triage
+Status: done
 Category: enhancement
 Type: HITL
 
@@ -22,16 +22,16 @@ Perception radius defaults to the bot ship's `RadarRange` stat (input-parity ext
 
 ## Acceptance criteria
 
-- [ ] `infinity.ai.steer.Steering`, `Pursue`, `AvoidObstacles`, `PrioritySteering` exist in api/
-- [ ] `infinity.ai.Perception` + `PerceptionSnapshot` exist in api/
-- [ ] `infinity.ai.PerceptionService` exists in server-tier, registered in server bootstrap
-- [ ] `BotBrainSystem` uses Perception + composes the two steering primitives via `PrioritySteering`
-- [ ] Perception radius reads from bot ship's `RadarRange` stat
-- [ ] Unit tests for `Pursue` (lead-prediction correctness at varying target velocity vectors) and `AvoidObstacles` (corridor + sphere-radius intersection)
-- [ ] **Demo:** launch arena with a human player + `FillUpXTeams` → bots pursue the player without flying into walls
-- [ ] License headers + SPDX on every new file
-- [ ] PMD ratchet: zero new violations + one pre-existing fix
-- [ ] Layer test: api-tier code in `infinity.ai.steer.*` and `infinity.ai.*` (Perception interface) has no `infinity.server.*` / `infinity.systems.*` / `infinity.client.*` imports
+- [x] `infinity.ai.steer.Steering`, `Pursue`, `AvoidObstacles`, `PrioritySteering` exist in api/
+- [x] `infinity.ai.Perception` + `PerceptionSnapshot` exist in api/
+- [x] `infinity.ai.PerceptionService` exists in server-tier, registered in server bootstrap
+- [x] `BotBrainSystem` uses Perception + composes the two steering primitives via `PrioritySteering`
+- [x] Perception radius reads from bot ship's `RadarRange` stat
+- [x] Unit tests for `Pursue` (lead-prediction correctness at varying target velocity vectors) and `AvoidObstacles` (corridor + sphere-radius intersection)
+- [x] **Demo:** launch arena with a human player + `FillUpXTeams` → bots pursue the player without flying into walls
+- [x] License headers + SPDX on every new file
+- [x] PMD ratchet: zero new violations + one pre-existing fix
+- [x] Layer test: api-tier code in `infinity.ai.steer.*` and `infinity.ai.*` (Perception interface) has no `infinity.server.*` / `infinity.systems.*` / `infinity.client.*` imports
 
 ## Blocked by
 

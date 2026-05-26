@@ -1,6 +1,6 @@
 # BT framework + `Brawler` skeleton with `Wander` fallback
 
-Status: needs-triage
+Status: done
 Category: enhancement
 Type: HITL
 
@@ -21,16 +21,16 @@ Introduce the Behaviour Tree framework + brain composition layer + the v1 `Brawl
 
 ## Acceptance criteria
 
-- [ ] `infinity.ai.bt.Behavior`, `Status`, `Selector`, `Sequence`, `Action`, `Condition` exist in api/
-- [ ] `infinity.ai.brain.BrainArchetype`, `Blackboard`, `CombatantBrain` exist in api/
-- [ ] `infinity.ai.steer.Wander` exists in api/
-- [ ] `BotBrainSystem` ticks the brain BT per bot per tick (no inlined logic)
-- [ ] Brawler archetype registered (named "Brawler") in a `BrainArchetype` registry consumed by `BotBrainSystem`
-- [ ] Unit tests for BT composites + Wander
-- [ ] **Demo:** launch arena with one player → bot wanders when player is out of perception; pursues when player enters perception; re-wanders if player leaves
-- [ ] License headers + SPDX on every new file
-- [ ] PMD ratchet
-- [ ] Layer test passes
+- [x] `infinity.ai.bt.Behavior`, `Status`, `Selector`, `Sequence`, `Action`, `Condition` exist in api/
+- [x] `infinity.ai.brain.BrainArchetype`, `Blackboard`, `CombatantBrain` exist in api/
+- [x] `infinity.ai.steer.Wander` exists in api/
+- [x] `BotBrainSystem` ticks the brain BT per bot per tick (no inlined logic)
+- [x] Brawler archetype registered (named "Brawler") in a `BrainArchetype` registry consumed by `BotBrainSystem`
+- [x] Unit tests for BT composites + Wander
+- [x] **Demo:** launch arena with one player → bot wanders when player is out of perception; pursues when player enters perception; re-wanders if player leaves
+- [x] License headers + SPDX on every new file
+- [x] PMD ratchet
+- [x] Layer test passes
 
 ## Blocked by
 

@@ -1,6 +1,6 @@
 # Spawn-time wire-up: bot rotates via `MovementInput`
 
-Status: needs-triage
+Status: done
 Category: enhancement
 Type: HITL
 
@@ -21,15 +21,15 @@ This slice proves the input-parity wiring end-to-end before any AI logic exists:
 
 ## Acceptance criteria
 
-- [ ] `BotBrainSystem` class exists at `infinity-server/src/main/java/infinity/ai/BotBrainSystem.java`
-- [ ] `BotBrain` component exists at `api/src/main/java/infinity/es/BotBrain.java` (immutable; no-arg constructor; per [`components.md`](../../../.claude/rules/components.md))
-- [ ] `AIEntities.createMobShip` stamps `MovementInput` (not `CharacterInput`) + `BotBrain`
-- [ ] `BotBrainSystem` registered in the server bootstrap
-- [ ] `BotBrainSystem` is the only writer of `MovementInput` on `BotShip` entities (architectural test in slice 8 enforces; verify by code review here)
-- [ ] **Demo:** launch an arena with `FillUpXTeams` enabled → bots visibly rotate in place
-- [ ] Existing player ships still drive correctly (humans can still play)
-- [ ] License headers + SPDX on every new file
-- [ ] PMD ratchet: zero new violations on touched files; one low-effort fix on a pre-existing violation in a touched file (per [`pmd-on-touched-files.md`](../../../.claude/rules/pmd-on-touched-files.md))
+- [x] `BotBrainSystem` class exists at `infinity-server/src/main/java/infinity/ai/BotBrainSystem.java`
+- [x] `BotBrain` component exists at `api/src/main/java/infinity/es/BotBrain.java` (immutable; no-arg constructor; per [`components.md`](../../../.claude/rules/components.md))
+- [x] `AIEntities.createMobShip` stamps `MovementInput` (not `CharacterInput`) + `BotBrain`
+- [x] `BotBrainSystem` registered in the server bootstrap
+- [x] `BotBrainSystem` is the only writer of `MovementInput` on `BotShip` entities (architectural test in slice 8 enforces; verify by code review here)
+- [x] **Demo:** launch an arena with `FillUpXTeams` enabled → bots visibly rotate in place
+- [x] Existing player ships still drive correctly (humans can still play)
+- [x] License headers + SPDX on every new file
+- [x] PMD ratchet: zero new violations on touched files; one low-effort fix on a pre-existing violation in a touched file (per [`pmd-on-touched-files.md`](../../../.claude/rules/pmd-on-touched-files.md))
 
 ## Blocked by
 

@@ -1,6 +1,6 @@
 # Combat: `Fire` action + `InWeaponRange` condition + `OrbitTarget` strafing
 
-Status: needs-triage
+Status: done
 Category: enhancement
 Type: HITL
 
@@ -20,15 +20,15 @@ First slice where bots actually fight. Add weapon-fire action + range condition 
 
 ## Acceptance criteria
 
-- [ ] `FireWeapon` Action + `InWeaponRange` Condition exist in api/
-- [ ] `infinity.ai.steer.OrbitTarget` exists in api/
-- [ ] Brawler BT has the 3-branch Selector with EngageBranch
-- [ ] Fire delays + ammunition + energy cost respected (verified by reading the same code paths human-driven fires go through)
-- [ ] Unit tests for new leaves + OrbitTarget math
-- [ ] **Demo:** launch arena → bot pursues player → when player is in range, bot orbits + fires bullets/bombs with reasonable lead
-- [ ] License headers + SPDX on every new file
-- [ ] PMD ratchet
-- [ ] Layer test passes
+- [x] `FireWeapon` Action + `InWeaponRange` Condition exist in api/
+- [x] `infinity.ai.steer.OrbitTarget` exists in api/
+- [x] Brawler BT has the 3-branch Selector with EngageBranch
+- [x] Fire delays + ammunition + energy cost respected (verified by reading the same code paths human-driven fires go through)
+- [x] Unit tests for new leaves + OrbitTarget math
+- [x] **Demo:** launch arena → bot pursues player → when player is in range, bot orbits + fires bullets/bombs with reasonable lead
+- [x] License headers + SPDX on every new file
+- [x] PMD ratchet
+- [x] Layer test passes
 
 ## Blocked by
 

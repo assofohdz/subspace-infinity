@@ -1,6 +1,6 @@
 # Retire chicken framework to `infinity.ai.legacy.*`
 
-Status: needs-triage
+Status: done
 Category: enhancement
 Type: AFK
 
@@ -14,13 +14,13 @@ Move the existing `infinity.ai.*` chicken framework (Brain / Goal / Strategy / A
 
 ## Acceptance criteria
 
-- [ ] All current `infinity.ai.*` Java source files moved under `infinity-server/src/main/java/infinity/ai/legacy/`
-- [ ] Public types annotated `@Deprecated` (class-level)
-- [ ] Every import / FQN reference updated (likely in `AIEntities.java`, `MobSystem` registration in the server bootstrap, anything that references `BrainConfigurations.initialize`, etc.)
-- [ ] `./gradlew build` passes
-- [ ] `./gradlew :infinity-client:test` passes (`LayerDependencyTest`, `CanonicalWriterTest` still green)
-- [ ] License headers + SPDX preserved on every moved file
-- [ ] No behaviour change observable: launching an arena with `FillUpXTeams` still spawns idle bots (same as before)
+- [x] All current `infinity.ai.*` Java source files moved under `infinity-server/src/main/java/infinity/ai/legacy/`
+- [x] Public types annotated `@Deprecated` (class-level)
+- [x] Every import / FQN reference updated (likely in `AIEntities.java`, `MobSystem` registration in the server bootstrap, anything that references `BrainConfigurations.initialize`, etc.)
+- [x] `./gradlew build` passes
+- [x] `./gradlew :infinity-client:test` passes (`LayerDependencyTest`, `CanonicalWriterTest` still green)
+- [x] License headers + SPDX preserved on every moved file
+- [x] No behaviour change observable: launching an arena with `FillUpXTeams` still spawns idle bots (same as before)
 
 ## Blocked by
 

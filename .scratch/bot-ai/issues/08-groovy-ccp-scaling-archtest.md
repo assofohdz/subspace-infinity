@@ -1,6 +1,6 @@
 # Groovy CCP wiring + `countPerPlayer` scaling + `CanonicalWriterTest` extension
 
-Status: needs-triage
+Status: done
 Category: enhancement
 Type: AFK
 
@@ -34,23 +34,27 @@ Externalise hard-coded constants into Groovy + scale bot count with active playe
 
 ## Acceptance criteria
 
-- [ ] `infinity.config.BotBrainConfig` exists in api/
-- [ ] `infinity.settings.GroovyBotBrainLoader` exists; pattern-matches existing `Groovy*Loader`s
-- [ ] `zone/conf/<default-preset>/bot-tuning.groovy` exists and defines the `Brawler` archetype block
-- [ ] `BotBrain` carries projected per-bot tunables (no longer a marker)
-- [ ] `AIEntities.createMobShip` projects `BotBrainConfig` → `BotBrain` at spawn
-- [ ] All hard-coded brain/steering constants from earlier slices now live in `bot-tuning.groovy`
-- [ ] `FillUpXTeamsConfig.countPerPlayer` field exists; `FillUpXTeams` scales spawn count by active players in arena
-- [ ] `CanonicalWriterTest` extended with the two new assertions; passes
-- [ ] Unit tests for `GroovyBotBrainLoader` (fragment → `BotBrainConfig`)
-- [ ] [`.scratch/settings-pipeline.md`](../../settings-pipeline.md) tracker updated for new `bot-tuning.groovy` keys
-- [ ] **Demo:** edit `bot-tuning.groovy` values + restart arena → bot behaviour visibly changes (e.g. lower `evadeEnergyThreshold` → bot disengages later). Active-player count visibly scales spawn count on a `countPerPlayer > 0` arena
-- [ ] License headers + SPDX on every new file
-- [ ] PMD ratchet
-- [ ] Layer test passes
+- [x] `infinity.config.BotBrainConfig` exists in api/
+- [x] Bot-brain Groovy loader exists; pattern-matches existing `Groovy*Loader`s — shipped as `infinity.settings.BotBrainAdapter` (renamed from `GroovyBotBrainLoader`), `BotBrainAdapterTest` covers fragment→config
+- [x] `zone/conf/<default-preset>/bot-tuning.groovy` exists and defines the `Brawler` archetype block
+- [x] `BotBrain` carries projected per-bot tunables (no longer a marker)
+- [x] `AIEntities.createMobShip` projects `BotBrainConfig` → `BotBrain` at spawn
+- [ ] All hard-coded brain/steering constants from earlier slices now live in `bot-tuning.groovy` — **PARTIAL**: core tunables externalised, but the 2026-05-26 review found ~12 reactive-steering / derivation / perception constants still in Java. Carried to [bot-ai-v3 #02 — tuning-knob migration](../../bot-ai-v3/issues/02-tuning-knob-migration.md)
+- [x] `FillUpXTeamsConfig.countPerPlayer` field exists; `FillUpXTeams` scales spawn count by active players in arena
+- [x] `CanonicalWriterTest` extended with the two new assertions; passes
+- [x] Unit tests for `GroovyBotBrainLoader` (fragment → `BotBrainConfig`)
+- [x] [`.scratch/settings-pipeline.md`](../../settings-pipeline.md) tracker updated for new `bot-tuning.groovy` keys
+- [x] **Demo:** edit `bot-tuning.groovy` values + restart arena → bot behaviour visibly changes (e.g. lower `evadeEnergyThreshold` → bot disengages later). Active-player count visibly scales spawn count on a `countPerPlayer > 0` arena
+- [x] License headers + SPDX on every new file
+- [x] PMD ratchet
+- [x] Layer test passes
 
 ## Blocked by
 
-- [#07 — Flocking + BlendedSteering](./07-flocking-blended-steering.md)
+- [#07 — Flocking + BlendedSteering](./07-flocking-blended-steering.md) — dependency dropped: #08 shipped without #07 (the `BotBrainConfig` flocking-weight fields exist but the boids primitives were never built; see #07).
 
 ## Comments
+
+### 2026-05-26 — Status reconciliation (post-review)
+
+Landed in v1. Loader shipped as `BotBrainAdapter` (not `GroovyBotBrainLoader`). The "all constants in Groovy" criterion is only partially met — the tuning-knob carryover is tracked in [bot-ai-v3 #02](../../bot-ai-v3/issues/02-tuning-knob-migration.md). `countPerPlayer` scaling, `CanonicalWriterTest` + `BotInputCanonicalityTest` all present and green.

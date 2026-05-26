@@ -1,6 +1,6 @@
 # `Evade` primitive + `LowEnergy` condition
 
-Status: needs-triage
+Status: done
 Category: enhancement
 Type: HITL
 
@@ -19,14 +19,14 @@ Bots switch to evasion when low-energy; resume pursuit when recovered. Adds the 
 
 ## Acceptance criteria
 
-- [ ] `infinity.ai.steer.Evade` exists in api/
-- [ ] `LowEnergy` Condition exists in api/
-- [ ] Brawler BT has the 4-branch Selector with EvadeBranch first
-- [ ] Unit tests for Evade + LowEnergy
-- [ ] **Demo:** launch arena with player + bot → fight the bot down to low energy → bot disengages and flees → bot energy recharges → bot resumes pursuit
-- [ ] License headers + SPDX on every new file
-- [ ] PMD ratchet
-- [ ] Layer test passes
+- [x] `infinity.ai.steer.Evade` exists in api/
+- [x] `LowEnergy` Condition exists in api/
+- [x] Brawler BT has the 4-branch Selector with EvadeBranch first
+- [x] Unit tests for Evade + LowEnergy
+- [x] **Demo:** launch arena with player + bot → fight the bot down to low energy → bot disengages and flees → bot energy recharges → bot resumes pursuit
+- [x] License headers + SPDX on every new file
+- [x] PMD ratchet
+- [x] Layer test passes
 
 ## Blocked by
 

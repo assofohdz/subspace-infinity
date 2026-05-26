@@ -1,8 +1,9 @@
 # Flocking: `Separation` / `Cohesion` / `Alignment` + `BlendedSteering`
 
-Status: needs-triage
+Status: ready-for-human
 Category: enhancement
 Type: HITL
+Note: NOT built in v1. `Separation`/`Cohesion`/`Alignment`/`BlendedSteering` do not exist; v1 shipped without flocking (slice #08 dropped the #07 dependency). v2 added scalar density fields (`TeamDensityField`, `follow-traffic`) that may already cover the "don't dogpile, drift with the team" intent. Carried to [bot-ai-v3 BACKLOG](../../bot-ai-v3/BACKLOG.md) as a build-vs-descope decision.
 
 ## Parent
 

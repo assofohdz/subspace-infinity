@@ -1,6 +1,6 @@
 # Bot AI v1 — combatant brains driving `BotShip` entities
 
-Status: ready-for-human
+Status: done — slices #01–#06 + #08 landed and verified (committed under the manual-test gate); #07 (flocking) never built, deferred to [bot-ai-v3 BACKLOG](../bot-ai-v3/BACKLOG.md)
 Category: enhancement
 Date: 2026-05-22
 Anchor: [ADR-0009 — Bot AI Architecture](../../docs/adr/0009-bot-ai-architecture.md)
@@ -129,6 +129,23 @@ v1 adds `base + countPerPlayer × N` scaling on `FillUpXTeamsConfig` (triage dec
 This PRD is the implementation scope for [ADR-0009](../../docs/adr/0009-bot-ai-architecture.md). Architectural decisions (three-layer stack, BT not FSM, input parity, disjoint-entity-set canonical writer, CCP for tunables, no path-finding/GOAP v1) are settled in the ADR — push back there if you want to re-litigate, not here.
 
 ## Comments
+
+### 2026-05-26 — Status reconciliation (post bot-AI review)
+
+Scanned v1 slices against the committed code. Outcome:
+
+| Slice | Status | Notes |
+|-------|--------|-------|
+| #01 retire chicken | ✅ done | package move only; full deletion is [bot-ai-v3 #04](../bot-ai-v3/issues/04-legacy-deletion.md) |
+| #02 spawn wire-up | ✅ done | `BotBrainSystem` + `BotBrain` + `MovementInput` stamp |
+| #03 Pursue/AvoidObstacles/Perception | ✅ done | classes + `PursueTest`/`AvoidObstaclesTest` present |
+| #04 BT framework + Brawler + Wander | ✅ done | `Selector`/`Sequence`/`Wander` + tests present |
+| #05 Combat fire/range/orbit | ✅ done | `FireWeapon`/`InWeaponRange`/`OrbitTarget` + tests |
+| #06 Evade + LowEnergy | ✅ done | `Evade`/`LowEnergy` + tests |
+| #07 Flocking + BlendedSteering | ❌ **not built** | `Separation`/`Cohesion`/`Alignment`/`BlendedSteering` absent — deferred to [v3 BACKLOG](../bot-ai-v3/BACKLOG.md) |
+| #08 Groovy CCP + scaling + arch-test | ✅ done* | loader shipped as `BotBrainAdapter`; "all constants in Groovy" only partial (~12 knobs still in Java → [v3 #02](../bot-ai-v3/issues/02-tuning-knob-migration.md)) |
+
+Unmet criteria moved to the [bot-ai-v3 backlog](../bot-ai-v3/BACKLOG.md): the entire flocking slice (#07) and the tuning-knob-externalisation tail of #08. Everything else met.
 
 ### 2026-05-22 — Triage outcome
 
