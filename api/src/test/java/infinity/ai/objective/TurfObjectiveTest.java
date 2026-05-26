@@ -17,7 +17,7 @@ public class TurfObjectiveTest {
     final TurfObjective obj = new TurfObjective(List.of(new GoalTile(5, 7)));
     assertEquals("turf", obj.name());
     assertEquals(List.of(new GoalTile(5, 7)), obj.staticGoalTiles());
-    assertTrue("turf bias is identity in this increment", obj.behaviourBias().isEmpty());
+    assertEquals(2.0, obj.behaviourBias().get("hold-position"), 0.0);
   }
 
   @Test

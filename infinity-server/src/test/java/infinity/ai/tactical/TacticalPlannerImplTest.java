@@ -8,6 +8,8 @@ import static org.junit.Assert.assertTrue;
 
 import com.simsilica.es.EntityId;
 import infinity.ai.brain.Blackboard;
+import infinity.ai.objective.ArenaObjective;
+import infinity.ai.objective.GoalTile;
 import infinity.ai.steer.Evade;
 import infinity.ai.steer.OrbitTarget;
 import infinity.ai.steer.Pursue;
@@ -122,6 +124,92 @@ public class TacticalPlannerImplTest {
 
     bb.setEnergy(10, 100);
     assertTrue(disengage.intrinsicScore(dg, bb) > engage.intrinsicScore(eg, bb));
+  }
+
+  @Test
+  public void objectiveBiasFlipsSelection() {
+    // No bias: b (0.5) beats a (0.4). objectiveBias{a:2.0} → a eff weight 2.0, 0.4×2.0=0.80 > 0.5.
+    bb.setArenaContext(ctxBiasing(Map.of("a", 2.0)));
+    final TacticalPlanner p =
+        planner(new FixedBehaviour("a", GOAL_A, 0.4), new FixedBehaviour("b", GOAL_B, 0.5));
+    final ArchetypeConfig arch = new ArchetypeConfig("t", Map.of("a", 1.0, "b", 1.0));
+    assertEquals(GOAL_A, p.select(bb, arch));
+  }
+
+  @Test
+  public void objectiveBiasZeroMutesBehaviour() {
+    // objectiveBias{b:0.0} → b effective weight 0 → skipped; a wins despite its lower intrinsic fit.
+    bb.setArenaContext(ctxBiasing(Map.of("b", 0.0)));
+    final TacticalPlanner p =
+        planner(new FixedBehaviour("a", GOAL_A, 0.4), new FixedBehaviour("b", GOAL_B, 0.9));
+    final ArchetypeConfig arch = new ArchetypeConfig("t", Map.of("a", 1.0, "b", 1.0));
+    assertEquals(GOAL_A, p.select(bb, arch));
+  }
+
+  @Test
+  public void equalScoreGoalsLockOntoFirstNoThrash() {
+    // Regression: hold-position offers several near-equidistant flag goals with equal score. The
+    // planner must commit to one and hold it, not flip between them each cycle (the flag-thrash bug).
+    final TacticalGoal g1 = new NavigateToTile(10, 0);
+    final TacticalGoal g2 = new NavigateToTile(12, 0);
+    final TacticalPlanner p =
+        planner(new MultiGoalBehaviour("hold-position", List.of(g1, g2), 0.5));
+    final ArchetypeConfig arch = new ArchetypeConfig("t", Map.of("hold-position", 1.0));
+    final TacticalGoal first = p.select(bb, arch);
+    assertEquals(g1, first); // first-listed wins the tie
+    bb.setCurrentGoal(first);
+    assertEquals("running goal held, not flipped to equal-score sibling", g1, p.select(bb, arch));
+  }
+
+  /** Behaviour offering a fixed list of goals, all at the same intrinsic score. */
+  private static final class MultiGoalBehaviour implements Behaviour {
+    private final String name;
+    private final List<TacticalGoal> goals;
+    private final double score;
+
+    MultiGoalBehaviour(final String name, final List<TacticalGoal> goals, final double score) {
+      this.name = name;
+      this.goals = goals;
+      this.score = score;
+    }
+
+    @Override
+    public String name() {
+      return this.name;
+    }
+
+    @Override
+    public List<TacticalGoal> enumerate(final Blackboard bb) {
+      return this.goals;
+    }
+
+    @Override
+    public double intrinsicScore(final TacticalGoal goal, final Blackboard bb) {
+      return this.score;
+    }
+  }
+
+  /** Context whose objective applies the given multiplicative behaviour bias; no spatial fields. */
+  private static ServerBotAiArenaContext ctxBiasing(final Map<String, Double> bias) {
+    final ArenaObjective objective =
+        new ArenaObjective() {
+          @Override
+          public String name() {
+            return "fake";
+          }
+
+          @Override
+          public Map<String, Double> behaviourBias() {
+            return bias;
+          }
+
+          @Override
+          public List<GoalTile> staticGoalTiles() {
+            return List.of();
+          }
+        };
+    return new ServerBotAiArenaContext(
+        null, null, null, 0, 0, null, null, null, null, List.of(), 0.0, objective);
   }
 
   /** Behaviour that always offers {@code goal} with a fixed intrinsic score. */

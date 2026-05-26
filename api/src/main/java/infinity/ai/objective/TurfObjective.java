@@ -7,10 +7,13 @@ import java.util.Map;
 
 /**
  * Turf (flag-occupancy) objective: the map's stationary flag tiles are the static goals bots hold
- * (ADR-0015). {@code behaviourBias} is identity here; the hold-position bias lands with planner
- * bias-consumption in a later increment.
+ * (ADR-0015). Biases {@code hold-position} up so even hulls with modest tankiness lean toward
+ * holding the flag (the planner multiplies this onto the capability-derived weight).
  */
 public record TurfObjective(List<GoalTile> flagTiles) implements ArenaObjective {
+
+  // Multiplier on the capability-derived hold-position weight; analogous to KOTH's anchor bias.
+  private static final double HOLD_POSITION_BIAS = 2.0;
 
   public TurfObjective {
     flagTiles = List.copyOf(flagTiles);
@@ -23,7 +26,7 @@ public record TurfObjective(List<GoalTile> flagTiles) implements ArenaObjective 
 
   @Override
   public Map<String, Double> behaviourBias() {
-    return Map.of();
+    return Map.of("hold-position", HOLD_POSITION_BIAS);
   }
 
   @Override
