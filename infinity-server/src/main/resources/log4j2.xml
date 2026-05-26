@@ -46,6 +46,13 @@
       <AppenderRef ref="Console"/>
       <AppenderRef ref="File"/>
     </Logger>
+    <!-- Bot-AI tactical-planner goal-flip diagnostic (ADR-0013): DEBUG logs each goal change with the
+         competing behaviour scores (hold-position vs engage/search/follow-traffic) so flag-drift
+         tuning works from real numbers. Re-tighten to INFO once tuning settles. -->
+    <Logger name="infinity.ai.tactical.TacticalPlannerImpl" level="DEBUG" additivity="false">
+      <AppenderRef ref="Console"/>
+      <AppenderRef ref="File"/>
+    </Logger>
     <!-- INFO during F4/F5 smoke — Crowns transfer / round-start distribute / module-set diffs
          are observability for KOTH + Trench gameplay. Re-tighten to WARN once the modules are
          stable and per-tick chatter starts dominating the console. -->

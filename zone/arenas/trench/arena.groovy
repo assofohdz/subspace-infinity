@@ -64,7 +64,9 @@ arena {
     mechanic       'turf'
     roster         'all-ships'
     respawnPolicy  'instant-respawn'
-    spawnPlacement 'random-radius',    center: [512, 512], radius: 0
+    // radius 0 spawned every bot on one point → they stacked + wedged in the corner and never
+    // reached the flag (bot-AI smoke 2026-05-26). A small disc spreads the seats so they separate.
+    spawnPlacement 'random-radius',    center: [512, 512], radius: 32
     scoring        'kill-points',      perKill: 100
     scoring        'flag-hold-time',   perSecondPerFlag: 5
     roundStructure 'timed-round',      minutes: 10
