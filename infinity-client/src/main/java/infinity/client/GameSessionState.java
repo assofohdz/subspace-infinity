@@ -69,6 +69,7 @@ import infinity.client.states.ModelViewState;
 import infinity.client.states.PhysicsDebugState;
 import infinity.client.states.PlayerListState;
 import infinity.client.states.BotDebugHudState;
+import infinity.client.states.FlowFieldDebugState;
 import infinity.client.states.PositionHudState;
 import infinity.client.states.RadarState;
 import infinity.client.states.SpaceGridState;
@@ -107,6 +108,7 @@ public final class GameSessionState extends CompositeAppState {
     addChild(new PlayerListState(), true);
     addChild(new PositionHudState(), true);
     addChild(new BotDebugHudState(), true);
+    addChild(new FlowFieldDebugState(), true);
     addChild(new LightingTunerState(), true);
   }
 

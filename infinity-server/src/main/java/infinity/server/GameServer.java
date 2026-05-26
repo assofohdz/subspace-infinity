@@ -630,6 +630,7 @@ public class GameServer {
     Serializer.registerClass(PlayerShip.class, new FieldSerializer());
     Serializer.registerClass(infinity.es.ship.BotShip.class, new FieldSerializer());
     Serializer.registerClass(infinity.es.BotDebug.class, new FieldSerializer());
+    Serializer.registerClass(infinity.es.FlowFieldDebug.class, new FieldSerializer());
     Serializer.registerClass(MovementInput.class, new FieldSerializer());
     Serializer.registerClass(ArenaId.class, new FieldSerializer());
     Serializer.registerClass(ArenaMap.class, new FieldSerializer());

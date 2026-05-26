@@ -100,6 +100,8 @@ public class GroovyZoneBotAiLoader {
     private double chokepointDensityWeight = ZoneBotAiConfig.DEFAULTS.chokepointDensityWeight();
     private double navThreatWeight = ZoneBotAiConfig.DEFAULTS.navThreatWeight();
     private double navOpportunityWeight = ZoneBotAiConfig.DEFAULTS.navOpportunityWeight();
+    private boolean flowFieldDebug = ZoneBotAiConfig.DEFAULTS.flowFieldDebug();
+    private int flowFieldDebugRadius = ZoneBotAiConfig.DEFAULTS.flowFieldDebugRadius();
 
     ZoneBotAiConfigBuilder() {}
 
@@ -255,6 +257,23 @@ public class GroovyZoneBotAiLoader {
           unitFraction("navOpportunityWeight", value, this.navOpportunityWeight);
     }
 
+    /** Dev-only flow-field debug overlay sampling on/off. */
+    public void flowFieldDebug(final boolean value) {
+      this.flowFieldDebug = value;
+    }
+
+    /** Half-extent (tile cells) of the sampled flow patch around a player; must be {@code > 0}. */
+    public void flowFieldDebugRadius(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final int v = value.intValue();
+      if (v <= 0) {
+        throw new IllegalArgumentException("flowFieldDebugRadius must be > 0; got " + value);
+      }
+      this.flowFieldDebugRadius = v;
+    }
+
     private static double unitFraction(
         final String key, final Number value, final double current) {
       if (value == null) {
@@ -284,7 +303,9 @@ public class GroovyZoneBotAiLoader {
           chokepointMaxWidth,
           chokepointDensityWeight,
           navThreatWeight,
-          navOpportunityWeight);
+          navOpportunityWeight,
+          flowFieldDebug,
+          flowFieldDebugRadius);
     }
   }
 }

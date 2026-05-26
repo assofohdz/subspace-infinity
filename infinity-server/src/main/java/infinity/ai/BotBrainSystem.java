@@ -137,6 +137,8 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   // but can't yet become a goal (no Behaviour impl); the HUD marks the difference.
   private Set<String> selectableBehaviours = Set.of();
   private BrainContainer brains;
+  // Dev-only flow-field debug overlay sampler (player ships); driven on the density cadence.
+  private FlowFieldDebugSampler flowDebug;
   private final BrainRegistry brainRegistry = new BrainRegistry();
   // Shared reactive layer — stateless across bots, so one instance suffices.
   private final AvoidObstacles avoidObstacles =
@@ -188,6 +190,15 @@ public final class BotBrainSystem extends BaseInfinitySystem {
         new BrainContainer(
             this.ed, this.brainRegistry, this.firing, this.configRegistrySystem);
     this.brains.start();
+    this.flowDebug =
+        new FlowFieldDebugSampler(
+            this.ed,
+            this.space,
+            this.mapSystem,
+            this.arenaModuleSystem,
+            this.spatialFields,
+            this.zoneBotAi::get);
+    this.flowDebug.start();
   }
 
   @Override
@@ -199,6 +210,10 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     if (this.spatialFields != null) {
       this.spatialFields.stop();
       this.spatialFields = null;
+    }
+    if (this.flowDebug != null) {
+      this.flowDebug.stop();
+      this.flowDebug = null;
     }
   }
 
@@ -213,6 +228,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       tickBot(wiring, nowNanos);
     }
     this.spatialFields.refresh(nowNanos);
+    this.flowDebug.refresh(nowNanos);
   }
 
   /** Compute and write this tick's {@link MovementInput} for one bot. */

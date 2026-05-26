@@ -6,18 +6,13 @@ import com.simsilica.mathd.Vec3d;
 import infinity.ai.MoverState;
 import infinity.ai.bt.Action;
 import infinity.ai.bt.Status;
+import infinity.ai.field.BlendedFlow;
 import infinity.ai.field.DistanceField;
-import infinity.ai.field.FieldBlend;
 import infinity.ai.field.FieldGradient;
 import infinity.ai.field.NavigationFields;
-import infinity.ai.field.ScalarField;
-import infinity.ai.field.Weighted;
 import infinity.ai.tactical.BotAiArenaContext;
 import infinity.ai.tactical.NavigateToTile;
 import infinity.math.Vec2d;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Executes a {@link NavigateToTile} goal by steering down a <em>blended</em> flow-field gradient
@@ -100,34 +95,13 @@ public final class SteerToGoalTile implements Action {
       final Blackboard bb,
       final int selfX,
       final int selfY) {
-    final Vec2d threatDescent = enemyThreatDescent(ctx, bb.ownFreq(), selfX, selfY);
-    // Opportunity ascent = toward higher value = negated descent gradient.
-    final Vec2d oppDescent = new FieldGradient(ctx.opportunity()).directionAt(selfX, selfY);
     Vec2d acc =
-        navDir
-            .add(threatDescent.mult(bb.navThreatWeight()))
-            .add(oppDescent.mult(-bb.navOpportunityWeight()));
+        BlendedFlow.blendNav(
+            navDir, ctx, bb.ownFreq(), selfX, selfY, bb.navThreatWeight(), bb.navOpportunityWeight());
     final Vec3d wallAvoid = bb.wallAvoid();
     if (wallAvoid != null) {
       acc = acc.add(new Vec2d(wallAvoid.x, wallAvoid.z).mult(WALL_AVOID_WEIGHT));
     }
     return acc.lengthSq() < 1e-9 ? navDir : acc.normalize();
-  }
-
-  /** Descent of the blended enemy-threat surface ({@code activeTeamFreqs} minus own) → toward safety. */
-  private static Vec2d enemyThreatDescent(
-      final BotAiArenaContext ctx, final int ownFreq, final int selfX, final int selfY) {
-    final Set<Integer> freqs = ctx.activeTeamFreqs();
-    final List<Weighted> enemies = new ArrayList<>(freqs.size());
-    for (final int f : freqs) {
-      if (f != ownFreq) {
-        enemies.add(Weighted.of(ctx.threat(f), 1.0));
-      }
-    }
-    if (enemies.isEmpty()) {
-      return Vec2d.ZERO;
-    }
-    final ScalarField blendField = FieldBlend.of(enemies.toArray(new Weighted[0]));
-    return new FieldGradient(blendField).directionAt(selfX, selfY);
   }
 }
