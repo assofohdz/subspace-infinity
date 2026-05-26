@@ -15,6 +15,11 @@ import infinity.ai.PerceptionSnapshot;
  */
 public final class SeekDirection implements Steering {
 
+  // Minimum forward thrust while still facing the heading (fwd > 0). Keeps momentum through turns so
+  // the bot ARCS toward the heading instead of spinning in place with zero thrust — momentum ships
+  // can't rotate-in-place efficiently. Facing away (fwd <= 0) still gives zero (turn first).
+  private static final double FORWARD_THRUST_FLOOR = 0.4;
+
   private final double thrust;
   private Vec3d desired;
 
@@ -41,6 +46,10 @@ public final class SeekDirection implements Steering {
       // Heading is behind: max turn signal to swing around.
       yaw = (Math.abs(yaw) < 1e-3) ? 1.0 : Math.signum(yaw);
     }
-    return new Vec3d(yaw, 0.0, this.thrust);
+    // Alignment-scaled thrust ("turn, then burn"): thrust as the bot faces the heading, so it tracks
+    // the flow instead of thrusting full-speed off its current facing and overshooting. A floor keeps
+    // momentum while turning toward the heading (arc, don't spin); facing away (fwd <= 0) ⇒ pure turn.
+    final double thr = fwd <= 0.0 ? 0.0 : this.thrust * Math.max(FORWARD_THRUST_FLOOR, fwd);
+    return new Vec3d(yaw, 0.0, thr);
   }
 }

@@ -24,12 +24,47 @@ Cut tracer-first so the visible "bots navigate to the turf flag" win lands early
   **Divergence from ADR-0015:** `staticGoalTiles()` returns cell coords, not moss
   `TileId` (an arena *is* one TileId; can't address a cell within it) — matches the
   existing `DistanceField` / `NavigateToTile` cell-space decision.
-- **Inc B — objective `behaviourBias` consumption** ⬜ planner multiplies
-  `objectiveBias(B)` into effective weight; `TurfObjective.behaviourBias()` boosts
-  hold-position. (`behaviourBias()` is defined now but inert until the planner reads it.)
+  **Prerequisite bug fixed (smoke 2026-05-26):** `MapSystemLogic.derivePassability`
+  walled off *every* non-zero tile, including the turf flag — a fly-through sensor you
+  capture by flying into. Bots got the right goal coords but no flow (`reactive:unreach`,
+  empty Dijkstra field on an "impassable" goal). Fixed to mark the flag tile nav-passable;
+  wormholes stay impassable (warp not modelled). Applies to all arenas' bot nav.
+- **Inc B — objective `behaviourBias` consumption** ✅ done (2026-05-26).
+  `TacticalPlannerImpl` effective weight = `derived × objectiveBias(B)` (ADR-0015
+  multiplicative), applied in both the enumeration threshold and the score; `0`
+  hard-mutes. `TurfObjective.behaviourBias()` boosts `hold-position` ×2.0. Objective
+  name surfaced in the `BotDebug` HUD. (Role bias `× roleBias(B)` is Inc C.)
 - **Inc C — `BotRole` + roles** ⬜ `BotRole` component + `BotRoleConfig` +
   `BotRoleRegistry` + `roles { }` Groovy + `GroovyBotRolesLoader` + `assignRole` +
   `ArenaSnapshot` + role bias + event-driven reassignment.
+
+### Navigation/steering fixes to make flag-nav actually work (smoke-driven, 2026-05-26)
+
+Inc A/B exposed that bots selected the flag goal but couldn't *reach* it. Root causes
+found via the in-game stuck-log + an offline flow-field analyzer
+([flowfield-corner-analysis.md](../../flowfield-corner-analysis.md)), fixed in order:
+
+- **All hulls bias to the flag, not just tanky ones.** `hold-position` synergy gained a
+  flat base (`0.3 + 0.3·tankiness + antiwarp`) so every hull clears the min-weight floor
+  and the (multiplicative) turf bias can amplify it.
+- **`HoldPositionBehaviour` enumerates *all* flag tiles**, not the nearest — near-equidistant
+  flags made the nearest-only goal thrash (the dropped goal stops being offered, so stickiness
+  can't hold it). All offered ⇒ the planner locks one.
+- **Cooperative steering (flow primary, reactive defers).** The reactive layers were
+  hard-overriding the flow field and re-fighting the static structure the flow already routes
+  around. `SeekDirection` now scales thrust by heading alignment (turn-then-burn, with a floor);
+  `SteerToGoalTile` adds an arrival taper + blends a gentle wall-clearance push instead of a
+  reverse-override; `AvoidObstacles` is suppressed on the nav path; `WallRepulsion` exposes a
+  `repulsion()` direction for the blend. `FieldGradient` rewritten to steer toward the lowest
+  *passable* neighbour (8-conn, no corner-cut) so it never points into a wall.
+- **Hull-aware routing (the real blocker).** Movement is for a diameter-2 hull but the field
+  planned for a point, routing into 1-wide slots / diagonal pinches the ship can't enter.
+  `NavGrids.erodeFootprint(passable, 2)` builds a route grid where a cell is navigable only if
+  the 2×2 footprint fits; Dijkstra fields build on it; goals snap to the nearest hull-fit cell
+  (so the trench flag, in a too-tight slot, routes bots to the nearest cell they fit and they
+  hold there). Raw grid kept for physical `passableAt`/line-of-sight. Known residual: the flag
+  cell itself is hull-impassable, so bots hold one cell away — capture needs a larger
+  `flagRadius` (deferred).
 
 ## What to build
 

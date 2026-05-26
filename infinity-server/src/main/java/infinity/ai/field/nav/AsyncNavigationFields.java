@@ -30,20 +30,40 @@ import java.util.function.LongSupplier;
  */
 public final class AsyncNavigationFields implements NavigationFields {
 
+  // A goal in a non-navigable slot (e.g. a turf flag the hull can't reach) snaps to the nearest
+  // route-navigable cell within this radius — bots route to the closest cell they fit and hold there.
+  private static final int GOAL_SNAP_RADIUS = 24;
+
+  // Raw passability (physical walls) for line-of-sight + WallRepulsion; the route grid is the
+  // footprint-eroded grid (NavGrids.erodeFootprint) the Dijkstra fields build on so the diameter-2
+  // hull only routes where it fits. See ADR-0011.
   private final boolean[][] passable;
+  private final boolean[][] routePassable;
   private final Executor builder;
   private final LongSupplier nowNanos;
   private final long ttlNanos;
   private final int maxTransient;
   private final Map<Long, Entry> cache = new ConcurrentHashMap<>();
 
+  /** Convenience: no hull erosion (route grid == raw). Used by tests / non-routing callers. */
   public AsyncNavigationFields(
       final boolean[][] passable,
       final Executor builder,
       final LongSupplier nowNanos,
       final long ttlNanos,
       final int maxTransient) {
+    this(passable, passable, builder, nowNanos, ttlNanos, maxTransient);
+  }
+
+  public AsyncNavigationFields(
+      final boolean[][] passable,
+      final boolean[][] routePassable,
+      final Executor builder,
+      final LongSupplier nowNanos,
+      final long ttlNanos,
+      final int maxTransient) {
     this.passable = passable;
+    this.routePassable = routePassable;
     this.builder = builder;
     this.nowNanos = nowNanos;
     this.ttlNanos = ttlNanos;
@@ -62,9 +82,11 @@ public final class AsyncNavigationFields implements NavigationFields {
 
   @Override
   public DistanceField fieldFor(final int rawGoalX, final int rawGoalY) {
-    // Snap a goal on solid tile (e.g. a quantized block-centre) to the nearest open cell so the
-    // Dijkstra actually computes — otherwise the field is all-∞ and the bot reads "unreach".
-    final int[] g = infinity.ai.field.NavGrids.nearestPassable(this.passable, rawGoalX, rawGoalY, 8);
+    // Snap the goal to the nearest route-navigable (hull-fitting) cell so the Dijkstra computes and
+    // bots head to the closest cell they fit — otherwise a flag in a tight slot is all-∞ ("unreach").
+    final int[] g =
+        infinity.ai.field.NavGrids.nearestPassable(
+            this.routePassable, rawGoalX, rawGoalY, GOAL_SNAP_RADIUS);
     final int goalX = g[0];
     final int goalY = g[1];
     final long k = key(goalX, goalY);
@@ -121,7 +143,7 @@ public final class AsyncNavigationFields implements NavigationFields {
   private Entry newEntry(final int goalX, final int goalY) {
     final CompletableFuture<DistanceField> future =
         CompletableFuture.supplyAsync(
-            () -> new DijkstraDistanceField(goalX, goalY, this.passable), this.builder);
+            () -> new DijkstraDistanceField(goalX, goalY, this.routePassable), this.builder);
     return new Entry(future, this.nowNanos.getAsLong());
   }
 

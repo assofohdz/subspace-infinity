@@ -5,6 +5,7 @@ package infinity.systems;
 
 import com.simsilica.mathd.Vec3d;
 import infinity.map.LevelFile;
+import infinity.map.MapTypes;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -19,11 +20,12 @@ public final class MapSystemLogic {
 
   /**
    * Arena-relative passability grid for bot navigation (ADR-0011): {@code passable[cz][cx]} is true
-   * where world cell {@code (cx, cz)} is empty. Mirrors {@link LegacyMapProjector}'s axis-flip exactly
-   * — that projector places a solid block at world cell {@code (cx, cz)} reading
-   * {@code tiles[extentX - cx][extentZ - cz]} — so a cell is passable iff that flipped tile is
-   * {@code 0}. Any non-zero tile (wall, door, wormhole, flag) is treated as impassable; door dynamics
-   * are handled by field eviction, not this static grid. Rectangular {@code .lvl} grid assumed.
+   * where a ship can fly through world cell {@code (cx, cz)}. Mirrors {@link LegacyMapProjector}'s
+   * axis-flip exactly — that projector reads {@code tiles[extentX - cx][extentZ - cz]} for world cell
+   * {@code (cx, cz)}. A cell is passable iff its flipped tile is {@link #navPassable navPassable}:
+   * empty, or a fly-through sensor tile (the turf flag, which you fly into to capture). Solid terrain,
+   * doors, asteroids, and the station are impassable; door dynamics are handled by field eviction, not
+   * this static grid. Rectangular {@code .lvl} grid assumed.
    */
   public static boolean[][] derivePassability(final short[][] tiles) {
     final int nx = tiles.length;
@@ -33,10 +35,21 @@ public final class MapSystemLogic {
     final boolean[][] passable = new boolean[nz][nx];
     for (int cx = 0; cx < nx; cx++) {
       for (int cz = 0; cz < nz; cz++) {
-        passable[cz][cx] = tiles[extentX - cx][extentZ - cz] == 0;
+        passable[cz][cx] = navPassable(tiles[extentX - cx][extentZ - cz]);
       }
     }
     return passable;
+  }
+
+  /**
+   * Whether a {@code .lvl} tile value is fly-through for bot nav. Empty space, or the turf flag — a
+   * sensor entity ships fly into to capture ({@link LegacyMapProjector#spawnTileEntity} writes no
+   * solid cell for it). All other non-zero tiles (normal terrain, doors, asteroids, station, border)
+   * are solid collision geometry. Wormholes are sensors too but stay impassable: nav doesn't model
+   * warp edges (bot-ai-v2 out of scope), so bots route around them rather than warping unexpectedly.
+   */
+  private static boolean navPassable(final short tile) {
+    return tile == MapTypes.VIE_NO_TILE || tile == MapTypes.VIE_TURF_FLAG;
   }
 
   /**

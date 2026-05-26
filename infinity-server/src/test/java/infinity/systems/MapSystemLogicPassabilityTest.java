@@ -41,6 +41,26 @@ public class MapSystemLogicPassabilityTest {
   }
 
   @Test
+  public void turfFlagTileIsPassable() {
+    // The flag is a fly-through sensor (you fly into it to capture), unlike a solid wall.
+    final short[][] tiles = new short[3][3];
+    tiles[1][1] = infinity.map.MapTypes.VIE_TURF_FLAG; // world cell (1,1) after axis-flip
+    final boolean[][] p = MapSystemLogic.derivePassability(tiles);
+    assertTrue("turf-flag cell is fly-through, so nav-passable", p[1][1]);
+  }
+
+  @Test
+  public void solidSpecialTilesStayImpassable() {
+    // Asteroid + station are solid colliders → impassable for nav.
+    final short[][] tiles = new short[3][3];
+    tiles[0][0] = infinity.map.MapTypes.VIE_ASTEROID_SMALL; // -> world (2,2)
+    tiles[2][2] = infinity.map.MapTypes.VIE_STATION; // -> world (0,0)
+    final boolean[][] p = MapSystemLogic.derivePassability(tiles);
+    assertFalse("asteroid is solid", p[2][2]);
+    assertFalse("station is solid", p[0][0]);
+  }
+
+  @Test
   public void emptyTilesArrayYieldsEmptyGrid() {
     assertEquals(0, MapSystemLogic.derivePassability(new short[0][]).length);
   }

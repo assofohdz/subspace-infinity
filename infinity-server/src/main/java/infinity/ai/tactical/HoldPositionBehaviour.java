@@ -2,18 +2,21 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.ai.tactical;
 
-import infinity.ai.MoverState;
 import infinity.ai.brain.Blackboard;
 import infinity.ai.objective.GoalTile;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@code hold-position} (catalog #09): occupy a valuable tile. Candidates are the arena objective's
- * static goal tiles (ADR-0015) — e.g. the turf flag — emitting a {@link NavigateToTile} toward the
- * nearest. Capability-gated by the existing {@code hold-position} synergy weight (tankiness +
- * antiwarp), so tanky hulls hold while glass cannons don't. The full ADR-0016 fit formula
- * (position_value / support / defensive-item / energy-buffer) is a refinement; this is the
- * idle-biased baseline that lands the objective-nav path. See ADR-0013 / ADR-0016.
+ * {@code hold-position} (catalog #09): occupy a valuable tile. Candidates are <em>all</em> the arena
+ * objective's static goal tiles (ADR-0015) — e.g. the turf flags — each emitting a
+ * {@link NavigateToTile}. Enumerating all (not just the nearest) is load-bearing: with several
+ * near-equidistant flags, a "nearest only" goal flips as the bot drifts and the abandoned goal stops
+ * being offered, so the planner's stickiness can't hold it and the bot thrashes in place. Offering
+ * every flag each cycle lets stickiness lock onto one and commit. Capability-gated by the
+ * {@code hold-position} synergy weight (a flat base plus tankiness/antiwarp), so all hulls bias toward
+ * the flag and durable hulls hold best. The full ADR-0016 fit formula (position_value / support /
+ * defensive-item / energy-buffer) is a refinement; this is the idle-biased baseline. See ADR-0013 / ADR-0016.
  */
 public final class HoldPositionBehaviour implements Behaviour {
 
@@ -34,22 +37,11 @@ public final class HoldPositionBehaviour implements Behaviour {
       return List.of();
     }
     final List<GoalTile> goals = ctx.objective().staticGoalTiles();
-    if (goals.isEmpty()) {
-      return List.of();
-    }
-    final MoverState self = bb.self();
-    GoalTile nearest = null;
-    double bestSq = Double.POSITIVE_INFINITY;
+    final List<TacticalGoal> out = new ArrayList<>(goals.size());
     for (final GoalTile g : goals) {
-      final double dx = g.worldCellX() - self.position().x;
-      final double dz = g.worldCellZ() - self.position().z;
-      final double dSq = dx * dx + dz * dz;
-      if (dSq < bestSq) {
-        bestSq = dSq;
-        nearest = g;
-      }
+      out.add(new NavigateToTile(g.worldCellX(), g.worldCellZ()));
     }
-    return List.of(new NavigateToTile(nearest.worldCellX(), nearest.worldCellZ()));
+    return out;
   }
 
   @Override

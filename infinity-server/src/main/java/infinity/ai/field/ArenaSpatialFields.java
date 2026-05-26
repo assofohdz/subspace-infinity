@@ -53,6 +53,10 @@ public final class ArenaSpatialFields {
   // Sentinel for "fields have never refreshed" — the first cadence check refreshes unconditionally.
   private static final long UNREFRESHED = Long.MIN_VALUE;
 
+  // Ship footprint (cells) for hull-aware route erosion: the diameter-2 ship needs a 2x2 of open
+  // cells to occupy. Tuning knob — promote to zone-bot-ai.groovy if larger hulls ever need it.
+  private static final int HULL_FOOTPRINT_CELLS = 2;
+
   private final EntityData ed;
   private final PhysicsSpace<EntityId, MBlockShape> space;
   private final MapSystem mapSystem;
@@ -238,9 +242,15 @@ public final class ArenaSpatialFields {
     ArenaNav existing = this.navByArena.get(arena);
     if (existing == null || existing.grid() != passable) {
       final ZoneBotAiConfig cfg = this.zoneCfg.get();
+      // Hull-aware routing grid: a cell is navigable only if the 2x2 footprint of the diameter-2 ship
+      // fits, so flow fields never route through 1-wide slots / diagonal pinches the hull can't enter.
+      // Raw `passable` stays for physical passableAt/LoS. See ADR-0011 / NavGrids.erodeFootprint.
+      final boolean[][] routePassable =
+          infinity.ai.field.NavGrids.erodeFootprint(passable, HULL_FOOTPRINT_CELLS);
       final AsyncNavigationFields fields =
           new AsyncNavigationFields(
               passable,
+              routePassable,
               this.navBuilder,
               System::nanoTime,
               cfg.navFieldTtlMs() * 1_000_000L,

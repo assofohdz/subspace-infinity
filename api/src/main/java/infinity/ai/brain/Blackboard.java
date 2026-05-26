@@ -46,6 +46,10 @@ public final class Blackboard {
   private int ownFreq = -1;
   private double navThreatWeight;
   private double navOpportunityWeight;
+  // World-space (XZ) unit direction away from nearby walls, or null. Set per-tick by the brain system;
+  // blended into the flow heading by SteerToGoalTile so the hull eases off walls while still following
+  // the route (cooperative — replaces the old reverse-override). See WallRepulsion#repulsion.
+  @Nullable private Vec3d wallAvoid;
   private WeaponsFiring firing;
   // -1 sentinels = "not yet sampled" (e.g. Energy / EnergyStats components absent).
   private int currentEnergy = -1;
@@ -106,6 +110,16 @@ public final class Blackboard {
 
   public double navOpportunityWeight() {
     return this.navOpportunityWeight;
+  }
+
+  /** World-space (XZ) unit push away from nearby walls this tick, or {@code null} if none close. */
+  @Nullable
+  public Vec3d wallAvoid() {
+    return this.wallAvoid;
+  }
+
+  public void setWallAvoid(@Nullable final Vec3d wallAvoid) {
+    this.wallAvoid = wallAvoid;
   }
 
   public void setNavBlendWeights(final double threat, final double opportunity) {

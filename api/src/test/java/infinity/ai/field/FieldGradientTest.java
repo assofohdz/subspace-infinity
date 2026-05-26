@@ -79,6 +79,22 @@ public class FieldGradientTest {
   }
 
   @Test
+  public void doesNotCutCornerIntoDiagonalWall() {
+    // Naive central difference at (1,1) points the descent up-right toward (2,0), but (2,0) is a wall:
+    // the bot would wedge in the corner. It must collapse to the open orthogonal (right, toward the
+    // lower-distance (2,1)) and route around — mirrors DijkstraDistanceField's no-corner-cutting.
+    final double inf = Double.POSITIVE_INFINITY;
+    final double[][] f = {
+      {3, 2, inf},
+      {3, 2, 1},
+      {4, 4, 3}
+    };
+    final Vec2d d = new FieldGradient(arrayField(f)).directionAt(1, 1);
+    assertEquals("route around the corner horizontally, not diagonally into the wall", 1.0, d.x, EPS);
+    assertEquals(0.0, d.y, EPS);
+  }
+
+  @Test
   public void infiniteNeighbourStaysFinite() {
     // Wall neighbour must not produce NaN/Infinity in the gradient.
     final double[][] f = {

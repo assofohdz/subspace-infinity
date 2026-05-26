@@ -137,9 +137,11 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   private final AvoidObstacles avoidObstacles =
       new AvoidObstacles(LOOK_AHEAD_DISTANCE, CORRIDOR_HALF_WIDTH, AVOID_THRUST);
   // Omnidirectional grid wall-repulsion (ADR-0011 #03): escapes corners/wall-grinding the
-  // forward-only AvoidObstacles ray can't see. 3-cell reach (ships are radius-1), full thrust.
+  // forward-only AvoidObstacles ray can't see. 2-cell reach (ships are radius-1) — narrowed from 3 so
+  // it fires only when a wall is genuinely close, not on every bit of nearby structure (it hard-
+  // overrides nav, so over-firing yanks bots off their flow heading). Full thrust for the escape.
   private final infinity.ai.steer.WallRepulsion wallRepulsion =
-      new infinity.ai.steer.WallRepulsion(3, AVOID_THRUST);
+      new infinity.ai.steer.WallRepulsion(2, AVOID_THRUST);
 
   @Override
   protected void initialize() {
@@ -241,37 +243,60 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     bb.resetIntent();
     bb.setLastBranch("Idle");
     bb.setNavDiag(NONE); // overwritten by SteerApproachTarget when the approach branch runs
+    // Cooperative wall-clearance: hand the brain a world-space push off nearby walls so SteerToGoalTile
+    // blends it into the flow heading (the hull eases off walls while still following the route),
+    // instead of a reverse-override fighting the flow. See resolveSteer + WallRepulsion#repulsion.
+    final NavigationFields navFields =
+        wiring.arenaContext == null ? null : wiring.arenaContext.navigation();
+    bb.setWallAvoid(
+        navFields == null
+            ? null
+            : this.wallRepulsion.repulsion(
+                self, navFields, wiring.arenaContext.originCellX(), wiring.arenaContext.originCellZ()));
     wiring.brain.tick(bb);
     final Steer steer = resolveSteer(wiring, self, snapshot, bb);
     this.ed.setComponent(wiring.botId, new MovementInput(steer.move, new Quatd(), MovementInput.NONE));
     writeDebugSnapshot(wiring, self, target, steer.move, bb, steer.overlay);
-    maybeLogStuck(wiring, self, target, steer.move, bb, nowNanos);
+    maybeLogStuck(wiring, self, target, steer.move, bb, nowNanos, steer.overlay);
   }
 
   /**
-   * Resolve the final movement intent + its debug overlay. Steering precedence: grid wall-escape
-   * (omnidirectional, ADR-0011 #03) &gt; forward ray-cast {@link AvoidObstacles} &gt; BT intent.
-   * Oversteer-damping is applied except on the wall-escape, which needs full reverse/turn authority.
+   * Resolve the final movement intent + its debug overlay. <b>The flow field is primary; reactive
+   * avoidance cooperates rather than overrides</b> (ADR-0011). While steering down a flow gradient
+   * (Navigate), there is <em>no</em> reactive override: the flow already routes around all static
+   * structure (every non-zero {@code .lvl} tile is impassable in the grid), and wall hull-clearance is
+   * blended into the heading upstream in {@code SteerToGoalTile} via {@link Blackboard#wallAvoid}. Off
+   * the nav path (combat branches with no flow heading), the reactive layers still hard-override:
+   * {@link infinity.ai.steer.WallRepulsion} (grind escape, full authority) &gt; forward-ray
+   * {@link AvoidObstacles}. Oversteer-damping applies to all but the wall-escape.
    */
   private Steer resolveSteer(
       final BrainWiring wiring,
       final MoverState self,
       final PerceptionSnapshot snapshot,
       final Blackboard bb) {
-    final NavigationFields nav =
-        wiring.arenaContext == null ? null : wiring.arenaContext.navigation();
-    final Vec3d wallPush =
-        nav == null
-            ? null
-            : this.wallRepulsion.steer(
-                self, nav, wiring.arenaContext.originCellX(), wiring.arenaContext.originCellZ());
-    if (wallPush != null) {
-      return new Steer(wallPush, "+WallRepel"); // no damping — keep full corner-escape authority
+    if (!"Navigate".equals(bb.lastBranch())) {
+      final NavigationFields nav =
+          wiring.arenaContext == null ? null : wiring.arenaContext.navigation();
+      final Vec3d wallPush =
+          nav == null
+              ? null
+              : this.wallRepulsion.steer(
+                  self, nav, wiring.arenaContext.originCellX(), wiring.arenaContext.originCellZ());
+      if (wallPush != null) {
+        return new Steer(wallPush, "+WallRepel"); // no damping — keep full corner-escape authority
+      }
+      final Vec3d avoid = this.avoidObstacles.steer(self, snapshot);
+      if (avoid != null) {
+        final Vec3d move = avoid.clone();
+        dampOversteer(move);
+        return new Steer(move, "+Avoid");
+      }
     }
-    final Vec3d avoid = this.avoidObstacles.steer(self, snapshot);
-    final Vec3d move = avoid != null ? avoid : bb.intent().clone();
-    dampOversteer(move);
-    return new Steer(move, avoid != null ? "+Avoid" : "");
+    // Nav intent is already alignment-shaped by SeekDirection (thrust scales with heading alignment),
+    // so a second oversteer-damp here would compound to ~zero thrust at sharp turns and stall the bot
+    // mid-turn through a chokepoint. Use the shaped intent directly.
+    return new Steer(bb.intent().clone(), "");
   }
 
   /** Final movement intent + the reactive-layer overlay tag for the debug HUD. */
@@ -298,7 +323,8 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       @Nullable final NearbyShip target,
       final Vec3d move,
       final Blackboard bb,
-      final long nowNanos) {
+      final long nowNanos,
+      final String overlay) {
     if (!log.isInfoEnabled() || self.velocity().lengthSq() > STUCK_SPEED_SQ) {
       return;
     }
@@ -319,7 +345,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       flow = String.format("(%.2f,%.2f)", g.x, g.y);
     }
     log.info(
-        "bot {} stuck v~0 @({},{}) facing=({},{}) flowToTarget={} move=(turn{},thr{}) branch={} nav={}",
+        "bot {} stuck v~0 @({},{}) facing=({},{}) flowToTarget={} move=(turn{},thr{}) branch={}{} nav={}",
         wiring.botId.getId(),
         (int) self.position().x,
         (int) self.position().z,
@@ -329,7 +355,52 @@ public final class BotBrainSystem extends BaseInfinitySystem {
         String.format("%+.2f", move.x),
         String.format("%+.2f", move.z),
         bb.lastBranch(),
+        overlay,
         bb.navDiag());
+    logNavField(bb, ctx, self);
+  }
+
+  /**
+   * Diagnostic: when a stuck bot is on a {@link infinity.ai.tactical.NavigateToTile} goal, dump the
+   * flow field around its cell — self/goal arena-relative cells, the gradient toward the goal, and a
+   * 5x5 window of passability ({@code #}/{@code .}) + distances — straight from the live field, so the
+   * routing can be read without reverse-engineering the world&rarr;grid transform offline.
+   */
+  @SuppressWarnings("PMD.GuardLogStatement")
+  private void logNavField(
+      final Blackboard bb, @Nullable final ServerBotAiArenaContext ctx, final MoverState self) {
+    if (ctx == null || ctx.navigation() == null
+        || !(bb.currentGoal() instanceof infinity.ai.tactical.NavigateToTile goal)) {
+      return;
+    }
+    final NavigationFields nav = ctx.navigation();
+    final int sx = (int) Math.floor(self.position().x) - ctx.originCellX();
+    final int sy = (int) Math.floor(self.position().z) - ctx.originCellZ();
+    final int gx = goal.cellX() - ctx.originCellX();
+    final int gy = goal.cellZ() - ctx.originCellZ();
+    final infinity.ai.field.DistanceField field = nav.fieldFor(gx, gy);
+    final infinity.math.Vec2d g = nav.gradientFor(gx, gy).directionAt(sx, sy);
+    log.info(
+        "  nav-field: self-cell=({},{}) goal-cell=({},{}) gradTowardGoal=({},{}) selfDist={}",
+        sx, sy, gx, gy,
+        String.format("%.2f", g.x), String.format("%.2f", g.y),
+        String.format("%.1f", field.valueAt(sx, sy)));
+    for (int dz = -2; dz <= 2; dz++) {
+      final StringBuilder row = new StringBuilder("  ");
+      for (int dx = -2; dx <= 2; dx++) {
+        final int cx = sx + dx;
+        final int cz = sy + dz;
+        if (dx == 0 && dz == 0) {
+          row.append("   B   ");
+        } else if (!nav.passableAt(cx, cz)) {
+          row.append("   #   ");
+        } else {
+          final double d = field.valueAt(cx, cz);
+          row.append(String.format("%6.1f ", d));
+        }
+      }
+      log.info(row.toString());
+    }
   }
 
   /** Re-select the bot's {@link TacticalGoal} once the planner cadence has elapsed (ADR-0013). */
@@ -522,6 +593,9 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     final String shipName = shipType != null && shipType.getType() != null
         ? shipType.getType().name()
         : "";
+    // objective() is contractually non-null (DeathmatchObjective default) once a context exists.
+    final String objectiveName =
+        bb.arenaContext() != null ? bb.arenaContext().objective().name() : "";
     this.ed.setComponent(
         wiring.botId,
         new BotDebug(
@@ -531,8 +605,8 @@ public final class BotBrainSystem extends BaseInfinitySystem {
             move.z,
             clockHour,
             shipName,
-            "", // objectiveName — #06
-            "", // roleName — #06
+            objectiveName,
+            "", // roleName — #06 Inc C
             formatGoal(goal),
             formatTopScores(wiring.archetype, this.selectableBehaviours),
             formatBreakdown(wiring.archetype),

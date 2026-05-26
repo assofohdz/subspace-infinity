@@ -59,4 +59,27 @@ public class SeekDirectionTest {
     final Vec3d out = s.steer(SELF, PerceptionSnapshot.EMPTY);
     assertEquals(1.0, Math.abs(out.x), EPS);
   }
+
+  @Test
+  public void sideHeadingGivesNoThrust() {
+    // 90deg off (heading to the side) ⇒ pure turn, no forward thrust ("turn, then burn").
+    final SeekDirection s = new SeekDirection(1.0);
+    s.setDesiredDirection(new Vec3d(1, 0, 0));
+    assertEquals(0.0, s.steer(SELF, PerceptionSnapshot.EMPTY).z, EPS);
+  }
+
+  @Test
+  public void behindGivesNoThrust() {
+    final SeekDirection s = new SeekDirection(1.0);
+    s.setDesiredDirection(new Vec3d(0, 0, -1));
+    assertEquals(0.0, s.steer(SELF, PerceptionSnapshot.EMPTY).z, EPS);
+  }
+
+  @Test
+  public void partialAlignmentScalesThrust() {
+    // 45deg off ⇒ thrust scaled by cos(45) ≈ 0.707.
+    final SeekDirection s = new SeekDirection(1.0);
+    s.setDesiredDirection(new Vec3d(1, 0, 1));
+    assertEquals(Math.sqrt(0.5), s.steer(SELF, PerceptionSnapshot.EMPTY).z, 1e-3);
+  }
 }

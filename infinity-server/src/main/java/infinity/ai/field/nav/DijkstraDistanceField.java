@@ -25,9 +25,11 @@ public final class DijkstraDistanceField implements DistanceField {
   private final boolean[][] passable;
   private final double[] dist;
 
-  /** @param passable row-major {@code [y][x]} traversability grid (e.g. from the loaded .lvl). */
-  public DijkstraDistanceField(
-      final int goalX, final int goalY, final boolean[][] passable) {
+  /**
+   * @param passable row-major {@code [y][x]} traversability grid — pass a footprint-eroded grid
+   *     ({@code NavGrids.erodeFootprint}) for hull-aware routing.
+   */
+  public DijkstraDistanceField(final int goalX, final int goalY, final boolean[][] passable) {
     this.height = passable.length;
     this.width = this.height == 0 ? 0 : passable[0].length;
     this.goalX = goalX;

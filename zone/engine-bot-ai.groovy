@@ -47,7 +47,12 @@ synergy {
         bonus    { profile -> 0.3 * profile.areaDamage() + (profile.maxMines() > 0 ? 0.2 : 0.0) }
     }
     behaviour 'hold-position', {
-        bonus    { profile -> 0.4 * profile.tankiness() + (profile.antiwarp() ? 0.2 : 0.0) }
+        // Flat base so EVERY hull carries some hold-position weight — any ship can sit on a flag.
+        // Tankiness/antiwarp make durable hulls hold better, but the base keeps glass cannons above
+        // the min-weight floor so the (multiplicative) turf objective bias can amplify them too:
+        // in a flag arena all hulls bias toward the flag, not just tanky ones (ADR-0015). Inert in
+        // arenas with no objective goal tiles — hold-position enumerates nothing there.
+        bonus    { profile -> 0.3 + 0.3 * profile.tankiness() + (profile.antiwarp() ? 0.2 : 0.0) }
     }
     behaviour 'push', {
         bonus    { profile -> 0.3 * profile.mobility() + 0.2 * profile.tankiness() }

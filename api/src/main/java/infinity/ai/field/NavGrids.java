@@ -78,6 +78,39 @@ public final class NavGrids {
     return cell(grid, x, z);
   }
 
+  /**
+   * Hull-aware routing grid (ADR-0011): a cell {@code (x,z)} is navigable iff the {@code size×size}
+   * footprint anchored there is fully open — so an agent of that footprint (the diameter-2 ship =
+   * {@code size 2}) can occupy it. Out-of-bounds counts as wall. This is Minkowski erosion: 2-wide
+   * corridors stay usable (the 2×2 fits) but 1-wide slots and diagonal corner-pinches the hull can't
+   * enter are removed, so the flow field never plans a point-route the ship can't follow. Build the
+   * Dijkstra field on this grid; keep the raw grid for physical {@code passableAt}/line-of-sight.
+   */
+  public static boolean[][] erodeFootprint(final boolean[][] passable, final int size) {
+    final int h = passable.length;
+    final int w = h == 0 ? 0 : passable[0].length;
+    final boolean[][] out = new boolean[h][w];
+    for (int z = 0; z < h; z++) {
+      for (int x = 0; x < w; x++) {
+        out[z][x] = footprintOpen(passable, x, z, size);
+      }
+    }
+    return out;
+  }
+
+  /** Whether the {@code size×size} block anchored at {@code (x,z)} (toward +x/+z) is all passable. */
+  private static boolean footprintOpen(
+      final boolean[][] passable, final int x, final int z, final int size) {
+    for (int dz = 0; dz < size; dz++) {
+      for (int dx = 0; dx < size; dx++) {
+        if (!cell(passable, x + dx, z + dz)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   private static boolean cell(final boolean[][] passable, final int x, final int z) {
     return z >= 0 && z < passable.length && x >= 0 && x < passable[0].length && passable[z][x];
   }

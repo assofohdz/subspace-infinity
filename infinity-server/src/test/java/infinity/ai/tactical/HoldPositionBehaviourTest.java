@@ -38,13 +38,14 @@ public class HoldPositionBehaviourTest {
   }
 
   @Test
-  public void enumeratesNavigateToNearestFlag() {
+  public void enumeratesNavigateToAllFlags() {
+    // All flags are offered (stable order) so the planner's stickiness can lock onto one — a
+    // nearest-only goal thrashes between near-equidistant flags and the bot never commits.
     bb.setArenaContext(ctxWith(new TurfObjective(List.of(new GoalTile(100, 0), new GoalTile(10, 0)))));
     final List<TacticalGoal> goals = behaviour.enumerate(bb);
-    assertEquals(1, goals.size());
-    final NavigateToTile nav = (NavigateToTile) goals.get(0);
-    assertEquals(10, nav.cellX()); // nearest to self at (0,0)
-    assertEquals(0, nav.cellZ());
+    assertEquals(2, goals.size());
+    assertEquals(new NavigateToTile(100, 0), goals.get(0));
+    assertEquals(new NavigateToTile(10, 0), goals.get(1));
   }
 
   @Test
