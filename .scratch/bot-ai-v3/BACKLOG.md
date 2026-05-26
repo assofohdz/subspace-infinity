@@ -77,6 +77,35 @@ Sequence after [#02](issues/02-tuning-knob-migration.md) (which adds the
 - Tile-supersampling toggle (v2 #03, never built; 1 tile = 1 cell holds memory fine at 1024²). Build only if a larger map measures memory-bound.
 - Formal Dijkstra benchmark on a real 1024² `.lvl` off-thread (v2 #03) + 32-ship per-tick field-update benchmark (v2 #07 `[~]`). Both validated empirically in trench/baseelim but never formally measured. Fold into the spawn-projection test-harness work if/when it lands.
 
+## Surfaced by the flow-field debug overlay (2026-05-26)
+
+### B8 — Hull-erosion marks open cells next to walls as impassable
+
+Source: visual evidence from the new flow-field debug overlay (the
+`FlowFieldDebug` arrows show NO_FLOW / route-around on cells that are visibly
+empty, adjacent to world blocks).
+
+`ArenaSpatialFields.forArena` builds the routing grid with
+`NavGrids.erodeFootprint(passable, HULL_FOOTPRINT_CELLS=2)` — a cell is
+navigable only if the full 2×2 hull footprint of the diameter-2 ship fits.
+That unilateral Minkowski erosion is **over-conservative near walls**: it
+blanks cells that are actually flyable (the hull just has to hug the wall),
+so flow fields refuse to route through them and bots/the overlay treat open
+space next to blocks as solid. This is the same root issue the #03 comment
+flagged as the "soft-clearance (cost penalty vs hard erosion)" follow-up and
+that the 2026-05-26 review's H1 noted for `scripts/lvl_flowfield_check.py`
+(its clearance check diverges from the server's erosion).
+
+**Direction:** replace the hard footprint erosion with a **soft clearance
+cost** — keep wall-adjacent cells navigable but penalise them in the Dijkstra
+cost so the flow prefers centre-of-corridor without forbidding the edge — or
+narrow the erosion to a true hull radius rather than a 2×2 anchored block.
+Validate with the overlay (arrows should fill open cells right up to the
+wall face) and re-sync `lvl_flowfield_check.py`'s clearance algorithm (H1) to
+whatever lands. Touches `NavGrids.erodeFootprint`, `ArenaSpatialFields`
+(`HULL_FOOTPRINT_CELLS` — also a [#02](issues/02-tuning-knob-migration.md)
+knob candidate), and `DijkstraDistanceField` if cost-weighting is added.
+
 ## Notes deferred from the 2026-05-26 review (not promoted to issues)
 
 ### B3 — `lvl_flowfield_check.py` erosion mismatch (diagnostic tooling)
