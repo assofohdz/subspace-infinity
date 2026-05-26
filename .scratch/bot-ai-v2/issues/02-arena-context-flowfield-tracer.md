@@ -27,22 +27,22 @@ momentum) rather than Reynolds-wandering in place.
 
 ## Acceptance criteria
 
-- [ ] `api/infinity.math.Vec2d` — 2D double-precision vector; `fromXz(Vec3d)` / `toXz()` helpers
-- [ ] `api/infinity.ai.field.ScalarField` (`width`, `height`, `valueAt(x,y)`, `valueAt(Vec3d)`)
-- [ ] `api/infinity.ai.field.GradientField` (`directionAt(x,y)` → unit `Vec2d` toward lower value; `directionAt(Vec3d)`)
-- [ ] `api/infinity.ai.field.FieldGradient` — derives a `GradientField` from any `ScalarField`
-- [ ] `api/infinity.ai.field.DistanceField extends ScalarField` (`goal()`; `POSITIVE_INFINITY` for unreachable)
-- [ ] `api/infinity.ai.field.NavigationFields` accessor interface (`fieldFor(TileId)`, `gradientFor(TileId)`, `evict(TileId)`) — synchronous impl this slice
-- [ ] `infinity-server/.../ai/field/nav/DijkstraDistanceField` — single-source Dijkstra over `.lvl` passable tiles; diagonal-corner-clip rejected
-- [ ] `api/infinity.ai.steer.SeekDirection` — Reynolds-style primitive taking a desired heading (not a target position); emits thrust+rotation `MovementInput` honouring momentum
-- [ ] `infinity-server/.../ai/host/BotAiHostService` (`BaseInfinitySystem`) — owns a per-arena `BotAiArenaContext` map; lifecycle on `onArenaLoad`/`onArenaUnload`
-- [ ] `api/infinity.ai.tactical.BotAiArenaContext` — `navigation()` accessor live; slots reserved (`threat()`, `opportunity()`, `chokepoints()`, capability norms) returning empty defaults until later slices
-- [ ] `BotBrainSystem.BrainContainer.addObject` injects `BotAiArenaContext` into `Blackboard`
-- [ ] Tracer wiring: a hardwired "navigate to random reachable tile" drives `SeekDirection(gradientFor(tile))` through the existing steering composition (`PrioritySteering(AvoidObstacles, SeekDirection)`)
-- [ ] Unit tests: Dijkstra distances correct on a hand-built grid; gradient points downhill; `SeekDirection` heading math; unreachable → `POSITIVE_INFINITY`/zero gradient
-- [ ] `BotInputCanonicalityTest` extended: `BotBrainSystem` is still the sole `MovementInput` writer despite the new nav layer
-- [ ] PMD ratchet on touched files
-- [ ] Layer test passes
+- [x] `api/infinity.math.Vec2d` — 2D double-precision vector; `fromXz(Vec3d)` / `toXz()` helpers
+- [x] `api/infinity.ai.field.ScalarField` (`width`, `height`, `valueAt(x,y)`, `valueAt(Vec3d)`)
+- [x] `api/infinity.ai.field.GradientField` (`directionAt(x,y)` → unit `Vec2d` toward lower value; `directionAt(Vec3d)`)
+- [x] `api/infinity.ai.field.FieldGradient` — derives a `GradientField` from any `ScalarField`
+- [x] `api/infinity.ai.field.DistanceField extends ScalarField` (`goal()`; `POSITIVE_INFINITY` for unreachable)
+- [x] `api/infinity.ai.field.NavigationFields` accessor interface (`fieldFor(TileId)`, `gradientFor(TileId)`, `evict(TileId)`) — synchronous impl this slice
+- [x] `infinity-server/.../ai/field/nav/DijkstraDistanceField` — single-source Dijkstra over `.lvl` passable tiles; diagonal-corner-clip rejected
+- [x] `api/infinity.ai.steer.SeekDirection` — Reynolds-style primitive taking a desired heading (not a target position); emits thrust+rotation `MovementInput` honouring momentum
+- [x] `infinity-server/.../ai/host/BotAiHostService` (`BaseInfinitySystem`) — owns a per-arena `BotAiArenaContext` map; lifecycle on `onArenaLoad`/`onArenaUnload`
+- [x] `api/infinity.ai.tactical.BotAiArenaContext` — `navigation()` accessor live; slots reserved (`threat()`, `opportunity()`, `chokepoints()`, capability norms) returning empty defaults until later slices
+- [x] `BotBrainSystem.BrainContainer.addObject` injects `BotAiArenaContext` into `Blackboard`
+- [x] Tracer wiring: a hardwired "navigate to random reachable tile" drives `SeekDirection(gradientFor(tile))` through the existing steering composition (`PrioritySteering(AvoidObstacles, SeekDirection)`)
+- [x] Unit tests: Dijkstra distances correct on a hand-built grid; gradient points downhill; `SeekDirection` heading math; unreachable → `POSITIVE_INFINITY`/zero gradient
+- [x] `BotInputCanonicalityTest` extended: `BotBrainSystem` is still the sole `MovementInput` writer despite the new nav layer
+- [x] PMD ratchet on touched files
+- [x] Layer test passes
 
 ## Blocked by
 

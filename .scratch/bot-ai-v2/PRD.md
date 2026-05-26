@@ -1,6 +1,6 @@
 # Bot AI v2 — tactical behaviours, weapon-aware archetypes, spatial reasoning
 
-Status: ready-for-human
+Status: done — all 8 substrate slices + #09 landed and smoke-accepted; deferred tails carried to [bot-ai-v3](../bot-ai-v3/) (see reconciliation below)
 Category: enhancement
 
 ## Why
@@ -124,3 +124,23 @@ The behaviour roster (engage, area-denial, mine behaviours, splash, bounce-shot,
 - ADRs 0011/0012/0013/0014/0015 status flips to Accepted (or partial-acceptance note if any sub-decision is still TODO)
 - `BotDebug` HUD surfaces v2 state (effective-weight breakdown + goal + scores + nav mode)
 - The substrate proves out end-to-end on the **Phase-1 catalog behaviours** (engage / harass / disengage / area-denial / hold-position / flank): capability-derived bots are demonstrably distinct by hull + objective with no per-arena authoring, and KOTH/CTF objectives bias roles. **Named archetype presets are explicitly out of scope** — deferred to v2.1 per ADR-0014.
+
+## Status reconciliation (2026-05-26, post-review)
+
+All 8 substrate slices + the #09 refactor landed and were smoke-accepted. The
+per-slice acceptance scan found met criteria across the board **except** these
+tails, now carried to [bot-ai-v3](../bot-ai-v3/) so v2 closes clean:
+
+| Slice | Unmet / deferred tail | Carried to |
+|-------|----------------------|------------|
+| #03 | granular door-tile invalidation (shipped coarse `evictAll()`); tile-supersampling toggle (not built); formal Dijkstra benchmark (not run) | [v3 BACKLOG](../bot-ai-v3/BACKLOG.md) |
+| #04 | blend coefficients still hardcoded in `CapabilityDeriver` (not in Groovy); v1 `bot-tuning.groovy` not retired | [v3 #02](../bot-ai-v3/issues/02-tuning-knob-migration.md) + [BACKLOG](../bot-ai-v3/BACKLOG.md) |
+| #06 | only 2/5 canonical objectives built (`Deathmatch`+`Turf`; no `Koth`/`Ctf`/`Powerball`); KOTH demo substituted by Turf; event-driven role reassignment + rich `ArenaSnapshot` deferred (role-refresh also in [v3 #01](../bot-ai-v3/issues/01-correctness-bugs.md)) | [v3 BACKLOG](../bot-ai-v3/BACKLOG.md) |
+| #07 | formal 32-ship perf benchmark not run | [v3 BACKLOG](../bot-ai-v3/BACKLOG.md) |
+
+**Done-definition note:** the "ADRs 0011–0015 flip to Accepted" criterion is
+NOT yet met (0009/0010/0013/0014 still `Proposed`) — handled by
+[v3 #06 — docs/ADR sync](../bot-ai-v3/issues/06-docs-adr-tracker-sync.md).
+Naming divergences (no `BotAiHostService` — role absorbed into
+`ArenaSpatialFields`; bot-block parsing via `GroovyArenaLoader` not a
+standalone `BotsAdapter`) are cosmetic, not gaps.

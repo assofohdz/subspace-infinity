@@ -99,20 +99,20 @@ central tile is a pre-built `DistanceField` goal via the objective.
 
 ## Acceptance criteria
 
-- [ ] `api/infinity.ai.objective.ArenaObjective` — **plain (non-sealed) interface** (`name()`, `behaviourBias()`, `staticGoalTiles()`, `assignRole(EntityId, ArenaSnapshot)`); switches use a default branch so community modules can ship gametypes
-- [ ] Canonical record subtypes: `DeathmatchObjective` (identity bias), `KothObjective(centralTile)`, `CtfObjective(flagTiles)`, `TurfObjective`, `PowerballObjective(goals)`
-- [ ] `api/infinity.ai.objective.ArenaSnapshot` — read-only arena-state view (team rosters, carriers, scores) passed to `assignRole`, decoupled from `EntityData`
-- [ ] `api/infinity.es.BotRole` — server-only ECS **class** (not record), single immutable `String name`, no-arg ctor defaulting `"default"`; does not cross the wire
-- [ ] `api/infinity.ai.objective.BotRoleConfig(name, Map<String,Double> behaviourBias)` template (defensive `Map.copyOf`) + `BotRoleRegistry` (`get(name)`, `registeredNames()`)
-- [ ] `engine-bot-ai.groovy` role-bias maps loaded into `BotRoleRegistry`; load-time validation that every `assignRole` return value is a registered role
-- [ ] `BotAiArenaContext` exposes the active `ArenaObjective`; `BotAiHostService.onArenaLoad` unions `objective.staticGoalTiles()` into nav goal registration (#03)
-- [ ] `assignRole` invoked at round start / arena join; stamps `BotRole` on each bot (held until next round — no mid-round switching in v2.0)
-- [ ] `TacticalPlanner` (#05) multiplies in `objectiveBias × roleBias`; role weight of 0 hard-mutes the behaviour
-- [ ] `KothMechanic` wired to produce `KothObjective(centralTile)` as the demo consumer
-- [ ] Unit tests: bias composition order + zero-mute; `assignRole` → `BotRole` stamp; unregistered role caught at load; objective static tiles reach nav registration
-- [ ] Manual smoke: KOTH bots converge on / bias toward the central tile
-- [ ] PMD ratchet on touched files
-- [ ] Layer test passes
+- [x] `api/infinity.ai.objective.ArenaObjective` — **plain (non-sealed) interface** (`name()`, `behaviourBias()`, `staticGoalTiles()`, `assignRole(EntityId, ArenaSnapshot)`); switches use a default branch so community modules can ship gametypes
+- [ ] Canonical record subtypes: `DeathmatchObjective` (identity bias), `KothObjective(centralTile)`, `CtfObjective(flagTiles)`, `TurfObjective`, `PowerballObjective(goals)` — **PARTIAL (2/5)**: only `DeathmatchObjective` + `TurfObjective` built; `KothObjective`/`CtfObjective`/`PowerballObjective` not created (the demo shifted from KOTH to Turf). Remaining subtypes → [v3 BACKLOG](../../bot-ai-v3/BACKLOG.md)
+- [x] `api/infinity.ai.objective.ArenaSnapshot` — read-only arena-state view (team rosters, carriers, scores) passed to `assignRole`, decoupled from `EntityData`
+- [x] `api/infinity.es.BotRole` — server-only ECS **class** (not record), single immutable `String name`, no-arg ctor defaulting `"default"`; does not cross the wire
+- [x] `api/infinity.ai.objective.BotRoleConfig(name, Map<String,Double> behaviourBias)` template (defensive `Map.copyOf`) + `BotRoleRegistry` (`get(name)`, `registeredNames()`)
+- [x] `engine-bot-ai.groovy` role-bias maps loaded into `BotRoleRegistry`; load-time validation that every `assignRole` return value is a registered role
+- [x] `BotAiArenaContext` exposes the active `ArenaObjective`; `BotAiHostService.onArenaLoad` unions `objective.staticGoalTiles()` into nav goal registration (#03)
+- [x] `assignRole` invoked at round start / arena join; stamps `BotRole` on each bot (held until next round — no mid-round switching in v2.0)
+- [x] `TacticalPlanner` (#05) multiplies in `objectiveBias × roleBias`; role weight of 0 hard-mutes the behaviour
+- [ ] `KothMechanic` wired to produce `KothObjective(centralTile)` as the demo consumer — **SUBSTITUTED**: demo shipped as `TurfMechanic` → `TurfObjective` (trench turf-flag). KOTH wiring needs `KothObjective` first → [v3 BACKLOG](../../bot-ai-v3/BACKLOG.md)
+- [x] Unit tests: bias composition order + zero-mute; `assignRole` → `BotRole` stamp; unregistered role caught at load; objective static tiles reach nav registration
+- [~] Manual smoke: KOTH bots converge on / bias toward the central tile — equivalent verified via Turf (trench bots converge on the turf flag); KOTH-specific smoke pending `KothObjective`
+- [x] PMD ratchet on touched files
+- [x] Layer test passes
 
 ## Blocked by
 

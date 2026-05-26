@@ -25,13 +25,13 @@ Demo: HUD top-right row reads e.g.
 
 ## Acceptance criteria
 
-- [ ] `api/infinity.es.BotDebug` extended with: `objectiveName` + `roleName` (String), `currentGoalLabel` (String — goal record type + params), `topScores` (String — top-3 `behaviour=effectiveWeight` pairs), `weightBreakdown` (String — capability × objective × role factors for the top behaviour), `navMode` (String — flow-field vs reactive)
-- [ ] Backwards-compatible wire registration; existing v1 fields preserved
-- [ ] `BotBrainSystem.writeDebugSnapshot` populates the new fields from blackboard + planner state after the planner + BT tick
-- [ ] `BotDebugHudState.formatRow` surfaces the new fields
-- [ ] Manual smoke: launch any arena with bots; HUD shows the new fields populating live as the planner re-selects + as objective/role bias applies
-- [ ] PMD ratchet on touched files
-- [ ] Layer test passes (`BotDebug` is still server-writes / client-reads via SimEthereal)
+- [x] `api/infinity.es.BotDebug` extended with: `objectiveName` + `roleName` (String), `currentGoalLabel` (String — goal record type + params), `topScores` (String — top-3 `behaviour=effectiveWeight` pairs), `weightBreakdown` (String — capability × objective × role factors for the top behaviour), `navMode` (String — flow-field vs reactive)
+- [x] Backwards-compatible wire registration; existing v1 fields preserved
+- [x] `BotBrainSystem.writeDebugSnapshot` populates the new fields from blackboard + planner state after the planner + BT tick
+- [x] `BotDebugHudState.formatRow` surfaces the new fields
+- [x] Manual smoke: launch any arena with bots; HUD shows the new fields populating live as the planner re-selects + as objective/role bias applies
+- [x] PMD ratchet on touched files
+- [x] Layer test passes (`BotDebug` is still server-writes / client-reads via SimEthereal)
 
 ## Blocked by
 

@@ -31,9 +31,9 @@ the arena, not three Javelins.
 
 ## Acceptance criteria
 
-- [ ] `api/infinity.config.BotsConfig` + `BotShipConfig` records exist; `BotShipConfig` carries `ship`, `count`, optional `tweak` (list of `(behaviour, op, value)` deltas) — **no `weights` field**
-- [ ] `infinity-server/.../settings/BotsAdapter` parses `bots { ... }` block; registered in `ConfigRegistrySystem.FRAGMENT_BINDINGS`
-- [ ] `arena.groovy` accepts:
+- [x] `api/infinity.config.BotsConfig` + `BotShipConfig` records exist; `BotShipConfig` carries `ship`, `count`, optional `tweak` (list of `(behaviour, op, value)` deltas) — **no `weights` field**
+- [x] `infinity-server/.../settings/BotsAdapter` parses `bots { ... }` block; registered in `ConfigRegistrySystem.FRAGMENT_BINDINGS`
+- [x] `arena.groovy` accepts:
   ```groovy
   bots {
       ship 'warbird',   count: 2
@@ -41,13 +41,13 @@ the arena, not three Javelins.
       ship 'leviathan', count: 1, tweak: [['anchor', '*', 1.3]]
   }
   ```
-- [ ] `FillUpXTeams` (or a successor `BotSpawnerModule`) reads `BotsConfig` and spawns ships per the block; falls back to existing Javelin default when no `bots { }` block present
-- [ ] `countPerPlayer` scaling (from v1 slice #08) still applies on top of per-hull `count`
-- [ ] KOTH arena.groovy updated with a multi-ship `bots { }` block as the demo
-- [ ] Existing FillUpXTeams tests + arch tests stay green
-- [ ] Unit tests for `BotsAdapter` (full / empty / multi-ship / with-tweak cases)
-- [ ] PMD ratchet on touched files
-- [ ] Layer test passes
+- [x] `FillUpXTeams` (or a successor `BotSpawnerModule`) reads `BotsConfig` and spawns ships per the block; falls back to existing Javelin default when no `bots { }` block present
+- [x] `countPerPlayer` scaling (from v1 slice #08) still applies on top of per-hull `count`
+- [x] KOTH arena.groovy updated with a multi-ship `bots { }` block as the demo
+- [x] Existing FillUpXTeams tests + arch tests stay green
+- [x] Unit tests for `BotsAdapter` (full / empty / multi-ship / with-tweak cases)
+- [x] PMD ratchet on touched files
+- [x] Layer test passes
 
 ## Blocked by
 

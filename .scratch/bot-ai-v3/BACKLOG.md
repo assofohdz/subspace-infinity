@@ -43,6 +43,40 @@ criterion "All hard-coded brain/steering constants now live in `bot-tuning.groov
 Listed here only so the v1 #08 trail has a forward pointer. Delete this row
 once #02 lands.
 
+## Carried from bot-ai v2 (2026-05-26 reconciliation)
+
+### B5 — Remaining canonical `ArenaObjective` subtypes (v2 slice #06, 2/5 built)
+
+Source: [bot-ai-v2/issues/06-arena-objectives-roles.md](../bot-ai-v2/issues/06-arena-objectives-roles.md)
+
+Only `DeathmatchObjective` + `TurfObjective` were built. The slice listed five
+canonical subtypes; missing: `KothObjective(centralTile)`,
+`CtfObjective(flagTiles)`, `PowerballObjective(goals)`. The v2 demo shifted
+from KOTH to Turf (trench turf-flag), so `KothMechanic`→`KothObjective` wiring
+was never done either. Build each alongside its mechanic when that gametype
+gets bot support; the `ArenaObjective` interface + `BotRoleRegistry` already
+support them (plain interface, default-branch dispatch). Pairs with the
+role-refresh decision in [#01](issues/01-correctness-bugs.md) (event-driven
+reassignment + rich `ArenaSnapshot` were also deferred to v2.x).
+
+### B6 — v1 `bot-tuning.groovy` retirement (v2 slice #04, not done)
+
+Source: [bot-ai-v2/issues/04-capability-derivation.md](../bot-ai-v2/issues/04-capability-derivation.md)
+
+`zone/conf/testconf/bot-tuning.groovy` still exists and is referenced by
+`koth/arena.groovy`, `BotBrainSystem`, and `ConfigRegistrySystem`. Slice #04
+intended its per-arena `BotBrainConfig` knobs (perceptionRadius, aimConeDegrees)
+to migrate into the per-arena settings pipeline and the fragment to be retired.
+Sequence after [#02](issues/02-tuning-knob-migration.md) (which adds the
+`BotDerivationConfig`/`ZoneBotAiConfig` knobs) and [#03](issues/03-hotpath-config-read.md)
+(which projects `perceptionRadius` to a component) — then the v1 fragment can go.
+
+### B7 — Deferred nav/perf items (v2 #03 + #07)
+
+- Granular door-tile invalidation (v2 #03 shipped coarse `evictAll()` on any door change; ADR-0011 optimization — track crossed door tiles, rebuild only affected fields). Doors are rare; low priority.
+- Tile-supersampling toggle (v2 #03, never built; 1 tile = 1 cell holds memory fine at 1024²). Build only if a larger map measures memory-bound.
+- Formal Dijkstra benchmark on a real 1024² `.lvl` off-thread (v2 #03) + 32-ship per-tick field-update benchmark (v2 #07 `[~]`). Both validated empirically in trench/baseelim but never formally measured. Fold into the spawn-projection test-harness work if/when it lands.
+
 ## Notes deferred from the 2026-05-26 review (not promoted to issues)
 
 ### B3 — `lvl_flowfield_check.py` erosion mismatch (diagnostic tooling)
