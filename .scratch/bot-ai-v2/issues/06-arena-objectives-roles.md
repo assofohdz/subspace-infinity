@@ -1,6 +1,6 @@
 # `ArenaObjective` + `BotRole`: per-mechanic bias + per-bot role assignment
 
-Status: in-progress (tracer cut — Inc A landed)
+Status: done (Inc A + B + C landed 2026-05-26; event-driven reassignment + rich ArenaSnapshot deferred to v2.x)
 Category: enhancement
 Type: HITL
 
@@ -34,9 +34,26 @@ Cut tracer-first so the visible "bots navigate to the turf flag" win lands early
   multiplicative), applied in both the enumeration threshold and the score; `0`
   hard-mutes. `TurfObjective.behaviourBias()` boosts `hold-position` ×2.0. Objective
   name surfaced in the `BotDebug` HUD. (Role bias `× roleBias(B)` is Inc C.)
-- **Inc C — `BotRole` + roles** ⬜ `BotRole` component + `BotRoleConfig` +
-  `BotRoleRegistry` + `roles { }` Groovy + `GroovyBotRolesLoader` + `assignRole` +
-  `ArenaSnapshot` + role bias + event-driven reassignment.
+- **Inc C — `BotRole` + roles** ✅ done (2026-05-26). `api/infinity.es.BotRole`
+  (server-only ECS class, role name); `BotRoleConfig` (template) + `BotRoleRegistry`
+  (concrete, default-fallback, mirrors `BotSynergyTable`); `ArenaSnapshot` (minimal —
+  `teamFreq`, grows for CTF/Powerball); `ArenaObjective.assignRole(EntityId, ArenaSnapshot)`
+  (default → `default`; `TurfObjective` → `flag-defender`/`flag-attacker` by id parity).
+  `roles { }` block in `engine-bot-ai.groovy` + `GroovyBotRolesLoader` (shares the file with
+  `synergy { }`; each loader binds a no-op for the other's block — `IgnoringDslClosure`).
+  `EngineBotAiSystem` holds + hot-reloads the registry alongside the synergy table.
+  `BotBrainSystem` is the canonical writer of `BotRole`: assigns on spawn (held for the round,
+  no mid-round switching in v2.0), publishes `roleBias` to the blackboard. `TacticalPlannerImpl`
+  effective = `derived × objectiveBias × roleBias` (per-behaviour product; any `0` hard-mutes).
+  `BotDebug` HUD shows the role. **Event-driven reassignment** (CTF/Powerball possession) +
+  richer `ArenaSnapshot` (carriers/scores/flag-control) are deferred to v2.x.
+
+### Follow-up: extract from BotBrainSystem (god-class)
+
+`BotBrainSystem` cyclomatic complexity climbed to ~101 over Inc A–C (HUD, cooperative
+steering, the nav-field stuck-log dump, role assignment). Like the #09 `ArenaSpatialFields`
+extraction, the steering-resolution + debug-snapshot/stuck-log + role-assignment blocks are
+extraction candidates. Spin out when convenient.
 
 ### Navigation/steering fixes to make flag-nav actually work (smoke-driven, 2026-05-26)
 

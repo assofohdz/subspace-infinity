@@ -41,15 +41,16 @@ public final class TacticalPlannerImpl implements TacticalPlanner {
   @SuppressWarnings("PMD.GuardLogStatement")
   public TacticalGoal select(final Blackboard bb, final ArchetypeConfig archetype) {
     final ZoneBotAiConfig cfg = this.configSupplier.get();
-    final Map<String, Double> objectiveBias = objectiveBias(bb);
+    // effective(B) = derived(B) × objectiveBias(B) × roleBias(B) (ADR-0015); any 0 hard-mutes.
+    final Map<String, Double> bias = combinedBias(objectiveBias(bb), bb.roleBias());
     final TacticalGoal current = bb.currentGoal();
     final boolean trace = log.isDebugEnabled();
     final Scored scored =
         scan(
             bb,
             archetype,
-            objectiveBias,
-            enumerationThreshold(archetype, objectiveBias, cfg.minFraction()),
+            bias,
+            enumerationThreshold(archetype, bias, cfg.minFraction()),
             current,
             trace);
 
@@ -71,6 +72,22 @@ public final class TacticalPlannerImpl implements TacticalPlanner {
       log.debug("bot {} goal {} -> {} | {}", bb.selfId(), current, chosen, scored.formatScores());
     }
     return chosen;
+  }
+
+  /** Per-behaviour product of objective bias × role bias (ADR-0015); 1.0 implied where a map omits it. */
+  private static Map<String, Double> combinedBias(
+      final Map<String, Double> objective, final Map<String, Double> role) {
+    if (role.isEmpty()) {
+      return objective;
+    }
+    if (objective.isEmpty()) {
+      return role;
+    }
+    final Map<String, Double> out = new LinkedHashMap<>(objective);
+    for (final Map.Entry<String, Double> e : role.entrySet()) {
+      out.merge(e.getKey(), e.getValue(), (a, b) -> a * b);
+    }
+    return out;
   }
 
   /** The arena objective's multiplicative behaviour bias (ADR-0015); identity when no context/objective. */

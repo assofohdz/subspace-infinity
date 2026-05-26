@@ -27,6 +27,7 @@ import infinity.ai.field.ArenaNav;
 import infinity.ai.field.ArenaSpatialFields;
 import infinity.ai.field.NavigationFields;
 import infinity.ai.objective.ArenaObjective;
+import infinity.ai.objective.BotRoleRegistry;
 import infinity.ai.objective.DeathmatchObjective;
 import infinity.ai.steer.AvoidObstacles;
 import infinity.ai.tactical.ArchetypeConfig;
@@ -46,6 +47,7 @@ import infinity.config.BotsConfig;
 import infinity.config.ShipConfig;
 import infinity.config.ZoneBotAiConfig;
 import infinity.es.BotDebug;
+import infinity.es.BotRole;
 import infinity.es.Frequency;
 import infinity.es.arena.ArenaId;
 import infinity.es.input.MovementInput;
@@ -88,6 +90,9 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
   // "none" — empty nav-diag / archetype-name sentinel.
   private static final String NONE = "none";
+
+  // Shared 2-decimal format for the stuck/nav-field diagnostics (avoids duplicate-literal noise).
+  private static final String FMT_2DP = "%.2f";
 
   // Stuck diagnostic: when a bot's speed drops below this (world units/sec), log the flow-field
   // heading vs its own facing — throttled per bot so it doesn't spam while wedged.
@@ -238,6 +243,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     // ArenaId is stamped by membership), then re-select a goal on the planner cadence.
     refreshDerivation(wiring);
     bb.setArenaContext(wiring.arenaContext);
+    ensureRoleBias(wiring, bb);
     planOnCadence(wiring, bb, nowNanos);
 
     bb.resetIntent();
@@ -349,8 +355,8 @@ public final class BotBrainSystem extends BaseInfinitySystem {
         wiring.botId.getId(),
         (int) self.position().x,
         (int) self.position().z,
-        String.format("%.2f", fwd.x),
-        String.format("%.2f", fwd.z),
+        String.format(FMT_2DP, fwd.x),
+        String.format(FMT_2DP, fwd.z),
         flow,
         String.format("%+.2f", move.x),
         String.format("%+.2f", move.z),
@@ -383,7 +389,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     log.info(
         "  nav-field: self-cell=({},{}) goal-cell=({},{}) gradTowardGoal=({},{}) selfDist={}",
         sx, sy, gx, gy,
-        String.format("%.2f", g.x), String.format("%.2f", g.y),
+        String.format(FMT_2DP, g.x), String.format(FMT_2DP, g.y),
         String.format("%.1f", field.valueAt(sx, sy)));
     for (int dz = -2; dz <= 2; dz++) {
       final StringBuilder row = new StringBuilder("  ");
@@ -401,6 +407,37 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       }
       log.info(row.toString());
     }
+  }
+
+  /**
+   * Ensure the bot has a {@link BotRole} — assigned once from the arena objective at spawn (ADR-0015),
+   * held for the round — and publish its behaviour bias to the blackboard for the planner. Canonical
+   * writer of {@link BotRole}.
+   */
+  private void ensureRoleBias(final BrainWiring wiring, final Blackboard bb) {
+    final BotRoleRegistry registry = this.engineBotAi.roles();
+    BotRole role = this.ed.getComponent(wiring.botId, BotRole.class);
+    if (role == null) {
+      role = assignRole(wiring, registry);
+      this.ed.setComponent(wiring.botId, role);
+    }
+    bb.setRoleBias(registry.get(role.name()).behaviourBias());
+  }
+
+  /** Objective-assigned role validated against the registry (unknown name ⇒ default). */
+  private BotRole assignRole(final BrainWiring wiring, final BotRoleRegistry registry) {
+    final ServerBotAiArenaContext ctx = wiring.arenaContext;
+    if (ctx == null || ctx.objective() == null) {
+      return new BotRole(BotRole.DEFAULT);
+    }
+    final String name = ctx.objective().assignRole(wiring.botId, this::teamFreq);
+    return registry.isRegistered(name) ? new BotRole(name) : new BotRole(BotRole.DEFAULT);
+  }
+
+  /** {@link infinity.ai.objective.ArenaSnapshot} accessor: the bot's frequency (team), or {@code -1}. */
+  private int teamFreq(final EntityId bot) {
+    final Frequency freq = this.ed.getComponent(bot, Frequency.class);
+    return freq != null ? freq.getFrequency() : -1;
   }
 
   /** Re-select the bot's {@link TacticalGoal} once the planner cadence has elapsed (ADR-0013). */
@@ -596,6 +633,8 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     // objective() is contractually non-null (DeathmatchObjective default) once a context exists.
     final String objectiveName =
         bb.arenaContext() != null ? bb.arenaContext().objective().name() : "";
+    final BotRole role = this.ed.getComponent(wiring.botId, BotRole.class);
+    final String roleName = role != null ? role.name() : "";
     this.ed.setComponent(
         wiring.botId,
         new BotDebug(
@@ -606,7 +645,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
             clockHour,
             shipName,
             objectiveName,
-            "", // roleName — #06 Inc C
+            roleName,
             formatGoal(goal),
             formatTopScores(wiring.archetype, this.selectableBehaviours),
             formatBreakdown(wiring.archetype),

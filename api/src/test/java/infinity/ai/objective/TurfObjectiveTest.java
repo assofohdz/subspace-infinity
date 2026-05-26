@@ -6,11 +6,25 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import com.simsilica.es.EntityId;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
 
 public class TurfObjectiveTest {
+
+  @Test
+  public void assignRoleSplitsByIdParity() {
+    final TurfObjective obj = new TurfObjective(List.of());
+    final ArenaSnapshot snap = bot -> 0; // team unused by the simple turf split
+    assertEquals("flag-defender", obj.assignRole(new EntityId(2), snap));
+    assertEquals("flag-attacker", obj.assignRole(new EntityId(3), snap));
+  }
+
+  @Test
+  public void deathmatchAssignsDefaultRole() {
+    assertEquals("default", new DeathmatchObjective().assignRole(new EntityId(1), bot -> 0));
+  }
 
   @Test
   public void staticGoalTilesAreTheFlagTiles() {

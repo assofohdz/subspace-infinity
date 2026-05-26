@@ -137,6 +137,27 @@ public class TacticalPlannerImplTest {
   }
 
   @Test
+  public void roleBiasFlipsSelection() {
+    // No bias: b (0.5) beats a (0.4). roleBias{a:2.0} → a eff weight 2.0, 0.4×2.0=0.80 > 0.5.
+    bb.setRoleBias(Map.of("a", 2.0));
+    final TacticalPlanner p =
+        planner(new FixedBehaviour("a", GOAL_A, 0.4), new FixedBehaviour("b", GOAL_B, 0.5));
+    final ArchetypeConfig arch = new ArchetypeConfig("t", Map.of("a", 1.0, "b", 1.0));
+    assertEquals(GOAL_A, p.select(bb, arch));
+  }
+
+  @Test
+  public void objectiveAndRoleBiasMultiply() {
+    // objectiveBias{a:0.5} × roleBias{a:2.0} = 1.0 (identity) → tie goes to first-offered (a).
+    bb.setArenaContext(ctxBiasing(Map.of("a", 0.5)));
+    bb.setRoleBias(Map.of("a", 2.0));
+    final TacticalPlanner p =
+        planner(new FixedBehaviour("a", GOAL_A, 0.5), new FixedBehaviour("b", GOAL_B, 0.5));
+    final ArchetypeConfig arch = new ArchetypeConfig("t", Map.of("a", 1.0, "b", 1.0));
+    assertEquals(GOAL_A, p.select(bb, arch));
+  }
+
+  @Test
   public void objectiveBiasZeroMutesBehaviour() {
     // objectiveBias{b:0.0} → b effective weight 0 → skipped; a wins despite its lower intrinsic fit.
     bb.setArenaContext(ctxBiasing(Map.of("b", 0.0)));

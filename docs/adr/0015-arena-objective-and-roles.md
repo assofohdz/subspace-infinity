@@ -1,6 +1,11 @@
 # ADR 0015 — Arena objectives: per-mechanic behaviour bias + per-bot role assignment
 
-**Status:** Proposed
+**Status:** Accepted (bot-ai-v2 #06 Inc A–C, 2026-05-26). Two sub-decisions deferred to v2.x:
+event-driven role reassignment (CTF/Powerball possession changes) and a richer `ArenaSnapshot`
+(carriers / scores / control-point holders). `staticGoalTiles()` ships as cell coords, not moss
+`TileId` — an arena is one `TileId`, so it can't address a cell within it (matches `DistanceField` /
+`NavigateToTile`); and `objective()` lives on `MechanicModule`, not `ArenaModule`, because
+`infinity.sim` must not depend on `infinity.ai`.
 **Date:** 2026-05-23
 **Deciders:** Asser Fahrenholz
 

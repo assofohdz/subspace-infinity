@@ -50,6 +50,9 @@ public final class Blackboard {
   // blended into the flow heading by SteerToGoalTile so the hull eases off walls while still following
   // the route (cooperative — replaces the old reverse-override). See WallRepulsion#repulsion.
   @Nullable private Vec3d wallAvoid;
+  // The bot's role behaviour-bias (ADR-0015), set per-tick from its BotRole + the registry; the planner
+  // multiplies it onto derived × objectiveBias. Empty = identity (no role bias).
+  private java.util.Map<String, Double> roleBias = java.util.Map.of();
   private WeaponsFiring firing;
   // -1 sentinels = "not yet sampled" (e.g. Energy / EnergyStats components absent).
   private int currentEnergy = -1;
@@ -120,6 +123,15 @@ public final class Blackboard {
 
   public void setWallAvoid(@Nullable final Vec3d wallAvoid) {
     this.wallAvoid = wallAvoid;
+  }
+
+  /** The bot's role behaviour-bias this tick (ADR-0015); empty = identity. */
+  public java.util.Map<String, Double> roleBias() {
+    return this.roleBias;
+  }
+
+  public void setRoleBias(final java.util.Map<String, Double> roleBias) {
+    this.roleBias = roleBias;
   }
 
   public void setNavBlendWeights(final double threat, final double opportunity) {

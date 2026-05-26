@@ -5,15 +5,18 @@ package infinity.settings;
 import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.ai.capability.BotSynergyTable;
+import infinity.ai.objective.BotRoleRegistry;
 import java.nio.file.Path;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Engine-tier holder for the engineer-authored {@link BotSynergyTable} ({@code engine-bot-ai.groovy},
- * ADR-0014 / ADR-0016). Loads once at init, hot-reloads via {@link GroovyFileWatcher}; the held
- * snapshot is {@code volatile} so watcher writes publish safely to the planner. Mirrors
- * {@link EngineConfigSystem}; parse failures fall back to an empty table.
+ * Engine-tier holder for the engineer-authored {@link BotSynergyTable} + {@link BotRoleRegistry}
+ * ({@code engine-bot-ai.groovy}, ADR-0014 / ADR-0015 / ADR-0016). Loads once at init, hot-reloads via
+ * {@link GroovyFileWatcher} (both blocks reload together); held snapshots are {@code volatile} so
+ * watcher writes publish safely to the planner. Mirrors {@link EngineConfigSystem}; parse failures
+ * fall back to empties.
  */
 public class EngineBotAiSystem extends AbstractGameSystem {
 
@@ -23,9 +26,11 @@ public class EngineBotAiSystem extends AbstractGameSystem {
   static final long POLL_INTERVAL_NANOS = 5_000_000_000L;
 
   private final GroovyBotSynergyLoader loader;
+  private final GroovyBotRolesLoader rolesLoader = new GroovyBotRolesLoader();
   private final String classpathPath;
   private final Path watchedPathOverride;
   private volatile BotSynergyTable table = new BotSynergyTable(java.util.Map.of());
+  private volatile BotRoleRegistry roles = new BotRoleRegistry(List.of());
 
   private GroovyFileWatcher<BotSynergyTable> watcher;
   private long nextPollNanos;
@@ -47,6 +52,7 @@ public class EngineBotAiSystem extends AbstractGameSystem {
   @Override
   protected void initialize() {
     table = loader.load(classpathPath);
+    roles = rolesLoader.load(classpathPath);
     registerWatch();
   }
 
@@ -73,6 +79,11 @@ public class EngineBotAiSystem extends AbstractGameSystem {
     return table;
   }
 
+  /** Current bot-role registry (ADR-0015); never null (default role only if load failed). */
+  public BotRoleRegistry roles() {
+    return roles;
+  }
+
   private void registerWatch() {
     final Path onDisk =
         watchedPathOverride != null
@@ -90,8 +101,9 @@ public class EngineBotAiSystem extends AbstractGameSystem {
             () -> loader.load(classpathPath),
             reloaded -> {
               table = reloaded;
+              roles = rolesLoader.load(classpathPath); // same file holds the roles { } block too
               if (log.isInfoEnabled()) {
-                log.info("Engine bot-AI synergy table reloaded from {}", onDisk);
+                log.info("Engine bot-AI synergy table + roles reloaded from {}", onDisk);
               }
             });
     if (w.arm()) {

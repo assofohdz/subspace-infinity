@@ -112,7 +112,7 @@ See `.scratch/bot-ai-v2/issues/01-08.md`. Vertical tracer bullets, dependency-or
 | 03 | Production flow-field nav (async, cache, doors) | 0011 | 02 | ✅ done (1080a9aa) — async+cache+TTL+LoS+wall-repel; door-tile tracking + static-goal registration deferred |
 | 04 | **Capability-derivation pipeline** | 0014 | (02) | ✅ done (49a0dcd0 + #05 wiring) |
 | 05 | `TacticalPlanner` + baseline behaviours | 0013 | 04, 02 | ✅ done (24db369f) |
-| 06 | **Arena objectives + roles** | 0015 | 03, 04, 05 | 🔨 in progress — [Inc A](issues/06-arena-objectives-roles.md) (objective static-goal nav + `hold-position`) + Inc B (planner `objectiveBias`) landed; Inc C (roles) pending |
+| 06 | **Arena objectives + roles** | 0015 | 03, 04, 05 | ✅ done — [Inc A](issues/06-arena-objectives-roles.md) (objective static-goal nav + `hold-position`) + Inc B (planner `objectiveBias`) + Inc C (`BotRole`/roles + planner `roleBias`); event-driven reassignment + rich `ArenaSnapshot` deferred to v2.x |
 | 07 | Dynamic scalar fields + chokepoints + follow-traffic | 0012 | 03, 04, 05 | ✅ done (565a8977 Inc 1–4 substrate + Inc 5 follow-traffic/blended-nav) — smoke-accepted in trench; `ArenaSpatialFields` extraction spun out as follow-up [#09](issues/09-arena-spatial-fields-extraction.md) |
 | 08 | `BotDebug` HUD v2 extension (AFK) | 0013/0014/0015 | 05 | ✅ done (7c028117) |
 

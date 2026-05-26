@@ -136,3 +136,14 @@ synergy {
         bonus    { profile -> 0.1 }
     }
 }
+
+// Per-bot role bias (ADR-0015). The arena objective assigns each bot a role at spawn; the planner
+// multiplies this bias onto the capability-derived × objective-bias weight (a 0 entry hard-mutes).
+// Behaviour names must match registered behaviours. `default` = identity (no bias).
+roles {
+    role 'default',        bias: [:]
+    // Turf: defenders camp the flag (hold-position already ×2 from the turf objective, so ×2 more
+    // here ⇒ ×4) and engage less; attackers drift to the action and fight, holding much less.
+    role 'flag-defender',  bias: ['hold-position': 2.0, 'engage': 0.7]
+    role 'flag-attacker',  bias: ['engage': 1.6, 'follow-traffic': 1.4, 'hold-position': 0.4]
+}

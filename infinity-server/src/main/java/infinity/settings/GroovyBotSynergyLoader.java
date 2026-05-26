@@ -52,6 +52,8 @@ public class GroovyBotSynergyLoader {
     public Map<String, SynergyRule> bind(final Binding binding) {
       final Map<String, SynergyRule> rules = new LinkedHashMap<>();
       binding.setVariable("synergy", new SynergyClosure(rules));
+      // Same file also holds a roles { } block (GroovyBotRolesLoader); ignore it on the synergy pass.
+      binding.setVariable("roles", new IgnoringDslClosure());
       return rules;
     }
 
