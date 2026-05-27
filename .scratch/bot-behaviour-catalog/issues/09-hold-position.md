@@ -46,7 +46,12 @@ Register the `hold-position / zone-control` `Behaviour` ([ADR-0013](../../../doc
 
 ## Blocked by
 
+- [#00 — Situational-input vocabulary (foundation)](00-situational-input-vocabulary.md)
 - [#05 — TacticalPlanner](../../bot-ai-v2/issues/05-tactical-planner-baseline-behaviours.md)
 - [#07 — Spatial fields](../../bot-ai-v2/issues/07-spatial-fields-chokepoints-follow-traffic.md)
+
+## Triage (2026-05-27)
+
+Status stays **in-progress** (baseline landed with bot-ai-v2 #06 Inc A). The remaining work — the full ADR-0016 fit — is gated on [#00](00-situational-input-vocabulary.md): `position_value` (partly wired), `support` (#00), defensive-item, energy-buffer; plus a "resist displacement" Execute beyond navigate-and-idle. Goal: reuse `NavigateToTile`. Effort: small — mostly landed.
 
 ## Comments

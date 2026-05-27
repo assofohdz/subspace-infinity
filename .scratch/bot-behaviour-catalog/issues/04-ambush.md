@@ -1,6 +1,6 @@
 # Ambush
 
-Status: needs-triage
+Status: ready-for-agent
 Category: enhancement
 Type: HITL
 
@@ -32,7 +32,12 @@ Register the `ambush` `Behaviour` ([ADR-0013](../../../docs/adr/0013-bot-tactica
 
 ## Blocked by
 
+- [#00 — Situational-input vocabulary (foundation)](00-situational-input-vocabulary.md)
 - [#05 — TacticalPlanner](../../bot-ai-v2/issues/05-tactical-planner-baseline-behaviours.md)
 - [#07 — Spatial fields](../../bot-ai-v2/issues/07-spatial-fields-chokepoints-follow-traffic.md)
+
+## Triage (2026-05-27)
+
+ready-for-agent, gated on [#00](00-situational-input-vocabulary.md). Goal: reuse `NavigateToTile` (move to a predicted enemy-path tile, then hold concealed). New inputs: `traversal_rate` (CombatDensityField at tile), `predictability` + `low_engagement` (shared with snipe). Gate: `requires cloak∨stealth` (capability — already in the synergy table). Effort: medium.
 
 ## Comments

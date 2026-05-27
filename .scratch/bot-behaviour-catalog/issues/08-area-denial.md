@@ -1,6 +1,6 @@
 # Area-denial
 
-Status: needs-triage
+Status: ready-for-agent
 Category: enhancement
 Type: HITL
 
@@ -32,8 +32,13 @@ Register the `area-denial` `Behaviour` ([ADR-0013](../../../docs/adr/0013-bot-ta
 
 ## Blocked by
 
+- [#00 — Situational-input vocabulary (foundation)](00-situational-input-vocabulary.md)
 - [#05 — TacticalPlanner](../../bot-ai-v2/issues/05-tactical-planner-baseline-behaviours.md)
 - [#07 — Spatial fields](../../bot-ai-v2/issues/07-spatial-fields-chokepoints-follow-traffic.md)
 - [#03 — Flow-field navigation](../../bot-ai-v2/issues/03-flow-field-navigation.md)
+
+## Triage (2026-05-27)
+
+ready-for-agent, gated on [#00](00-situational-input-vocabulary.md). **Heaviest Phase-1 slice** — the only one needing a NEW goal type: extend the sealed `TacticalGoal permits` clause + add a BT Execute branch that plants mines/bombs via the canonical weapons path (no AI bypass, ADR-0009 §3). New inputs: `traversal_rate` (CombatDensityField), `mine_headroom` (new mine-count-at-tile query), `position_value`, choke strength (chokepoint list — available). Gate: `maxMines>0 ∨ bombs`. Effort: large. **Sequence this last in Phase 1** — it exercises the sealed-interface + Execute-branch path the lighter siblings reuse, so do it once the pattern is proven.
 
 ## Comments

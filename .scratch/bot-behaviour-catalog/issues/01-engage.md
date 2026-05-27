@@ -1,6 +1,6 @@
 # Engage
 
-Status: needs-triage
+Status: ready-for-agent
 Category: enhancement
 Type: HITL
 
@@ -32,7 +32,12 @@ Register the `engage` `Behaviour` ([ADR-0013](../../../docs/adr/0013-bot-tactica
 
 ## Blocked by
 
+- [#00 — Situational-input vocabulary (foundation)](00-situational-input-vocabulary.md)
 - [#05 — TacticalPlanner](../../bot-ai-v2/issues/05-tactical-planner-baseline-behaviours.md)
 - [#07 — Spatial fields](../../bot-ai-v2/issues/07-spatial-fields-chokepoints-follow-traffic.md)
+
+## Triage (2026-05-27)
+
+ready-for-agent — but **delivered as the proving consumer of [#00](00-situational-input-vocabulary.md)**, not a standalone slice. Engage's formula is ADR-0016's worked example; #00 upgrades the `EngageBehaviour` stub → the real fit and adds the `los` gate. This issue closes when #00 lands. Goal: reuse the existing `Engage`. No new inputs (all five sourced by #00).
 
 ## Comments

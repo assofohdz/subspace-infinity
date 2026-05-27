@@ -1,6 +1,6 @@
 # Flank
 
-Status: needs-triage
+Status: ready-for-agent
 Category: enhancement
 Type: HITL
 
@@ -32,8 +32,13 @@ Register the `flank` `Behaviour` ([ADR-0013](../../../docs/adr/0013-bot-tactical
 
 ## Blocked by
 
+- [#00 — Situational-input vocabulary (foundation)](00-situational-input-vocabulary.md)
 - [#05 — TacticalPlanner](../../bot-ai-v2/issues/05-tactical-planner-baseline-behaviours.md)
 - [#07 — Spatial fields](../../bot-ai-v2/issues/07-spatial-fields-chokepoints-follow-traffic.md)
 - [#03 — Flow-field navigation](../../bot-ai-v2/issues/03-flow-field-navigation.md)
+
+## Triage (2026-05-27)
+
+ready-for-agent, gated on [#00](00-situational-input-vocabulary.md). Goal: reuse `NavigateToTile` (indirect / alt route to the target). New inputs: `mobility-fit`, `alt-route availability` (flow-field alternate routes from nav), `enemy attention elsewhere` (EnemyDensityField), `approach_safety` (shared). Gate: none. Effort: medium — depends on the flow field exposing an alt-route query.
 
 ## Comments

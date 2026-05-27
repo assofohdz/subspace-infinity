@@ -1,6 +1,6 @@
 # Snipe
 
-Status: needs-triage
+Status: ready-for-agent
 Category: enhancement
 Type: HITL
 
@@ -32,7 +32,12 @@ Register the `snipe` `Behaviour` ([ADR-0013](../../../docs/adr/0013-bot-tactical
 
 ## Blocked by
 
+- [#00 — Situational-input vocabulary (foundation)](00-situational-input-vocabulary.md)
 - [#05 — TacticalPlanner](../../bot-ai-v2/issues/05-tactical-planner-baseline-behaviours.md)
 - [#07 — Spatial fields](../../bot-ai-v2/issues/07-spatial-fields-chokepoints-follow-traffic.md)
+
+## Triage (2026-05-27)
+
+ready-for-agent, gated on [#00](00-situational-input-vocabulary.md). Goal: reuse `Engage` (fire at max effective range — `range_fit(opt=max)`). New inputs to add to the shared library: `predictability` (target heading-variance from perception history), `approach_safety` (mean ThreatField along approach vector — `arenaContext.threat`), `concealment` (own cloak/stealth active), `low_engagement` (own recent damage-in/out history). Gate: `has_ranged_weapon ∧ los`. Effort: medium — introduces the perception-history state shared with ambush + search.
 
 ## Comments

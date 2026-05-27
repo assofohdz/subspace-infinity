@@ -1,6 +1,6 @@
 # Search / re-acquire
 
-Status: needs-triage
+Status: ready-for-agent
 Category: enhancement
 Type: HITL
 
@@ -32,7 +32,12 @@ Register the `search / re-acquire` `Behaviour` ([ADR-0013](../../../docs/adr/001
 
 ## Blocked by
 
+- [#00 — Situational-input vocabulary (foundation)](00-situational-input-vocabulary.md)
 - [#05 — TacticalPlanner](../../bot-ai-v2/issues/05-tactical-planner-baseline-behaviours.md)
 - [#07 — Spatial fields](../../bot-ai-v2/issues/07-spatial-fields-chokepoints-follow-traffic.md)
+
+## Triage (2026-05-27)
+
+ready-for-agent, gated on [#00](00-situational-input-vocabulary.md). **Upgrade** the existing `SearchBehaviour` stub. Goal: reuse `Search` / `NavigateToTile` to the last-known tile. Inputs require **target memory** (last-known tile + timestamp): `target-recency`, `last-known proximity`; plus `low_engagement`. Gate: `had_recent_target ∧ ¬los`. Effort: medium — introduces per-bot target-memory state.
 
 ## Comments

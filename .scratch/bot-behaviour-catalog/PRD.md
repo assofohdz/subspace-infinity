@@ -44,7 +44,11 @@ PRD breaks it into one independently-triageable issue per behaviour.
 
 ## Implementation issues
 
-See `issues/01-30.md`. One behaviour per issue; each carries its ADR-0016 utility spec inline (hard gate, situational-fit formula, capability affinity, inputs) and its substrate `Blocked by`.
+See `issues/00-30.md`. One behaviour per issue (01–30); each carries its ADR-0016 utility spec inline (hard gate, situational-fit formula, capability affinity, inputs) and its substrate `Blocked by`.
+
+**Foundation slice `00` precedes all behaviours.** ADR-0016 assumed the shared input vocabulary was free, but it does not exist yet — the 5 registered behaviours are baseline stubs (`EngageBehaviour.intrinsicScore` returns raw energy fraction, not the spec'd weighted sum). [`00-situational-input-vocabulary`](issues/00-situational-input-vocabulary.md) builds the `SituationalInputs` library + sources the engage inputs (incl. target energy/bounty onto `NearbyShip`) + adds the Groovy fit-coefficient block, and **proves it by upgrading `engage` to the real ADR-0016 formula**. Every Phase-1 behaviour is `Blocked by #00`; each then adds only the *new* inputs it first needs, extending the shared library (never inline).
+
+**Phase-1 sequencing (after #00):** the lighter siblings reuse existing goals (`Engage`: snipe/assassinate/harass; `NavigateToTile`: ambush/flank; upgrade-in-place: disengage/search; finish: hold-position). [`08-area-denial`](issues/08-area-denial.md) is sequenced **last** — it's the only Phase-1 behaviour needing a new `TacticalGoal` type (sealed-interface edit + new BT Execute branch + a mine-headroom query), so it lands once the additive-sibling pattern is proven.
 
 ## Done definition
 

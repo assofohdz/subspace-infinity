@@ -1,6 +1,6 @@
 # Disengage / retreat
 
-Status: needs-triage
+Status: ready-for-agent
 Category: enhancement
 Type: HITL
 
@@ -32,8 +32,13 @@ Register the `disengage / retreat` `Behaviour` ([ADR-0013](../../../docs/adr/001
 
 ## Blocked by
 
+- [#00 — Situational-input vocabulary (foundation)](00-situational-input-vocabulary.md)
 - [#05 — TacticalPlanner](../../bot-ai-v2/issues/05-tactical-planner-baseline-behaviours.md)
 - [#07 — Spatial fields](../../bot-ai-v2/issues/07-spatial-fields-chokepoints-follow-traffic.md)
 - [#03 — Flow-field navigation](../../bot-ai-v2/issues/03-flow-field-navigation.md)
+
+## Triage (2026-05-27)
+
+ready-for-agent, gated on [#00](00-situational-input-vocabulary.md). **Upgrade** the existing `DisengageBehaviour` stub. Goal: reuse `Disengage`. New inputs: `threat_density` (`arenaContext.threat(freq)` sampled at self), `escape_route` (shared with harass). `(1−energy_adv)` from #00. Gate: `self_energy_pct < threshold`. Effort: small–medium.
 
 ## Comments
