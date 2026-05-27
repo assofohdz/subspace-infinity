@@ -61,6 +61,11 @@ botAi {
     engagementRangeUnits 20.0
     bountyReference      500.0
     supportRadiusUnits   12.0
+    // isolationReference: a target this far (world units) from its nearest teammate reads as fully
+    // isolated (assassinate). threatReference: blended enemy weapon-coverage value that reads as
+    // fully dangerous (approach_safety / threat_density), ~2 overlapping enemy splats.
+    isolationReference   30.0
+    threatReference      2.0
 
     // Dev-only: visualise the blended bot-steering flow around each player ship as a client overlay
     // (toggle in-game with the flow-field debug key). Off by default — when on, the server samples a

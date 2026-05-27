@@ -14,7 +14,8 @@ public class SituationalInputsTest {
 
   @Test
   public void weightedSumIsConvexCombination() {
-    final SituationalInputs in = new SituationalInputs(0.4, 0.8, 1.0, 0.0, 0.2, 1.0);
+    final SituationalInputs in =
+        SituationalInputs.builder().set("range_fit", 0.4).set("energy_adv", 0.8).build();
     final double sum =
         in.weightedSum(Map.of("range_fit", 0.5, "energy_adv", 0.5)); // 0.5·0.4 + 0.5·0.8
     assertEquals(0.6, sum, EPS);
@@ -22,7 +23,7 @@ public class SituationalInputsTest {
 
   @Test
   public void unknownInputContributesZero() {
-    final SituationalInputs in = new SituationalInputs(1, 1, 1, 1, 1, 1);
+    final SituationalInputs in = SituationalInputs.builder().set("range_fit", 1.0).build();
     // "predictability" is a real vocabulary row but not yet sourced here → contributes 0.
     assertEquals(0.0, in.weightedSum(Map.of("predictability", 1.0)), EPS);
   }

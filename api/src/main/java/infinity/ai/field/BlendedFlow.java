@@ -41,6 +41,18 @@ public final class BlendedFlow {
         .add(oppDescent.mult(-opportunityWeight));
   }
 
+  /** Blended incoming enemy-threat value at a cell ({@code activeTeamFreqs} minus own); {@code 0} if none. */
+  public static double enemyThreatAt(
+      final BotAiArenaContext ctx, final int ownFreq, final int cellX, final int cellY) {
+    double sum = 0.0;
+    for (final int f : ctx.activeTeamFreqs()) {
+      if (f != ownFreq) {
+        sum += ctx.threat(f).valueAt(cellX, cellY);
+      }
+    }
+    return sum;
+  }
+
   /** Descent of the blended enemy-threat surface ({@code activeTeamFreqs} minus own) → toward safety. */
   public static Vec2d enemyThreatDescent(
       final BotAiArenaContext ctx, final int ownFreq, final int cellX, final int cellY) {

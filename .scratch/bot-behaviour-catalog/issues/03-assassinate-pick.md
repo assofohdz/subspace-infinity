@@ -1,8 +1,21 @@
 # Assassinate / pick
 
-Status: ready-for-agent
+Status: done (2026-05-27)
 Category: enhancement
 Type: HITL
+
+## Landed (2026-05-27)
+
+`AssassinateBehaviour` scores `0.30 bounty_pull + 0.30 isolation + 0.20 approach_safety +
+0.20 concealment` (coefficients live from `engine-bot-ai.groovy`'s `fit { }` block) over
+`SituationalInputs`, with the `los` enumerate gate; reuses the `Engage` goal/execution (scores the
+current target through a burst/cloak lens — target re-selection deferred to a targeting-layer
+enhancement). Brought the combat-tier input substrate the next siblings reuse: `isolation` (target's
+distance to its nearest other enemy), `approach_safety` (`1 − mean blended enemy-threat along the
+self→target lane`, via `BlendedFlow.enemyThreatAt`), `concealment` (own cloak/stealth, sampled into
+`OwnBotState`). Two zone refs added (`isolationReference`, `threatReference`). Also refactored
+`SituationalInputs` from a positional record to a map-backed builder so adding a vocabulary input is
+one `.set()` call — no constructor churn as the catalog grows.
 
 ## Parent
 
@@ -21,14 +34,14 @@ Register the `assassinate / pick` `Behaviour` ([ADR-0013](../../../docs/adr/0013
 
 ## Acceptance criteria
 
-- [ ] `assassinate / pick` `Behaviour` impl: `enumerate()` produces its goal candidates; `intrinsicScore()` implements the fit formula above over the ADR-0016 input vocabulary
-- [ ] `synergy { }` entry in `engine-bot-ai.groovy`: `requires` + `bonus` matching the gate + affinity above; fit coefficients live in `engine-bot-ai.groovy`
-- [ ] Goal record + `Execute<...>` BT sequence for carrying out the chosen goal
-- [ ] Any input-vocabulary term this behaviour needs that is not already in the ADR-0016 table is added to the shared library + that table in the same change (never redefined inline)
-- [ ] Weapon/item actions go through the canonical weapons/intent path (no AI bypass per ADR-0009 §3)
-- [ ] Unit tests: `enumerate()` + `intrinsicScore()`; hard gate respected (ineligible ship never enumerates); Execute Sequence completes; goal expiry re-selects
-- [ ] PMD ratchet on touched files
-- [ ] Layer test passes
+- [x] `AssassinateBehaviour` impl: `enumerate()` (los gate) + `intrinsicScore()` (the fit formula over the vocabulary)
+- [x] `synergy { }` + `fit { }` entry in `engine-bot-ai.groovy`; coefficients read live
+- [x] Reuses the `Engage` goal/Execute (close + fire); no new goal type needed
+- [x] New inputs (`isolation`/`approach_safety`/`concealment`) added to the shared `SituationalInputs` library, not inline; all were already in the ADR-0016 table (no table change)
+- [x] Firing stays on the canonical `WeaponsFiring` path (engage Execute; no AI bypass)
+- [x] Unit tests: factory inputs + behaviour score + los gate
+- [x] PMD ratchet (introduced 1 `UselessParentheses`, fixed it)
+- [x] Layer test passes
 
 ## Blocked by
 

@@ -25,6 +25,8 @@ synergy {
         requires { profile -> profile.burstDamage() > 0 }
         bonus    { profile -> 0.3 * profile.burstDamage() + 0.2 * profile.mobility()
                               + ((profile.cloak() || profile.stealth()) ? 0.2 : 0.0) }
+        // ADR-0016 situationalFit coefficients (convex — sum to 1.0). Read live by AssassinateBehaviour.
+        fit      { [bounty_pull: 0.30, isolation: 0.30, approach_safety: 0.20, concealment: 0.20] }
     }
     behaviour 'ambush', {
         requires { profile -> profile.cloak() || profile.stealth() }

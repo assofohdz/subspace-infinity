@@ -33,10 +33,12 @@ import infinity.ai.steer.AvoidObstacles;
 import infinity.ai.tactical.ArchetypeConfig;
 import infinity.ai.tactical.Behaviour;
 import infinity.ai.tactical.DisengageBehaviour;
+import infinity.ai.tactical.AssassinateBehaviour;
 import infinity.ai.tactical.EngageBehaviour;
 import infinity.ai.tactical.FollowTrafficBehaviour;
 import infinity.ai.tactical.HoldPositionBehaviour;
 import infinity.ai.tactical.SearchBehaviour;
+import infinity.ai.tactical.OwnBotState;
 import infinity.ai.tactical.ServerBotAiArenaContext;
 import infinity.ai.tactical.SituationalInputsFactory;
 import infinity.ai.tactical.TacticalGoal;
@@ -55,6 +57,8 @@ import infinity.es.input.MovementInput;
 import infinity.es.ship.BotShip;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyStats;
+import infinity.es.ship.toggles.CloakActive;
+import infinity.es.ship.toggles.StealthActive;
 import infinity.es.ship.weapons.BulletFireDelay;
 import infinity.es.ship.RadarRange;
 import infinity.es.ship.ShipType;
@@ -168,6 +172,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     final List<Behaviour> behaviours =
         List.of(
             new EngageBehaviour(this.engineBotAi::get),
+            new AssassinateBehaviour(this.engineBotAi::get),
             new DisengageBehaviour(),
             new SearchBehaviour(),
             new FollowTrafficBehaviour(),
@@ -468,7 +473,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     wiring.lastPlanNanos = nowNanos;
     // ADR-0016: snapshot the situational-input vocabulary once per planner cycle; behaviours read it.
     bb.setSituationalInputs(
-        SituationalInputsFactory.compute(bb, weaponReady(wiring.botId), zoneCfg));
+        SituationalInputsFactory.compute(bb, ownState(wiring.botId), zoneCfg));
     final TacticalGoal goal = this.planner.select(bb, wiring.archetype);
     if (goal != null) {
       bb.setCurrentGoal(goal); // null ⇒ nothing offered; keep the running goal
@@ -485,10 +490,15 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     return lastPlanNanos == UNPLANNED || nowNanos - lastPlanNanos >= cadenceNanos;
   }
 
-  /** Primary-weapon cooldown elapsed (the {@code recharge_rdy} input); ready when no delay is stamped. */
-  private boolean weaponReady(final EntityId bot) {
+  /** Sample the bot's own ECS state the input vocabulary needs (weapon cooldown + concealment). */
+  private OwnBotState ownState(final EntityId bot) {
     final BulletFireDelay delay = this.ed.getComponent(bot, BulletFireDelay.class);
-    return delay == null || delay.getPercent() >= 1.0;
+    final boolean weaponReady = delay == null || delay.getPercent() >= 1.0;
+    final CloakActive cloak = this.ed.getComponent(bot, CloakActive.class);
+    final StealthActive stealth = this.ed.getComponent(bot, StealthActive.class);
+    final boolean concealed =
+        (cloak != null && cloak.isActive()) || (stealth != null && stealth.isActive());
+    return new OwnBotState(weaponReady, concealed);
   }
 
   /**

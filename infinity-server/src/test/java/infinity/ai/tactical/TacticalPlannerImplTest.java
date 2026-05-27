@@ -130,9 +130,9 @@ public class TacticalPlannerImplTest {
     final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
     bb.setTarget(new NearbyShipFixture().make());
     final Engage eg = new Engage(new EntityId(9));
-    bb.setSituationalInputs(new SituationalInputs(1.0, 1.0, 1.0, 1.0, 1.0, 1.0));
-    assertEquals("all inputs 1.0 ⇒ convex sum = 1.0", 1.0, engage.intrinsicScore(eg, bb), 1e-9);
-    bb.setSituationalInputs(new SituationalInputs(0, 0, 0, 0, 0, 1.0));
+    bb.setSituationalInputs(inputs(1.0, 1.0));
+    assertEquals("all fit inputs 1.0 ⇒ convex sum = 1.0", 1.0, engage.intrinsicScore(eg, bb), 1e-9);
+    bb.setSituationalInputs(inputs(0.0, 1.0)); // los=1 (engageable) but fit inputs 0
     assertEquals("all fit inputs 0 ⇒ 0", 0.0, engage.intrinsicScore(eg, bb), 1e-9);
   }
 
@@ -143,17 +143,48 @@ public class TacticalPlannerImplTest {
         new BotSynergyTable(Map.of(), Map.of("engage", Map.of("range_fit", 1.0)));
     final EngageBehaviour engage = new EngageBehaviour(() -> table);
     bb.setTarget(new NearbyShipFixture().make());
-    bb.setSituationalInputs(new SituationalInputs(0.5, 1.0, 1.0, 1.0, 1.0, 1.0));
+    bb.setSituationalInputs(
+        SituationalInputs.builder().set("range_fit", 0.5).set("energy_adv", 1.0).build());
     assertEquals(0.5, engage.intrinsicScore(new Engage(new EntityId(9)), bb), 1e-9);
+  }
+
+  @Test
+  public void assassinateScoresIsolatedHighBountyTarget() {
+    final AssassinateBehaviour assassin =
+        new AssassinateBehaviour(() -> new BotSynergyTable(Map.of()));
+    bb.setTarget(new NearbyShipFixture().make());
+    final Engage eg = new Engage(new EntityId(9));
+    // SEED: 0.30 bounty_pull + 0.30 isolation + 0.20 approach_safety + 0.20 concealment
+    bb.setSituationalInputs(
+        SituationalInputs.builder()
+            .set("los", 1.0)
+            .set("bounty_pull", 1.0)
+            .set("isolation", 1.0)
+            .set("approach_safety", 1.0)
+            .set("concealment", 1.0)
+            .build());
+    assertEquals(1.0, assassin.intrinsicScore(eg, bb), 1e-9);
+    // a crowded, low-bounty target (only los set) scores 0 — not a pick.
+    bb.setSituationalInputs(SituationalInputs.builder().set("los", 1.0).build());
+    assertEquals(0.0, assassin.intrinsicScore(eg, bb), 1e-9);
+  }
+
+  @Test
+  public void assassinateWithoutLineOfSightEnumeratesNothing() {
+    final AssassinateBehaviour assassin =
+        new AssassinateBehaviour(() -> new BotSynergyTable(Map.of()));
+    bb.setTarget(new NearbyShipFixture().make());
+    bb.setSituationalInputs(SituationalInputs.builder().set("los", 0.0).build());
+    assertTrue("occluded target not picked", assassin.enumerate(bb).isEmpty());
   }
 
   @Test
   public void engageWithoutLineOfSightEnumeratesNothing() {
     final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
     bb.setTarget(new NearbyShipFixture().make());
-    bb.setSituationalInputs(new SituationalInputs(1, 1, 1, 1, 1, 0.0)); // los = 0 ⇒ occluded
+    bb.setSituationalInputs(inputs(1.0, 0.0)); // los = 0 ⇒ occluded
     assertTrue("occluded target not engaged", engage.enumerate(bb).isEmpty());
-    bb.setSituationalInputs(new SituationalInputs(1, 1, 1, 1, 1, 1.0)); // los = 1 ⇒ clear
+    bb.setSituationalInputs(inputs(1.0, 1.0)); // los = 1 ⇒ clear
     assertEquals("clear target engaged", 1, engage.enumerate(bb).size());
   }
 
@@ -314,6 +345,18 @@ public class TacticalPlannerImplTest {
     public double intrinsicScore(final TacticalGoal goal, final Blackboard bb) {
       return 0.0;
     }
+  }
+
+  /** Engage's five fit inputs all set to {@code fit}, plus {@code los}; the engage-test helper. */
+  private static SituationalInputs inputs(final double fit, final double los) {
+    return SituationalInputs.builder()
+        .set("range_fit", fit)
+        .set("energy_adv", fit)
+        .set("recharge_rdy", fit)
+        .set("support", fit)
+        .set("bounty_pull", fit)
+        .set("los", los)
+        .build();
   }
 
   /** Builds a throwaway {@code NearbyShip} so target-gated behaviours enumerate. */

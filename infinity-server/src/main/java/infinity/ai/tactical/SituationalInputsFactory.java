@@ -5,26 +5,29 @@ package infinity.ai.tactical;
 import infinity.ai.MoverState;
 import infinity.ai.NearbyShip;
 import infinity.ai.brain.Blackboard;
+import infinity.ai.field.BlendedFlow;
 import infinity.ai.field.NavigationFields;
 import infinity.config.ZoneBotAiConfig;
 
 /**
  * Computes the ADR-0016 {@link SituationalInputs} snapshot once per planner cycle from the
- * Blackboard's perception + own state + the zone normalization refs. Behaviours read the result;
- * they never recompute an input. New vocabulary rows are sourced here as the first behaviour that
- * needs them lands. See ADR-0016 §"Shared input vocabulary".
+ * Blackboard's perception + own state ({@link OwnBotState}) + the zone normalization refs.
+ * Behaviours read the result; they never recompute an input. New vocabulary rows are sourced here
+ * as the first behaviour that needs them lands. See ADR-0016 §"Shared input vocabulary".
  */
 public final class SituationalInputsFactory {
+
+  // Cells sampled along the self→target segment for the approach_safety mean.
+  private static final int APPROACH_SAMPLES = 4;
 
   private SituationalInputsFactory() {}
 
   /**
-   * Snapshot the inputs for {@code bb} this cycle. {@code weaponReady} is the bot's own primary-weapon
-   * cooldown-elapsed state (sampled from ECS by the caller). Target-relative inputs collapse to a
-   * neutral snapshot when the bot has no current target.
+   * Snapshot the inputs for {@code bb} this cycle. Target-relative inputs collapse to a neutral
+   * snapshot when the bot has no current target.
    */
   public static SituationalInputs compute(
-      final Blackboard bb, final boolean weaponReady, final ZoneBotAiConfig cfg) {
+      final Blackboard bb, final OwnBotState own, final ZoneBotAiConfig cfg) {
     final NearbyShip target = bb.target();
     final MoverState self = bb.self();
     if (target == null || self == null) {
@@ -41,13 +44,20 @@ public final class SituationalInputsFactory {
     final double targetPct = target.energyPct() >= 0 ? target.energyPct() : 0.5;
     final double energyAdv = clamp(selfPct - targetPct + 0.5);
 
-    final double rechargeRdy = weaponReady ? 1.0 : 0.0;
-    final double support = clamp(alliesInRadius(bb, self, cfg.supportRadiusUnits()) / 2.0);
     final double bountyPull =
         cfg.bountyReference() > 0 ? clamp(target.bounty() / cfg.bountyReference()) : 0.0;
-    final double los = lineOfSight(bb, self, target);
 
-    return new SituationalInputs(rangeFit, energyAdv, rechargeRdy, support, bountyPull, los);
+    return SituationalInputs.builder()
+        .set("range_fit", rangeFit)
+        .set("energy_adv", energyAdv)
+        .set("recharge_rdy", own.weaponReady() ? 1.0 : 0.0)
+        .set("support", clamp(alliesInRadius(bb, self, cfg.supportRadiusUnits()) / 2.0))
+        .set("bounty_pull", bountyPull)
+        .set("los", lineOfSight(bb, self, target))
+        .set("isolation", isolation(bb, target, cfg.isolationReference()))
+        .set("approach_safety", approachSafety(bb, self, target, cfg.threatReference()))
+        .set("concealment", own.concealed() ? 1.0 : 0.0)
+        .build();
   }
 
   /** Allies within {@code radius} world units of {@code self} (the {@code support} input numerator). */
@@ -65,6 +75,50 @@ public final class SituationalInputsFactory {
       }
     }
     return count;
+  }
+
+  /**
+   * {@code clamp(dist(target, target's nearest other enemy) / iso_ref)} — high when the target is
+   * alone (a clean pick). No other threats perceived ⇒ fully isolated.
+   */
+  private static double isolation(final Blackboard bb, final NearbyShip target, final double isoRef) {
+    if (bb.perception() == null || isoRef <= 0) {
+      return 1.0;
+    }
+    double nearest = Double.POSITIVE_INFINITY;
+    for (final NearbyShip other : bb.perception().threats()) {
+      if (other.id().equals(target.id())) {
+        continue;
+      }
+      final double dx = other.position().x - target.position().x;
+      final double dz = other.position().z - target.position().z;
+      nearest = Math.min(nearest, Math.hypot(dx, dz));
+    }
+    return Double.isInfinite(nearest) ? 1.0 : clamp(nearest / isoRef);
+  }
+
+  /**
+   * {@code 1 − clamp(mean blended enemy-threat along the self→target segment / threat_ref)} — high
+   * when the lane to the target is clear of enemy weapon coverage. Degrades to {@code 1} (safe) when
+   * no production nav / threat field is wired.
+   */
+  private static double approachSafety(
+      final Blackboard bb, final MoverState self, final NearbyShip target, final double threatRef) {
+    final BotAiArenaContext ctx = bb.arenaContext();
+    if (ctx == null || threatRef <= 0) {
+      return 1.0;
+    }
+    final int ownFreq = bb.ownFreq();
+    double sum = 0.0;
+    for (int i = 1; i <= APPROACH_SAMPLES; i++) {
+      final double t = (double) i / APPROACH_SAMPLES;
+      final double wx = self.position().x + (target.position().x - self.position().x) * t;
+      final double wz = self.position().z + (target.position().z - self.position().z) * t;
+      final int cx = (int) Math.floor(wx) - ctx.originCellX();
+      final int cy = (int) Math.floor(wz) - ctx.originCellZ();
+      sum += BlendedFlow.enemyThreatAt(ctx, ownFreq, cx, cy);
+    }
+    return 1.0 - clamp(sum / APPROACH_SAMPLES / threatRef);
   }
 
   /**

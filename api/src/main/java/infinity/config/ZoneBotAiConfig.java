@@ -50,6 +50,11 @@ package infinity.config;
  *       {@code bounty_pull} input to {@code 1.0}</li>
  *   <li>{@code supportRadiusUnits} — ADR-0016 {@code R} for {@code support}: radius (world units)
  *       within which allies count toward the {@code clamp(allies/2)} support input</li>
+ *   <li>{@code isolationReference} — ADR-0016 {@code iso_ref}: target-to-nearest-enemy distance
+ *       (world units) that saturates the {@code isolation} input to {@code 1.0}</li>
+ *   <li>{@code threatReference} — ADR-0016 {@code threat_ref}: blended enemy-threat field value that
+ *       saturates {@code threat_density} (and bottoms out {@code approach_safety}) — i.e. roughly how
+ *       many overlapping enemy weapon-coverage splats count as "fully dangerous"</li>
  * </ul>
  */
 public record ZoneBotAiConfig(
@@ -73,16 +78,18 @@ public record ZoneBotAiConfig(
     int flowFieldDebugRadius,
     double engagementRangeUnits,
     double bountyReference,
-    double supportRadiusUnits) {
+    double supportRadiusUnits,
+    double isolationReference,
+    double threatReference) {
 
   public static final ZoneBotAiConfig DEFAULTS =
       new ZoneBotAiConfig(
           150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10,
-          20.0, 500.0, 12.0);
+          20.0, 500.0, 12.0, 30.0, 2.0);
 
   public ZoneBotAiConfig() {
     this(
         150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10,
-        20.0, 500.0, 12.0);
+        20.0, 500.0, 12.0, 30.0, 2.0);
   }
 }

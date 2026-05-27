@@ -45,7 +45,7 @@ public final class EngageBehaviour implements Behaviour {
       return List.of();
     }
     // los hard gate: don't engage a wall-occluded target — fall through to nav/search (ADR-0016).
-    if (bb.situationalInputs().los() <= 0.0) {
+    if (bb.situationalInputs().get("los") <= 0.0) {
       return List.of();
     }
     return List.of(new Engage(target.id()));

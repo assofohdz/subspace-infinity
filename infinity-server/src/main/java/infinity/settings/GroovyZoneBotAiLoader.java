@@ -105,6 +105,8 @@ public class GroovyZoneBotAiLoader {
     private double engagementRangeUnits = ZoneBotAiConfig.DEFAULTS.engagementRangeUnits();
     private double bountyReference = ZoneBotAiConfig.DEFAULTS.bountyReference();
     private double supportRadiusUnits = ZoneBotAiConfig.DEFAULTS.supportRadiusUnits();
+    private double isolationReference = ZoneBotAiConfig.DEFAULTS.isolationReference();
+    private double threatReference = ZoneBotAiConfig.DEFAULTS.threatReference();
 
     ZoneBotAiConfigBuilder() {}
 
@@ -292,6 +294,16 @@ public class GroovyZoneBotAiLoader {
       this.supportRadiusUnits = positive("supportRadiusUnits", value, this.supportRadiusUnits);
     }
 
+    /** ADR-0016 {@code iso_ref}: target-isolation saturation distance (world units); must be {@code > 0}. */
+    public void isolationReference(final Number value) {
+      this.isolationReference = positive("isolationReference", value, this.isolationReference);
+    }
+
+    /** ADR-0016 {@code threat_ref}: enemy-threat field value saturating threat inputs; must be {@code > 0}. */
+    public void threatReference(final Number value) {
+      this.threatReference = positive("threatReference", value, this.threatReference);
+    }
+
     private static double positive(final String key, final Number value, final double current) {
       if (value == null) {
         return current;
@@ -337,7 +349,9 @@ public class GroovyZoneBotAiLoader {
           flowFieldDebugRadius,
           engagementRangeUnits,
           bountyReference,
-          supportRadiusUnits);
+          supportRadiusUnits,
+          isolationReference,
+          threatReference);
     }
   }
 }
