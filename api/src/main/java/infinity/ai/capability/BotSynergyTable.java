@@ -10,10 +10,22 @@ import java.util.Map;
  * through the table yields the capability-derived behaviour-weight vector the planner consumes
  * (objective + role bias are applied later, ADR-0015). See ADR-0014.
  */
-public record BotSynergyTable(Map<String, SynergyRule> rules) {
+public record BotSynergyTable(
+    Map<String, SynergyRule> rules, Map<String, Map<String, Double>> fitCoefficients) {
 
   public BotSynergyTable {
     rules = Map.copyOf(rules);
+    fitCoefficients = Map.copyOf(fitCoefficients);
+  }
+
+  /** Rules-only table with no fit coefficients (back-compat for callers that don't load the fit block). */
+  public BotSynergyTable(final Map<String, SynergyRule> rules) {
+    this(rules, Map.of());
+  }
+
+  /** The ADR-0016 {@code situationalFit} coefficients for {@code behaviour}; empty when none authored. */
+  public Map<String, Double> fitFor(final String behaviour) {
+    return this.fitCoefficients.getOrDefault(behaviour, Map.of());
   }
 
   /**

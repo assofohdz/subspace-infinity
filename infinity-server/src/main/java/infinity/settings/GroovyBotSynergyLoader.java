@@ -41,25 +41,31 @@ public class GroovyBotSynergyLoader {
     return table;
   }
 
+  /** Mutable accumulator gathering both the synergy rules and the per-behaviour fit coefficients. */
+  private static final class Collected {
+    final Map<String, SynergyRule> rules = new LinkedHashMap<>();
+    final Map<String, Map<String, Double>> fit = new LinkedHashMap<>();
+  }
+
   private static final class SynergyAdapter
-      implements GroovySettingsAdapter<BotSynergyTable, Map<String, SynergyRule>> {
+      implements GroovySettingsAdapter<BotSynergyTable, Collected> {
     @Override
     public List<String> allowedImports() {
       return Collections.emptyList();
     }
 
     @Override
-    public Map<String, SynergyRule> bind(final Binding binding) {
-      final Map<String, SynergyRule> rules = new LinkedHashMap<>();
-      binding.setVariable("synergy", new SynergyClosure(rules));
+    public Collected bind(final Binding binding) {
+      final Collected collected = new Collected();
+      binding.setVariable("synergy", new SynergyClosure(collected));
       // Same file also holds a roles { } block (GroovyBotRolesLoader); ignore it on the synergy pass.
       binding.setVariable("roles", new IgnoringDslClosure());
-      return rules;
+      return collected;
     }
 
     @Override
-    public BotSynergyTable extract(final Map<String, SynergyRule> rules) {
-      return new BotSynergyTable(rules);
+    public BotSynergyTable extract(final Collected collected) {
+      return new BotSynergyTable(collected.rules, collected.fit);
     }
 
     @Override
@@ -70,16 +76,16 @@ public class GroovyBotSynergyLoader {
 
   private static final class SynergyClosure extends Closure<Void> {
     private static final long serialVersionUID = 1L;
-    private final transient Map<String, SynergyRule> rules;
+    private final transient Collected collected;
 
-    SynergyClosure(final Map<String, SynergyRule> rules) {
+    SynergyClosure(final Collected collected) {
       super(null);
-      this.rules = rules;
+      this.collected = collected;
     }
 
     @SuppressWarnings("unused") // invoked via Groovy dispatch
     public Void doCall(final Closure<?> body) {
-      body.setDelegate(new BehaviourCollector(this.rules));
+      body.setDelegate(new BehaviourCollector(this.collected));
       body.setResolveStrategy(DELEGATE_FIRST);
       body.call();
       return null;
@@ -88,10 +94,10 @@ public class GroovyBotSynergyLoader {
 
   /** DSL delegate for the {@code synergy { ... }} body; public so Groovy can dispatch to it. */
   public static final class BehaviourCollector {
-    private final Map<String, SynergyRule> rules;
+    private final Collected collected;
 
-    BehaviourCollector(final Map<String, SynergyRule> rules) {
-      this.rules = rules;
+    BehaviourCollector(final Collected collected) {
+      this.collected = collected;
     }
 
     public void behaviour(final String name, final Closure<?> spec) {
@@ -99,14 +105,19 @@ public class GroovyBotSynergyLoader {
       spec.setDelegate(rs);
       spec.setResolveStrategy(Closure.DELEGATE_FIRST);
       spec.call();
-      this.rules.put(name, rs.toRule());
+      this.collected.rules.put(name, rs.toRule());
+      final Map<String, Double> fit = rs.toFit();
+      if (!fit.isEmpty()) {
+        this.collected.fit.put(name, fit);
+      }
     }
   }
 
-  /** DSL delegate for one behaviour's {@code requires}/{@code bonus}; public for Groovy dispatch. */
+  /** DSL delegate for one behaviour's {@code requires}/{@code bonus}/{@code fit}; public for Groovy dispatch. */
   public static final class RuleSpec {
     @Nullable private transient Closure<?> requires;
     @Nullable private transient Closure<?> bonus;
+    @Nullable private transient Closure<?> fit;
 
     public void requires(final Closure<?> c) {
       this.requires = c;
@@ -114,6 +125,27 @@ public class GroovyBotSynergyLoader {
 
     public void bonus(final Closure<?> c) {
       this.bonus = c;
+    }
+
+    public void fit(final Closure<?> c) {
+      this.fit = c;
+    }
+
+    /** The {@code fit { [name: coeff, ...] }} closure as a coefficient map; empty when omitted. */
+    @SuppressWarnings("unchecked")
+    Map<String, Double> toFit() {
+      final Closure<?> f = this.fit;
+      if (f == null) {
+        return Map.of();
+      }
+      final Map<String, Double> out = new LinkedHashMap<>();
+      final Object result = f.call();
+      if (result instanceof Map<?, ?> map) {
+        for (final Map.Entry<?, ?> e : ((Map<Object, Object>) map).entrySet()) {
+          out.put(String.valueOf(e.getKey()), ((Number) e.getValue()).doubleValue());
+        }
+      }
+      return out;
     }
 
     SynergyRule toRule() {

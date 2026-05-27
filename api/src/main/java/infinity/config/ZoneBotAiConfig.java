@@ -43,6 +43,13 @@ package infinity.config;
  *       client overlay (off in production — costs a per-cadence sample + wire bandwidth)</li>
  *   <li>{@code flowFieldDebugRadius} — half-extent (tile cells) of the sampled flow patch around a
  *       player; the patch is {@code (2r+1)×(2r+1)} cells</li>
+ *   <li>{@code engagementRangeUnits} — ADR-0016 {@code range_opt}: nominal optimal engage distance
+ *       (world units) the {@code range_fit} input normalizes against. First-cut single value;
+ *       per-weapon max range is sourced later by the snipe behaviour</li>
+ *   <li>{@code bountyReference} — ADR-0016 {@code B_ref}: target bounty that saturates the
+ *       {@code bounty_pull} input to {@code 1.0}</li>
+ *   <li>{@code supportRadiusUnits} — ADR-0016 {@code R} for {@code support}: radius (world units)
+ *       within which allies count toward the {@code clamp(allies/2)} support input</li>
  * </ul>
  */
 public record ZoneBotAiConfig(
@@ -63,13 +70,19 @@ public record ZoneBotAiConfig(
     double navThreatWeight,
     double navOpportunityWeight,
     boolean flowFieldDebug,
-    int flowFieldDebugRadius) {
+    int flowFieldDebugRadius,
+    double engagementRangeUnits,
+    double bountyReference,
+    double supportRadiusUnits) {
 
   public static final ZoneBotAiConfig DEFAULTS =
       new ZoneBotAiConfig(
-          150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10);
+          150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10,
+          20.0, 500.0, 12.0);
 
   public ZoneBotAiConfig() {
-    this(150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10);
+    this(
+        150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10,
+        20.0, 500.0, 12.0);
   }
 }

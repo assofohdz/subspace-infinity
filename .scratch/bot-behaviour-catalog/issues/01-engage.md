@@ -1,8 +1,15 @@
 # Engage
 
-Status: ready-for-agent
+Status: done (2026-05-27)
 Category: enhancement
 Type: HITL
+
+## Landed (2026-05-27)
+
+Delivered as the proving consumer of [#00](00-situational-input-vocabulary.md): `EngageBehaviour`
+now scores `0.30 range_fit + 0.25 energy_adv + 0.15 recharge_rdy + 0.15 support + 0.15 bounty_pull`
+(coefficients from `engine-bot-ai.groovy`'s `fit { }` block, read live) over `SituationalInputs`,
+and `enumerate()` drops a wall-occluded target (`los` gate). Reuses the existing `Engage` goal.
 
 ## Parent
 

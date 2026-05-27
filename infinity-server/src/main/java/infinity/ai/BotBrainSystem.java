@@ -38,6 +38,7 @@ import infinity.ai.tactical.FollowTrafficBehaviour;
 import infinity.ai.tactical.HoldPositionBehaviour;
 import infinity.ai.tactical.SearchBehaviour;
 import infinity.ai.tactical.ServerBotAiArenaContext;
+import infinity.ai.tactical.SituationalInputsFactory;
 import infinity.ai.tactical.TacticalGoal;
 import infinity.ai.tactical.TacticalPlanner;
 import infinity.ai.tactical.TacticalPlannerImpl;
@@ -54,6 +55,7 @@ import infinity.es.input.MovementInput;
 import infinity.es.ship.BotShip;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyStats;
+import infinity.es.ship.weapons.BulletFireDelay;
 import infinity.es.ship.RadarRange;
 import infinity.es.ship.ShipType;
 import infinity.settings.ConfigRegistry;
@@ -165,7 +167,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     this.arenaModuleSystem = requireSystem(ArenaModuleSystem.class);
     final List<Behaviour> behaviours =
         List.of(
-            new EngageBehaviour(),
+            new EngageBehaviour(this.engineBotAi::get),
             new DisengageBehaviour(),
             new SearchBehaviour(),
             new FollowTrafficBehaviour(),
@@ -464,6 +466,9 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       return;
     }
     wiring.lastPlanNanos = nowNanos;
+    // ADR-0016: snapshot the situational-input vocabulary once per planner cycle; behaviours read it.
+    bb.setSituationalInputs(
+        SituationalInputsFactory.compute(bb, weaponReady(wiring.botId), zoneCfg));
     final TacticalGoal goal = this.planner.select(bb, wiring.archetype);
     if (goal != null) {
       bb.setCurrentGoal(goal); // null ⇒ nothing offered; keep the running goal
@@ -478,6 +483,12 @@ public final class BotBrainSystem extends BaseInfinitySystem {
    */
   static boolean shouldPlan(final long lastPlanNanos, final long nowNanos, final long cadenceNanos) {
     return lastPlanNanos == UNPLANNED || nowNanos - lastPlanNanos >= cadenceNanos;
+  }
+
+  /** Primary-weapon cooldown elapsed (the {@code recharge_rdy} input); ready when no delay is stamped. */
+  private boolean weaponReady(final EntityId bot) {
+    final BulletFireDelay delay = this.ed.getComponent(bot, BulletFireDelay.class);
+    return delay == null || delay.getPercent() >= 1.0;
   }
 
   /**

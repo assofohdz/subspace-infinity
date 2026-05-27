@@ -26,6 +26,16 @@ public class GroovyBotSynergyLoaderTest {
   }
 
   @Test
+  public void engageFitBlockParsesToConvexCoefficients() {
+    final BotSynergyTable table = new GroovyBotSynergyLoader().load();
+    final Map<String, Double> fit = table.fitFor("engage");
+    assertEquals(0.30, fit.get("range_fit"), 1e-9);
+    assertEquals(0.25, fit.get("energy_adv"), 1e-9);
+    assertEquals("ADR-0016 fit coefficients are convex (sum to 1.0)",
+        1.0, fit.values().stream().mapToDouble(Double::doubleValue).sum(), 1e-9);
+  }
+
+  @Test
   public void gatedRulesRespectCapabilityFromGroovyClosures() {
     final BotSynergyTable table = new GroovyBotSynergyLoader().load();
     // mines + cloak Shark, no xradar, no attach.

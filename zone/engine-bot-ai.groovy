@@ -14,6 +14,8 @@ synergy {
     behaviour 'engage', {
         requires { profile -> profile.burstDamage() > 0 || profile.sustainedDamage() > 0 }
         bonus    { profile -> 0.3 * profile.sustainedDamage() + 0.2 * profile.mobility() }
+        // ADR-0016 situationalFit coefficients (convex — sum to 1.0). Read live by EngageBehaviour.
+        fit      { [range_fit: 0.30, energy_adv: 0.25, recharge_rdy: 0.15, support: 0.15, bounty_pull: 0.15] }
     }
     behaviour 'snipe', {
         requires { profile -> profile.rangeProfile() > 0 }

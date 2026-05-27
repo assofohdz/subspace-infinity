@@ -1,8 +1,23 @@
 # Situational-input vocabulary (foundation)
 
-Status: ready-for-agent
+Status: done (2026-05-27)
 Category: enhancement
 Type: HITL
+
+## Landed (2026-05-27)
+
+`SituationalInputs` (api) holds the vocabulary + `weightedSum`; `SituationalInputsFactory`
+(server) computes it once per planner cycle (`BotBrainSystem.planOnCadence`). `NearbyShip` carries
+`energyPct`+`bounty` (sourced in `PerceptionService`); `los` reuses the nav raycast; `recharge_rdy`
+reads `BulletFireDelay`. Fit coefficients live in `engine-bot-ai.groovy`'s `fit { }` block
+(`BotSynergyTable.fitFor`, read live); normalization refs (`engagementRangeUnits`/`bountyReference`/
+`supportRadiusUnits`) in `zone-bot-ai.groovy`. `EngageBehaviour` upgraded to the real formula with
+the `los` enumerate gate. `BaselineFit.energyFraction` retained for the still-baseline stubs
+(disengage/search/hold-position/follow-traffic). No ADR-0016 table change (engage's inputs were all
+already listed). Tests: `SituationalInputsTest`, `SituationalInputsFactoryTest`, engage
+formula/los-gate/live-coeff in `TacticalPlannerImplTest`, `fit{}` parse in
+`GroovyBotSynergyLoaderTest`. PMD ratchet: extracted `buildNearbyShip` to clear the cognitive-
+complexity violation the energy/bounty reads introduced.
 
 ## Parent
 
@@ -37,14 +52,14 @@ This slice builds the substrate once, sources the inputs that are cheaply reacha
 
 ## Acceptance criteria
 
-- [ ] `SituationalInputs` computes, at minimum, `range_fit`, `energy_adv`, `recharge_rdy`, `support`, `bounty_pull`, `los` — each named, each on `[0,1]`, computed once per planner cycle
-- [ ] Target energy % + bounty reach the behaviour layer (perception projection extended; `NearbyShip` carries them or an adjacent snapshot does)
-- [ ] `engine-bot-ai.groovy` carries a fit-coefficient block; a loader + `*Config` expose it; `EngageBehaviour` reads coefficients from config (no hardcoded fit weights)
-- [ ] `EngageBehaviour` upgraded to the ADR-0016 formula over `SituationalInputs`; `has_offensive_weapon ∧ los` hard gate enforced in `enumerate()`
-- [ ] `BaselineFit.energyFraction` either folded into `SituationalInputs` or retained only for behaviours not yet upgraded (note which)
-- [ ] ADR-0016 §"Shared input vocabulary" table updated only if a genuinely new input is introduced (the engage set is all already listed — expect no table change)
-- [ ] Unit tests: each sourced input on representative states (in-range/out-of-range, energy adv/disadv, los clear/blocked, allies present/absent); `EngageBehaviour.intrinsicScore` reproduces the formula from known inputs; coefficient reload changes the score
-- [ ] PMD ratchet on touched files; layer test passes (`NearbyShip` change stays api-clean)
+- [x] `SituationalInputs` computes `range_fit`, `energy_adv`, `recharge_rdy`, `support`, `bounty_pull`, `los` — each named, each on `[0,1]`, computed once per planner cycle
+- [x] Target energy % + bounty reach the behaviour layer (`NearbyShip` carries them; sourced in `PerceptionService`)
+- [x] `engine-bot-ai.groovy` carries a `fit { }` block; `GroovyBotSynergyLoader` → `BotSynergyTable.fitFor` exposes it; `EngageBehaviour` reads coefficients live (no hardcoded fit weights; falls back to a seed only when the block is absent)
+- [x] `EngageBehaviour` upgraded to the ADR-0016 formula over `SituationalInputs`; `los` enforced in `enumerate()` (`has_offensive_weapon` is the synergy `requires` gate)
+- [x] `BaselineFit.energyFraction` retained for the still-baseline stubs (disengage/search/hold-position/follow-traffic)
+- [x] No ADR-0016 table change — engage's inputs were all already listed
+- [x] Unit tests: `SituationalInputsFactoryTest` (each input on representative states), engage formula + los-gate + live-coeff reads, `fit{}` real-file parse
+- [x] PMD ratchet on touched files; layer test passes (`NearbyShip` change stays api-clean)
 
 ## Blocked by
 

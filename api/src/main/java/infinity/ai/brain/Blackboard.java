@@ -13,6 +13,7 @@ import infinity.ai.steer.Pursue;
 import infinity.ai.steer.SeekDirection;
 import infinity.ai.steer.Wander;
 import infinity.ai.tactical.BotAiArenaContext;
+import infinity.ai.tactical.SituationalInputs;
 import infinity.ai.tactical.TacticalGoal;
 import infinity.sim.WeaponsFiring;
 import javax.annotation.Nullable;
@@ -59,6 +60,9 @@ public final class Blackboard {
   private int maxEnergy = -1;
   @Nullable private TacticalGoal currentGoal;
   @Nullable private BotAiArenaContext arenaContext;
+  // The ADR-0016 situational-input snapshot, recomputed once per planner cycle; behaviours read it
+  // in intrinsicScore/enumerate. NEUTRAL until the first planner cycle.
+  private SituationalInputs situationalInputs = SituationalInputs.NEUTRAL;
 
   public Blackboard(
       final Pursue pursue,
@@ -235,5 +239,14 @@ public final class Blackboard {
 
   public void setArenaContext(@Nullable final BotAiArenaContext arenaContext) {
     this.arenaContext = arenaContext;
+  }
+
+  /** ADR-0016 situational-input snapshot for this planner cycle; {@link SituationalInputs#NEUTRAL} until first computed. */
+  public SituationalInputs situationalInputs() {
+    return this.situationalInputs;
+  }
+
+  public void setSituationalInputs(final SituationalInputs situationalInputs) {
+    this.situationalInputs = situationalInputs;
   }
 }

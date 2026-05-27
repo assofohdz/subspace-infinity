@@ -17,9 +17,12 @@ import com.simsilica.mphys.RigidBody;
 import com.simsilica.mphys.SphereVolume;
 import com.simsilica.mworld.BlockIterator;
 import infinity.InfinityConstants;
+import infinity.es.Bounty;
 import infinity.es.Dead;
 import infinity.es.Frequency;
 import infinity.es.ship.BotShip;
+import infinity.es.ship.Energy;
+import infinity.es.ship.EnergyStats;
 import infinity.es.ship.PlayerShip;
 import infinity.systems.BaseInfinitySystem;
 import java.util.ArrayList;
@@ -133,13 +136,7 @@ public final class PerceptionService extends BaseInfinitySystem implements Perce
     if (isShip) {
       final Frequency otherFreqComp = this.ed.getComponent(body.id, Frequency.class);
       final int otherFreq = otherFreqComp != null ? otherFreqComp.getFrequency() : -1;
-      final Vec3d velocity =
-          (body instanceof RigidBody)
-              ? ((RigidBody<EntityId, MBlockShape>) body).getLinearVelocity().clone()
-              : new Vec3d();
-      final NearbyShip ship =
-          new NearbyShip(
-              body.id, body.position.clone(), body.orientation.clone(), velocity, otherFreq);
+      final NearbyShip ship = buildNearbyShip(body, otherFreq);
       if (otherFreq == botFreq) {
         allies.add(ship);
       } else {
@@ -148,6 +145,25 @@ public final class PerceptionService extends BaseInfinitySystem implements Perce
     } else {
       obstacles.add(new NearbyObstacle(body.position.clone(), body.shape.getMass().getRadius()));
     }
+  }
+
+  /** Snapshot a ship body into a {@link NearbyShip}, sampling its energy% + bounty for ADR-0016 inputs. */
+  private NearbyShip buildNearbyShip(
+      final AbstractBody<EntityId, MBlockShape> body, final int freq) {
+    final Vec3d velocity =
+        (body instanceof RigidBody)
+            ? ((RigidBody<EntityId, MBlockShape>) body).getLinearVelocity().clone()
+            : new Vec3d();
+    final Energy energy = this.ed.getComponent(body.id, Energy.class);
+    final EnergyStats energyStats = this.ed.getComponent(body.id, EnergyStats.class);
+    final double energyPct =
+        (energy != null && energyStats != null && energyStats.max() > 0)
+            ? (double) energy.getEnergy() / energyStats.max()
+            : -1.0;
+    final Bounty bountyComp = this.ed.getComponent(body.id, Bounty.class);
+    final int bounty = bountyComp != null ? bountyComp.getBounty() : 0;
+    return new NearbyShip(
+        body.id, body.position.clone(), body.orientation.clone(), velocity, freq, energyPct, bounty);
   }
 
   /**

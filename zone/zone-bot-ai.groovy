@@ -54,6 +54,14 @@ botAi {
     navThreatWeight      0.6
     navOpportunityWeight 0.3
 
+    // ADR-0016 situational-input normalization refs. range_fit peaks at engagementRangeUnits distance
+    // (world units); bounty_pull saturates at bountyReference; support counts allies within
+    // supportRadiusUnits (world units). engagementRangeUnits is a first-cut single value — the snipe
+    // behaviour sources per-weapon max range later.
+    engagementRangeUnits 20.0
+    bountyReference      500.0
+    supportRadiusUnits   12.0
+
     // Dev-only: visualise the blended bot-steering flow around each player ship as a client overlay
     // (toggle in-game with the flow-field debug key). Off by default — when on, the server samples a
     // (2·radius+1)² patch of flow vectors around every player each density cadence and syncs it.

@@ -102,6 +102,9 @@ public class GroovyZoneBotAiLoader {
     private double navOpportunityWeight = ZoneBotAiConfig.DEFAULTS.navOpportunityWeight();
     private boolean flowFieldDebug = ZoneBotAiConfig.DEFAULTS.flowFieldDebug();
     private int flowFieldDebugRadius = ZoneBotAiConfig.DEFAULTS.flowFieldDebugRadius();
+    private double engagementRangeUnits = ZoneBotAiConfig.DEFAULTS.engagementRangeUnits();
+    private double bountyReference = ZoneBotAiConfig.DEFAULTS.bountyReference();
+    private double supportRadiusUnits = ZoneBotAiConfig.DEFAULTS.supportRadiusUnits();
 
     ZoneBotAiConfigBuilder() {}
 
@@ -274,6 +277,32 @@ public class GroovyZoneBotAiLoader {
       this.flowFieldDebugRadius = v;
     }
 
+    /** ADR-0016 {@code range_opt}: nominal optimal engage distance (world units); must be {@code > 0}. */
+    public void engagementRangeUnits(final Number value) {
+      this.engagementRangeUnits = positive("engagementRangeUnits", value, this.engagementRangeUnits);
+    }
+
+    /** ADR-0016 {@code B_ref}: bounty saturating {@code bounty_pull} to 1.0; must be {@code > 0}. */
+    public void bountyReference(final Number value) {
+      this.bountyReference = positive("bountyReference", value, this.bountyReference);
+    }
+
+    /** ADR-0016 {@code R}: ally-count radius (world units) for {@code support}; must be {@code > 0}. */
+    public void supportRadiusUnits(final Number value) {
+      this.supportRadiusUnits = positive("supportRadiusUnits", value, this.supportRadiusUnits);
+    }
+
+    private static double positive(final String key, final Number value, final double current) {
+      if (value == null) {
+        return current;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v <= 0.0) {
+        throw new IllegalArgumentException(key + " must be > 0; got " + value);
+      }
+      return v;
+    }
+
     private static double unitFraction(
         final String key, final Number value, final double current) {
       if (value == null) {
@@ -305,7 +334,10 @@ public class GroovyZoneBotAiLoader {
           navThreatWeight,
           navOpportunityWeight,
           flowFieldDebug,
-          flowFieldDebugRadius);
+          flowFieldDebugRadius,
+          engagementRangeUnits,
+          bountyReference,
+          supportRadiusUnits);
     }
   }
 }

@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.simsilica.es.EntityId;
 import infinity.ai.brain.Blackboard;
+import infinity.ai.capability.BotSynergyTable;
 import infinity.ai.objective.ArenaObjective;
 import infinity.ai.objective.GoalTile;
 import infinity.ai.steer.Evade;
@@ -112,18 +113,48 @@ public class TacticalPlannerImplTest {
   }
 
   @Test
-  public void baselineBehaviourFitsTrackEnergy() {
-    bb.setTarget(new NearbyShipFixture().make());
-    final EngageBehaviour engage = new EngageBehaviour();
+  public void disengageFitTracksEnergy() {
+    // disengage stays a baseline behaviour (1 − energyFraction): flee harder as energy drains.
     final DisengageBehaviour disengage = new DisengageBehaviour();
-    final Engage eg = new Engage(new EntityId(9));
     final Disengage dg = new Disengage(new EntityId(9));
-
     bb.setEnergy(90, 100);
-    assertTrue(engage.intrinsicScore(eg, bb) > disengage.intrinsicScore(dg, bb));
-
+    final double high = disengage.intrinsicScore(dg, bb);
     bb.setEnergy(10, 100);
-    assertTrue(disengage.intrinsicScore(dg, bb) > engage.intrinsicScore(eg, bb));
+    final double low = disengage.intrinsicScore(dg, bb);
+    assertTrue("disengage wants out more at low energy", low > high);
+  }
+
+  @Test
+  public void engageScoreIsWeightedSumOverInputs() {
+    // engage (upgraded, ADR-0016): score = convex sum of SEED_FIT coefficients over the inputs.
+    final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
+    bb.setTarget(new NearbyShipFixture().make());
+    final Engage eg = new Engage(new EntityId(9));
+    bb.setSituationalInputs(new SituationalInputs(1.0, 1.0, 1.0, 1.0, 1.0, 1.0));
+    assertEquals("all inputs 1.0 ⇒ convex sum = 1.0", 1.0, engage.intrinsicScore(eg, bb), 1e-9);
+    bb.setSituationalInputs(new SituationalInputs(0, 0, 0, 0, 0, 1.0));
+    assertEquals("all fit inputs 0 ⇒ 0", 0.0, engage.intrinsicScore(eg, bb), 1e-9);
+  }
+
+  @Test
+  public void engageReadsFitCoefficientsFromTableNotSeed() {
+    // Table fit weights range_fit alone → score tracks range_fit only, proving live coeff reads.
+    final BotSynergyTable table =
+        new BotSynergyTable(Map.of(), Map.of("engage", Map.of("range_fit", 1.0)));
+    final EngageBehaviour engage = new EngageBehaviour(() -> table);
+    bb.setTarget(new NearbyShipFixture().make());
+    bb.setSituationalInputs(new SituationalInputs(0.5, 1.0, 1.0, 1.0, 1.0, 1.0));
+    assertEquals(0.5, engage.intrinsicScore(new Engage(new EntityId(9)), bb), 1e-9);
+  }
+
+  @Test
+  public void engageWithoutLineOfSightEnumeratesNothing() {
+    final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
+    bb.setTarget(new NearbyShipFixture().make());
+    bb.setSituationalInputs(new SituationalInputs(1, 1, 1, 1, 1, 0.0)); // los = 0 ⇒ occluded
+    assertTrue("occluded target not engaged", engage.enumerate(bb).isEmpty());
+    bb.setSituationalInputs(new SituationalInputs(1, 1, 1, 1, 1, 1.0)); // los = 1 ⇒ clear
+    assertEquals("clear target engaged", 1, engage.enumerate(bb).size());
   }
 
   @Test
