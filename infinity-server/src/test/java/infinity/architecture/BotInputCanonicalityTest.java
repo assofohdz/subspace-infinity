@@ -12,28 +12,23 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Regression guards for the bot-AI input contract (ADR-0009 §3 input parity):
- * <ol>
- *   <li>{@link infinity.es.input.MovementInput} on {@link infinity.es.ship.BotShip}-marked
- *       entities is written by exactly one runtime canonical writer:
- *       {@code infinity.ai.BotBrainSystem}. Spawn-tier seeds (factories) are exempt; any
- *       other AI-tier system constructing {@code MovementInput} would split the writer
- *       responsibility.</li>
- *   <li>{@link infinity.es.input.CharacterInput} (the NPC input shape Paul Speed's Moss
- *       defines) is never constructed inside {@code infinity.ai.*} or {@code infinity.modules.*}.
- *       Bots route through {@code MovementInput} + {@code PlayerDriver}, not the NPC
- *       upright-character path — preventing accidental regression to the chicken-framework
- *       lineage.</li>
- * </ol>
+ * Regression guard for the bot-AI input contract (ADR-0009 §3 input parity):
+ * {@link infinity.es.input.MovementInput} on {@link infinity.es.ship.BotShip}-marked
+ * entities is written by exactly one runtime canonical writer:
+ * {@code infinity.ai.BotBrainSystem}. Spawn-tier seeds (factories) are exempt; any
+ * other AI-tier system constructing {@code MovementInput} would split the writer
+ * responsibility.
+ *
+ * <p>The companion "{@code CharacterInput} not constructed in ai/modules" guard was
+ * removed when v3 #04 deleted {@code CharacterInput} along with the legacy
+ * chicken-framework package — there is no longer a class to misuse.
  *
  * @see <a href="../../../../../../../docs/adr/0009-bot-ai-architecture.md">ADR 0009</a>
  */
 public class BotInputCanonicalityTest {
 
   private static final String MOVEMENT_INPUT = "infinity.es.input.MovementInput";
-  private static final String CHARACTER_INPUT = "infinity.es.input.CharacterInput";
   private static final String AI_PACKAGE_PREFIX = "infinity.ai.";
-  private static final String MODULES_PACKAGE_PREFIX = "infinity.modules.";
   private static final String BOT_BRAIN_SYSTEM = "infinity.ai.BotBrainSystem";
 
   // Spawn-tier exemption: api-side factories that seed MovementInput at entity creation
@@ -65,28 +60,6 @@ public class BotInputCanonicalityTest {
             + BOT_BRAIN_SYSTEM
             + " — see ADR-0009 §3 input parity. Found writers: "
             + writers);
-  }
-
-  @Test
-  public void characterInput_is_never_constructed_in_ai_or_modules_packages() {
-    final Iterable<JavaClass> classes = importNonTest();
-    final Set<String> offenders = new TreeSet<>();
-    for (final JavaClass cls : classes) {
-      final String fqn = cls.getFullName();
-      if (!fqn.startsWith(AI_PACKAGE_PREFIX) && !fqn.startsWith(MODULES_PACKAGE_PREFIX)) {
-        continue;
-      }
-      if (constructsTarget(cls, CHARACTER_INPUT)) {
-        offenders.add(fqn);
-      }
-    }
-    if (offenders.isEmpty()) {
-      return;
-    }
-    Assert.fail(
-        "CharacterInput must not be constructed inside infinity.ai.* or infinity.modules.* "
-            + "— bots route through MovementInput + PlayerDriver per ADR-0009. Found: "
-            + offenders);
   }
 
   private static Iterable<JavaClass> importNonTest() {

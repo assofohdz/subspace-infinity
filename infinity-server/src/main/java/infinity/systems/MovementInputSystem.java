@@ -45,23 +45,20 @@ import com.simsilica.ext.mphys.MPhysSystem;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.PhysicsSpace;
 import com.simsilica.mphys.RigidBody;
-import com.simsilica.mphys.UprightDriver;
 import com.simsilica.sim.SimTime;
-import infinity.es.input.CharacterInput;
 import infinity.es.input.MovementInput;
 import infinity.settings.EngineConfigSystem;
 import infinity.sim.internal.PlayerDriver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Manages control drivers for entities with {@link MovementInput} / {@link CharacterInput}; keeps movement input current. */
+/** Manages {@link PlayerDriver} control drivers for entities with {@link MovementInput}; keeps movement input current. */
 public class MovementInputSystem extends BaseInfinitySystem {
 
   static Logger log = LoggerFactory.getLogger(MovementInputSystem.class);
 
   private EntityData ed;
   private PlayerContainer players;
-  private MobContainer mobs;
   private final MovementBodyInitializer initializer = new MovementBodyInitializer();
   private PhysicsSpace<EntityId, MBlockShape> space;
   private EngineConfigSystem engineConfigSystem;
@@ -88,29 +85,24 @@ public class MovementInputSystem extends BaseInfinitySystem {
 
   @Override
   protected void terminate() {
-    // no-op: no EntitySets held; PlayerContainer/MobContainer lifecycle is in start()/stop()
+    // no-op: no EntitySets held; PlayerContainer lifecycle is in start()/stop()
   }
 
   @Override
   public void start() {
     players = new PlayerContainer(ed);
     players.start();
-    mobs = new MobContainer(ed);
-    mobs.start();
   }
 
   @Override
   public void update(final SimTime time) {
     players.update();
-    mobs.update();
   }
 
   @Override
   public void stop() {
     players.stop();
     players = null;
-    mobs.stop();
-    mobs = null;
   }
 
   private class PlayerContainer extends EntityContainer<PlayerDriver> {
@@ -156,61 +148,14 @@ public class MovementInputSystem extends BaseInfinitySystem {
     }
   }
 
-  private class MobContainer extends EntityContainer<UprightDriver<EntityId, MBlockShape>> {
-
-    public MobContainer(final EntityData ed) {
-      super(ed, CharacterInput.class);
-    }
-
-    @Override
-    public UprightDriver[] getArray() {
-      return super.getArray();
-    }
-
-    @Override
-    protected UprightDriver addObject(final Entity e) {
-
-      UprightDriver<EntityId, MBlockShape> result = new UprightDriver<>();
-
-      // See if the physics engine already has a body for this entity
-      RigidBody<EntityId, MBlockShape> body = space.getBinIndex().getRigidBody(e.getId());
-      log.info("existing body:{}", body);
-      if (body != null) {
-        body.setControlDriver(result);
-      }
-
-      return result;
-    }
-
-    @Override
-    protected void updateObject(final UprightDriver driver, final Entity e) {
-      if (log.isTraceEnabled()) {
-        log.trace("updateObject(" + e + ")");
-      }
-    }
-
-    @Override
-    protected void removeObject(final UprightDriver driver, final Entity e) {
-      log.info("removeObject({})", e);
-    }
-  }
-
   private class MovementBodyInitializer
       implements Function<RigidBody<EntityId, MBlockShape>, Void> {
     public Void apply(final RigidBody<EntityId, MBlockShape> body) {
       // See if this is one of the ones we need to add a player driver to
       PlayerDriver driver = players.getObject(body.id);
-
       if (driver != null) {
         body.setControlDriver(driver);
       }
-
-      // or a character driver
-      UprightDriver<EntityId, MBlockShape> charDriver = mobs.getObject(body.id);
-      if (charDriver != null) {
-        body.setControlDriver(charDriver);
-      }
-
       return null;
     }
   }

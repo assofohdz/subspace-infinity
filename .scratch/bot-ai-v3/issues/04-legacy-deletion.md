@@ -1,6 +1,6 @@
 # Legacy chicken-framework deletion (~5,200 LOC dead code)
 
-Status: ready-for-agent
+Status: done
 Category: maintenance
 Type: AFK
 
@@ -38,10 +38,10 @@ Net ≈ −5,200 LOC, one client state, one test. No behaviour change.
 
 ## Acceptance criteria
 
-- [ ] `infinity.ai.legacy` package gone; `MobDebugState` + its test gone
-- [ ] `MovementInputSystem` collapsed to `PlayerContainer`; `CharacterInput`/`UprightDriver`/`MobContainer` removed
-- [ ] `CharacterInput` component + its serializer registration removed (verified no remaining callers)
-- [ ] Full build + `LayerDependencyTest` green; no dangling imports
-- [ ] [bot-ai/issues/01](../../bot-ai/issues/01-retire-chicken-framework.md) marked done/deleted per CLAUDE.md #6 (cross-ref from #06)
+- [x] `infinity.ai.legacy` package gone (35 files); `MobDebugState` + its test gone; `LayerDependencyTest` `MobDebugState` exclusion removed
+- [x] `MovementInputSystem` collapsed to `PlayerContainer`; `CharacterInput`/`UprightDriver`/`MobContainer` + `MovementBodyInitializer` charDriver branch removed
+- [x] `CharacterInput` component deleted; verified no `Serializer.registerClass(CharacterInput.class)` existed (so no registration to remove). `BotInputCanonicalityTest`'s vacuous `characterInput_is_never_constructed_in_ai_or_modules_packages` method deleted.
+- [x] Full server + client build + tests green; `LayerDependencyTest` + `BotInputCanonicalityTest` green
+- [x] [bot-ai/issues/01](../../bot-ai/issues/01-retire-chicken-framework.md) already at Status: done — no further tracker work
 
 ## Comments

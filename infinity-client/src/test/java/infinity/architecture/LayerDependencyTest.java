@@ -132,8 +132,6 @@ public class LayerDependencyTest {
           .that()
           .resideInAPackage(PKG_CLIENT)
           .and()
-          .doNotHaveFullyQualifiedName("infinity.client.states.MobDebugState")
-          .and()
           .doNotHaveFullyQualifiedName("infinity.client.states.HostState")
           .should()
           .dependOnClassesThat()
