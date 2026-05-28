@@ -172,7 +172,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
             zoneCfg.lookAheadDistance(), zoneCfg.corridorHalfWidth(), zoneCfg.avoidThrust());
     this.wallRepulsion =
         new infinity.ai.steer.WallRepulsion(
-            zoneCfg.wallRepulsionRadius(), zoneCfg.avoidThrust());
+            zoneCfg.wallRepulsionRadius(), zoneCfg.avoidThrust(), zoneCfg.wallRepulsionMinPush());
   }
 
   @Override
@@ -819,10 +819,11 @@ public final class BotBrainSystem extends BaseInfinitySystem {
         final EntityId botId,
         final BrainArchetype brainArchetype,
         final BotBrainConfig config,
+        final ZoneBotAiConfig zoneCfg,
         final WeaponsFiring firing) {
       this.botId = botId;
-      this.brain = brainArchetype.createRoot(config);
-      this.blackboard = brainArchetype.createBlackboard(config);
+      this.brain = brainArchetype.createRoot(config, zoneCfg);
+      this.blackboard = brainArchetype.createBlackboard(config, zoneCfg);
       this.blackboard.setSelfId(botId);
       this.blackboard.setFiring(firing);
     }
@@ -855,12 +856,13 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     protected BrainWiring addObject(final Entity e) {
       final BotBrainConfig config = resolveConfig(e.getId());
       final BrainArchetype archetype = this.registry.get(config.archetypeName());
-      return new BrainWiring(e.getId(), archetype, config, this.firing);
+      return new BrainWiring(
+          e.getId(), archetype, config, BotBrainSystem.this.zoneBotAi.get(), this.firing);
     }
 
     /**
      * Look up the bot's arena, fetch its {@code BotBrainConfig}; fall back to
-     * {@link BotBrainConfig#DEFAULTS} when the arena hasn't loaded a {@code bot-tuning.groovy}.
+     * {@link BotBrainConfig#DEFAULTS} when the arena hasn't authored a {@code botBrain { }} block.
      */
     private BotBrainConfig resolveConfig(final EntityId botId) {
       final ArenaId arenaId = ed.getComponent(botId, ArenaId.class);

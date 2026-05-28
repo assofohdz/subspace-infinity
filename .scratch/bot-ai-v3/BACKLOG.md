@@ -32,17 +32,6 @@ Recommend deciding by playtesting current v2 allied-bot behaviour: if bots
 already spread acceptably, descope; if they dogpile, build. Until decided,
 the `flocking*Weight` config fields are dead and should be flagged as such.
 
-### B2 — Tuning-knob externalisation tail (v1 slice #08, partial)
-
-Source: [bot-ai/issues/08-groovy-ccp-scaling-archtest.md](../bot-ai/issues/08-groovy-ccp-scaling-archtest.md)
-criterion "All hard-coded brain/steering constants now live in `bot-tuning.groovy`".
-
-**Already a v3 issue — not a loose backlog item.** Fully covered by
-[bot-ai-v3 #02 — tuning-knob migration](issues/02-tuning-knob-migration.md)
-(~12 reactive-steering / derivation / perception constants still in Java).
-Listed here only so the v1 #08 trail has a forward pointer. Delete this row
-once #02 lands.
-
 ## Carried from bot-ai v2 (2026-05-26 reconciliation)
 
 ### B5 — Remaining canonical `ArenaObjective` subtypes (v2 slice #06, 2/5 built)
@@ -58,18 +47,6 @@ gets bot support; the `ArenaObjective` interface + `BotRoleRegistry` already
 support them (plain interface, default-branch dispatch). Pairs with the
 role-refresh decision in [#01](issues/01-correctness-bugs.md) (event-driven
 reassignment + rich `ArenaSnapshot` were also deferred to v2.x).
-
-### B6 — v1 `bot-tuning.groovy` retirement (v2 slice #04, not done)
-
-Source: [bot-ai-v2/issues/04-capability-derivation.md](../bot-ai-v2/issues/04-capability-derivation.md)
-
-`zone/conf/testconf/bot-tuning.groovy` still exists and is referenced by
-`koth/arena.groovy`, `BotBrainSystem`, and `ConfigRegistrySystem`. Slice #04
-intended its per-arena `BotBrainConfig` knobs (perceptionRadius, aimConeDegrees)
-to migrate into the per-arena settings pipeline and the fragment to be retired.
-Sequence after [#02](issues/02-tuning-knob-migration.md) (which adds the
-`BotDerivationConfig`/`ZoneBotAiConfig` knobs) and [#03](issues/03-hotpath-config-read.md)
-(which projects `perceptionRadius` to a component) — then the v1 fragment can go.
 
 ### B7 — Deferred nav/perf items (v2 #03 + #07)
 
@@ -292,40 +269,11 @@ soft clearance cost. For 2×2 clusters specifically:
 ADR-0011 (flow-field nav) — may want an amendment if the cluster-aware erosion
 ships.
 
-### B12 — api/ steer-action + brain wander constants (v3 #02.F.1–F.5 deferred)
+### Note on `TurfObjective.HOLD_POSITION_BIAS` (preserved from B12)
 
-Source: deferred from [bot-ai-v3 #02 — tuning-knob migration](issues/02-tuning-knob-migration.md)
-when sub-increment E+F landed. Sub-A, B+C+D, E, and the rename-only F.7 closed;
-the deeper api/ steer + brain constants need a `BrainArchetype` signature evolution
-that's bigger than the rest of #02 combined.
-
-**Constants still in Java (api/), each needs one ctor param + threading through
-`CombatantBrain.createRoot`/`createBlackboard`:**
-
-- `SteerApproachTarget.java:31` `GOAL_BLOCK = 16` — snap radius for nav-block centring.
-- `SteerToGoalTile.java:35,41` `ARRIVAL_RADIUS_CELLS = 6.0`, `WALL_AVOID_WEIGHT = 0.3`.
-- `SeekDirection.java:21` `FORWARD_THRUST_FLOOR = 0.4`.
-- `WallRepulsion.java:28` `MIN_PUSH = 0.5`.
-- `CombatantBrain.java:35-37` `WANDER_RADIUS = 1.0`, `WANDER_DISTANCE = 2.0`,
-  `WANDER_JITTER_RADIANS = 0.5` — destination is `BotBrainConfig` per the existing
-  in-file comment (per-arena, not per-zone).
-
-**Direction:** evolve `BrainArchetype.createRoot(BotBrainConfig)` to
-`createRoot(BotBrainConfig, ZoneBotAiConfig)`; thread `zoneCfg` values to each
-new `SteerApproachTarget(goalBlockCells)`, `SteerToGoalTile(arrivalRadius,
-wallAvoidWeight)`, `SeekDirection(thrust, forwardThrustFloor)`,
-`WallRepulsion(radius, thrust, minPush)` ctor. Add 3 wander fields to
-`BotBrainConfig` + update `GroovyBotBrainLoader`. Add 5 steer fields to
-`ZoneBotAiConfig` + loader. Surface in `zone-bot-ai.groovy`.
-
-**Sizing:** moderate — mostly mechanical ctor + signature edits; one
-implementor of `BrainArchetype` today so the signature change is cheap.
-**Risk:** standard — preserve current values as defaults; no test
-expectations change.
-
-**Note on `TurfObjective.HOLD_POSITION_BIAS`:** the v3 #02.F.6 "single-source
-it" line was a false alarm. The `2.0` in `TurfObjective.behaviourBias()` is the
-per-objective bias (ADR-0015); the `2.0` in `engine-bot-ai.groovy`'s
-`flag-defender` role bias is the per-role bias. They compound — a flag-defender
-on a turf objective gets `hold-position × 2.0 × 2.0 = ×4.0`. NOT duplicates;
-documented in the role-bias comment itself.
+The v3 #02.F.6 "single-source it" line was a false alarm. The `2.0` in
+`TurfObjective.behaviourBias()` is the per-objective bias (ADR-0015); the
+`2.0` in `engine-bot-ai.groovy`'s `flag-defender` role bias is the per-role
+bias. They compound — a flag-defender on a turf objective gets
+`hold-position × 2.0 × 2.0 = ×4.0`. NOT duplicates; documented in the
+role-bias comment itself.

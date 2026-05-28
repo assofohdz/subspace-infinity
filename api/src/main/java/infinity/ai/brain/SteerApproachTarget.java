@@ -27,8 +27,13 @@ public final class SteerApproachTarget implements Action {
   // stays within the block, instead of requesting a fresh per-tile field every tick — the field can
   // then finish its async build (~hundreds of ms) and persist. The bot navigates toward the block
   // centre; in-weapon-range Engage takes over the final approach. ADR-0011 transient-goal turnover
-  // mitigation; ~16 tiles is inside the engage handoff range. Promote to a zone knob if it needs tuning.
-  private static final int GOAL_BLOCK = 16;
+  // mitigation; ~16 tiles is inside the engage handoff range. Sourced from
+  // {@code ZoneBotAiConfig.steerGoalBlockCells} at construction time.
+  private final int goalBlockCells;
+
+  public SteerApproachTarget(final int goalBlockCells) {
+    this.goalBlockCells = goalBlockCells;
+  }
 
   @Override
   public Status tick(final Blackboard blackboard) {
@@ -77,8 +82,8 @@ public final class SteerApproachTarget implements Action {
     return Status.SUCCESS;
   }
 
-  /** Snap a cell coord to the centre of its {@link #GOAL_BLOCK}-tile block. */
-  private static int blockCentre(final int cell) {
-    return Math.floorDiv(cell, GOAL_BLOCK) * GOAL_BLOCK + GOAL_BLOCK / 2;
+  /** Snap a cell coord to the centre of its {@code goalBlockCells}-tile block. */
+  private int blockCentre(final int cell) {
+    return Math.floorDiv(cell, this.goalBlockCells) * this.goalBlockCells + this.goalBlockCells / 2;
   }
 }

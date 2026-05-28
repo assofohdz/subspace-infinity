@@ -62,7 +62,6 @@ arena {
     includeFragment '/conf/testconf/decoy.groovy'
     includeFragment '/conf/testconf/portal.groovy'
     includeFragment '/conf/testconf/prize.groovy'
-    includeFragment '/conf/testconf/bot-tuning.groovy'
     wallFriction 0.0
     // Every player on own freq via ffa-private-freqs — friendlyFire 2 keeps
     // canon "anything damages anyone" so single-arena testing works.

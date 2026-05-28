@@ -106,4 +106,17 @@ botAi {
     // Distance falloff scale (tile cells) for FollowTraffic re-scoring of hot tiles:
     // score = hotness / (1 + dist/decay). Larger = far hot tiles stay competitive.
     followTrafficDistDecayCells 200.0
+
+    // Deep steer-action knobs (v3 B12). steerGoalBlockCells coarsens moving-target goal cells so
+    // SteerApproachTarget reuses one flow field while the target stays within the block.
+    // steerArrivalRadiusCells tapers SteerToGoalTile thrust within N cells of the goal so the bot
+    // settles. steerWallAvoidWeight is the wall-clearance push blended into the flow heading
+    // (small — flow wins at chokepoints). seekForwardThrustFloor is the SeekDirection floor
+    // keeping the bot arcing through turns instead of spinning in place. wallRepulsionMinPush
+    // is the escape-of-last-resort threshold below which WallRepulsion returns no push.
+    steerGoalBlockCells       16
+    steerArrivalRadiusCells   6.0
+    steerWallAvoidWeight      0.3
+    seekForwardThrustFloor    0.4
+    wallRepulsionMinPush      0.5
 }

@@ -4,16 +4,19 @@ package infinity.ai.brain;
 
 import infinity.ai.bt.Behavior;
 import infinity.config.BotBrainConfig;
+import infinity.config.ZoneBotAiConfig;
 
 /**
- * Factory for a named brain archetype. {@code createRoot} + {@code createBlackboard}
- * both take a {@link BotBrainConfig} so per-arena Groovy tunables flow into the BT
- * leaves and steering primitives at spawn. See ADR-0009 / ADR-0010.
+ * Factory for a named brain archetype. {@code createRoot} + {@code createBlackboard} take
+ * both a per-arena {@link BotBrainConfig} (perception/orbit/wander knobs) and a zone-tier
+ * {@link ZoneBotAiConfig} (steer-action engine constants like {@code steerGoalBlockCells},
+ * {@code seekForwardThrustFloor}, {@code wallRepulsionMinPush}) so all tunable values flow
+ * into the BT leaves + steering primitives at spawn. See ADR-0009 / ADR-0010.
  */
 public interface BrainArchetype {
   String name();
 
-  Behavior createRoot(BotBrainConfig config);
+  Behavior createRoot(BotBrainConfig config, ZoneBotAiConfig zoneCfg);
 
-  Blackboard createBlackboard(BotBrainConfig config);
+  Blackboard createBlackboard(BotBrainConfig config, ZoneBotAiConfig zoneCfg);
 }

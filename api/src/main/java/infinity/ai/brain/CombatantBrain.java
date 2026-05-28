@@ -9,6 +9,7 @@ import infinity.ai.bt.Sequence;
 import infinity.ai.steer.Evade;
 import infinity.ai.steer.OrbitTarget;
 import infinity.ai.steer.Pursue;
+import infinity.ai.steer.SeekDirection;
 import infinity.ai.steer.Wander;
 import infinity.ai.tactical.Disengage;
 import infinity.ai.tactical.Engage;
@@ -16,6 +17,7 @@ import infinity.ai.tactical.IsGoal;
 import infinity.ai.tactical.NavigateToTile;
 import infinity.ai.tactical.Search;
 import infinity.config.BotBrainConfig;
+import infinity.config.ZoneBotAiConfig;
 import infinity.es.ship.weapons.WeaponType;
 
 /**
@@ -29,13 +31,6 @@ public final class CombatantBrain implements BrainArchetype {
 
   public static final String NAME = "Brawler";
 
-  // Reynolds wander parameters — small circle just ahead of the agent with bounded jitter.
-  // Not externalized to Groovy in v1 — wander shape rarely needs per-arena tuning. Promote
-  // to BotBrainConfig if a future arena needs differently-flavoured idle drift.
-  private static final double WANDER_RADIUS = 1.0;
-  private static final double WANDER_DISTANCE = 2.0;
-  private static final double WANDER_JITTER_RADIANS = 0.5;
-
   // Rate-shaped thrust magnitude — full forward.
   private static final double FULL_THRUST = 1.0;
 
@@ -45,7 +40,7 @@ public final class CombatantBrain implements BrainArchetype {
   }
 
   @Override
-  public Behavior createRoot(final BotBrainConfig config) {
+  public Behavior createRoot(final BotBrainConfig config, final ZoneBotAiConfig zoneCfg) {
     final Behavior engage = engageBranch(config);
     return new Selector(
         // Per-tick reactive override — preempts the chosen goal mid-execution (ADR-0013).
@@ -55,14 +50,16 @@ public final class CombatantBrain implements BrainArchetype {
         // Goal-driven branches: the TacticalPlanner's choice dispatches here (ADR-0013).
         new Sequence(new IsGoal(Engage.class), engage),
         new Sequence(new IsGoal(Disengage.class), new HasTarget(), new SteerEvade()),
-        new Sequence(new IsGoal(NavigateToTile.class), new SteerToGoalTile()),
+        new Sequence(
+            new IsGoal(NavigateToTile.class),
+            new SteerToGoalTile(zoneCfg.steerArrivalRadiusCells(), zoneCfg.steerWallAvoidWeight())),
         new Sequence(new IsGoal(Search.class), new SteerWander()),
 
         // v1 fallback when no goal is set (planner not yet run) or a goal branch failed
         // (e.g. Engage out of range). Flow-field approach first (rounds walls toward the target);
         // straight-line pursue when nav isn't live (SteerApproachTarget fails through).
         engage,
-        new Sequence(new HasTarget(), new SteerApproachTarget()),
+        new Sequence(new HasTarget(), new SteerApproachTarget(zoneCfg.steerGoalBlockCells())),
         new Sequence(new HasTarget(), new SteerPursue()),
         new SteerWander());
   }
@@ -88,11 +85,12 @@ public final class CombatantBrain implements BrainArchetype {
   }
 
   @Override
-  public Blackboard createBlackboard(final BotBrainConfig config) {
+  public Blackboard createBlackboard(final BotBrainConfig config, final ZoneBotAiConfig zoneCfg) {
     return new Blackboard(
         new Pursue(config.leadPredictionSeconds(), FULL_THRUST),
-        new Wander(WANDER_RADIUS, WANDER_DISTANCE, WANDER_JITTER_RADIANS, FULL_THRUST),
+        new Wander(config.wanderRadius(), config.wanderDistance(), config.wanderJitterRadians(), FULL_THRUST),
         new OrbitTarget(config.orbitRadius(), FULL_THRUST),
-        new Evade(config.leadPredictionSeconds(), FULL_THRUST));
+        new Evade(config.leadPredictionSeconds(), FULL_THRUST),
+        new SeekDirection(FULL_THRUST, zoneCfg.seekForwardThrustFloor()));
   }
 }

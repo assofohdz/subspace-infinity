@@ -29,8 +29,12 @@ public class CombatantBrainGoalDispatchTest {
 
   @Before
   public void setUp() {
-    root = archetype.createRoot(BotBrainConfig.DEFAULTS);
-    bb = archetype.createBlackboard(BotBrainConfig.DEFAULTS);
+    root =
+        archetype.createRoot(
+            BotBrainConfig.DEFAULTS, infinity.config.ZoneBotAiConfig.DEFAULTS);
+    bb =
+        archetype.createBlackboard(
+            BotBrainConfig.DEFAULTS, infinity.config.ZoneBotAiConfig.DEFAULTS);
     // Self at origin facing +Z; high energy so the low-energy reactive override never fires.
     bb.setSelf(new MoverSnapshot(new Vec3d(), new Quatd(), new Vec3d()));
     bb.setPerception(PerceptionSnapshot.EMPTY);

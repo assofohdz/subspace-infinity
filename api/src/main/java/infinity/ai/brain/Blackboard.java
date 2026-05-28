@@ -32,9 +32,10 @@ public final class Blackboard {
   private final Wander wander;
   private final OrbitTarget orbit;
   private final Evade evade;
-  // Flow-field heading consumer for the NavigateToTile goal; full-thrust like the other primitives.
-  // Field-initialized (not ctor-injected) so existing 4-arg callers are untouched; dormant until #03.
-  private final SeekDirection seek = new SeekDirection(1.0);
+  // Flow-field heading consumer for the NavigateToTile goal. The 4-arg ctor defaults to
+  // {@code SeekDirection(1.0)} (back-compat for tests); the 5-arg form lets CombatantBrain
+  // pass a zone-cfg-tuned instance.
+  private final SeekDirection seek;
 
   private EntityId selfId;
   private MoverSnapshot self;
@@ -69,10 +70,20 @@ public final class Blackboard {
       final Wander wander,
       final OrbitTarget orbit,
       final Evade evade) {
+    this(pursue, wander, orbit, evade, new SeekDirection(1.0));
+  }
+
+  public Blackboard(
+      final Pursue pursue,
+      final Wander wander,
+      final OrbitTarget orbit,
+      final Evade evade,
+      final SeekDirection seek) {
     this.pursue = pursue;
     this.wander = wander;
     this.orbit = orbit;
     this.evade = evade;
+    this.seek = seek;
   }
 
   /** Last BT branch that wrote intent this tick — set by {@code Steer*} actions for debug HUD. */

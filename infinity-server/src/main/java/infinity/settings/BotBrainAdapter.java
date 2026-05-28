@@ -34,6 +34,9 @@ public final class BotBrainAdapter
     private double evadeEnergyFraction = BotBrainConfig.DEFAULTS.evadeEnergyFraction();
     private double leadPredictionSeconds = BotBrainConfig.DEFAULTS.leadPredictionSeconds();
     private double aimConeDegrees = BotBrainConfig.DEFAULTS.aimConeDegrees();
+    private double wanderRadius = BotBrainConfig.DEFAULTS.wanderRadius();
+    private double wanderDistance = BotBrainConfig.DEFAULTS.wanderDistance();
+    private double wanderJitterRadians = BotBrainConfig.DEFAULTS.wanderJitterRadians();
 
     BotBrainBuilder() {}
 
@@ -79,6 +82,22 @@ public final class BotBrainAdapter
       this.aimConeDegrees = Validators.finiteNonNegativeDouble("aimConeDegrees", value);
     }
 
+    /** Reynolds wander circle radius (world units). */
+    public void wanderRadius(final Number value) {
+      this.wanderRadius = Validators.finiteNonNegativeDouble("wanderRadius", value);
+    }
+
+    /** Reynolds wander circle distance ahead of agent (world units). */
+    public void wanderDistance(final Number value) {
+      this.wanderDistance = Validators.finiteNonNegativeDouble("wanderDistance", value);
+    }
+
+    /** Reynolds wander angular jitter (radians) per tick. */
+    public void wanderJitterRadians(final Number value) {
+      this.wanderJitterRadians =
+          Validators.finiteNonNegativeDouble("wanderJitterRadians", value);
+    }
+
     BotBrainConfig build() {
       return new BotBrainConfig(
           archetypeName,
@@ -87,7 +106,10 @@ public final class BotBrainAdapter
           orbitRadius,
           evadeEnergyFraction,
           leadPredictionSeconds,
-          aimConeDegrees);
+          aimConeDegrees,
+          wanderRadius,
+          wanderDistance,
+          wanderJitterRadians);
     }
   }
 }

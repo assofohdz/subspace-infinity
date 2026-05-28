@@ -124,6 +124,12 @@ public class GroovyZoneBotAiLoader {
     private double followTrafficEngagedFit = ZoneBotAiConfig.DEFAULTS.followTrafficEngagedFit();
     private double followTrafficDistDecayCells =
         ZoneBotAiConfig.DEFAULTS.followTrafficDistDecayCells();
+    private int steerGoalBlockCells = ZoneBotAiConfig.DEFAULTS.steerGoalBlockCells();
+    private double steerArrivalRadiusCells =
+        ZoneBotAiConfig.DEFAULTS.steerArrivalRadiusCells();
+    private double steerWallAvoidWeight = ZoneBotAiConfig.DEFAULTS.steerWallAvoidWeight();
+    private double seekForwardThrustFloor = ZoneBotAiConfig.DEFAULTS.seekForwardThrustFloor();
+    private double wallRepulsionMinPush = ZoneBotAiConfig.DEFAULTS.wallRepulsionMinPush();
 
     ZoneBotAiConfigBuilder() {}
 
@@ -407,6 +413,35 @@ public class GroovyZoneBotAiLoader {
           positive("followTrafficDistDecayCells", value, this.followTrafficDistDecayCells);
     }
 
+    /** {@code SteerApproachTarget} block-snap size (tile cells); must be {@code >= 1}. */
+    public void steerGoalBlockCells(final Number value) {
+      this.steerGoalBlockCells = positiveInt("steerGoalBlockCells", value, this.steerGoalBlockCells);
+    }
+
+    /** {@code SteerToGoalTile} arrival-taper radius (tile cells); must be {@code > 0}. */
+    public void steerArrivalRadiusCells(final Number value) {
+      this.steerArrivalRadiusCells =
+          positive("steerArrivalRadiusCells", value, this.steerArrivalRadiusCells);
+    }
+
+    /** {@code SteerToGoalTile} wall-clearance blend weight; in {@code [0,1]}. */
+    public void steerWallAvoidWeight(final Number value) {
+      this.steerWallAvoidWeight =
+          unitFraction("steerWallAvoidWeight", value, this.steerWallAvoidWeight);
+    }
+
+    /** {@code SeekDirection} forward thrust floor while still turning; in {@code [0,1]}. */
+    public void seekForwardThrustFloor(final Number value) {
+      this.seekForwardThrustFloor =
+          unitFraction("seekForwardThrustFloor", value, this.seekForwardThrustFloor);
+    }
+
+    /** {@code WallRepulsion} min-push escape threshold; must be {@code > 0}. */
+    public void wallRepulsionMinPush(final Number value) {
+      this.wallRepulsionMinPush =
+          positive("wallRepulsionMinPush", value, this.wallRepulsionMinPush);
+    }
+
     private static int positiveInt(final String key, final Number value, final int current) {
       if (value == null) {
         return current;
@@ -481,7 +516,12 @@ public class GroovyZoneBotAiLoader {
           holdPositionEngagedFit,
           followTrafficIdleFit,
           followTrafficEngagedFit,
-          followTrafficDistDecayCells);
+          followTrafficDistDecayCells,
+          steerGoalBlockCells,
+          steerArrivalRadiusCells,
+          steerWallAvoidWeight,
+          seekForwardThrustFloor,
+          wallRepulsionMinPush);
     }
   }
 }

@@ -21,18 +21,22 @@ import infinity.ai.field.NavigationFields;
  */
 public final class WallRepulsion {
 
-  // Only override the flow-field heading when the net repulsion is strong (a wall within ~1.4 cells).
-  // Fainter pushes from more distant structure are ignored so the bot keeps following its nav heading
-  // instead of being constantly yanked off it ("lots of WallRepel"). Tuned with the radius the caller
-  // passes; this is the escape-of-last-resort threshold, not a soft bias.
-  private static final double MIN_PUSH = 0.5;
-
   private final int radiusCells;
   private final double thrust;
+  // Only override the flow-field heading when the net repulsion is strong (a wall within ~1.4 cells).
+  // Fainter pushes from more distant structure are ignored so the bot keeps following its nav heading
+  // instead of being constantly yanked off it. Sourced from {@code ZoneBotAiConfig.wallRepulsionMinPush};
+  // defaults to 0.5 via the 2-arg ctor for back-compat.
+  private final double minPush;
 
   public WallRepulsion(final int radiusCells, final double thrust) {
+    this(radiusCells, thrust, 0.5);
+  }
+
+  public WallRepulsion(final int radiusCells, final double thrust, final double minPush) {
     this.radiusCells = radiusCells;
     this.thrust = thrust;
+    this.minPush = minPush;
   }
 
   /**
@@ -56,7 +60,7 @@ public final class WallRepulsion {
         rz -= dz / d2;
       }
     }
-    if (rx * rx + rz * rz < MIN_PUSH * MIN_PUSH) {
+    if (rx * rx + rz * rz < this.minPush * this.minPush) {
       return null; // no close wall, or symmetric surroundings cancel — let the flow drive
     }
     final double mag = Math.hypot(rx, rz);

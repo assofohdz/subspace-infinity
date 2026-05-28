@@ -25,15 +25,13 @@ import infinity.math.Vec2d;
  */
 public final class SteerToGoalTile implements Action {
 
-  // Arrival: within this many cells of the goal, thrust tapers linearly to zero so the bot
-  // decelerates and settles on the goal instead of cruising through it and orbiting back.
-  private static final double ARRIVAL_RADIUS_CELLS = 6.0;
+  private final double arrivalRadiusCells;
+  private final double wallAvoidWeight;
 
-  // Weight of the wall hull-clearance push blended into the flow heading (cooperative — eases the
-  // diameter-2 hull off walls the point-flow routes adjacent to, without reversing). Kept low so it
-  // doesn't fight the flow at tight chokepoints (where the gap IS between walls and the flow must win
-  // to thread it); it only nudges the hull off walls in open routing.
-  private static final double WALL_AVOID_WEIGHT = 0.3;
+  public SteerToGoalTile(final double arrivalRadiusCells, final double wallAvoidWeight) {
+    this.arrivalRadiusCells = arrivalRadiusCells;
+    this.wallAvoidWeight = wallAvoidWeight;
+  }
 
   @Override
   public Status tick(final Blackboard blackboard) {
@@ -74,11 +72,11 @@ public final class SteerToGoalTile implements Action {
       blackboard.setNavDiag("no-intent");
       return Status.FAILURE;
     }
-    // Arrival taper: ease thrust toward zero within ARRIVAL_RADIUS_CELLS of the goal so the bot settles
+    // Arrival taper: ease thrust toward zero within arrivalRadiusCells of the goal so the bot settles
     // on it rather than overshooting and orbiting back (the flag-orbit seen in smoke). Branchless —
     // min() makes it a no-op beyond the radius.
     final double distCells = Math.hypot((double) goalX - selfX, (double) goalY - selfY);
-    intent.z *= Math.min(1.0, distCells / ARRIVAL_RADIUS_CELLS);
+    intent.z *= Math.min(1.0, distCells / this.arrivalRadiusCells);
     blackboard.intent().set(intent);
     blackboard.setNavDiag("flow");
     blackboard.setLastBranch("Navigate");
@@ -89,7 +87,7 @@ public final class SteerToGoalTile implements Action {
    * {@code navDir + kT·(toward lower threat) + kO·(toward higher opportunity) + kW·(away from walls)},
    * re-normalized. The wall term is the cooperative hull-clearance push (replaces the reverse-override).
    */
-  private static Vec2d blend(
+  private Vec2d blend(
       final Vec2d navDir,
       final BotAiArenaContext ctx,
       final Blackboard bb,
@@ -100,7 +98,7 @@ public final class SteerToGoalTile implements Action {
             navDir, ctx, bb.ownFreq(), selfX, selfY, bb.navThreatWeight(), bb.navOpportunityWeight());
     final Vec3d wallAvoid = bb.wallAvoid();
     if (wallAvoid != null) {
-      acc = acc.add(new Vec2d(wallAvoid.x, wallAvoid.z).mult(WALL_AVOID_WEIGHT));
+      acc = acc.add(new Vec2d(wallAvoid.x, wallAvoid.z).mult(this.wallAvoidWeight));
     }
     return acc.lengthSq() < 1e-9 ? navDir : acc.normalize();
   }

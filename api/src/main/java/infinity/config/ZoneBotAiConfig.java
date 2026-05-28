@@ -85,6 +85,17 @@ package infinity.config;
  *       ternary fit ("go where it matters" drift; yields to in-view target)</li>
  *   <li>{@code followTrafficDistDecayCells} — distance-falloff scale for {@code FollowTraffic} hot-tile
  *       re-scoring ({@code hotness / (1 + dist/decay)}); larger = farther tiles stay competitive</li>
+ *   <li>{@code steerGoalBlockCells} — {@code SteerApproachTarget} block size for coarsening a moving
+ *       target's goal cell so its flow field can be reused while the target stays within the block
+ *       (mitigates ADR-0011 transient-goal turnover)</li>
+ *   <li>{@code steerArrivalRadiusCells} — {@code SteerToGoalTile} arrival taper; thrust eases linearly
+ *       to zero within this many cells of the goal so the bot settles instead of cruising through</li>
+ *   <li>{@code steerWallAvoidWeight} — weight of the wall hull-clearance push blended into the flow
+ *       heading by {@code SteerToGoalTile} (small — flow must win at tight chokepoints)</li>
+ *   <li>{@code seekForwardThrustFloor} — {@code SeekDirection} minimum forward thrust while still
+ *       facing the heading; keeps the bot arc-turning instead of spinning in place</li>
+ *   <li>{@code wallRepulsionMinPush} — magnitude threshold below which {@code WallRepulsion} returns
+ *       no push; tuned with the radius the caller passes (escape-of-last-resort threshold)</li>
  * </ul>
  *
  * <p>The three {@code *IdleFit}/{@code *EngagedFit} pairs are vestigial ternary scoring from before
@@ -130,20 +141,27 @@ public record ZoneBotAiConfig(
     double holdPositionEngagedFit,
     double followTrafficIdleFit,
     double followTrafficEngagedFit,
-    double followTrafficDistDecayCells) {
+    double followTrafficDistDecayCells,
+    int steerGoalBlockCells,
+    double steerArrivalRadiusCells,
+    double steerWallAvoidWeight,
+    double seekForwardThrustFloor,
+    double wallRepulsionMinPush) {
 
   public static final ZoneBotAiConfig DEFAULTS =
       new ZoneBotAiConfig(
           150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10,
           20.0, 500.0, 12.0, 30.0, 2.0,
           5.0, 0.6, 1.0, 0.3, 2, 0.5, 24, 2, 6,
-          0.6, 0.1, 0.55, 0.15, 0.5, 0.2, 200.0);
+          0.6, 0.1, 0.55, 0.15, 0.5, 0.2, 200.0,
+          16, 6.0, 0.3, 0.4, 0.5);
 
   public ZoneBotAiConfig() {
     this(
         150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10,
         20.0, 500.0, 12.0, 30.0, 2.0,
         5.0, 0.6, 1.0, 0.3, 2, 0.5, 24, 2, 6,
-        0.6, 0.1, 0.55, 0.15, 0.5, 0.2, 200.0);
+        0.6, 0.1, 0.55, 0.15, 0.5, 0.2, 200.0,
+        16, 6.0, 0.3, 0.4, 0.5);
   }
 }
