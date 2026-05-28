@@ -28,11 +28,11 @@ public class ThorCurrentCount implements InventoryCount {
         return count;
     }
 
-    public ThorCurrentCount add(final int count) {
-        return new ThorCurrentCount(this.count + count);
+    public ThorCurrentCount add(final int delta) {
+        return new ThorCurrentCount(this.count + delta);
     }
 
-    public ThorCurrentCount subtract(final int count) {
-        return new ThorCurrentCount(this.count - count);
+    public ThorCurrentCount subtract(final int delta) {
+        return new ThorCurrentCount(this.count - delta);
     }
 }

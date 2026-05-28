@@ -384,7 +384,7 @@ public class TacticalPlannerImplTest {
     }
 
     @Override
-    public double intrinsicScore(final TacticalGoal goal, final Blackboard bb) {
+    public double intrinsicScore(final TacticalGoal candidate, final Blackboard bb) {
       return this.score;
     }
   }

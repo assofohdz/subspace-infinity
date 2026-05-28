@@ -32,8 +32,8 @@ public final class SeekDirection implements Steering {
   }
 
   /** World-space XZ heading to pursue this tick; {@code null} or near-zero ⇒ no opinion. */
-  public void setDesiredDirection(final Vec3d desired) {
-    this.desired = desired;
+  public void setDesiredDirection(final Vec3d direction) {
+    this.desired = direction;
   }
 
   @Override

@@ -91,43 +91,76 @@ public final class NavGrids {
     final int h = passable.length;
     final int w = h == 0 ? 0 : passable[0].length;
     final int[][] out = new int[h][w];
-    final java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();
+    final java.util.Deque<int[]> queue = new java.util.ArrayDeque<>();
+    seedFromWalls(passable, out, queue, w, h);
+    while (!queue.isEmpty()) {
+      relaxNeighbours(out, queue, maxClearance, w, h);
+    }
+    capUnreached(out, maxClearance, w, h);
+    return out;
+  }
+
+  /** Seed BFS frontier with all wall cells (distance 0); mark navigable cells as -1 (unvisited). */
+  private static void seedFromWalls(
+      final boolean[][] passable,
+      final int[][] out,
+      final java.util.Deque<int[]> queue,
+      final int w,
+      final int h) {
     for (int z = 0; z < h; z++) {
       for (int x = 0; x < w; x++) {
-        if (!passable[z][x]) {
+        if (passable[z][x]) {
+          out[z][x] = -1;
+        } else {
           out[z][x] = 0;
           queue.add(new int[] {x, z});
-        } else {
-          out[z][x] = -1;
         }
       }
     }
-    while (!queue.isEmpty()) {
-      final int[] cell = queue.poll();
-      final int cx = cell[0];
-      final int cz = cell[1];
-      final int next = out[cz][cx] + 1;
-      if (next > maxClearance) {
-        continue;
-      }
-      for (int dz = -1; dz <= 1; dz++) {
-        for (int dx = -1; dx <= 1; dx++) {
-          if (dx == 0 && dz == 0) {
-            continue;
-          }
-          final int nx = cx + dx;
-          final int nz = cz + dz;
-          if (nx < 0 || nz < 0 || nx >= w || nz >= h) {
-            continue;
-          }
-          if (out[nz][nx] == -1) {
-            out[nz][nx] = next;
-            queue.add(new int[] {nx, nz});
-          }
-        }
-      }
+  }
+
+  private static final int[] BFS_DX = {1, -1, 0, 0, 1, 1, -1, -1};
+  private static final int[] BFS_DZ = {0, 0, 1, -1, 1, -1, 1, -1};
+
+  /** Pop one frontier cell, expand to its 8 in-bounds unvisited neighbours, capped at maxClearance. */
+  private static void relaxNeighbours(
+      final int[][] out,
+      final java.util.Deque<int[]> queue,
+      final int maxClearance,
+      final int w,
+      final int h) {
+    final int[] cell = queue.poll();
+    final int cx = cell[0];
+    final int cz = cell[1];
+    final int next = out[cz][cx] + 1;
+    if (next > maxClearance) {
+      return;
     }
-    // Unreached interior (no wall within maxClearance): cap at maxClearance.
+    for (int i = 0; i < BFS_DX.length; i++) {
+      tryRelax(out, queue, cx + BFS_DX[i], cz + BFS_DZ[i], next, w, h);
+    }
+  }
+
+  /** Stamp distance + enqueue if {@code (nx,nz)} is in-bounds and unvisited. */
+  private static void tryRelax(
+      final int[][] out,
+      final java.util.Deque<int[]> queue,
+      final int nx,
+      final int nz,
+      final int next,
+      final int w,
+      final int h) {
+    if (nx < 0 || nz < 0 || nx >= w || nz >= h) {
+      return;
+    }
+    if (out[nz][nx] == -1) {
+      out[nz][nx] = next;
+      queue.add(new int[] {nx, nz});
+    }
+  }
+
+  /** Unreached interior (no wall within {@code maxClearance}) → cap at {@code maxClearance}. */
+  private static void capUnreached(final int[][] out, final int maxClearance, final int w, final int h) {
     for (int z = 0; z < h; z++) {
       for (int x = 0; x < w; x++) {
         if (out[z][x] == -1) {
@@ -135,7 +168,6 @@ public final class NavGrids {
         }
       }
     }
-    return out;
   }
 
   /**

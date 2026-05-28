@@ -3,6 +3,106 @@
 Latest release only. Earlier history lives in git tags + commit log
 (`git log v<previous>..v<this>`).
 
+## v1.0.21 — 2026-05-28
+
+Bot-AI release. The legacy chicken-framework brain was retired (~5,600
+LOC), a full substrate stood up (capability derivation, flow-field
+navigation, arena objectives, tactical planner, 30-behaviour synergy
+catalog), and a v3 punch-list closed out (Pattern-4 / Config-Component
+Projection across all bot tuning, soft-clearance Dijkstra routing,
+hull-pinch mask, situational-input vocabulary). Visual layer also
+gained animated map tiles + dynamic point lights, and the network
+layer got a respawn-handshake fix.
+
+### For players
+
+- **Bots actually play now.** Flow-field routing replaces the old
+  random-wander brain. Bots route to objective tiles, drift toward
+  combat density, engage in-range targets, disengage when low energy,
+  and search when none of the above apply.
+- **Trench (turf):** bots split into `flag-defender` (camp the flag)
+  and `flag-attacker` (drift + fight) roles. Capability-derived
+  weights mean each hull plays to its strengths — warbird harasses,
+  spider mid-range, leviathan anchors.
+- **Animated map tiles** (e.g. asteroid frames) + glowing projectiles
+  and ship-mounted point lights for cleaner combat readability.
+- **Respawn camera fix:** the client's "self" view rebinds to the
+  fresh ship after death — previously stuck on the old corpse for the
+  first frame, which broke local follow.
+
+### For authors (zone, arena, ship presets)
+
+**New bot-AI authoring tier** — `zone/engine-bot-ai.groovy` (immutable
+catalog: synergy `requires` / `bonus` / `fit` per behaviour, plus role
+bias multipliers) and `zone/zone-bot-ai.groovy` (operator tuning: nav
+clearance penalty, planner cadence, stickiness margin, behaviour-fit
+floors, engagement range, perception/steering knobs).
+
+Per-arena bot roster + tweak overlay via `bots { }`:
+
+```groovy
+bots {
+    ship 'warbird',   count: 2
+    ship 'spider',    count: 1
+    ship 'leviathan', count: 1, tweak: [['hold-position', '*', 1.4]]
+}
+```
+
+**Hot-reload** for both `zone-bot-ai.groovy` and per-arena `bots { }`
+(the file watcher already covered `arena.groovy` — bot-AI tuning now
+follows the same edit-live discipline).
+
+**Client `FlowFieldDebug` HUD overlay** (gated by `flowFieldDebug
+true` in zone-bot-ai.groovy) — visualises the bot-side blended steering
+field around the local player for tuning.
+
+### For maintainers
+
+- **Eight new ADRs** — 0009 (bot AI), 0010 (DSL), 0011 (nav substrate),
+  0012 (LoS), 0013 (tactical goals), 0014 (capability derivation),
+  0015 (arena objectives), 0016 (behaviour catalog), 0017 (visibility
+  / fog-of-war design).
+- **Pattern-4 / Config-Component Projection** now drives all bot
+  tuning (ADR-0002 / ADR-0014). `BotConfig` records are templates;
+  spawn projection emits per-bot components.
+- **Unified `MovementInput`** — bots and players write the same input
+  component; no NPC parallel path.
+- **Soft-clearance Dijkstra** replaces hard footprint erosion for
+  nav-grid routing. Wall-adjacent cells stay reachable but cost more,
+  so bots prefer corridor-centre without forbidding the edges.
+  4-pattern hull-pinch mask (N+S, W+E, NW+SE, NE+SW) blocks the
+  cells where a 2×2 hull can't physically fit.
+- **`FieldGradient` orthogonal fallback** — when any cardinal
+  neighbour is wall/OOB/hull-masked, the steering blend collapses to
+  4-way orthogonal to avoid skim/graze artefacts in pinches.
+- **Behaviour catalog** — 30 behaviours enumerated, 6 implemented
+  (engage, follow-traffic, hold-position, disengage, search,
+  assassinate). The remaining 24 are inert placeholders awaiting
+  Phase-1+ slices.
+
+### Bug fixes
+
+- **`PrizeConsumptionSystem`** no longer logs spurious `No body
+  position` errors. Replaced the in-contact `ed.removeEntity(prizeId)`
+  with a `Decay(now, now)` stamp so the next-tick reaper handles
+  removal (matching the canonical pattern in
+  `WeaponsReaperSystem.detonate`).
+- **`SimEthereal` self-rebind on respawn** — server now re-points the
+  per-connection "self" at the new ship; the previous code left the
+  client locked to the dead-ship id.
+- **`MapSystem`** map-filename collision: two arenas declaring the
+  same `.lvl` no longer overlap in world space.
+- **`FlagSystem` material handling** — null-spatial guard +
+  documentation for `getModelSpatial`.
+
+### Breaking
+
+None. New `engine-bot-ai.groovy` / `zone-bot-ai.groovy` files ship
+with sane defaults; existing `arena.groovy` files continue to work
+unchanged. Legacy `bot-tuning.groovy` fragments and the
+`infinity.ai.legacy.*` chicken framework are retired but no operator
+config referenced them.
+
 ## v1.0.20 — 2026-05-20
 
 Arena-composition release. ADR-0008 landed (horizontal modules per

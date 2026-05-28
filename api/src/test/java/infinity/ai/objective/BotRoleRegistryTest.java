@@ -14,6 +14,9 @@ import org.junit.Test;
 
 public class BotRoleRegistryTest {
 
+  private static final String DEFAULT = "default";
+  private static final String ENGAGE = "engage";
+
   @Test
   public void getReturnsRegisteredRole() {
     final BotRoleRegistry r =
@@ -25,19 +28,19 @@ public class BotRoleRegistryTest {
   @Test
   public void unknownRoleFallsToDefaultIdentity() {
     final BotRoleRegistry r = new BotRoleRegistry(List.of());
-    assertTrue("default always present", r.isRegistered("default"));
+    assertTrue("default always present", r.isRegistered(DEFAULT));
     assertFalse(r.isRegistered("nope"));
     assertTrue("unknown ⇒ identity bias", r.get("nope").behaviourBias().isEmpty());
-    assertEquals("default", r.get("nope").name());
+    assertEquals(DEFAULT, r.get("nope").name());
   }
 
   @Test
   public void botRoleConfigDefensivelyCopiesBias() {
     final Map<String, Double> mutable = new java.util.HashMap<>();
-    mutable.put("engage", 1.5);
+    mutable.put(ENGAGE, 1.5);
     final BotRoleConfig cfg = new BotRoleConfig("r", mutable);
-    mutable.put("engage", 9.9);
-    assertEquals(1.5, cfg.behaviourBias().get("engage"), 0.0);
+    mutable.put(ENGAGE, 9.9);
+    assertEquals(1.5, cfg.behaviourBias().get(ENGAGE), 0.0);
     assertThrows(
         UnsupportedOperationException.class, () -> cfg.behaviourBias().put("x", 1.0));
   }
@@ -45,7 +48,7 @@ public class BotRoleRegistryTest {
   @Test
   public void authoredDefaultOverridesBuiltIn() {
     final BotRoleRegistry r =
-        new BotRoleRegistry(new ArrayList<>(List.of(new BotRoleConfig("default", Map.of("engage", 0.5)))));
-    assertEquals(0.5, r.get("default").behaviourBias().get("engage"), 0.0);
+        new BotRoleRegistry(new ArrayList<>(List.of(new BotRoleConfig(DEFAULT, Map.of(ENGAGE, 0.5)))));
+    assertEquals(0.5, r.get(DEFAULT).behaviourBias().get(ENGAGE), 0.0);
   }
 }

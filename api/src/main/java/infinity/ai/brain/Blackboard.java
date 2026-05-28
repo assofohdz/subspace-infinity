@@ -227,9 +227,9 @@ public final class Blackboard {
     return this.maxEnergy;
   }
 
-  public void setEnergy(final int currentEnergy, final int maxEnergy) {
-    this.currentEnergy = currentEnergy;
-    this.maxEnergy = maxEnergy;
+  public void setEnergy(final int current, final int max) {
+    this.currentEnergy = current;
+    this.maxEnergy = max;
   }
 
   /** Goal chosen by the {@code TacticalPlanner}; the BT dispatches on its type. Null until first select. */

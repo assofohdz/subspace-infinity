@@ -11,25 +11,26 @@ import org.junit.Test;
 public class SituationalInputsTest {
 
   private static final double EPS = 1e-9;
+  private static final String RANGE_FIT = "range_fit";
 
   @Test
   public void weightedSumIsConvexCombination() {
     final SituationalInputs in =
-        SituationalInputs.builder().set("range_fit", 0.4).set("energy_adv", 0.8).build();
+        SituationalInputs.builder().set(RANGE_FIT, 0.4).set("energy_adv", 0.8).build();
     final double sum =
-        in.weightedSum(Map.of("range_fit", 0.5, "energy_adv", 0.5)); // 0.5·0.4 + 0.5·0.8
+        in.weightedSum(Map.of(RANGE_FIT, 0.5, "energy_adv", 0.5)); // 0.5·0.4 + 0.5·0.8
     assertEquals(0.6, sum, EPS);
   }
 
   @Test
   public void unknownInputContributesZero() {
-    final SituationalInputs in = SituationalInputs.builder().set("range_fit", 1.0).build();
+    final SituationalInputs in = SituationalInputs.builder().set(RANGE_FIT, 1.0).build();
     // "predictability" is a real vocabulary row but not yet sourced here → contributes 0.
     assertEquals(0.0, in.weightedSum(Map.of("predictability", 1.0)), EPS);
   }
 
   @Test
   public void neutralIsAllZero() {
-    assertEquals(0.0, SituationalInputs.NEUTRAL.weightedSum(Map.of("range_fit", 1.0)), EPS);
+    assertEquals(0.0, SituationalInputs.NEUTRAL.weightedSum(Map.of(RANGE_FIT, 1.0)), EPS);
   }
 }
