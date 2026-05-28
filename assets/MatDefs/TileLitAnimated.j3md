@@ -1,0 +1,45 @@
+// Lit hybrid: TileLit lighting + AnimateMultilineSprite g_Time-driven frame stepping.
+// Vert applies the atlas-frame UV offset before passing texCoord1 to a frag that is
+// otherwise identical to TileLit.frag.
+MaterialDef TileLitAnimated {
+
+    MaterialParameters {
+        Texture2D ColorMap
+        Float AlphaDiscardThreshold (AlphaTestFallOff)
+        Float PoolGain
+        Float SunScale
+        Float Exposure
+        Float TextureGamma
+        Boolean DebugShipLight
+        Boolean DebugLeafGrid
+
+        // Animation params — same shape as AnimateMultilineSpriteUnshaded.
+        Int numTilesX
+        Int numTilesY
+        Int numTilesOffsetX
+        Int numTilesOffsetY
+        Float StartTime
+        Float Speed
+    }
+
+    Technique {
+        LightMode SinglePass
+
+        VertexShader GLSL100 GLSL150:   MatDefs/TileLitAnimated.vert
+        FragmentShader GLSL100 GLSL150: MatDefs/TileLitAnimated.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            NormalMatrix
+            AmbientLightColor
+            Time
+        }
+
+        Defines {
+            DISCARD_ALPHA : AlphaDiscardThreshold
+            DEBUG_SHIP_LIGHT : DebugShipLight
+            DEBUG_LEAF_GRID : DebugLeafGrid
+        }
+    }
+}

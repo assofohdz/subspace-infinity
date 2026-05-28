@@ -437,6 +437,7 @@ public class GameServer {
     systems.register(RegionSystem.class, new RegionSystem());
     systems.register(ChecksShipsSystem.class, new ChecksShipsSystem());
     systems.register(ChecksWorldSystem.class, new ChecksWorldSystem());
+    systems.register(infinity.systems.DevBlockTestSystem.class, new infinity.systems.DevBlockTestSystem());
     // PrizeSystem (805 lines) split into 3 Use-Case systems per P2-k:
     //   PrizeSpawnerSystem        — arena periodic spawning + cap-scaling.
     //   PrizeConsumptionSystem    — prize-on-contact dispatch (Contact listener,

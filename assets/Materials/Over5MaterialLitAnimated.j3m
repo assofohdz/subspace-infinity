@@ -1,0 +1,19 @@
+Material Over5MaterialLitAnimated : MatDefs/TileLitAnimated.j3md {
+    MaterialParameters {
+        ColorMap : Flip Textures/Subspace/over5.bm2
+        numTilesX : 4
+        numTilesY : 6
+        Speed : 20
+        numTilesOffsetX : 0
+        numTilesOffsetY : 0
+        StartTime : 0.0
+
+        PoolGain : 7.0
+        SunScale : 0.8
+        Exposure : 1.8
+        TextureGamma : 0.6
+        AlphaDiscardThreshold : 0.5
+        DebugShipLight : false
+        DebugLeafGrid : false
+    }
+}

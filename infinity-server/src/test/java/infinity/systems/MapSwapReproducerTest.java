@@ -50,6 +50,9 @@ public class MapSwapReproducerTest {
   private static final int TILE_TYPE_BASE = 100;
   private static final int MAX_VISIBLE_TILE = 190;
   private static final int INVISIBLE_BLOCK_TYPE = 11;
+  private static final int ANIMATED_ASTEROID_SMALL_BLOCK_TYPE = 13;
+  private static final int ANIMATED_ASTEROID_MEDIUM_BLOCK_TYPE = 14;
+  private static final int ANIMATED_ASTEROID_END_BLOCK_TYPE = 15;
   private static final int TYPE_MASK = 0x000fffff;
 
   @Test
@@ -229,8 +232,10 @@ public class MapSwapReproducerTest {
   /**
    * Mirrors the cell-writing portion of
    * {@link infinity.systems.MapSystem#createBlocksFromLegacyMap}. Entity-backed
-   * tiles (turfFlag, asteroids, wormholes, doors) do not produce world-cells
-   * and are skipped. Border tile short-circuit is preserved.
+   * tiles (turfFlag, asteroid-medium, asteroid-end, wormholes, doors) do not produce
+   * world-cells and are skipped. Asteroid-small writes an mworld cell (block type
+   * {@link #ANIMATED_ASTEROID_SMALL_BLOCK_TYPE}). Border tile
+   * short-circuit is preserved.
    */
   // reproducer test enumerates all cell layouts
   @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.CyclomaticComplexity", "PMD.NPathComplexity"})
@@ -255,11 +260,37 @@ public class MapSwapReproducerTest {
 
         // Entity-backed tiles: MapSystem continues without writing cells; match that.
         if (s == MapTypes.VIE_TURF_FLAG
-            || s == MapTypes.VIE_ASTEROID_SMALL
-            || s == MapTypes.VIE_ASTEROID_MEDIUM
-            || s == MapTypes.VIE_ASTEROID_END
             || (s >= MapTypes.VIE_V_DOOR_START && s <= MapTypes.VIE_H_DOOR_END)
             || s == MapTypes.VIE_WORMHOLE) {
+          continue;
+        }
+
+        // Asteroid-end is a 4×4 decoration on the Y=2 overlay layer (no collider).
+        if (s == MapTypes.VIE_ASTEROID_END) {
+          final Vec3d overlay = new Vec3d(location.x, location.y + 1, location.z);
+          world.setWorldCell(overlay, ANIMATED_ASTEROID_END_BLOCK_TYPE);
+          coordinates.add(overlay);
+          continue;
+        }
+
+        // Asteroid-small writes a 1×1 animated cell.
+        if (s == MapTypes.VIE_ASTEROID_SMALL) {
+          world.setWorldCell(location, ANIMATED_ASTEROID_SMALL_BLOCK_TYPE);
+          continue;
+        }
+
+        // Asteroid-medium: animated visual cell + 3 invisible spillover cells for 2×2 collision.
+        if (s == MapTypes.VIE_ASTEROID_MEDIUM) {
+          world.setWorldCell(location, ANIMATED_ASTEROID_MEDIUM_BLOCK_TYPE);
+          final Vec3d[] spillover = {
+              new Vec3d(location.x + 1, location.y, location.z),
+              new Vec3d(location.x,     location.y, location.z + 1),
+              new Vec3d(location.x + 1, location.y, location.z + 1)
+          };
+          for (final Vec3d sp : spillover) {
+            world.setWorldCell(sp, INVISIBLE_BLOCK_TYPE);
+            coordinates.add(sp);
+          }
           continue;
         }
 

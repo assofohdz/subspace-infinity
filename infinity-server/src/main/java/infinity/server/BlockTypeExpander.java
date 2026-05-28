@@ -93,6 +93,13 @@ public final class BlockTypeExpander {
         }
       }
     }
+    // Animated-tile range: the first ANIMATED_TILE_COLLIDABLE_COUNT slots get a
+    // cube collider (wall-like animated tiles e.g. asteroid_small / asteroid_medium).
+    // Trailing slots (e.g. asteroid_end) are decoration-only — null collider so
+    // ships pass through, matching canon Subspace behaviour.
+    for (int i = 0; i < InfinityConstants.ANIMATED_TILE_COLLIDABLE_COUNT; i++) {
+      expanded[InfinityConstants.ANIMATED_TILE_TYPE_BASE + i] = solid;
+    }
     if (log.isInfoEnabled()) {
       log.info(
           "Installed {} solid tile colliders across {} arena slots ({}-{} minus flyover/flyunder); array size {}",

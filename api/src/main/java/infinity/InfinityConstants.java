@@ -130,6 +130,43 @@ public class InfinityConstants {
    */
   public static final int LIGHT_EMITTER_BLOCK_TYPE = 12;
 
+  /**
+   * Base block-type index for animated-tile block families (asteroid sprites, future
+   * decorative loops). Each family gets one index inside
+   * {@code [ANIMATED_TILE_TYPE_BASE, ANIMATED_TILE_TYPE_BASE + ANIMATED_TILE_TYPE_COUNT)}
+   * and is rendered client-side by an {@code AnimatedFlatTileBlockFactory} pointed at a
+   * {@code g_Time}-driven sprite material. {@code BlockTypeExpander} installs a
+   * {@link com.simsilica.mblock.phys.collision.CubeCollider} for the whole range so all
+   * animated tiles collide like wall tiles.
+   */
+  public static final int ANIMATED_TILE_TYPE_BASE = 13;
+
+  /** Reserved slot count for {@link #ANIMATED_TILE_TYPE_BASE}; bump when a new family is added. */
+  public static final int ANIMATED_TILE_TYPE_COUNT = 6;
+
+  /** Animated asteroid-small (sprite source: {@code Textures/Subspace/over1.bm2}, 15×2 atlas). */
+  public static final int ANIMATED_ASTEROID_SMALL_BLOCK_TYPE = ANIMATED_TILE_TYPE_BASE;
+
+  /** Animated asteroid-medium (sprite source: {@code Textures/Subspace/over2.bm2}, 10×3 atlas). */
+  public static final int ANIMATED_ASTEROID_MEDIUM_BLOCK_TYPE = ANIMATED_TILE_TYPE_BASE + 1;
+
+  /**
+   * Animated asteroid-end / large decorative asteroid (sprite source:
+   * {@code Textures/Subspace/over5.bm2}, 4×6 atlas). Non-collidable in canon
+   * Subspace (over5Radius=0.1, no Mass), so kept out of
+   * {@link #ANIMATED_TILE_COLLIDABLE_COUNT}; placed on the Y=2 overlay layer
+   * to avoid Z-fighting with any wall tiles its 4×4 visual quad overlaps.
+   */
+  public static final int ANIMATED_ASTEROID_END_BLOCK_TYPE = ANIMATED_TILE_TYPE_BASE + 2;
+
+  /**
+   * Count of leading slots in {@link #ANIMATED_TILE_TYPE_BASE} that receive a
+   * {@code CubeCollider} — i.e. animated tiles that behave like wall blocks.
+   * Slots beyond this index (up to {@link #ANIMATED_TILE_TYPE_COUNT}) are
+   * decoration-only (visual quad, no collider).
+   */
+  public static final int ANIMATED_TILE_COLLIDABLE_COUNT = 2;
+
   /** Maximum tile ID for visible (BMP-rendered) Subspace tiles — IDs 1..190 are visible. */
   public static final int MAX_VISIBLE_TILE = 190;
 

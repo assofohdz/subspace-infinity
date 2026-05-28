@@ -11,6 +11,8 @@ import com.jme3.asset.AssetInfo;
 import com.jme3.asset.AssetKey;
 import com.jme3.asset.AssetManager;
 import com.jme3.material.Material;
+import com.jme3.material.RenderState.BlendMode;
+import com.jme3.texture.plugins.AWTLoader;
 import com.jme3.math.ColorRGBA;
 import com.jme3.scene.Node;
 import com.jme3.texture.Image;
@@ -81,6 +83,15 @@ public class BlockGeometryIndex {
   /** Material name used for the lantern (visible cube on each light-emitter cell). */
   public static final String LANTERN_MATERIAL_NAME = "lantern";
 
+  /** Material name used for the animated asteroid-small block (mblock-rendered over1 sprite). */
+  public static final String ANIMATED_ASTEROID_SMALL_MATERIAL_NAME = "animated_asteroid_small";
+
+  /** Material name used for the animated asteroid-medium block (mblock-rendered over2 sprite). */
+  public static final String ANIMATED_ASTEROID_MEDIUM_MATERIAL_NAME = "animated_asteroid_medium";
+
+  /** Material name used for the animated asteroid-end / large decorative block (mblock-rendered over5 sprite). */
+  public static final String ANIMATED_ASTEROID_END_MATERIAL_NAME = "animated_asteroid_end";
+
   /** Tile ID ranges for Z-ordering layers (matching Subspace tile category semantics). */
   public static final int FLYOVER_TILE_START = 173;
   public static final int FLYOVER_TILE_END = 175;
@@ -97,6 +108,9 @@ public class BlockGeometryIndex {
 
   /** Light-emitter cell — non-solid, transparent; emission flood-filled by {@link com.simsilica.mblock.LightUtils#recalculateLighting}. */
   public static final int LIGHT_EMITTER_BLOCK_TYPE_INDEX = 12;
+
+  /** Animated asteroid-small prototype — proves the g_Time-driven shader works on mblock cell geometry. */
+  public static final int ANIMATED_ASTEROID_SMALL_BLOCK_TYPE_INDEX = 13;
 
   protected final GeometryFactory geomFactory;
 
@@ -135,6 +149,31 @@ public class BlockGeometryIndex {
       registerInvisibleBlockType();
       registerLanternMaterial(assets, materials);
       registerLightEmitterBlockType();
+      ensureBm2Loader(assets);
+      registerAnimatedTileBlockType(
+          assets,
+          materials,
+          InfinityConstants.ANIMATED_ASTEROID_SMALL_BLOCK_TYPE,
+          ANIMATED_ASTEROID_SMALL_MATERIAL_NAME,
+          "Materials/Over1MaterialLitAnimated.j3m",
+          "asteroid_small",
+          1.0f);
+      registerAnimatedTileBlockType(
+          assets,
+          materials,
+          InfinityConstants.ANIMATED_ASTEROID_MEDIUM_BLOCK_TYPE,
+          ANIMATED_ASTEROID_MEDIUM_MATERIAL_NAME,
+          "Materials/Over2MaterialLitAnimated.j3m",
+          "asteroid_medium",
+          2.0f);
+      registerAnimatedTileBlockType(
+          assets,
+          materials,
+          InfinityConstants.ANIMATED_ASTEROID_END_BLOCK_TYPE,
+          ANIMATED_ASTEROID_END_MATERIAL_NAME,
+          "Materials/Over5MaterialLitAnimated.j3m",
+          "asteroid_end",
+          4.0f);
       registerTileBlockTypes();
       bootstrapAllArenaTilesets(buildTileMaterialFromLevel(assets, levelPath));
       geomFactory = new GeometryFactory(materials);
@@ -233,6 +272,51 @@ public class BlockGeometryIndex {
         new LanternBlockFactory(lanternMaterial));
     BlockTypeIndex.override(LIGHT_EMITTER_BLOCK_TYPE_INDEX, blockType);
     log.info("Registered light-emitter block type at index {}", LIGHT_EMITTER_BLOCK_TYPE_INDEX);
+  }
+
+  // BlockGeometryIndex constructs in LocalViewState before GameSessionState registers
+  // the bm2 loader; do it here once so every animated-tile .j3m's Over*.bm2 texture resolves.
+  private static void ensureBm2Loader(final AssetManager assets) {
+    assets.registerLoader(AWTLoader.class, "bm2");
+  }
+
+  /**
+   * Register an animated-tile block type backed by a {@code g_Time}-driven sprite material.
+   * Sets {@code StartTime=0} so blocks loop continuously off the world clock, and switches
+   * Blend Alpha → AlphaDiscard so the geometry stays in the Opaque queue (mblock
+   * {@code GeometryFactory} does not set Transparent bucket; alpha-blended fragments
+   * write depth and self-occlude otherwise). {@code quadScale} sets the X×Z extent of the
+   * rendered quad in world units — use 1.0 for a 1×1 cell-sized sprite, 2.0 for a 2×2
+   * sprite that spills into neighbour cells (caller must write {@code INVISIBLE_BLOCK_TYPE}
+   * cells in the spillover area for collision).
+   */
+  private void registerAnimatedTileBlockType(
+      final AssetManager assets,
+      final Map<String, Material> materials,
+      final int blockTypeIndex,
+      final String materialName,
+      final String materialPath,
+      final String blockSubname,
+      final float quadScale) {
+    final Material mat = assets.loadMaterial(materialPath);
+    mat.setFloat("StartTime", 0f);
+    mat.setFloat("AlphaDiscardThreshold", 0.5f);
+    mat.getAdditionalRenderState().setBlendMode(BlendMode.Off);
+    // GeomReq.Normals here matches FlatTileBlockFactory's tile registration so mblock
+    // supplies inNormal AND the baked lightData vertex colors the lit shader needs.
+    // The MaterialType used here MUST also be passed to the factory below so the .getId()
+    // keys match and the material lookup at render time resolves.
+    final MaterialType materialType =
+        new MaterialType(materialName, Arrays.asList(GeomReq.Normals));
+    materials.put(materialType.getId(), mat);
+
+    final BlockName name = new BlockName(materialName, blockSubname);
+    final BlockType blockType =
+        new BlockType(name, new AnimatedFlatTileBlockFactory(materialType, quadScale));
+    BlockTypeIndex.override(blockTypeIndex, blockType);
+    log.info(
+        "Registered animated tile block type '{}' at index {} (quadScale={})",
+        blockSubname, blockTypeIndex, quadScale);
   }
 
   /** Builds a tile {@link Material} from a fallback PNG on the asset path. */

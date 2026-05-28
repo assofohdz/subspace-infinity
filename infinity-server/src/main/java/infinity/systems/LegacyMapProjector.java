@@ -79,7 +79,7 @@ public final class LegacyMapProjector {
         final Vec3d location = new Vec3d(xpos, 1, zpos).add(arenaOffset);
         coordinates.add(location);
         if (!spawnTileEntity(s, location, createdTime, stats)) {
-          writeTileCell(s, location, arenaTileBase, stats);
+          writeTileCell(s, location, arenaTileBase, stats, coordinates);
         }
       }
     }
@@ -104,30 +104,9 @@ public final class LegacyMapProjector {
       stats.incrementTurfFlags();
       return true;
     }
-    if (s == MapTypes.VIE_ASTEROID_SMALL) {
-      MapFactory.createAsteroidSmall(
-          ed,
-          new infinity.sim.specs.AsteroidArgs(
-              null, physicsSpace, createdTime, location, 0, engineCfg.over1Radius()));
-      stats.incrementAsteroidsSmall();
-      return true;
-    }
-    if (s == MapTypes.VIE_ASTEROID_MEDIUM) {
-      MapFactory.createAsteroidMedium(
-          ed,
-          new infinity.sim.specs.AsteroidArgs(
-              null, physicsSpace, createdTime, location, 0, engineCfg.over2Radius()));
-      stats.incrementAsteroidsMedium();
-      return true;
-    }
-    if (s == MapTypes.VIE_ASTEROID_END) {
-      MapFactory.createOver5(
-          ed,
-          new infinity.sim.specs.Over5Args(
-              null, physicsSpace, createdTime, location, engineCfg.over5Radius()));
-      stats.incrementOver5();
-      return true;
-    }
+    // VIE_ASTEROID_SMALL / VIE_ASTEROID_MEDIUM / VIE_ASTEROID_END are now written as
+    // mworld cells (block types ANIMATED_ASTEROID_*_BLOCK_TYPE) — see writeTileCell.
+    // Falls through.
     if (s >= MapTypes.VIE_V_DOOR_START && s <= MapTypes.VIE_H_DOOR_END) {
       MapFactory.createDoor(
           ed,
@@ -153,16 +132,35 @@ public final class LegacyMapProjector {
     return false;
   }
 
-  /** Tiles 1..{@link InfinityConstants#MAX_VISIBLE_TILE} → arena's visible-tile range; others → {@link InfinityConstants#INVISIBLE_BLOCK_TYPE}. */
+  /**
+   * Tiles 1..{@link InfinityConstants#MAX_VISIBLE_TILE} → arena's visible-tile range;
+   * {@link MapTypes#VIE_ASTEROID_SMALL} → {@link InfinityConstants#ANIMATED_ASTEROID_SMALL_BLOCK_TYPE}
+   * (1×1 animated mworld block; collision == static block);
+   * {@link MapTypes#VIE_ASTEROID_MEDIUM} → {@link InfinityConstants#ANIMATED_ASTEROID_MEDIUM_BLOCK_TYPE}
+   * with 3 spillover {@code INVISIBLE_BLOCK_TYPE} cells at +X/+Z/+X+Z (2×2 visual + 2×2 collision,
+   * matching canonical OVER2SIZE=2.0 / over2Radius=1.0). Canonical Subspace maps leave 2-tile
+   * clearance around medium asteroids; map authors who put wall tiles next to a medium asteroid
+   * will see those cells overwritten with invisible-collision blocks, which matches the rendering
+   * intent of canonical clients;
+   * {@link MapTypes#VIE_ASTEROID_END} → {@link InfinityConstants#ANIMATED_ASTEROID_END_BLOCK_TYPE}
+   * (4×4 decorative animated block, no collider) written at Y=2 (overlay layer) so the large
+   * visual quad doesn't Z-fight with overlapped wall tiles at Y=1;
+   * others → {@link InfinityConstants#INVISIBLE_BLOCK_TYPE}.
+   */
   private void writeTileCell(
       final short s,
       final Vec3d location,
       final int arenaTileBase,
-      final MapSystemLogic.MapBuildStats stats) {
+      final MapSystemLogic.MapBuildStats stats,
+      final Set<Vec3d> coordinates) {
     final int tileId = Short.toUnsignedInt(s);
-    final int blockType = (tileId >= 1 && tileId <= InfinityConstants.MAX_VISIBLE_TILE)
-        ? arenaTileBase + tileId - 1
-        : InfinityConstants.INVISIBLE_BLOCK_TYPE;
+
+    if (tileId == MapTypes.VIE_ASTEROID_END) {
+      writeOverlayDecoration(location, stats, coordinates);
+      return;
+    }
+
+    final int blockType = resolveBlockType(tileId, arenaTileBase);
     final int result = world.setWorldCell(location, blockType);
     if (result == -1) {
       stats.incrementCellsFailedLeaf();
@@ -170,10 +168,78 @@ public final class LegacyMapProjector {
       stats.incrementCellsInvisible();
     } else {
       stats.incrementCellsVisible();
+      if (blockType == InfinityConstants.ANIMATED_ASTEROID_SMALL_BLOCK_TYPE) {
+        stats.incrementAsteroidsSmall();
+      } else if (blockType == InfinityConstants.ANIMATED_ASTEROID_MEDIUM_BLOCK_TYPE) {
+        stats.incrementAsteroidsMedium();
+        writeMediumAsteroidSpillover(location, stats, coordinates);
+      }
     }
     if (stats.getFirstWritten() == null) {
       stats.setFirstWritten(location);
     }
     stats.setLastWritten(location);
+  }
+
+  private static int resolveBlockType(final int tileId, final int arenaTileBase) {
+    if (tileId == MapTypes.VIE_ASTEROID_SMALL) {
+      return InfinityConstants.ANIMATED_ASTEROID_SMALL_BLOCK_TYPE;
+    }
+    if (tileId == MapTypes.VIE_ASTEROID_MEDIUM) {
+      return InfinityConstants.ANIMATED_ASTEROID_MEDIUM_BLOCK_TYPE;
+    }
+    if (tileId >= 1 && tileId <= InfinityConstants.MAX_VISIBLE_TILE) {
+      return arenaTileBase + tileId - 1;
+    }
+    return InfinityConstants.INVISIBLE_BLOCK_TYPE;
+  }
+
+  /**
+   * Asteroid-end / large decorative asteroid: writes the animated cell on the Y=2 overlay
+   * layer (one above the Y=1 collision plane in {@code location}) so the 4×4 visual quad
+   * doesn't Z-fight with overlapped wall tiles. No collider, no spillover.
+   */
+  private void writeOverlayDecoration(
+      final Vec3d location,
+      final MapSystemLogic.MapBuildStats stats,
+      final Set<Vec3d> coordinates) {
+    final Vec3d overlay = new Vec3d(location.x, location.y + 1, location.z);
+    final int r = world.setWorldCell(overlay, InfinityConstants.ANIMATED_ASTEROID_END_BLOCK_TYPE);
+    if (r == -1) {
+      stats.incrementCellsFailedLeaf();
+    } else {
+      stats.incrementCellsVisible();
+      stats.incrementOver5();
+      coordinates.add(overlay);
+    }
+    if (stats.getFirstWritten() == null) {
+      stats.setFirstWritten(overlay);
+    }
+    stats.setLastWritten(overlay);
+  }
+
+  /**
+   * Fills the 3 collision-only cells (+X, +Z, +X+Z) around a medium asteroid so the 2×2 visual
+   * has matching 2×2 collision coverage. Cells are tracked in {@code coordinates} so map unload
+   * clears them.
+   */
+  private void writeMediumAsteroidSpillover(
+      final Vec3d origin,
+      final MapSystemLogic.MapBuildStats stats,
+      final Set<Vec3d> coordinates) {
+    final Vec3d[] spillover = {
+        new Vec3d(origin.x + 1, origin.y, origin.z),
+        new Vec3d(origin.x,     origin.y, origin.z + 1),
+        new Vec3d(origin.x + 1, origin.y, origin.z + 1)
+    };
+    for (final Vec3d pos : spillover) {
+      final int r = world.setWorldCell(pos, InfinityConstants.INVISIBLE_BLOCK_TYPE);
+      if (r == -1) {
+        stats.incrementCellsFailedLeaf();
+      } else {
+        stats.incrementCellsInvisible();
+        coordinates.add(pos);
+      }
+    }
   }
 }
