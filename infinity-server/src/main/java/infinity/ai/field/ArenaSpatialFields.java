@@ -238,15 +238,23 @@ public final class ArenaSpatialFields {
     ArenaNav existing = this.navByArena.get(arena);
     if (existing == null || existing.grid() != passable) {
       final ZoneBotAiConfig cfg = this.zoneCfg.get();
-      // Hull-aware routing grid: a cell is navigable only if the 2x2 footprint of the diameter-2 ship
-      // fits, so flow fields never route through 1-wide slots / diagonal pinches the hull can't enter.
-      // Raw `passable` stays for physical passableAt/LoS. See ADR-0011 / NavGrids.erodeFootprint.
-      final boolean[][] routePassable =
-          infinity.ai.field.NavGrids.erodeFootprint(passable, cfg.navHullFootprintCells());
+      // Routing grid (bot-ai-v3 B8 + B11): raw passable masked by hull-pinch detection — cells
+      // pinched between walls in any of the four 3×3 patterns (N+S, W+E, NW+SE, NE+SW) are taken
+      // out so Dijkstra never routes the bot through a slot the hull-2 ship can't physically fit.
+      // Per-cell clearance feeds a step-cost penalty for low-clearance routes (wall-adjacent cells
+      // stay navigable but cost more), so the flow prefers centre-of-corridor without forbidding
+      // the edges. Replaces hard `NavGrids.erodeFootprint`. See ADR-0011 +
+      // .scratch/flowfield-corner-analysis.md.
+      final boolean[][] routePassable = infinity.ai.field.NavGrids.hullNavigable(passable);
+      final int[][] clearance =
+          infinity.ai.field.NavGrids.clearanceField(passable, cfg.navHullFootprintCells());
       final AsyncNavigationFields fields =
           new AsyncNavigationFields(
               passable,
               routePassable,
+              clearance,
+              cfg.navHullFootprintCells(),
+              cfg.navClearancePenalty(),
               this.navBuilder,
               System::nanoTime,
               cfg.navFieldTtlMs() * 1_000_000L,

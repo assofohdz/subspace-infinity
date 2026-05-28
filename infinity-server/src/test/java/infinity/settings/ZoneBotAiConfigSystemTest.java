@@ -52,7 +52,7 @@ public class ZoneBotAiConfigSystemTest {
               25.0, 600.0, 14.0, 35.0, 2.5,
               6.0, 0.7, 0.9, 0.25, 3, 0.4, 32, 3, 8,
               0.5, 0.05, 0.5, 0.1, 0.4, 0.15, 250.0,
-              12, 5.0, 0.4, 0.5, 0.6);
+              12, 5.0, 0.4, 0.5, 0.6, 1.5);
       final SequencedLoader loader = new SequencedLoader(first, second);
 
       final ZoneBotAiConfigSystem sys =

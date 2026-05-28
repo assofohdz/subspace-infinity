@@ -71,9 +71,13 @@ package infinity.config;
  *       feeds avoidance scoring</li>
  *   <li>{@code navGoalSnapRadius} — radius (tile cells) the async flow-field builder snaps a target
  *       goal cell into the nearest passable cell within</li>
- *   <li>{@code navHullFootprintCells} — Minkowski erosion footprint (tile cells) applied to the
- *       routing grid so the flow field treats wall-adjacent cells the bot's hull can't fit through
- *       as impassable. Increase for larger hulls</li>
+ *   <li>{@code navHullFootprintCells} — clearance threshold (tile cells) for the soft-clearance
+ *       Dijkstra cost penalty. Cells whose cells-to-nearest-wall &lt; this incur an extra step cost
+ *       of {@code navClearancePenalty × deficit}, so the flow prefers centre-of-corridor without
+ *       forbidding wall-adjacent cells. Increase for larger hulls (bot-ai-v3 B8 + B11)</li>
+ *   <li>{@code navClearancePenalty} — additional step cost per unit clearance-deficit; higher =
+ *       bots route more aggressively away from walls but pay longer detours when no open route
+ *       exists (bot-ai-v3 B8)</li>
  *   <li>{@code combatSplatRadius} — splat radius (tile cells) each fire event contributes to the
  *       combat heatmap; separate from {@code densityKernelRadius} so combat-pull can be tuned
  *       independently of allied/enemy positional density</li>
@@ -146,7 +150,8 @@ public record ZoneBotAiConfig(
     double steerArrivalRadiusCells,
     double steerWallAvoidWeight,
     double seekForwardThrustFloor,
-    double wallRepulsionMinPush) {
+    double wallRepulsionMinPush,
+    double navClearancePenalty) {
 
   public static final ZoneBotAiConfig DEFAULTS =
       new ZoneBotAiConfig(
@@ -154,7 +159,7 @@ public record ZoneBotAiConfig(
           20.0, 500.0, 12.0, 30.0, 2.0,
           5.0, 0.6, 1.0, 0.3, 2, 0.5, 24, 2, 6,
           0.6, 0.1, 0.55, 0.15, 0.5, 0.2, 200.0,
-          16, 6.0, 0.3, 0.4, 0.5);
+          16, 6.0, 0.3, 0.4, 0.5, 2.0);
 
   public ZoneBotAiConfig() {
     this(
@@ -162,6 +167,6 @@ public record ZoneBotAiConfig(
         20.0, 500.0, 12.0, 30.0, 2.0,
         5.0, 0.6, 1.0, 0.3, 2, 0.5, 24, 2, 6,
         0.6, 0.1, 0.55, 0.15, 0.5, 0.2, 200.0,
-        16, 6.0, 0.3, 0.4, 0.5);
+        16, 6.0, 0.3, 0.4, 0.5, 2.0);
   }
 }

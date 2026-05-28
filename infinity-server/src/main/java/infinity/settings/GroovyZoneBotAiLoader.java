@@ -130,6 +130,7 @@ public class GroovyZoneBotAiLoader {
     private double steerWallAvoidWeight = ZoneBotAiConfig.DEFAULTS.steerWallAvoidWeight();
     private double seekForwardThrustFloor = ZoneBotAiConfig.DEFAULTS.seekForwardThrustFloor();
     private double wallRepulsionMinPush = ZoneBotAiConfig.DEFAULTS.wallRepulsionMinPush();
+    private double navClearancePenalty = ZoneBotAiConfig.DEFAULTS.navClearancePenalty();
 
     ZoneBotAiConfigBuilder() {}
 
@@ -442,6 +443,19 @@ public class GroovyZoneBotAiLoader {
           positive("wallRepulsionMinPush", value, this.wallRepulsionMinPush);
     }
 
+    /** Soft-clearance step-cost penalty per unit clearance-deficit; must be {@code >= 0}. */
+    public void navClearancePenalty(final Number value) {
+      if (value == null) {
+        return;
+      }
+      final double v = value.doubleValue();
+      if (Double.isNaN(v) || Double.isInfinite(v) || v < 0.0) {
+        throw new IllegalArgumentException(
+            "navClearancePenalty must be a finite value >= 0; got " + value);
+      }
+      this.navClearancePenalty = v;
+    }
+
     private static int positiveInt(final String key, final Number value, final int current) {
       if (value == null) {
         return current;
@@ -521,7 +535,8 @@ public class GroovyZoneBotAiLoader {
           steerArrivalRadiusCells,
           steerWallAvoidWeight,
           seekForwardThrustFloor,
-          wallRepulsionMinPush);
+          wallRepulsionMinPush,
+          navClearancePenalty);
     }
   }
 }

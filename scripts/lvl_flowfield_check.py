@@ -69,8 +69,14 @@ def passable(grid, x, z):
     return 0 <= x < GRID and 0 <= z < GRID and grid[z * GRID + x]
 
 
-def dijkstra(grid, gx, gz):
-    """Distances from goal (gx,gz) outward; matches DijkstraDistanceField (octile, no corner-cut)."""
+def dijkstra(grid, gx, gz, clearance=None, hull_footprint=0, penalty=0.0):
+    """Distances from goal (gx,gz) outward; matches DijkstraDistanceField (octile, no corner-cut).
+
+    When clearance + hull_footprint + penalty are non-zero, adds a soft-clearance cost penalty
+    (bot-ai-v3 B8): step cost = base + penalty * max(0, hull_footprint - clearance[dest]). Wall-
+    adjacent cells stay navigable but cost more, so the flow prefers centre-of-corridor without
+    forbidding edges. clearance=None means flat unit cost (current server behaviour).
+    """
     INF = float("inf")
     dist = [INF] * (GRID * GRID)
     if not passable(grid, gx, gz):
@@ -88,12 +94,87 @@ def dijkstra(grid, gx, gz):
             diag = dx != 0 and dz != 0
             if diag and (not passable(grid, x + dx, z) or not passable(grid, x, z + dz)):
                 continue  # no corner cutting
-            nd = d + (SQRT2 if diag else 1.0)
+            step = SQRT2 if diag else 1.0
+            if clearance is not None:
+                deficit = hull_footprint - clearance[nz * GRID + nx]
+                if deficit > 0:
+                    step += penalty * deficit
+            nd = d + step
             ni = nz * GRID + nx
             if nd < dist[ni]:
                 dist[ni] = nd
                 heapq.heappush(pq, (nd, nx, nz))
     return dist
+
+
+def hull_navigable(grid):
+    """Mask cells the hull-2 ship physically can't occupy (bot-ai-v3 B8 follow-up).
+
+    Four 3×3 pinch patterns block a cell:
+      * N+S walls (vertical 1-cell-tall corridor)
+      * W+E walls (horizontal 1-cell-wide corridor)
+      * NW+SE diagonal walls
+      * NE+SW diagonal walls (the L-corner case)
+
+    OOB does NOT count as a wall — map edges aren't physical obstacles. Mirrors
+    NavGrids.hullNavigable in Java.
+    """
+    out = bytearray(GRID * GRID)
+    def wallIn(x, z):
+        return 0 <= x < GRID and 0 <= z < GRID and not grid[z * GRID + x]
+    for z in range(GRID):
+        for x in range(GRID):
+            if not grid[z * GRID + x]:
+                continue
+            n  = wallIn(x,     z - 1)
+            s  = wallIn(x,     z + 1)
+            ew = wallIn(x - 1, z)
+            ee = wallIn(x + 1, z)
+            nw = wallIn(x - 1, z - 1)
+            ne = wallIn(x + 1, z - 1)
+            sw = wallIn(x - 1, z + 1)
+            se = wallIn(x + 1, z + 1)
+            pinched = (n and s) or (ew and ee) or (nw and se) or (ne and sw)
+            out[z * GRID + x] = 0 if pinched else 1
+    return out
+
+
+def build_clearance(grid, max_clearance):
+    """Multi-source BFS from walls + OOB; clearance[z*G+x] = min(max, Chebyshev dist to wall).
+
+    Mirrors NavGrids.clearanceField (Java). Wall cells store 0; deep-open cells cap at max_clearance.
+    Used by dijkstra(..., clearance=...) for soft-clearance routing (bot-ai-v3 B8 + B11).
+    """
+    clear = [0] * (GRID * GRID)
+    from collections import deque
+
+    q = deque()
+    for z in range(GRID):
+        for x in range(GRID):
+            if not grid[z * GRID + x]:
+                clear[z * GRID + x] = 0
+                q.append((x, z))
+            else:
+                clear[z * GRID + x] = -1
+    while q:
+        x, z = q.popleft()
+        nxt = clear[z * GRID + x] + 1
+        if nxt > max_clearance:
+            continue
+        for dz in (-1, 0, 1):
+            for dx in (-1, 0, 1):
+                if dx == 0 and dz == 0:
+                    continue
+                nx, nz = x + dx, z + dz
+                if nx < 0 or nz < 0 or nx >= GRID or nz >= GRID:
+                    continue
+                if clear[nz * GRID + nx] == -1:
+                    clear[nz * GRID + nx] = nxt
+                    q.append((nx, nz))
+    for i in range(GRID * GRID):
+        if clear[i] == -1:
+            clear[i] = max_clearance
+    return clear
 
 
 def gradient(dist, x, z):
@@ -128,6 +209,63 @@ def window(grid, cx, cz, r):
                 row.append("." if grid[z * GRID + x] else "#")
         rows.append("".join(row))
     return rows
+
+
+def md_table(title, xs, zs, cell_fn):
+    """Render a labelled markdown table for cells (xs × zs); cell_fn(x,z) returns the cell string."""
+    out = [f"### {title}", ""]
+    header = "| y\\x | " + " | ".join(str(x) for x in xs) + " |"
+    sep = "|" + "|".join(["---"] * (len(xs) + 1)) + "|"
+    out += [header, sep]
+    for z in zs:
+        cells = [cell_fn(x, z) for x in xs]
+        out.append(f"| **{z}** | " + " | ".join(cells) + " |")
+    out.append("")
+    return out
+
+
+def md_passability(grid, sx, sz, gx, gz, xs, zs):
+    def cell(x, z):
+        if x == sx and z == sz:
+            return "**S**"
+        if x == gx and z == gz:
+            return "**G**"
+        if not (0 <= x < GRID and 0 <= z < GRID):
+            return "?"
+        return "·" if grid[z * GRID + x] else "█"
+    return md_table("raw passability (█=wall, ·=open, **S**=src, **G**=goal)", xs, zs, cell)
+
+
+def md_clearance(grid, clear, sx, sz, gx, gz, xs, zs):
+    def cell(x, z):
+        if x == sx and z == sz:
+            return "**S**"
+        if x == gx and z == gz:
+            return "**G**"
+        if not (0 <= x < GRID and 0 <= z < GRID):
+            return "?"
+        if not grid[z * GRID + x]:
+            return "█"
+        return str(clear[z * GRID + x])
+    return md_table("clearance (cells-to-wall; █=wall, **S**=src, **G**=goal)", xs, zs, cell)
+
+
+def md_flow(grid, dist, sx, sz, gx, gz, xs, zs):
+    def cell(x, z):
+        if x == sx and z == sz:
+            return "**S**"
+        if x == gx and z == gz:
+            return "**G**"
+        if not (0 <= x < GRID and 0 <= z < GRID):
+            return "?"
+        if not grid[z * GRID + x]:
+            return "█"
+        dx, dz = gradient(dist, x, z)
+        if dx or dz:
+            return arrow(dx, dz)
+        d = dist[z * GRID + x]
+        return "·" if math.isinf(d) else "*"
+    return md_table("flow (arrows=descent toward goal; ·=unreachable, *=at-goal)", xs, zs, cell)
 
 
 ARROWS = ["→", "↘", "↓", "↙", "←", "↖", "↑", "↗"]  # E SE S SW W NW N NE (gz+ = south)
@@ -165,7 +303,16 @@ def main():
     ap.add_argument("lvl")
     ap.add_argument("--goal", required=True, help="goal cell X,Z (field built from here)")
     ap.add_argument("--src", required=True, help="source cell X,Z (bot position)")
-    ap.add_argument("--clearance", type=int, default=1)
+    ap.add_argument("--clearance", type=int, default=1,
+                    help="hard erosion (2N+1) — pass --soft-clearance to use the new soft-clearance "
+                         "cost penalty instead (bot-ai-v3 B8). 0 disables erosion entirely.")
+    ap.add_argument("--soft-clearance", type=int, default=0, metavar="N",
+                    help="soft-clearance Chebyshev distance cap (cells); enables the cost-penalty "
+                         "model — wall-adjacent cells stay navigable but cost more. When set, "
+                         "--clearance is ignored.")
+    ap.add_argument("--soft-penalty", type=float, default=2.0, metavar="P",
+                    help="additional step cost per unit clearance-deficit when --soft-clearance is "
+                         "set (step = base + P*max(0, N-clearance[dest])). Default 2.0.")
     ap.add_argument("--window", type=int, default=6, help="ASCII half-window around the source")
     ap.add_argument(
         "--spawn-frame",
@@ -191,6 +338,14 @@ def main():
         metavar="PAD",
         help="render the flow field as arrows over the goal+src bounding box, padded by PAD cells",
     )
+    ap.add_argument(
+        "--md",
+        type=int,
+        default=0,
+        metavar="HALF",
+        help="emit markdown tables (passability + clearance + flow) for a HALF-window square "
+             "around the src cell — for pasting into review notes / .scratch/.",
+    )
     args = ap.parse_args()
 
     gx, gz = (int(v) for v in args.goal.split(","))
@@ -205,14 +360,23 @@ def main():
         qgz = (gz // b) * b + b // 2
         print(f"[goal-block {b}] goal ({gx},{gz}) -> block-centre ({qgx},{qgz})")
         gx, gz = qgx, qgz
-    grid = build_passable(parse_solid(args.lvl), args.clearance)
+    use_soft = args.soft_clearance > 0
+    erode = 0 if use_soft else args.clearance
+    grid = build_passable(parse_solid(args.lvl), erode)
+    # Routing grid for soft-clearance: hull-pinch-masked raw passable (B8 regression fix).
+    # `grid` stays the raw map for LoS / src+goal passable reports; `route_grid` drives Dijkstra.
+    route_grid = hull_navigable(grid) if use_soft else grid
+    clear = build_clearance(grid, args.soft_clearance) if use_soft else None
 
-    print(f"{args.lvl}  clearance={args.clearance}")
+    mode = (f"soft-clearance N={args.soft_clearance} penalty={args.soft_penalty} hull-pinch=on"
+            if use_soft else f"hard-erosion clearance={args.clearance}")
+    print(f"{args.lvl}  {mode}")
     print(f"goal ({gx},{gz}) passable={passable(grid,gx,gz)}   src ({sx},{sz}) passable={passable(grid,sx,sz)}")
     nbrs = [(dx, dz) for dx, dz in DIRS if not passable(grid, sx + dx, sz + dz)]
     print(f"src wall-neighbours: {nbrs if nbrs else 'none (open on all 8 sides)'}")
 
-    dist = dijkstra(grid, gx, gz)
+    dist = (dijkstra(route_grid, gx, gz, clear, args.soft_clearance, args.soft_penalty)
+            if use_soft else dijkstra(grid, gx, gz))
     d = dist[sz * GRID + sx]
     if not math.isfinite(d):
         print(f"distance goal->src: UNREACHABLE  -> gradient (0,0) -> SteerApproachTarget FAILS (Pursue)")
@@ -229,6 +393,19 @@ def main():
         print(f"flow field (G goal, S src, arrows=flow toward goal, # wall, * no-flow):")
         for line in flowviz(grid, dist, gx, gz, sx, sz, args.viz):
             print("  " + line)
+
+    if args.md:
+        r = args.md
+        xs = list(range(max(0, sx - r), min(GRID, sx + r + 1)))
+        zs = list(range(max(0, sz - r), min(GRID, sz + r + 1)))
+        print()
+        for line in md_passability(grid, sx, sz, gx, gz, xs, zs):
+            print(line)
+        if clear is not None:
+            for line in md_clearance(grid, clear, sx, sz, gx, gz, xs, zs):
+                print(line)
+        for line in md_flow(grid, dist, sx, sz, gx, gz, xs, zs):
+            print(line)
     return 0
 
 

@@ -35,6 +35,12 @@ public final class AsyncNavigationFields implements NavigationFields {
   // hull only routes where it fits. See ADR-0011.
   private final boolean[][] passable;
   private final boolean[][] routePassable;
+  // Soft-clearance routing (bot-ai-v3 B8 + B11): cells-to-nearest-wall per cell; passed to each
+  // DijkstraDistanceField so wall-adjacent cells stay navigable but cost extra. null = flat cost
+  // (back-compat for tests).
+  private final int[][] clearance;
+  private final int hullFootprint;
+  private final double clearancePenalty;
   private final Executor builder;
   private final LongSupplier nowNanos;
   private final long ttlNanos;
@@ -44,7 +50,7 @@ public final class AsyncNavigationFields implements NavigationFields {
   private final int goalSnapRadius;
   private final Map<Long, Entry> cache = new ConcurrentHashMap<>();
 
-  /** Convenience: no hull erosion (route grid == raw). Used by tests / non-routing callers. */
+  /** Convenience: no hull erosion (route grid == raw), no soft-clearance. Used by tests. */
   public AsyncNavigationFields(
       final boolean[][] passable,
       final Executor builder,
@@ -52,12 +58,16 @@ public final class AsyncNavigationFields implements NavigationFields {
       final long ttlNanos,
       final int maxTransient,
       final int goalSnapRadius) {
-    this(passable, passable, builder, nowNanos, ttlNanos, maxTransient, goalSnapRadius);
+    this(passable, passable, null, 0, 0.0, builder, nowNanos, ttlNanos, maxTransient, goalSnapRadius);
   }
 
+  @SuppressWarnings("PMD.ExcessiveParameterList") // internal one-call-site ctor; threads cfg values.
   public AsyncNavigationFields(
       final boolean[][] passable,
       final boolean[][] routePassable,
+      final int[][] clearance,
+      final int hullFootprint,
+      final double clearancePenalty,
       final Executor builder,
       final LongSupplier nowNanos,
       final long ttlNanos,
@@ -65,6 +75,9 @@ public final class AsyncNavigationFields implements NavigationFields {
       final int goalSnapRadius) {
     this.passable = passable;
     this.routePassable = routePassable;
+    this.clearance = clearance;
+    this.hullFootprint = hullFootprint;
+    this.clearancePenalty = clearancePenalty;
     this.builder = builder;
     this.nowNanos = nowNanos;
     this.ttlNanos = ttlNanos;
@@ -145,7 +158,15 @@ public final class AsyncNavigationFields implements NavigationFields {
   private Entry newEntry(final int goalX, final int goalY) {
     final CompletableFuture<DistanceField> future =
         CompletableFuture.supplyAsync(
-            () -> new DijkstraDistanceField(goalX, goalY, this.routePassable), this.builder);
+            () ->
+                new DijkstraDistanceField(
+                    goalX,
+                    goalY,
+                    this.routePassable,
+                    this.clearance,
+                    this.hullFootprint,
+                    this.clearancePenalty),
+            this.builder);
     return new Entry(future, this.nowNanos.getAsLong());
   }
 

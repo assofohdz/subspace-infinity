@@ -79,13 +79,119 @@ public final class NavGrids {
   }
 
   /**
-   * Hull-aware routing grid (ADR-0011): a cell {@code (x,z)} is navigable iff the {@code size×size}
-   * footprint anchored there is fully open — so an agent of that footprint (the diameter-2 ship =
-   * {@code size 2}) can occupy it. Out-of-bounds counts as wall. This is Minkowski erosion: 2-wide
-   * corridors stay usable (the 2×2 fits) but 1-wide slots and diagonal corner-pinches the hull can't
-   * enter are removed, so the flow field never plans a point-route the ship can't follow. Build the
-   * Dijkstra field on this grid; keep the raw grid for physical {@code passableAt}/line-of-sight.
+   * Per-cell clearance grid (multi-source BFS from walls + out-of-bounds): each navigable cell
+   * stores {@code min(maxClearance, Chebyshev distance to nearest wall)}; wall cells store 0.
+   * Used by {@code DijkstraDistanceField} as a soft-clearance cost penalty so flow fields prefer
+   * centre-of-corridor without forbidding wall-adjacent cells (the diameter-2 hull can still
+   * hug a wall when it has to). Replaces the hard {@link #erodeFootprint} erosion — that
+   * over-blanked actually-flyable cells around walls and around multi-cell obstacle clusters
+   * (the 2×2 medium asteroid). See bot-ai-v3 BACKLOG B8 + B11.
    */
+  public static int[][] clearanceField(final boolean[][] passable, final int maxClearance) {
+    final int h = passable.length;
+    final int w = h == 0 ? 0 : passable[0].length;
+    final int[][] out = new int[h][w];
+    final java.util.ArrayDeque<int[]> queue = new java.util.ArrayDeque<>();
+    for (int z = 0; z < h; z++) {
+      for (int x = 0; x < w; x++) {
+        if (!passable[z][x]) {
+          out[z][x] = 0;
+          queue.add(new int[] {x, z});
+        } else {
+          out[z][x] = -1;
+        }
+      }
+    }
+    while (!queue.isEmpty()) {
+      final int[] cell = queue.poll();
+      final int cx = cell[0];
+      final int cz = cell[1];
+      final int next = out[cz][cx] + 1;
+      if (next > maxClearance) {
+        continue;
+      }
+      for (int dz = -1; dz <= 1; dz++) {
+        for (int dx = -1; dx <= 1; dx++) {
+          if (dx == 0 && dz == 0) {
+            continue;
+          }
+          final int nx = cx + dx;
+          final int nz = cz + dz;
+          if (nx < 0 || nz < 0 || nx >= w || nz >= h) {
+            continue;
+          }
+          if (out[nz][nx] == -1) {
+            out[nz][nx] = next;
+            queue.add(new int[] {nx, nz});
+          }
+        }
+      }
+    }
+    // Unreached interior (no wall within maxClearance): cap at maxClearance.
+    for (int z = 0; z < h; z++) {
+      for (int x = 0; x < w; x++) {
+        if (out[z][x] == -1) {
+          out[z][x] = maxClearance;
+        }
+      }
+    }
+    return out;
+  }
+
+  /**
+   * Hull-pinch detection — returns a copy of {@code passable} with cells the hull-2 ship can't
+   * physically occupy marked impassable. Four 3×3 pinch patterns block a cell (centred at the
+   * pattern's middle):
+   * <ul>
+   *   <li>N+S walls (vertical 1-cell-tall corridor — hull is 2 tall, doesn't fit).</li>
+   *   <li>W+E walls (horizontal 1-cell-wide corridor — hull is 2 wide, doesn't fit).</li>
+   *   <li>NW+SE diagonal walls (hull body extends diagonally into both walls).</li>
+   *   <li>NE+SW diagonal walls (tight diagonal slot).</li>
+   * </ul>
+   * Out-of-bounds cells do NOT count as walls for pinch purposes (map edges are not actual
+   * blockers); the broader OOB-as-wall handling stays in {@link #passable} for LoS / Dijkstra.
+   * Used as the routing grid in {@code ArenaSpatialFields}; the raw grid still drives LoS +
+   * wall-repulsion. See bot-ai-v3 B8 follow-up.
+   */
+  public static boolean[][] hullNavigable(final boolean[][] passable) {
+    final int h = passable.length;
+    final int w = h == 0 ? 0 : passable[0].length;
+    final boolean[][] out = new boolean[h][w];
+    for (int z = 0; z < h; z++) {
+      for (int x = 0; x < w; x++) {
+        out[z][x] = passable[z][x] && !pinched(passable, x, z, w, h);
+      }
+    }
+    return out;
+  }
+
+  /** True if (x,z) is open but pinched between walls in any of the four hull-blocking patterns. */
+  private static boolean pinched(
+      final boolean[][] passable, final int x, final int z, final int w, final int h) {
+    final boolean n = wallInBounds(passable, x, z - 1, w, h);
+    final boolean s = wallInBounds(passable, x, z + 1, w, h);
+    final boolean ww = wallInBounds(passable, x - 1, z, w, h);
+    final boolean ee = wallInBounds(passable, x + 1, z, w, h);
+    final boolean nw = wallInBounds(passable, x - 1, z - 1, w, h);
+    final boolean ne = wallInBounds(passable, x + 1, z - 1, w, h);
+    final boolean sw = wallInBounds(passable, x - 1, z + 1, w, h);
+    final boolean se = wallInBounds(passable, x + 1, z + 1, w, h);
+    return (n && s) || (ww && ee) || (nw && se) || (ne && sw);
+  }
+
+  /** In-bounds + impassable; OOB returns {@code false} (treated as not-a-wall for pinch logic). */
+  private static boolean wallInBounds(
+      final boolean[][] passable, final int x, final int z, final int w, final int h) {
+    return z >= 0 && z < h && x >= 0 && x < w && !passable[z][x];
+  }
+
+  /**
+   * @deprecated Hard footprint erosion over-blanks actually-flyable cells near walls and around
+   *     multi-cell obstacle clusters. Migrate to {@link #clearanceField} + a cost-weighted
+   *     {@code DijkstraDistanceField}, plus {@link #hullNavigable} to mask cells the hull can't
+   *     physically fit. See bot-ai-v3 BACKLOG B8.
+   */
+  @Deprecated
   public static boolean[][] erodeFootprint(final boolean[][] passable, final int size) {
     final int h = passable.length;
     final int w = h == 0 ? 0 : passable[0].length;

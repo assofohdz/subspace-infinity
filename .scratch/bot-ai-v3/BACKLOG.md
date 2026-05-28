@@ -54,47 +54,16 @@ reassignment + rich `ArenaSnapshot` were also deferred to v2.x).
 - Tile-supersampling toggle (v2 #03, never built; 1 tile = 1 cell holds memory fine at 1024²). Build only if a larger map measures memory-bound.
 - Formal Dijkstra benchmark on a real 1024² `.lvl` off-thread (v2 #03) + 32-ship per-tick field-update benchmark (v2 #07 `[~]`). Both validated empirically in trench/baseelim but never formally measured. Fold into the spawn-projection test-harness work if/when it lands.
 
-## Surfaced by the flow-field debug overlay (2026-05-26)
-
-### B8 — Hull-erosion marks open cells next to walls as impassable
-
-Source: visual evidence from the new flow-field debug overlay (the
-`FlowFieldDebug` arrows show NO_FLOW / route-around on cells that are visibly
-empty, adjacent to world blocks).
-
-`ArenaSpatialFields.forArena` builds the routing grid with
-`NavGrids.erodeFootprint(passable, HULL_FOOTPRINT_CELLS=2)` — a cell is
-navigable only if the full 2×2 hull footprint of the diameter-2 ship fits.
-That unilateral Minkowski erosion is **over-conservative near walls**: it
-blanks cells that are actually flyable (the hull just has to hug the wall),
-so flow fields refuse to route through them and bots/the overlay treat open
-space next to blocks as solid. This is the same root issue the #03 comment
-flagged as the "soft-clearance (cost penalty vs hard erosion)" follow-up and
-that the 2026-05-26 review's H1 noted for `scripts/lvl_flowfield_check.py`
-(its clearance check diverges from the server's erosion).
-
-**Direction:** replace the hard footprint erosion with a **soft clearance
-cost** — keep wall-adjacent cells navigable but penalise them in the Dijkstra
-cost so the flow prefers centre-of-corridor without forbidding the edge — or
-narrow the erosion to a true hull radius rather than a 2×2 anchored block.
-Validate with the overlay (arrows should fill open cells right up to the
-wall face) and re-sync `lvl_flowfield_check.py`'s clearance algorithm (H1) to
-whatever lands. Touches `NavGrids.erodeFootprint`, `ArenaSpatialFields`
-(`HULL_FOOTPRINT_CELLS` — also a [#02](issues/02-tuning-knob-migration.md)
-knob candidate), and `DijkstraDistanceField` if cost-weighting is added.
-
 ## Notes deferred from the 2026-05-26 review (not promoted to issues)
 
-### B3 — `lvl_flowfield_check.py` erosion mismatch (diagnostic tooling)
+### B3 — `lvl_flowfield_check.py` script (resolved 2026-05-28)
 
-Source: review finding H1 (fields agent). `scripts/lvl_flowfield_check.py`
-uses a symmetric `(2N+1)²` clearance check; the server's
-`NavGrids.erodeFootprint` uses unilateral 2×2 Minkowski erosion. The script
-can report false `UNREACHABLE` for 2-wide corridors the server actually
-routes through. Not bot-AI runtime — it's the nav-debug tool the
-[diagnose-nav-from-data] workflow relies on, so worth fixing, but it lives
-outside the v3 code slices. Promote to a tooling issue if nav debugging hits
-the false-negative.
+The script's pre-B8 `--clearance` mode used a symmetric `(2N+1)²` check; the server's
+former `NavGrids.erodeFootprint` used unilateral 2×2 Minkowski erosion. **Resolved** with
+the B8 landing: the server no longer uses `erodeFootprint` — it uses
+`NavGrids.clearanceField` + cost-weighted Dijkstra. The script now mirrors the server via
+`--soft-clearance N --soft-penalty P` (the same `+penalty × max(0, N − clearance)` math)
+and emits `--md HALF` markdown tables for in-place verification.
 
 ### B4 — LOW-severity perf micro-opts (review, deferred per PRD out-of-scope)
 
@@ -222,52 +191,46 @@ debug HUD, and at least one ADR amendment. Likely its own PRD (`bot-ai-v4` or
 `bot-tuning-cascade`) rather than a single v3 issue. Risk: standard — no new
 research, but the ADR-0014 tension needs a decision before authoring slices.
 
-### B11 — Flow-field erosion treatment for multi-cell animated tiles (2×2 medium asteroids)
+### B13 — Cover-fire through pinched holes (nav-vs-fire decoupling)
 
-Source: surfaced 2026-05-28 during the asteroid→mworld migration (`LegacyMapProjector`
-slice #3b). The 2×2 medium asteroid is one logical obstacle realised as 4 cells:
-one carries `ANIMATED_ASTEROID_MEDIUM_BLOCK_TYPE` (drives the 2×2 quad + animation),
-the other three carry `INVISIBLE_BLOCK_TYPE` purely for collision spillover. Same
-shape will repeat for any future >1-cell animated tile.
+Source: surfaced 2026-05-28 while landing the hull-pinch mask (B8 regression fix). The
+pinch detection masks cells the hull-2 ship physically can't occupy *for routing* — bots
+won't try to fly through 1-cell-tall slots between walls. But a pinched hole in a wall
+is still a viable **firing aperture**: weapons (bullets, bombs) have a much smaller
+collision radius than the hull and routinely pass through gaps the hull can't.
 
-**Why the bot nav cares:**
+**Desired behaviour:** when an enemy is on the other side of a pinched hole that LoS can
+peek through, the bot should be able to (a) fly up to the cover hole on its own side,
+(b) fire when the projectile path is clear, and (c) retreat / orbit on its side without
+trying to traverse the hole. The fire decision is decoupled from the nav decision.
 
-- `ArenaSpatialFields.forArena` builds the routing grid via
-  `NavGrids.erodeFootprint(passable, HULL_FOOTPRINT_CELLS=2)`. Each of the 4
-  cells is treated as a wall, so erosion blanks a 2-cell ring around *each* cell
-  individually — the cluster's no-go zone ends up wider than the canonical
-  entity-asteroid path (where over2Radius=1.0 was the center-radius and erosion
-  was a single application around that point).
-- If anything in the bot nav stack later branches on tile-id (vs treating any
-  solid block as "wall"), the 4-cell cluster looks like 1 asteroid + 3 walls
-  instead of 1 cohesive asteroid. None of the current substrate does that, but
-  flag for future code that surfaces "asteroid" semantics to bots
-  (e.g. capability-affinity scoring that prefers cover near asteroids).
-- The "binary feels" leaf-snap the user flagged on lit-shader load (Inc #2 of
-  the migration) is mblock's per-leaf re-mesh — separate issue, but the
-  expanded erosion footprint may interact with it badly if a 2×2 cluster
-  straddles a leaf boundary.
+**Why this isn't free today:**
 
-**Direction (when picked up):** lives alongside [B8](#b8--hull-erosion-marks-open-cells-next-to-walls-as-impassable) (general
-hull-erosion over-conservatism) — both want the same shift from hard erode →
-soft clearance cost. For 2×2 clusters specifically:
+- The nav layer correctly says "you can't go there" (hull-pinch mask + the LoS-occluded
+  gate `EngageBehaviour` already enforces stop a wall-occluded engagement).
+- But `HasLineOfSight` uses cell-passable LoS (`NavGrids.lineOfSight`); a pinched cell IS
+  passable in the raw grid, so LoS through the hole reports clear — good.
+- What's missing: a way for the bot to (1) recognise a useful firing aperture on its side
+  of an otherwise-impassable obstacle, (2) navigate to the firing position, (3) fire
+  through the hole, (4) NOT try to chase the target through the same hole.
 
-1. **Recognise the cluster.** Identify groups of 4 solid cells in 2×2 pattern
-   where the corner-anchor cell is `ANIMATED_ASTEROID_MEDIUM_BLOCK_TYPE` and
-   treat them as one obstacle for erosion. Cheap detection: look up the corner
-   cell's type before applying per-cell erosion.
-2. **Single erosion pass per cluster.** Apply `HULL_FOOTPRINT_CELLS` once
-   around the cluster's outer boundary, not once per cell. Reduces the no-go
-   zone to match the canonical entity-asteroid path.
-3. **Generalise.** Any future multi-cell animated tile (3×3 boss asteroid,
-   N×M decorative pad) registers its footprint shape once; the nav layer reads
-   it from the block-type metadata. Avoid scattering "asteroid_medium" magic
-   constants across nav code.
+**Direction (sketch — when picked up):**
 
-**Pairs with:** [B8](#b8--hull-erosion-marks-open-cells-next-to-walls-as-impassable)
-(hull-erosion design); the migration commit that introduced multi-cell asteroids;
-ADR-0011 (flow-field nav) — may want an amendment if the cluster-aware erosion
-ships.
+- A "cover-fire spot" is a cell on the bot's side that has LoS through one or more pinched
+  cells to a target. Detect at planner cadence (cheap broadphase LoS sample).
+- New `Behaviour` (or extension of `EngageBehaviour`): when the target is on the wrong side
+  of the hull-impassable cluster but LoS clears, emit a `NavigateToTile` toward the best
+  firing spot + delegate fire to the existing weapon BT once in range/aim.
+- Decouple "engage means chase" from "engage means fire from cover" — the `Engage(target)`
+  goal stays; the BT branch chooses between approach-and-shoot vs cover-fire based on
+  whether the target is route-reachable.
+
+**Pairs with:** the hull-pinch B8 follow-up landing (the mask creates the "wrong side"
+distinction); ADR-0013 (tactical goals — likely doesn't need an amendment, but the new
+behaviour is a Phase-1+ catalog candidate — see `.scratch/bot-behaviour-catalog/`).
+
+**Sizing:** moderate — needs a cover-spot detector, a behaviour, and BT-branch logic.
+**Risk:** standard — gameplay-visible but no architectural risk.
 
 ### Note on `TurfObjective.HOLD_POSITION_BIAS` (preserved from B12)
 

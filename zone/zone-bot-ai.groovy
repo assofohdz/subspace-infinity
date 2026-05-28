@@ -85,12 +85,16 @@ botAi {
     wallRepulsionRadius    2
     wallObstacleRadius     0.5
 
-    // Flow-field nav (v3 #02.D). goalSnapRadius lets a target in a non-navigable slot route to the
-    // nearest passable cell within. hullFootprintCells is the Minkowski erosion applied to the
-    // routing grid so the diameter-2 hull only routes where it fits. combatSplatRadius is distinct
-    // from densityKernelRadius (above) so the fire-heatmap can be tuned independently.
+    // Flow-field nav (v3 #02.D, B8). goalSnapRadius lets a target in a non-navigable slot route to
+    // the nearest passable cell within. hullFootprintCells is the soft-clearance threshold: cells
+    // whose cells-to-nearest-wall < this incur an extra step cost of clearancePenalty × deficit,
+    // so the flow prefers centre-of-corridor without forbidding wall-adjacent cells (the diameter-2
+    // hull can still squeeze through tight slots). combatSplatRadius is distinct from
+    // densityKernelRadius (above) so the fire-heatmap can be tuned independently. Replaces the
+    // hard NavGrids.erodeFootprint approach — see .scratch/flowfield-corner-analysis.md.
     navGoalSnapRadius      24
     navHullFootprintCells  2
+    navClearancePenalty    2.0
     combatSplatRadius      6
 
     // Behaviour-fit floors (v3 #02.E). search/hold-position/follow-traffic each score with a

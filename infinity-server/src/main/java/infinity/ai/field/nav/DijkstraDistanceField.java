@@ -10,7 +10,15 @@ import java.util.Queue;
  * Single-source Dijkstra distance field from a goal cell over a passability grid, 8-connected
  * with octile costs and no-corner-cutting (a diagonal step is rejected unless both shared
  * orthogonal neighbours are passable). Built eagerly at construction. The grid is indexed
- * {@code passable[y][x]}; one tile = one world unit. See ADR-0011.
+ * {@code passable[y][x]}; one tile = one world unit.
+ *
+ * <p>Optional soft-clearance cost (bot-ai-v3 B8 + B11): when a {@code clearance} grid and
+ * {@code hullFootprint}/{@code penalty} are supplied, each step's cost is the octile base
+ * <em>plus</em> {@code penalty × max(0, hullFootprint − clearance[dest])}. Wall-adjacent cells
+ * stay navigable but cost more, so the flow prefers centre-of-corridor without forbidding
+ * the edges. Replaces the prior hard-erosion approach (which over-blanked actually-flyable
+ * cells near walls + around multi-cell obstacle clusters like the 2×2 medium asteroid).
+ * See ADR-0011 + the corner-analysis case in {@code .scratch/flowfield-corner-analysis.md}.
  */
 public final class DijkstraDistanceField implements DistanceField {
 
@@ -23,18 +31,38 @@ public final class DijkstraDistanceField implements DistanceField {
   private final int goalX;
   private final int goalY;
   private final boolean[][] passable;
+  private final int[][] clearance;
+  private final int hullFootprint;
+  private final double penalty;
   private final double[] dist;
 
-  /**
-   * @param passable row-major {@code [y][x]} traversability grid — pass a footprint-eroded grid
-   *     ({@code NavGrids.erodeFootprint}) for hull-aware routing.
-   */
+  /** Back-compat: flat unit cost (no soft-clearance). */
   public DijkstraDistanceField(final int goalX, final int goalY, final boolean[][] passable) {
+    this(goalX, goalY, passable, null, 0, 0.0);
+  }
+
+  /**
+   * @param passable row-major {@code [y][x]} traversability grid.
+   * @param clearance row-major {@code [y][x]} cells-to-nearest-wall (see {@code NavGrids.clearanceField});
+   *     {@code null} disables the cost penalty.
+   * @param hullFootprint clearance threshold below which the step incurs a penalty.
+   * @param penalty additional step cost per unit clearance-deficit.
+   */
+  public DijkstraDistanceField(
+      final int goalX,
+      final int goalY,
+      final boolean[][] passable,
+      final int[][] clearance,
+      final int hullFootprint,
+      final double penalty) {
     this.height = passable.length;
     this.width = this.height == 0 ? 0 : passable[0].length;
     this.goalX = goalX;
     this.goalY = goalY;
     this.passable = passable;
+    this.clearance = clearance;
+    this.hullFootprint = hullFootprint;
+    this.penalty = penalty;
     this.dist = new double[this.width * this.height];
     java.util.Arrays.fill(this.dist, Double.POSITIVE_INFINITY);
     if (passable(goalX, goalY)) {
@@ -71,7 +99,14 @@ public final class DijkstraDistanceField implements DistanceField {
     if (diagonal && (!passable(x + dx, y) || !passable(x, y + dy))) {
       return; // no corner cutting
     }
-    final double nd = d + (diagonal ? DIAGONAL : 1.0);
+    double step = diagonal ? DIAGONAL : 1.0;
+    if (this.clearance != null) {
+      final int deficit = this.hullFootprint - this.clearance[ny][nx];
+      if (deficit > 0) {
+        step += this.penalty * deficit;
+      }
+    }
+    final double nd = d + step;
     final int ni = index(nx, ny);
     if (nd < this.dist[ni]) {
       this.dist[ni] = nd;

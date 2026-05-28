@@ -1,5 +1,17 @@
 # Hull-aware flow-field around (473,346) — trench pub2025.lvl (2x2-eroded routing)
 
+> **Resolved 2026-05-28 by bot-ai-v3 B8 + B11.** Hard `NavGrids.erodeFootprint` replaced by
+> soft-clearance cost in `DijkstraDistanceField`: wall-adjacent cells stay navigable but
+> incur `navClearancePenalty × (navHullFootprintCells − clearance)` per step. The corner
+> below — `dist(S→G) = ∞` under hard erosion — now returns a finite distance and a gradient
+> pointing through the close wall-adjacent gap toward the goal. Same fix covers the 2×2
+> medium-asteroid cluster case (B11) without cluster-specific recognition.
+> Validated on a synthetic 12×12 L-corner: hard `∞` → soft `11.24` with `←` gradient at S.
+> See `scripts/lvl_flowfield_check.py --soft-clearance N --soft-penalty P --md HALF` for
+> in-place verification on any .lvl. Original analysis kept below for context.
+
+---
+
 - Flag goal (512,269) route-navigable=**False** → snapped to nearest hull-fit cell **(511, 268)**
 - Corner (473,346): raw-passable=**True**, route-navigable(2x2 fits)=**True**, dist→flag(route)=**168.56854249492406**
 - gradient at corner = (+0.82,+0.58) ↘
@@ -67,3 +79,23 @@
 | **353** | ↑ | ↑ | ↑ | ↑ | ↑ | ↑ | ▓ | ▓ | → | → | ↘ | ↘ | ↘ | ↘ | ↘ | ↘ | ↘ |
 | **354** | ↑ | ↑ | ↑ | ↑ | ↑ | ↑ | ▓ | ▓ | ▓ | ▓ | → | ↘ | ↘ | ↘ | ↘ | ↘ | ↘ |
 
+### raw passability (█=wall, ·=open)
+| y\x | 465 | 466 | 467 | 468 | 469 | 470 | 471 | 472 | 473 | 474 | 475 | 476 | 477 | 478 | 479 | 480 | 481 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **338** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **339** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **340** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **341** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **342** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **343** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **344** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **345** | · | · | · | · | · | · | · | · | · | · | █ | █ | █ | █ | █ | █ | █ |
+| **346** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **347** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **348** | · | · | · | · | · | · | · | · | · | · | █ | █ | █ | █ | █ | █ | █ |
+| **349** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **350** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **351** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **352** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **353** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
+| **354** | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · | · |
