@@ -53,10 +53,6 @@ public final class ArenaSpatialFields {
   // Sentinel for "fields have never refreshed" — the first cadence check refreshes unconditionally.
   private static final long UNREFRESHED = Long.MIN_VALUE;
 
-  // Ship footprint (cells) for hull-aware route erosion: the diameter-2 ship needs a 2x2 of open
-  // cells to occupy. Tuning knob — promote to zone-bot-ai.groovy if larger hulls ever need it.
-  private static final int HULL_FOOTPRINT_CELLS = 2;
-
   private final EntityData ed;
   private final PhysicsSpace<EntityId, MBlockShape> space;
   private final MapSystem mapSystem;
@@ -246,7 +242,7 @@ public final class ArenaSpatialFields {
       // fits, so flow fields never route through 1-wide slots / diagonal pinches the hull can't enter.
       // Raw `passable` stays for physical passableAt/LoS. See ADR-0011 / NavGrids.erodeFootprint.
       final boolean[][] routePassable =
-          infinity.ai.field.NavGrids.erodeFootprint(passable, HULL_FOOTPRINT_CELLS);
+          infinity.ai.field.NavGrids.erodeFootprint(passable, cfg.navHullFootprintCells());
       final AsyncNavigationFields fields =
           new AsyncNavigationFields(
               passable,
@@ -254,7 +250,8 @@ public final class ArenaSpatialFields {
               this.navBuilder,
               System::nanoTime,
               cfg.navFieldTtlMs() * 1_000_000L,
-              cfg.navMaxFields());
+              cfg.navMaxFields(),
+              cfg.navGoalSnapRadius());
       final Vec3d min = this.mapSystem.getMapBoundsMin(arena);
       final int originX = (int) Math.floor(min.x);
       final int originZ = (int) Math.floor(min.z);
@@ -268,7 +265,7 @@ public final class ArenaSpatialFields {
           new OpportunityField(width, height, originX, originZ, cfg.opportunityRadius());
       final CombatDensityField combat =
           new CombatDensityField(
-              width, height, originX, originZ, cfg.densityKernelRadius(), cfg.combatDecayPerCadence());
+              width, height, originX, originZ, cfg.combatSplatRadius(), cfg.combatDecayPerCadence());
       // Pool extra geometric candidates so runtime heatmap re-ranking has material; pin the top-N
       // (geometric, traffic-independent — static flow-field goals built at arena load).
       final int topN = cfg.chokepointTopN();

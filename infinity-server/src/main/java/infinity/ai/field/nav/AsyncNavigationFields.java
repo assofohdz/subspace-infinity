@@ -30,10 +30,6 @@ import java.util.function.LongSupplier;
  */
 public final class AsyncNavigationFields implements NavigationFields {
 
-  // A goal in a non-navigable slot (e.g. a turf flag the hull can't reach) snaps to the nearest
-  // route-navigable cell within this radius — bots route to the closest cell they fit and hold there.
-  private static final int GOAL_SNAP_RADIUS = 24;
-
   // Raw passability (physical walls) for line-of-sight + WallRepulsion; the route grid is the
   // footprint-eroded grid (NavGrids.erodeFootprint) the Dijkstra fields build on so the diameter-2
   // hull only routes where it fits. See ADR-0011.
@@ -43,6 +39,9 @@ public final class AsyncNavigationFields implements NavigationFields {
   private final LongSupplier nowNanos;
   private final long ttlNanos;
   private final int maxTransient;
+  // Goal-snap radius (tile cells) — when a target sits in a non-navigable slot, snap to the nearest
+  // route-navigable cell within this radius. Sourced from ZoneBotAiConfig at construction.
+  private final int goalSnapRadius;
   private final Map<Long, Entry> cache = new ConcurrentHashMap<>();
 
   /** Convenience: no hull erosion (route grid == raw). Used by tests / non-routing callers. */
@@ -51,8 +50,9 @@ public final class AsyncNavigationFields implements NavigationFields {
       final Executor builder,
       final LongSupplier nowNanos,
       final long ttlNanos,
-      final int maxTransient) {
-    this(passable, passable, builder, nowNanos, ttlNanos, maxTransient);
+      final int maxTransient,
+      final int goalSnapRadius) {
+    this(passable, passable, builder, nowNanos, ttlNanos, maxTransient, goalSnapRadius);
   }
 
   public AsyncNavigationFields(
@@ -61,13 +61,15 @@ public final class AsyncNavigationFields implements NavigationFields {
       final Executor builder,
       final LongSupplier nowNanos,
       final long ttlNanos,
-      final int maxTransient) {
+      final int maxTransient,
+      final int goalSnapRadius) {
     this.passable = passable;
     this.routePassable = routePassable;
     this.builder = builder;
     this.nowNanos = nowNanos;
     this.ttlNanos = ttlNanos;
     this.maxTransient = maxTransient;
+    this.goalSnapRadius = goalSnapRadius;
   }
 
   @Override
@@ -86,7 +88,7 @@ public final class AsyncNavigationFields implements NavigationFields {
     // bots head to the closest cell they fit — otherwise a flag in a tight slot is all-∞ ("unreach").
     final int[] g =
         infinity.ai.field.NavGrids.nearestPassable(
-            this.routePassable, rawGoalX, rawGoalY, GOAL_SNAP_RADIUS);
+            this.routePassable, rawGoalX, rawGoalY, this.goalSnapRadius);
     final int goalX = g[0];
     final int goalY = g[1];
     final long k = key(goalX, goalY);

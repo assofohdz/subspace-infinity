@@ -109,22 +109,9 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   // is available — preserved for safety; live arenas should always have BotBrainConfig.
   private static final double DEFAULT_PERCEPTION_RADIUS = 30.0;
 
-  // AvoidObstacles look-ahead corridor (world units). Roughly 5 cells of lookahead at
-  // GRID_CELL_SIZE = 1; tune per arena via BotBrainConfig once slice #08 lands.
-  private static final double LOOK_AHEAD_DISTANCE = 5.0;
-
-  // Half-width of the avoidance corridor (world units). Wider = avoid earlier;
-  // narrower = squeeze through gaps. 0.6 ~= ship-and-a-half.
-  private static final double CORRIDOR_HALF_WIDTH = 0.6;
-
-  // AvoidObstacles thrust magnitude when the reactive steer overrides the BT decision.
-  private static final double AVOID_THRUST = 1.0;
-
-  // Oversteer damping floor — minimum thrust multiplier even at max turn rate. Empirical:
-  // 0.3 keeps the bot moving (so it doesn't stall mid-turn) while reducing momentum
-  // overshoot enough that sharp turns actually clear. See "Bots oversteer at high thrust"
-  // entry in .scratch/code-todos-backlog.md.
-  private static final double OVERSTEER_THRUST_FLOOR = 0.3;
+  // Reactive-steering knobs (lookAhead/corridorHalfWidth/avoidThrust/oversteerThrustFloor/
+  // wallRepulsionRadius) now live on ZoneBotAiConfig — see v3 #02.B. AvoidObstacles +
+  // WallRepulsion are constructed in initialize() from the zoneBotAi snapshot.
 
   private EntityData ed;
   private Perception perception;
@@ -146,15 +133,12 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   // Dev-only flow-field debug overlay sampler (player ships); driven on the density cadence.
   private FlowFieldDebugSampler flowDebug;
   private final BrainRegistry brainRegistry = new BrainRegistry();
-  // Shared reactive layer — stateless across bots, so one instance suffices.
-  private final AvoidObstacles avoidObstacles =
-      new AvoidObstacles(LOOK_AHEAD_DISTANCE, CORRIDOR_HALF_WIDTH, AVOID_THRUST);
+  // Shared reactive layer — stateless across bots, so one instance suffices. Constructed in
+  // initialize() from the zoneBotAi snapshot; live-reload of these knobs takes effect on restart.
+  private AvoidObstacles avoidObstacles;
   // Omnidirectional grid wall-repulsion (ADR-0011 #03): escapes corners/wall-grinding the
-  // forward-only AvoidObstacles ray can't see. 2-cell reach (ships are radius-1) — narrowed from 3 so
-  // it fires only when a wall is genuinely close, not on every bit of nearby structure (it hard-
-  // overrides nav, so over-firing yanks bots off their flow heading). Full thrust for the escape.
-  private final infinity.ai.steer.WallRepulsion wallRepulsion =
-      new infinity.ai.steer.WallRepulsion(2, AVOID_THRUST);
+  // forward-only AvoidObstacles ray can't see. Reach + thrust read from ZoneBotAiConfig.
+  private infinity.ai.steer.WallRepulsion wallRepulsion;
 
   @Override
   protected void initialize() {
@@ -181,6 +165,14 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     this.selectableBehaviours =
         behaviours.stream().map(Behaviour::name).collect(Collectors.toUnmodifiableSet());
     this.brainRegistry.register(new CombatantBrain());
+
+    final ZoneBotAiConfig zoneCfg = this.zoneBotAi.get();
+    this.avoidObstacles =
+        new AvoidObstacles(
+            zoneCfg.lookAheadDistance(), zoneCfg.corridorHalfWidth(), zoneCfg.avoidThrust());
+    this.wallRepulsion =
+        new infinity.ai.steer.WallRepulsion(
+            zoneCfg.wallRepulsionRadius(), zoneCfg.avoidThrust());
   }
 
   @Override
@@ -632,11 +624,12 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   /**
    * Couples thrust magnitude to turn magnitude — sharp turns ease off thrust so
    * momentum doesn't overshoot the new heading. Applied to whatever intent reached us
-   * (BT result or AvoidObstacles override). Factor floors at
-   * {@link #OVERSTEER_THRUST_FLOOR} so the bot doesn't stall mid-turn.
+   * (BT result or AvoidObstacles override). Factor floors at {@code oversteerThrustFloor}
+   * (zone-bot-ai.groovy) so the bot doesn't stall mid-turn.
    */
-  private static void dampOversteer(final Vec3d move) {
-    final double factor = Math.max(OVERSTEER_THRUST_FLOOR, 1.0 - Math.abs(move.x));
+  private void dampOversteer(final Vec3d move) {
+    final double factor =
+        Math.max(this.zoneBotAi.get().oversteerThrustFloor(), 1.0 - Math.abs(move.x));
     move.z *= factor;
   }
 

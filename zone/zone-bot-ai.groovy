@@ -72,4 +72,24 @@ botAi {
     // (2·radius+1)² patch of flow vectors around every player each density cadence and syncs it.
     flowFieldDebug       true
     flowFieldDebugRadius 10
+
+    // Reactive-steering knobs (v3 #02.B+C). lookAheadDistance is shared between the brain's
+    // AvoidObstacles forward corridor and PerceptionService's wall-ray cast (world units). Wider
+    // corridorHalfWidth = avoid earlier; narrower = squeeze through gaps. avoidThrust feeds both
+    // AvoidObstacles + WallRepulsion when they override BT steering. oversteerThrustFloor (0..1)
+    // floors the sharp-turn thrust damp so the bot doesn't stall mid-pivot.
+    lookAheadDistance      5.0
+    corridorHalfWidth      0.6
+    avoidThrust            1.0
+    oversteerThrustFloor   0.3
+    wallRepulsionRadius    2
+    wallObstacleRadius     0.5
+
+    // Flow-field nav (v3 #02.D). goalSnapRadius lets a target in a non-navigable slot route to the
+    // nearest passable cell within. hullFootprintCells is the Minkowski erosion applied to the
+    // routing grid so the diameter-2 hull only routes where it fits. combatSplatRadius is distinct
+    // from densityKernelRadius (above) so the fire-heatmap can be tuned independently.
+    navGoalSnapRadius      24
+    navHullFootprintCells  2
+    combatSplatRadius      6
 }

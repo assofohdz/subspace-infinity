@@ -107,6 +107,15 @@ public class GroovyZoneBotAiLoader {
     private double supportRadiusUnits = ZoneBotAiConfig.DEFAULTS.supportRadiusUnits();
     private double isolationReference = ZoneBotAiConfig.DEFAULTS.isolationReference();
     private double threatReference = ZoneBotAiConfig.DEFAULTS.threatReference();
+    private double lookAheadDistance = ZoneBotAiConfig.DEFAULTS.lookAheadDistance();
+    private double corridorHalfWidth = ZoneBotAiConfig.DEFAULTS.corridorHalfWidth();
+    private double avoidThrust = ZoneBotAiConfig.DEFAULTS.avoidThrust();
+    private double oversteerThrustFloor = ZoneBotAiConfig.DEFAULTS.oversteerThrustFloor();
+    private int wallRepulsionRadius = ZoneBotAiConfig.DEFAULTS.wallRepulsionRadius();
+    private double wallObstacleRadius = ZoneBotAiConfig.DEFAULTS.wallObstacleRadius();
+    private int navGoalSnapRadius = ZoneBotAiConfig.DEFAULTS.navGoalSnapRadius();
+    private int navHullFootprintCells = ZoneBotAiConfig.DEFAULTS.navHullFootprintCells();
+    private int combatSplatRadius = ZoneBotAiConfig.DEFAULTS.combatSplatRadius();
 
     ZoneBotAiConfigBuilder() {}
 
@@ -304,6 +313,64 @@ public class GroovyZoneBotAiLoader {
       this.threatReference = positive("threatReference", value, this.threatReference);
     }
 
+    /** Reactive-steering forward look-ahead (world units); must be {@code > 0}. */
+    public void lookAheadDistance(final Number value) {
+      this.lookAheadDistance = positive("lookAheadDistance", value, this.lookAheadDistance);
+    }
+
+    /** Half-width of the {@code AvoidObstacles} corridor (world units); must be {@code > 0}. */
+    public void corridorHalfWidth(final Number value) {
+      this.corridorHalfWidth = positive("corridorHalfWidth", value, this.corridorHalfWidth);
+    }
+
+    /** Thrust when reactive avoid / wall-repel overrides BT steering; must be {@code > 0}. */
+    public void avoidThrust(final Number value) {
+      this.avoidThrust = positive("avoidThrust", value, this.avoidThrust);
+    }
+
+    /** Min thrust multiplier at max turn rate; must be in {@code [0,1]}. */
+    public void oversteerThrustFloor(final Number value) {
+      this.oversteerThrustFloor =
+          unitFraction("oversteerThrustFloor", value, this.oversteerThrustFloor);
+    }
+
+    /** Grid wall-repulsion reach in tile cells (1 = adjacent only); must be {@code >= 1}. */
+    public void wallRepulsionRadius(final Number value) {
+      this.wallRepulsionRadius = positiveInt("wallRepulsionRadius", value, this.wallRepulsionRadius);
+    }
+
+    /** Perception wall-hit obstacle radius (world units); must be {@code > 0}. */
+    public void wallObstacleRadius(final Number value) {
+      this.wallObstacleRadius = positive("wallObstacleRadius", value, this.wallObstacleRadius);
+    }
+
+    /** Async flow-field goal snap radius (tile cells); must be {@code >= 1}. */
+    public void navGoalSnapRadius(final Number value) {
+      this.navGoalSnapRadius = positiveInt("navGoalSnapRadius", value, this.navGoalSnapRadius);
+    }
+
+    /** Routing-grid Minkowski hull-footprint erosion (tile cells); must be {@code >= 1}. */
+    public void navHullFootprintCells(final Number value) {
+      this.navHullFootprintCells =
+          positiveInt("navHullFootprintCells", value, this.navHullFootprintCells);
+    }
+
+    /** Combat heatmap splat radius (tile cells); must be {@code >= 1}. */
+    public void combatSplatRadius(final Number value) {
+      this.combatSplatRadius = positiveInt("combatSplatRadius", value, this.combatSplatRadius);
+    }
+
+    private static int positiveInt(final String key, final Number value, final int current) {
+      if (value == null) {
+        return current;
+      }
+      final int v = value.intValue();
+      if (v < 1) {
+        throw new IllegalArgumentException(key + " must be >= 1; got " + value);
+      }
+      return v;
+    }
+
     private static double positive(final String key, final Number value, final double current) {
       if (value == null) {
         return current;
@@ -351,7 +418,16 @@ public class GroovyZoneBotAiLoader {
           bountyReference,
           supportRadiusUnits,
           isolationReference,
-          threatReference);
+          threatReference,
+          lookAheadDistance,
+          corridorHalfWidth,
+          avoidThrust,
+          oversteerThrustFloor,
+          wallRepulsionRadius,
+          wallObstacleRadius,
+          navGoalSnapRadius,
+          navHullFootprintCells,
+          combatSplatRadius);
     }
   }
 }

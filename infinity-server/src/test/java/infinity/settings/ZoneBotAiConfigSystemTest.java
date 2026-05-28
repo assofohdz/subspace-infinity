@@ -49,7 +49,8 @@ public class ZoneBotAiConfigSystemTest {
       final ZoneBotAiConfig second =
           new ZoneBotAiConfig(
               500L, 0.20, 0.40, 0.10, 8000L, 8, 500L, 4, 25, 10, 0.8, 6, 5, 0.4, 0.5, 0.2, true, 8,
-              25.0, 600.0, 14.0, 35.0, 2.5);
+              25.0, 600.0, 14.0, 35.0, 2.5,
+              6.0, 0.7, 0.9, 0.25, 3, 0.4, 32, 3, 8);
       final SequencedLoader loader = new SequencedLoader(first, second);
 
       final ZoneBotAiConfigSystem sys =

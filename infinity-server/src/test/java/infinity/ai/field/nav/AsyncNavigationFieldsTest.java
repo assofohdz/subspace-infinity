@@ -19,6 +19,7 @@ public class AsyncNavigationFieldsTest {
 
   private static final long TTL = 5_000_000_000L; // 5s
   private static final int MAX_TRANSIENT = 4;
+  private static final int GOAL_SNAP = 24;
 
   private ManualExecutor exec;
   private AtomicLong clock;
@@ -28,7 +29,7 @@ public class AsyncNavigationFieldsTest {
   public void setUp() {
     exec = new ManualExecutor();
     clock = new AtomicLong(1_000L);
-    nav = new AsyncNavigationFields(open(5), exec, clock::get, TTL, MAX_TRANSIENT);
+    nav = new AsyncNavigationFields(open(5), exec, clock::get, TTL, MAX_TRANSIENT, GOAL_SNAP);
   }
 
   @Test
@@ -58,7 +59,7 @@ public class AsyncNavigationFieldsTest {
     // Jagged grid (null row) makes the Dijkstra build throw → future completes exceptionally.
     final AsyncNavigationFields broken =
         new AsyncNavigationFields(
-            new boolean[][] {{true, true}, null}, exec, clock::get, TTL, MAX_TRANSIENT);
+            new boolean[][] {{true, true}, null}, exec, clock::get, TTL, MAX_TRANSIENT, GOAL_SNAP);
     assertSame(DistanceField.EMPTY, broken.fieldFor(0, 0));
     exec.runAll(); // build fails
     final int afterFirst = exec.submitted;

@@ -24,6 +24,8 @@ import infinity.es.ship.BotShip;
 import infinity.es.ship.Energy;
 import infinity.es.ship.EnergyStats;
 import infinity.es.ship.PlayerShip;
+import infinity.config.ZoneBotAiConfig;
+import infinity.settings.ZoneBotAiConfigSystem;
 import infinity.systems.BaseInfinitySystem;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,14 +40,8 @@ import java.util.List;
  */
 public final class PerceptionService extends BaseInfinitySystem implements Perception {
 
-  // Forward-ray lookahead in world units. Each MBlock cell is 1 world unit, so 5.0 ≈
-  // 5 cells of lookahead — enough reaction time at typical ship speeds. Note
-  // {@link InfinityConstants#GRID_CELL_SIZE} is the LEAF size (chunk grouping), NOT the
-  // per-cell world dimension; do not multiply it in here.
-  private static final double WALL_LOOK_AHEAD = 5.0;
-
-  // Radius for a synthetic wall {@link NearbyObstacle} — half-extent of a 1×1×1 MBlock.
-  private static final double WALL_OBSTACLE_RADIUS = 0.5;
+  // Forward-ray lookahead + obstacle radius now live on ZoneBotAiConfig — see v3 #02.C.
+  // lookAheadDistance is shared with BotBrainSystem's AvoidObstacles (consolidated).
 
   // Y level of the ray cast against the voxel world. Walls placed by
   // LegacyMapProjector occupy cell Y=1 → world Y in [1.0, 2.0]. GAMEPLAY_Y (1.0) is the
@@ -57,6 +53,7 @@ public final class PerceptionService extends BaseInfinitySystem implements Perce
   private EntityData ed;
   private PhysicsSpace<EntityId, MBlockShape> space;
   private MBlockCollisionSystem<EntityId> blockCollision;
+  private ZoneBotAiConfigSystem zoneBotAi;
 
   @Override
   protected void initialize() {
@@ -64,6 +61,7 @@ public final class PerceptionService extends BaseInfinitySystem implements Perce
     @SuppressWarnings("unchecked")
     final MPhysSystem<MBlockShape> physics = requireSystem(MPhysSystem.class);
     this.space = physics.getPhysicsSpace();
+    this.zoneBotAi = requireSystem(ZoneBotAiConfigSystem.class);
     // MBlockCollisionSystem.rayIterator is the proper voxel-world ray API; the base
     // CollisionSystem.queryWorldHits is stubbed upstream for MBlock worlds.
     this.blockCollision = (MBlockCollisionSystem<EntityId>) this.space.getCollisionSystem();
@@ -187,10 +185,11 @@ public final class PerceptionService extends BaseInfinitySystem implements Perce
     forward.normalizeLocal();
     final Vec3d origin = new Vec3d(self.position().x, WALL_RAY_Y, self.position().z);
     final Rayd ray = new Rayd(origin, forward);
-    final BlockColliderIterator hits = this.blockCollision.rayIterator(ray, WALL_LOOK_AHEAD);
+    final ZoneBotAiConfig cfg = this.zoneBotAi.get();
+    final BlockColliderIterator hits = this.blockCollision.rayIterator(ray, cfg.lookAheadDistance());
     if (hits.hasNext()) {
       final BlockIterator.Intersection hit = hits.next();
-      obstacles.add(new NearbyObstacle(hit.getPoint(), WALL_OBSTACLE_RADIUS));
+      obstacles.add(new NearbyObstacle(hit.getPoint(), cfg.wallObstacleRadius()));
     }
   }
 }

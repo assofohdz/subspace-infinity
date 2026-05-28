@@ -55,6 +55,28 @@ package infinity.config;
  *   <li>{@code threatReference} — ADR-0016 {@code threat_ref}: blended enemy-threat field value that
  *       saturates {@code threat_density} (and bottoms out {@code approach_safety}) — i.e. roughly how
  *       many overlapping enemy weapon-coverage splats count as "fully dangerous"</li>
+ *   <li>{@code lookAheadDistance} — reactive-steering forward look-ahead (world units) — used by
+ *       both the brain's {@code AvoidObstacles} corridor probe and {@code PerceptionService}'s
+ *       wall-ray cast. Consolidates the old duplicate {@code LOOK_AHEAD_DISTANCE}/{@code WALL_LOOK_AHEAD}
+ *       Java constants</li>
+ *   <li>{@code corridorHalfWidth} — half-width of the {@code AvoidObstacles} look-ahead corridor
+ *       (world units). Wider = avoid earlier; narrower = squeeze through gaps</li>
+ *   <li>{@code avoidThrust} — thrust magnitude when reactive avoid / wall-repel overrides BT steering</li>
+ *   <li>{@code oversteerThrustFloor} — min thrust multiplier at max turn rate (empirical damp:
+ *       prevents stall during sharp turns while reducing momentum overshoot)</li>
+ *   <li>{@code wallRepulsionRadius} — omnidirectional grid wall-repulsion reach in tile cells
+ *       (1 = adjacent only; 2 = also-touch diagonal). Tighter = fires only on real wall-grind,
+ *       avoids hijacking flow on every adjacent block</li>
+ *   <li>{@code wallObstacleRadius} — perception wall-ray hit "obstacle radius" (world units);
+ *       feeds avoidance scoring</li>
+ *   <li>{@code navGoalSnapRadius} — radius (tile cells) the async flow-field builder snaps a target
+ *       goal cell into the nearest passable cell within</li>
+ *   <li>{@code navHullFootprintCells} — Minkowski erosion footprint (tile cells) applied to the
+ *       routing grid so the flow field treats wall-adjacent cells the bot's hull can't fit through
+ *       as impassable. Increase for larger hulls</li>
+ *   <li>{@code combatSplatRadius} — splat radius (tile cells) each fire event contributes to the
+ *       combat heatmap; separate from {@code densityKernelRadius} so combat-pull can be tuned
+ *       independently of allied/enemy positional density</li>
  * </ul>
  */
 public record ZoneBotAiConfig(
@@ -80,16 +102,27 @@ public record ZoneBotAiConfig(
     double bountyReference,
     double supportRadiusUnits,
     double isolationReference,
-    double threatReference) {
+    double threatReference,
+    double lookAheadDistance,
+    double corridorHalfWidth,
+    double avoidThrust,
+    double oversteerThrustFloor,
+    int wallRepulsionRadius,
+    double wallObstacleRadius,
+    int navGoalSnapRadius,
+    int navHullFootprintCells,
+    int combatSplatRadius) {
 
   public static final ZoneBotAiConfig DEFAULTS =
       new ZoneBotAiConfig(
           150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10,
-          20.0, 500.0, 12.0, 30.0, 2.0);
+          20.0, 500.0, 12.0, 30.0, 2.0,
+          5.0, 0.6, 1.0, 0.3, 2, 0.5, 24, 2, 6);
 
   public ZoneBotAiConfig() {
     this(
         150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10,
-        20.0, 500.0, 12.0, 30.0, 2.0);
+        20.0, 500.0, 12.0, 30.0, 2.0,
+        5.0, 0.6, 1.0, 0.3, 2, 0.5, 24, 2, 6);
   }
 }
