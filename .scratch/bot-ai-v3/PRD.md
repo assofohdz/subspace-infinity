@@ -44,7 +44,7 @@ are cleanup; #06 is docs/tracker hygiene (can land anytime, no code dep).
 | # | Slice | Severity | Depends on | Status |
 |---|-------|----------|------------|--------|
 | 01 | Correctness bugs (NPE, target-thrash, role-refresh) | CRITICAL/HIGH | — | ✅ done (role-refresh: option (a) documented; v2.x event-driven reassignment still deferred) |
-| 02 | Tuning-knob migration to Groovy (~12 knobs + `BotDerivationConfig`) | HIGH | — | ready-for-agent |
+| 02 | Tuning-knob migration to Groovy (~12 knobs + `BotDerivationConfig`) | HIGH | — | ✅ done (A + B+C+D + E + F.7); F.1–F.5 deferred to [B12](BACKLOG.md#b12--api-steer-action--brain-wander-constants-v3-02f1f5-deferred); F.6 false alarm |
 | 03 | Hot-path config read → project `perceptionRadius` to component | HIGH | — | ready-for-agent |
 | 04 | Legacy package + dead-path deletion (~5,200 LOC) | HIGH | — | ready-for-agent |
 | 05 | Naming + dead-component cleanup (`MoverState`, `Steering*`) | HIGH/MEDIUM | — | ready-for-agent |

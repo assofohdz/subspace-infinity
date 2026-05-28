@@ -22,7 +22,8 @@ import org.junit.Test;
 
 public class HoldPositionBehaviourTest {
 
-  private final HoldPositionBehaviour behaviour = new HoldPositionBehaviour();
+  private final HoldPositionBehaviour behaviour =
+      new HoldPositionBehaviour(() -> infinity.config.ZoneBotAiConfig.DEFAULTS);
   private Blackboard bb;
 
   @Before

@@ -20,7 +20,8 @@ import org.junit.Test;
 
 public class FollowTrafficBehaviourTest {
 
-  private final FollowTrafficBehaviour behaviour = new FollowTrafficBehaviour();
+  private final FollowTrafficBehaviour behaviour =
+      new FollowTrafficBehaviour(() -> infinity.config.ZoneBotAiConfig.DEFAULTS);
   private Blackboard bb;
 
   @Before

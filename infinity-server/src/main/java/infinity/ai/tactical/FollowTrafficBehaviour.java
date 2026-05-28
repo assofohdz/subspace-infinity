@@ -5,7 +5,9 @@ package infinity.ai.tactical;
 import infinity.ai.MoverState;
 import infinity.ai.brain.Blackboard;
 import infinity.ai.field.TileScored;
+import infinity.config.ZoneBotAiConfig;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * {@code follow-traffic} (ADR-0012): drift toward where the action is. Candidates are the arena's
@@ -18,11 +20,12 @@ import java.util.List;
 public final class FollowTrafficBehaviour implements Behaviour {
 
   private static final String NAME = "follow-traffic";
-  // Distance falloff scale (tile cells): hotness halves ~this far from the bot.
-  private static final double DIST_DECAY_CELLS = 200.0;
-  // Fit floors: a "go where it matters" drift — yields to an in-view target, dominant when idle.
-  private static final double IDLE_FIT = 0.5;
-  private static final double ENGAGED_FIT = 0.2;
+
+  private final Supplier<ZoneBotAiConfig> cfg;
+
+  public FollowTrafficBehaviour(final Supplier<ZoneBotAiConfig> cfg) {
+    this.cfg = cfg;
+  }
 
   @Override
   public String name() {
@@ -43,11 +46,12 @@ public final class FollowTrafficBehaviour implements Behaviour {
     final int selfX = (int) Math.floor(self.position().x) - ctx.originCellX();
     final int selfY = (int) Math.floor(self.position().z) - ctx.originCellZ();
 
+    final double distDecay = this.cfg.get().followTrafficDistDecayCells();
     TileScored best = null;
     double bestScore = -1.0;
     for (final TileScored t : chokepoints) {
       final double dist = Math.hypot((double) t.x() - selfX, (double) t.y() - selfY);
-      final double score = t.score() / (1.0 + dist / DIST_DECAY_CELLS);
+      final double score = t.score() / (1.0 + dist / distDecay);
       if (score > bestScore) {
         bestScore = score;
         best = t;
@@ -63,6 +67,7 @@ public final class FollowTrafficBehaviour implements Behaviour {
 
   @Override
   public double intrinsicScore(final TacticalGoal goal, final Blackboard bb) {
-    return bb.target() == null ? IDLE_FIT : ENGAGED_FIT;
+    final ZoneBotAiConfig c = this.cfg.get();
+    return bb.target() == null ? c.followTrafficIdleFit() : c.followTrafficEngagedFit();
   }
 }

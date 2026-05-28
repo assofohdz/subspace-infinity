@@ -83,14 +83,20 @@ public final class AvoidObstacles implements Steering {
 
   /**
    * Choose the direction with the smaller-magnitude obstacle edge — turning that way
-   * costs less heading change.
+   * costs less heading change. The {@link #MIN_TURN_BIAS} kicks in when an edge already
+   * lies past centre on the chosen side (no turn would be flagged) — nudges by a small
+   * fixed amount so {@code computeReactiveTurn} still emits a non-zero correction.
    */
+  // Minimum-magnitude turn nudge when the obstacle edge has already crossed centre
+  // (so plain edge math would return 0 and the bot wouldn't react).
+  private static final double MIN_TURN_BIAS = 0.1;
+
   private static double computeBestTurn(final double leftEdge, final double rightEdge) {
     if (Math.abs(rightEdge) < Math.abs(leftEdge)) {
       // Right edge closer to center → turn left (+) past it.
-      return rightEdge < 0.0 ? 0.1 : rightEdge;
+      return rightEdge < 0.0 ? MIN_TURN_BIAS : rightEdge;
     }
     // Left edge closer to center → turn right (-) past it.
-    return leftEdge > 0.0 ? -0.1 : leftEdge;
+    return leftEdge > 0.0 ? -MIN_TURN_BIAS : leftEdge;
   }
 }

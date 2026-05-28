@@ -77,7 +77,19 @@ package infinity.config;
  *   <li>{@code combatSplatRadius} — splat radius (tile cells) each fire event contributes to the
  *       combat heatmap; separate from {@code densityKernelRadius} so combat-pull can be tuned
  *       independently of allied/enemy positional density</li>
+ *   <li>{@code searchIdleFit} / {@code searchEngagedFit} — {@code SearchBehaviour} ternary fit
+ *       (dominant when idle, negligible when a target is in view)</li>
+ *   <li>{@code holdPositionIdleFit} / {@code holdPositionEngagedFit} — {@code HoldPositionBehaviour}
+ *       ternary fit (prefer holding objective when idle, yield to combat when targeting)</li>
+ *   <li>{@code followTrafficIdleFit} / {@code followTrafficEngagedFit} — {@code FollowTrafficBehaviour}
+ *       ternary fit ("go where it matters" drift; yields to in-view target)</li>
+ *   <li>{@code followTrafficDistDecayCells} — distance-falloff scale for {@code FollowTraffic} hot-tile
+ *       re-scoring ({@code hotness / (1 + dist/decay)}); larger = farther tiles stay competitive</li>
  * </ul>
+ *
+ * <p>The three {@code *IdleFit}/{@code *EngagedFit} pairs are vestigial ternary scoring from before
+ * ADR-0016's situationalFit landed; they belong as engine-bot-ai.groovy fit blocks once those
+ * behaviours migrate to the convex-sum shape. Tracked as v3 follow-up.
  */
 public record ZoneBotAiConfig(
     long plannerCadenceMillis,
@@ -111,18 +123,27 @@ public record ZoneBotAiConfig(
     double wallObstacleRadius,
     int navGoalSnapRadius,
     int navHullFootprintCells,
-    int combatSplatRadius) {
+    int combatSplatRadius,
+    double searchIdleFit,
+    double searchEngagedFit,
+    double holdPositionIdleFit,
+    double holdPositionEngagedFit,
+    double followTrafficIdleFit,
+    double followTrafficEngagedFit,
+    double followTrafficDistDecayCells) {
 
   public static final ZoneBotAiConfig DEFAULTS =
       new ZoneBotAiConfig(
           150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10,
           20.0, 500.0, 12.0, 30.0, 2.0,
-          5.0, 0.6, 1.0, 0.3, 2, 0.5, 24, 2, 6);
+          5.0, 0.6, 1.0, 0.3, 2, 0.5, 24, 2, 6,
+          0.6, 0.1, 0.55, 0.15, 0.5, 0.2, 200.0);
 
   public ZoneBotAiConfig() {
     this(
         150L, 0.10, 0.25, 0.05, 5000L, 16, 330L, 6, 20, 8, 0.85, 5, 4, 0.5, 0.6, 0.3, false, 10,
         20.0, 500.0, 12.0, 30.0, 2.0,
-        5.0, 0.6, 1.0, 0.3, 2, 0.5, 24, 2, 6);
+        5.0, 0.6, 1.0, 0.3, 2, 0.5, 24, 2, 6,
+        0.6, 0.1, 0.55, 0.15, 0.5, 0.2, 200.0);
   }
 }

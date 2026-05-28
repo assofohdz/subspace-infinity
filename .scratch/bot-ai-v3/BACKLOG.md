@@ -291,3 +291,41 @@ soft clearance cost. For 2×2 clusters specifically:
 (hull-erosion design); the migration commit that introduced multi-cell asteroids;
 ADR-0011 (flow-field nav) — may want an amendment if the cluster-aware erosion
 ships.
+
+### B12 — api/ steer-action + brain wander constants (v3 #02.F.1–F.5 deferred)
+
+Source: deferred from [bot-ai-v3 #02 — tuning-knob migration](issues/02-tuning-knob-migration.md)
+when sub-increment E+F landed. Sub-A, B+C+D, E, and the rename-only F.7 closed;
+the deeper api/ steer + brain constants need a `BrainArchetype` signature evolution
+that's bigger than the rest of #02 combined.
+
+**Constants still in Java (api/), each needs one ctor param + threading through
+`CombatantBrain.createRoot`/`createBlackboard`:**
+
+- `SteerApproachTarget.java:31` `GOAL_BLOCK = 16` — snap radius for nav-block centring.
+- `SteerToGoalTile.java:35,41` `ARRIVAL_RADIUS_CELLS = 6.0`, `WALL_AVOID_WEIGHT = 0.3`.
+- `SeekDirection.java:21` `FORWARD_THRUST_FLOOR = 0.4`.
+- `WallRepulsion.java:28` `MIN_PUSH = 0.5`.
+- `CombatantBrain.java:35-37` `WANDER_RADIUS = 1.0`, `WANDER_DISTANCE = 2.0`,
+  `WANDER_JITTER_RADIANS = 0.5` — destination is `BotBrainConfig` per the existing
+  in-file comment (per-arena, not per-zone).
+
+**Direction:** evolve `BrainArchetype.createRoot(BotBrainConfig)` to
+`createRoot(BotBrainConfig, ZoneBotAiConfig)`; thread `zoneCfg` values to each
+new `SteerApproachTarget(goalBlockCells)`, `SteerToGoalTile(arrivalRadius,
+wallAvoidWeight)`, `SeekDirection(thrust, forwardThrustFloor)`,
+`WallRepulsion(radius, thrust, minPush)` ctor. Add 3 wander fields to
+`BotBrainConfig` + update `GroovyBotBrainLoader`. Add 5 steer fields to
+`ZoneBotAiConfig` + loader. Surface in `zone-bot-ai.groovy`.
+
+**Sizing:** moderate — mostly mechanical ctor + signature edits; one
+implementor of `BrainArchetype` today so the signature change is cheap.
+**Risk:** standard — preserve current values as defaults; no test
+expectations change.
+
+**Note on `TurfObjective.HOLD_POSITION_BIAS`:** the v3 #02.F.6 "single-source
+it" line was a false alarm. The `2.0` in `TurfObjective.behaviourBias()` is the
+per-objective bias (ADR-0015); the `2.0` in `engine-bot-ai.groovy`'s
+`flag-defender` role bias is the per-role bias. They compound — a flag-defender
+on a turf objective gets `hold-position × 2.0 × 2.0 = ×4.0`. NOT duplicates;
+documented in the role-bias comment itself.

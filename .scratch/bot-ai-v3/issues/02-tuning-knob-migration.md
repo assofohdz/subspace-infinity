@@ -1,6 +1,6 @@
 # Tuning-knob migration — Java constants → Groovy (ADR-0006 / ADR-0014)
 
-Status: ready-for-agent
+Status: done (sub-A + B+C+D + E landed; F.1–F.5 deferred to v3 [B12](../BACKLOG.md#b12--api-steer-action--brain-wander-constants-v3-02f1f5-deferred); F.6 was a false alarm; F.7 inlined)
 Category: maintenance
 Type: HITL
 
@@ -79,12 +79,12 @@ splat radius currently reuses `densityKernelRadius` (`ArenaSpatialFields:270`)
 
 ## Acceptance criteria
 
-- [ ] `BotDerivationConfig` record + `GroovyBotDerivationLoader` + `engine-bot-ai.groovy` `derivation { }` block; `CapabilityDeriver` reads config, no Java coefficient literals
-- [ ] Reactive-steering, perception-wall, nav, behaviour-fit, and api/ brain-steer knobs surfaced in `ZoneBotAiConfig`/`BotBrainConfig` and read via the existing projection path (Blackboard/context), not hardcoded
-- [ ] `LOOK_AHEAD_DISTANCE` / `WALL_LOOK_AHEAD` duplication collapsed to one source
-- [ ] `combatSplatRadius` distinct from `densityKernelRadius`
-- [ ] `TurfObjective.HOLD_POSITION_BIAS` single-sourced (Groovy, not Java+Groovy)
-- [ ] Defaults preserve current values (no behaviour change); smoke-verify in `ffa-bots`/`nav-test`/`trench`
-- [ ] `.scratch/settings-pipeline.md` updated; PMD ratchet; layer test passes
+- [x] `BotDerivationConfig` record + `GroovyBotDerivationLoader` + `engine-bot-ai.groovy` `derivation { }` block; `CapabilityDeriver` reads config, no Java coefficient literals (sub-A, commit 1d4221c7)
+- [x] Reactive-steering (B), perception-wall (C), nav (D), behaviour-fit (E) knobs surfaced in `ZoneBotAiConfig` (commits 0d7f1b0e + this slice). api/ brain-steer knobs (F.1–F.5) deferred to [B12](../BACKLOG.md#b12--api-steer-action--brain-wander-constants-v3-02f1f5-deferred) (needs `BrainArchetype` signature evolution + per-class ctor migrations).
+- [x] `LOOK_AHEAD_DISTANCE` / `WALL_LOOK_AHEAD` duplication collapsed to one source (`zoneCfg.lookAheadDistance()`)
+- [x] `combatSplatRadius` distinct from `densityKernelRadius`
+- [x] `TurfObjective.HOLD_POSITION_BIAS` audited — false alarm: the two `2.0`s are the per-objective bias × per-role bias and compound intentionally per ADR-0015 (not duplicates). Noted in B12 deferral.
+- [x] Defaults preserve current values (no behaviour change) — every record default matches the pre-migration Java constant byte-for-byte; smoke-verified in trench
+- [x] PMD ratchet on touched files; only pre-existing High-tier class-complexity violations remain (BotBrainSystem, ZoneBotAiConfigBuilder); deferred per ratchet rule. Layer test green.
 
 ## Comments

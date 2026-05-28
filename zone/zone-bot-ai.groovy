@@ -92,4 +92,18 @@ botAi {
     navGoalSnapRadius      24
     navHullFootprintCells  2
     combatSplatRadius      6
+
+    // Behaviour-fit floors (v3 #02.E). search/hold-position/follow-traffic each score with a
+    // ternary: dominant when no target is in view (idle), negligible/yielding when targeting
+    // (engaged). Vestigial — these behaviours should migrate to the convex-sum situationalFit
+    // in engine-bot-ai.groovy per ADR-0016. Until then, tune via these knobs.
+    searchIdleFit              0.6
+    searchEngagedFit           0.1
+    holdPositionIdleFit        0.55
+    holdPositionEngagedFit     0.15
+    followTrafficIdleFit       0.5
+    followTrafficEngagedFit    0.2
+    // Distance falloff scale (tile cells) for FollowTraffic re-scoring of hot tiles:
+    // score = hotness / (1 + dist/decay). Larger = far hot tiles stay competitive.
+    followTrafficDistDecayCells 200.0
 }

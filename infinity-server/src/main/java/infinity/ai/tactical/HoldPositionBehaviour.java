@@ -4,8 +4,10 @@ package infinity.ai.tactical;
 
 import infinity.ai.brain.Blackboard;
 import infinity.ai.objective.GoalTile;
+import infinity.config.ZoneBotAiConfig;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * {@code hold-position} (catalog #09): occupy a valuable tile. Candidates are <em>all</em> the arena
@@ -21,9 +23,12 @@ import java.util.List;
 public final class HoldPositionBehaviour implements Behaviour {
 
   private static final String NAME = "hold-position";
-  // Fit floors: prefer holding the objective when idle, yield to combat when a target is in view.
-  private static final double IDLE_FIT = 0.55;
-  private static final double ENGAGED_FIT = 0.15;
+
+  private final Supplier<ZoneBotAiConfig> cfg;
+
+  public HoldPositionBehaviour(final Supplier<ZoneBotAiConfig> cfg) {
+    this.cfg = cfg;
+  }
 
   @Override
   public String name() {
@@ -46,6 +51,7 @@ public final class HoldPositionBehaviour implements Behaviour {
 
   @Override
   public double intrinsicScore(final TacticalGoal goal, final Blackboard bb) {
-    return bb.target() == null ? IDLE_FIT : ENGAGED_FIT;
+    final ZoneBotAiConfig c = this.cfg.get();
+    return bb.target() == null ? c.holdPositionIdleFit() : c.holdPositionEngagedFit();
   }
 }

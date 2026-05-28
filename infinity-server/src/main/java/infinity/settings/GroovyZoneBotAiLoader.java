@@ -116,6 +116,14 @@ public class GroovyZoneBotAiLoader {
     private int navGoalSnapRadius = ZoneBotAiConfig.DEFAULTS.navGoalSnapRadius();
     private int navHullFootprintCells = ZoneBotAiConfig.DEFAULTS.navHullFootprintCells();
     private int combatSplatRadius = ZoneBotAiConfig.DEFAULTS.combatSplatRadius();
+    private double searchIdleFit = ZoneBotAiConfig.DEFAULTS.searchIdleFit();
+    private double searchEngagedFit = ZoneBotAiConfig.DEFAULTS.searchEngagedFit();
+    private double holdPositionIdleFit = ZoneBotAiConfig.DEFAULTS.holdPositionIdleFit();
+    private double holdPositionEngagedFit = ZoneBotAiConfig.DEFAULTS.holdPositionEngagedFit();
+    private double followTrafficIdleFit = ZoneBotAiConfig.DEFAULTS.followTrafficIdleFit();
+    private double followTrafficEngagedFit = ZoneBotAiConfig.DEFAULTS.followTrafficEngagedFit();
+    private double followTrafficDistDecayCells =
+        ZoneBotAiConfig.DEFAULTS.followTrafficDistDecayCells();
 
     ZoneBotAiConfigBuilder() {}
 
@@ -360,6 +368,45 @@ public class GroovyZoneBotAiLoader {
       this.combatSplatRadius = positiveInt("combatSplatRadius", value, this.combatSplatRadius);
     }
 
+    /** {@code SearchBehaviour} idle fit; in {@code [0,1]}. */
+    public void searchIdleFit(final Number value) {
+      this.searchIdleFit = unitFraction("searchIdleFit", value, this.searchIdleFit);
+    }
+
+    /** {@code SearchBehaviour} engaged fit; in {@code [0,1]}. */
+    public void searchEngagedFit(final Number value) {
+      this.searchEngagedFit = unitFraction("searchEngagedFit", value, this.searchEngagedFit);
+    }
+
+    /** {@code HoldPositionBehaviour} idle fit; in {@code [0,1]}. */
+    public void holdPositionIdleFit(final Number value) {
+      this.holdPositionIdleFit = unitFraction("holdPositionIdleFit", value, this.holdPositionIdleFit);
+    }
+
+    /** {@code HoldPositionBehaviour} engaged fit; in {@code [0,1]}. */
+    public void holdPositionEngagedFit(final Number value) {
+      this.holdPositionEngagedFit =
+          unitFraction("holdPositionEngagedFit", value, this.holdPositionEngagedFit);
+    }
+
+    /** {@code FollowTrafficBehaviour} idle fit; in {@code [0,1]}. */
+    public void followTrafficIdleFit(final Number value) {
+      this.followTrafficIdleFit =
+          unitFraction("followTrafficIdleFit", value, this.followTrafficIdleFit);
+    }
+
+    /** {@code FollowTrafficBehaviour} engaged fit; in {@code [0,1]}. */
+    public void followTrafficEngagedFit(final Number value) {
+      this.followTrafficEngagedFit =
+          unitFraction("followTrafficEngagedFit", value, this.followTrafficEngagedFit);
+    }
+
+    /** {@code FollowTraffic} hot-tile distance falloff scale (tile cells); must be {@code > 0}. */
+    public void followTrafficDistDecayCells(final Number value) {
+      this.followTrafficDistDecayCells =
+          positive("followTrafficDistDecayCells", value, this.followTrafficDistDecayCells);
+    }
+
     private static int positiveInt(final String key, final Number value, final int current) {
       if (value == null) {
         return current;
@@ -427,7 +474,14 @@ public class GroovyZoneBotAiLoader {
           wallObstacleRadius,
           navGoalSnapRadius,
           navHullFootprintCells,
-          combatSplatRadius);
+          combatSplatRadius,
+          searchIdleFit,
+          searchEngagedFit,
+          holdPositionIdleFit,
+          holdPositionEngagedFit,
+          followTrafficIdleFit,
+          followTrafficEngagedFit,
+          followTrafficDistDecayCells);
     }
   }
 }

@@ -158,9 +158,9 @@ public final class BotBrainSystem extends BaseInfinitySystem {
             new EngageBehaviour(this.engineBotAi::get),
             new AssassinateBehaviour(this.engineBotAi::get),
             new DisengageBehaviour(),
-            new SearchBehaviour(),
-            new FollowTrafficBehaviour(),
-            new HoldPositionBehaviour());
+            new SearchBehaviour(this.zoneBotAi::get),
+            new FollowTrafficBehaviour(this.zoneBotAi::get),
+            new HoldPositionBehaviour(this.zoneBotAi::get));
     this.planner = new TacticalPlannerImpl(behaviours, this.zoneBotAi::get);
     this.selectableBehaviours =
         behaviours.stream().map(Behaviour::name).collect(Collectors.toUnmodifiableSet());

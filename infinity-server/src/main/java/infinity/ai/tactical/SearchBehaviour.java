@@ -3,17 +3,23 @@
 package infinity.ai.tactical;
 
 import infinity.ai.brain.Blackboard;
+import infinity.config.ZoneBotAiConfig;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * {@code search} (catalog #07): idle drift / patrol — the always-eligible fallback. Baseline fit
- * favours searching when no target is in view, yielding to combat goals when one is. See ADR-0013.
+ * favours searching when no target is in view, yielding to combat goals when one is. Fit floors
+ * sourced from {@code zone-bot-ai.groovy} ({@code searchIdleFit}/{@code searchEngagedFit}).
+ * See ADR-0013.
  */
 public final class SearchBehaviour implements Behaviour {
 
-  // Fit floors: dominant when idle (no target), negligible when a combat goal is available.
-  private static final double IDLE_FIT = 0.6;
-  private static final double ENGAGED_FIT = 0.1;
+  private final Supplier<ZoneBotAiConfig> cfg;
+
+  public SearchBehaviour(final Supplier<ZoneBotAiConfig> cfg) {
+    this.cfg = cfg;
+  }
 
   @Override
   public String name() {
@@ -27,6 +33,7 @@ public final class SearchBehaviour implements Behaviour {
 
   @Override
   public double intrinsicScore(final TacticalGoal goal, final Blackboard bb) {
-    return bb.target() == null ? IDLE_FIT : ENGAGED_FIT;
+    final ZoneBotAiConfig c = this.cfg.get();
+    return bb.target() == null ? c.searchIdleFit() : c.searchEngagedFit();
   }
 }
