@@ -1,6 +1,6 @@
 # Docs / ADR + tracker sync
 
-Status: ready-for-agent
+Status: done
 Category: documentation
 Type: AFK
 
@@ -40,10 +40,10 @@ beyond confirming new files added by v3 #01–#05 get headers.
 
 ## Acceptance criteria
 
-- [ ] ADR-0009/0010/0013/0014 status lines updated; resolved "Open work" items deleted (not struck through) per CLAUDE.md #6
-- [ ] `replacement-as-mutation.md` snapshot adds `BotCapability`+`BotRole` under `BotBrainSystem`
-- [ ] bot-ai-v2 PRD done-criterion reconciled; retirement issue status bumped + cross-linked to v3 #04
-- [ ] `engine-bot-ai.groovy` synergy-vs-implemented gap documented + cross-referenced to behaviour catalog
-- [ ] `CapabilityProfile` `@see` link verified/fixed
+- [x] ADR-0009/0010/0013/0014 status → Accepted; resolved "Open work" items deleted from 0009 (input-abstraction RESOLVED note, `MovementInput.facing`-dead note, chicken-framework retirement bullet, CharacterInput-deletion bullet, MovementInput-canonical-writer-test bullet, the deferred GOAP and pathfinding bullets which were already shipped) per CLAUDE.md #6; partial-acceptance notes recorded inline where appropriate (0014 cites the v3 #02.A BotDerivationConfig landing)
+- [x] `replacement-as-mutation.md` snapshot extended: `BotBrainSystem` entry now lists `BotCapability` (registry-change-edge writer) and `BotRole` (first-tick fixed-for-lifetime writer)
+- [x] bot-ai-v2 PRD done-criterion note flipped from "NOT yet met" → "now met (closed by v3 #06)"; bot-ai/issues/01 was already at `Status: done` (no work needed)
+- [x] `engine-bot-ai.groovy` gained an "Implemented behaviours" header note enumerating the 6 with `Behaviour` impls + flagging the permanent-false `anchor`/`attach-to-anchor` placeholders + cross-ref to `.scratch/bot-behaviour-catalog/`
+- [x] `CapabilityProfile` `@see` path verified: `docs/bot-ai/capability-derivation.md` exists; reference is plain-text not link, no action needed
 
 ## Comments

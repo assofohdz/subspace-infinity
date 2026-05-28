@@ -48,7 +48,7 @@ are cleanup; #06 is docs/tracker hygiene (can land anytime, no code dep).
 | 03 | Hot-path config read → project `perceptionRadius` to component | HIGH | — | ✅ done (projected onto BrainWiring at refreshDerivation boundary; redundant ArenaId/BotRole/ShipType reads deferred — not ADR-0002 violations) |
 | 04 | Legacy package + dead-path deletion (~5,200 LOC) | HIGH | — | ✅ done (35 legacy files + MobDebugState + CharacterInput deleted; MovementInputSystem collapsed to PlayerContainer) |
 | 05 | Naming + dead-component cleanup (`MoverState`, `Steering*`) | HIGH/MEDIUM | — | ✅ done (MoverState→MoverSnapshot rename; 4 dead Steering* components deleted) |
-| 06 | Docs/ADR + tracker sync | MEDIUM | — | ready-for-agent |
+| 06 | Docs/ADR + tracker sync | MEDIUM | — | ✅ done (ADR-0009/0010/0013/0014 → Accepted; RaM snapshot extended; v2 PRD reconciled; engine-bot-ai.groovy header added) |
 
 See `.scratch/bot-ai-v3/issues/01-06.md`. Carried-over / un-promoted work
 (v1 flocking, deferred review notes) lives in [BACKLOG.md](BACKLOG.md).

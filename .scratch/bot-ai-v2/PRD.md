@@ -139,8 +139,10 @@ tails, now carried to [bot-ai-v3](../bot-ai-v3/) so v2 closes clean:
 | #07 | formal 32-ship perf benchmark not run | [v3 BACKLOG](../bot-ai-v3/BACKLOG.md) |
 
 **Done-definition note:** the "ADRs 0011–0015 flip to Accepted" criterion is
-NOT yet met (0009/0010/0013/0014 still `Proposed`) — handled by
-[v3 #06 — docs/ADR sync](../bot-ai-v3/issues/06-docs-adr-tracker-sync.md).
+now met (closed by v3 #06, 2026-05-28): ADR-0009/0010/0013/0014 flipped to
+`Accepted` alongside the already-accepted 0011/0012/0015. ADR-0016 stays
+`Proposed` — bot-behaviour-catalog is future work and accurately reflects
+its phased landing.
 Naming divergences (no `BotAiHostService` — role absorbed into
 `ArenaSpatialFields`; bot-block parsing via `GroovyArenaLoader` not a
 standalone `BotsAdapter`) are cosmetic, not gaps.

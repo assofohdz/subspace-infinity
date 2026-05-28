@@ -8,6 +8,18 @@
 // gates like line-of-sight / energy-threshold live in the behaviour's situationalFit, not here).
 // `bonus` = capability-derived weight over the CapabilityProfile (method-call form: records).
 // Coefficients are first-cut per docs/bot-ai/capability-derivation.md.
+//
+// Implemented behaviours (have a registered `Behaviour` impl + per-goal Execute Sequence the
+// planner can dispatch on): engage, disengage, search, follow-traffic, hold-position,
+// assassinate. Every other synergy entry below contributes a derived weight that gates BT
+// dispatch but does not yet enumerate a goal — the planner's MIN_BEHAVIOUR_WEIGHT floor
+// drops them naturally until their Behaviour impl lands. The full catalog (one issue per
+// behaviour) lives in .scratch/bot-behaviour-catalog/; Phase 1 is gated on bot-ai-v2
+// slices #03/#05/#07 (now done) and lands incrementally.
+//
+// Permanent-false placeholders (silently never fire):
+//   * anchor / attach-to-anchor — `requires { profile.attachReceive() }`; attachReceive
+//     is a hard-coded `false` in CapabilityProfile until the attach-system PRD lands.
 
 // Capability-derivation coefficients (ADR-0014). Shape how raw ShipConfig numbers normalize into a
 // CapabilityProfile. Area-damage knobs are level² × count proxies; mobility-blend weights let a

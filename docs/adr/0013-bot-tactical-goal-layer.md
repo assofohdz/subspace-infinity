@@ -1,7 +1,7 @@
 # ADR 0013 — Bot tactical-goal layer
 
-**Status:** Proposed — partially implemented
-**Implementation:** Slice #05 (2026-05-25) landed the `TacticalPlanner` + `Behaviour`/`TacticalGoal`/`ArchetypeConfig` contract, additive stickiness, adaptive enumeration floor, `IsGoal` exact-class BT dispatch, and baseline `engage`/`disengage`/`search`. Full acceptance pending the remaining catalog behaviours (gated on #07).
+**Status:** Accepted (2026-05-28 — v2 slices #05/#06/#07 landed; follow-traffic, hold-position, arena objectives, role bias all live. New behaviours land via the bot-behaviour-catalog workstream, not new ADR amendments)
+**Implementation:** Slice #05 (2026-05-25) landed the `TacticalPlanner` + `Behaviour`/`TacticalGoal`/`ArchetypeConfig` contract, additive stickiness, adaptive enumeration floor, `IsGoal` exact-class BT dispatch, and baseline `engage`/`disengage`/`search`. #06 (Inc A/B/C, 2026-05-26) added arena objectives + roles + their bias multipliers. #07 (Inc 1–5, 2026-05-26) added the spatial-field substrate + follow-traffic.
 **Date:** 2026-05-23
 **Deciders:** Asser Fahrenholz
 **Amended by:** [ADR-0014](./0014-capability-derived-bot-composition.md) (2026-05-23) — behaviour enumeration eligibility rule changes from "behaviours not named in the archetype contribute zero candidates" to "behaviours with effective weight below `MIN_BEHAVIOUR_WEIGHT` (default 0.05) skip enumeration." Planner cadence, additive stickiness, `IsGoal` BT dispatch, and per-goal Execute Sequences are unchanged.

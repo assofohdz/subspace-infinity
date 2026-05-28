@@ -1,6 +1,6 @@
 # ADR 0010 — Bot composition DSL: per-arena archetype × ship-type × weights
 
-**Status:** Proposed — partially implemented
+**Status:** Accepted (2026-05-28 — slice #01 landed; tweak overlay live; non-behaviour knobs as described)
 **Implementation:** Slice #01 (e9861a40, 2026-05-25) landed the `bots { ship 'x', count: N, tweak: [...] }` block in the ADR-0014-amended overlay form (`tweak` deltas, no from-scratch `weights`/`archetype`). Non-behaviour `BotBrainConfig` knobs remain as described.
 **Date:** 2026-05-23
 **Deciders:** Asser Fahrenholz
