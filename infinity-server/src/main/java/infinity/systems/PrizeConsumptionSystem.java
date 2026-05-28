@@ -7,6 +7,7 @@ import com.simsilica.es.ComponentFilter;
 import com.simsilica.es.EntityData;
 import com.simsilica.es.EntityId;
 import com.simsilica.es.EntitySet;
+import com.simsilica.es.common.Decay;
 import com.simsilica.es.filter.FieldFilter;
 import com.simsilica.mblock.phys.MBlockShape;
 import com.simsilica.mphys.AbstractBody;
@@ -226,7 +227,11 @@ public class PrizeConsumptionSystem extends BaseInfinitySystem
 
     final PrizeType pt = prizes.getEntity(prizeId).get(PrizeType.class);
     applyPrizeByName(pt.getTypeName(ed), shipId);
-    ed.removeEntity(prizeId);
+    // Defer entity removal to the next-tick Decay reaper: removeEntity here would clear
+    // BodyPosition mid-integrate while the mphys body lives on until the next binManager
+    // pass — BodyPositionPublisher.update would then see a null BodyPosition (bot-ai-v3 B9).
+    final long now = ourTime.getTime();
+    ed.setComponent(prizeId, new Decay(now, now));
     contact.disable();
   }
 

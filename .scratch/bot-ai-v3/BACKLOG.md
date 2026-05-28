@@ -74,45 +74,6 @@ the relevant #02/#03 work only if the file is already open:
 - `ThreatField`/`*DensityField` squared-distance compare to skip `Math.sqrt` on out-of-disc cells.
 - `new Quatd()` allocated per bot per tick in `MovementInput` ctor (`BotBrainSystem:264`) — reuse a static identity.
 
-## Surfaced during Phase-1 behaviour testing (2026-05-27)
-
-### B9 — `bpos` entity↔body↔net-object lifecycle race (publish set without a live body)
-
-Source: runtime ERROR logs observed while play-testing the bot-behaviour-catalog
-foundation/assassinate work (`logs/infinity.log`, 2026-05-27 ~21:11–21:14).
-Two complementary signatures, recurring with different ids:
-
-```
-[GameLoopThread] ERROR com.simsilica.bpos.mphys.BodyPositionPublisher
-    - No body position for:EntityId[4520]  x0
-[UdpConnector] ERROR com.simsilica.bpos.net.SharedObjectUpdater
-    - update: No entity for:4781  after 20 updates       (also seen: 15993)
-```
-
-Both are the Moss `bpos` library, describing one phenomenon at the two ends of
-the wire: an entity is in the SimEthereal position-**publish** set without a
-live mphys **body**. Server-side the publisher finds no body to read a position
-from; client-side the updater receives object state with no entity to bind it
-to (gives up after 20 cycles, drops it). Differing ids + time gaps ⇒ separate
-occurrences of the same race, not one object traced across the wire.
-
-**Almost certainly NOT bot-AI runtime** — it lives in the entity↔body↔net-object
-**lifecycle** machinery (`ShipFactory`/`WeaponFactory` stamp `BodyPosition`;
-mphys creates/removes bodies; `DeathSystem` teardown; the `bpos`
-publisher/updater). The bot-AI work only reads components and writes
-`MovementInput`/goals. The plausible-but-unproven indirect link: more aggressive
-engagement (e.g. assassinate) → more projectile/ship spawn-despawn churn →
-surfaces a **pre-existing** race more often.
-
-**Direction (when picked up):** first reproduce on the pre-foundation commit to
-confirm it predates the bot-AI work (rule out causation vs. frequency). Most
-likely a **despawn/death ordering gap** (entity keeps its publish marker a tick
-after its body is removed) or a **spawn where the body lags the entity**. Check
-`DeathSystem` teardown order (remove `BodyPosition`/publish registration before
-or with the body) and the spawn path's body-vs-component ordering. Low priority
-unless it floods the log or a ship/projectile visibly fails to render. Not
-strictly bot-AI — promote to its own networking/physics issue if it bites.
-
 ## Surfaced during status review (2026-05-28)
 
 ### B10 — Four-scope behaviour tuning (zone / arena / ship / named-bot)
