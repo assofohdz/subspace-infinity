@@ -1,6 +1,6 @@
 # Correctness bugs — NPE, target-thrash, stale role
 
-Status: ready-for-agent
+Status: done
 Category: bug
 Type: HITL
 
@@ -66,10 +66,10 @@ for now. Lean (a) + document unless the user wants the event hook.
 
 ## Acceptance criteria
 
-- [ ] `FollowTrafficBehaviour.enumerate()` returns `List.of()` when `best == null`; unit test with a NaN-returning stub field
-- [ ] `EngageBehaviour.enumerate()` offers all alive threats (or debounce added); unit test: two equidistant threats do not oscillate across planner cadences
-- [ ] `BotRole` refresh behaviour decided + either documented (option a) or event-hooked (option b)
-- [ ] `BotInputCanonicalityTest` still green (sole `MovementInput` writer)
-- [ ] PMD ratchet on touched files; layer test passes
+- [x] `FollowTrafficBehaviour.enumerate()` returns `List.of()` when `best == null`; unit test `nanScoresReturnEmptyInsteadOfNpe` covers NaN-returning stub fields
+- [x] `EngageBehaviour.enumerate()` offers all alive threats nearest-first; new test `engageStickinessHoldsAcrossEquidistantThreats` proves stickiness holds across cadences when nearest swaps by epsilon
+- [x] `BotRole` refresh: **option (a)** — fixed for entity lifetime documented in `BotRole` class Javadoc + `BotBrainSystem.ensureRoleBias` Javadoc with ADR-0015 cross-ref; event-driven reassignment stays deferred to v2.x
+- [x] `BotInputCanonicalityTest` + `CanonicalWriterTest` + `ComponentImmutabilityTest` green
+- [x] PMD on touched files clean except a pre-existing class-level `BotBrainSystem` cyclomatic complexity (103, High tier — deferred per ratchet rule)
 
 ## Comments

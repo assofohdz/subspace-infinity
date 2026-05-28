@@ -2,9 +2,12 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.ai.tactical;
 
+import infinity.ai.MoverState;
 import infinity.ai.NearbyShip;
+import infinity.ai.PerceptionSnapshot;
 import infinity.ai.brain.Blackboard;
 import infinity.ai.capability.BotSynergyTable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -40,15 +43,32 @@ public final class EngageBehaviour implements Behaviour {
 
   @Override
   public List<TacticalGoal> enumerate(final Blackboard bb) {
-    final NearbyShip target = bb.target();
-    if (target == null) {
+    final PerceptionSnapshot perception = bb.perception();
+    if (perception == null || perception.threats().isEmpty()) {
       return List.of();
     }
-    // los hard gate: don't engage a wall-occluded target — fall through to nav/search (ADR-0016).
+    // los hard gate: don't engage when the primary line-of-sight is occluded. Per-threat
+    // LoS would require expanding SituationalInputs to be per-target; for now the gate
+    // is global (matches the pre-thrash-fix behaviour). See bot-ai-v3 #01.2.
     if (bb.situationalInputs().get("los") <= 0.0) {
       return List.of();
     }
-    return List.of(new Engage(target.id()));
+    // Offer ALL alive threats (sorted nearest-first) — not just the nearest — so the
+    // planner's stickiness guard (TacticalPlannerImpl: withinMargin) can re-score the
+    // running Engage goal when its target stops being the nearest by a hair. Without
+    // this the goal silently flips every ~150ms cadence on equidistant threats.
+    final MoverState self = bb.self();
+    final List<NearbyShip> sorted = new ArrayList<>(perception.threats());
+    sorted.sort(
+        (a, b) ->
+            Double.compare(
+                a.position().distanceSq(self.position()),
+                b.position().distanceSq(self.position())));
+    final List<TacticalGoal> goals = new ArrayList<>(sorted.size());
+    for (final NearbyShip threat : sorted) {
+      goals.add(new Engage(threat.id()));
+    }
+    return List.copyOf(goals);
   }
 
   @Override

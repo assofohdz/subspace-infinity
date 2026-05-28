@@ -43,7 +43,7 @@ are cleanup; #06 is docs/tracker hygiene (can land anytime, no code dep).
 
 | # | Slice | Severity | Depends on | Status |
 |---|-------|----------|------------|--------|
-| 01 | Correctness bugs (NPE, target-thrash, role-refresh) | CRITICAL/HIGH | — | ready-for-agent (role-refresh sub-item needs decision) |
+| 01 | Correctness bugs (NPE, target-thrash, role-refresh) | CRITICAL/HIGH | — | ✅ done (role-refresh: option (a) documented; v2.x event-driven reassignment still deferred) |
 | 02 | Tuning-knob migration to Groovy (~12 knobs + `BotDerivationConfig`) | HIGH | — | ready-for-agent |
 | 03 | Hot-path config read → project `perceptionRadius` to component | HIGH | — | ready-for-agent |
 | 04 | Legacy package + dead-path deletion (~5,200 LOC) | HIGH | — | ready-for-agent |

@@ -53,6 +53,10 @@ public final class FollowTrafficBehaviour implements Behaviour {
         best = t;
       }
     }
+    // If every score was NaN (broken or future field), nothing beats -1.0 and best stays null.
+    if (best == null) {
+      return List.of();
+    }
     // Chokepoint tiles are arena-relative; NavigateToTile carries world cells.
     return List.of(new NavigateToTile(best.x() + ctx.originCellX(), best.y() + ctx.originCellZ()));
   }

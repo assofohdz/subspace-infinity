@@ -128,7 +128,6 @@ public class TacticalPlannerImplTest {
   public void engageScoreIsWeightedSumOverInputs() {
     // engage (upgraded, ADR-0016): score = convex sum of SEED_FIT coefficients over the inputs.
     final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
-    bb.setTarget(new NearbyShipFixture().make());
     final Engage eg = new Engage(new EntityId(9));
     bb.setSituationalInputs(inputs(1.0, 1.0));
     assertEquals("all fit inputs 1.0 ⇒ convex sum = 1.0", 1.0, engage.intrinsicScore(eg, bb), 1e-9);
@@ -142,7 +141,6 @@ public class TacticalPlannerImplTest {
     final BotSynergyTable table =
         new BotSynergyTable(Map.of(), Map.of("engage", Map.of("range_fit", 1.0)));
     final EngageBehaviour engage = new EngageBehaviour(() -> table);
-    bb.setTarget(new NearbyShipFixture().make());
     bb.setSituationalInputs(
         SituationalInputs.builder().set("range_fit", 0.5).set("energy_adv", 1.0).build());
     assertEquals(0.5, engage.intrinsicScore(new Engage(new EntityId(9)), bb), 1e-9);
@@ -181,11 +179,79 @@ public class TacticalPlannerImplTest {
   @Test
   public void engageWithoutLineOfSightEnumeratesNothing() {
     final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
-    bb.setTarget(new NearbyShipFixture().make());
+    bb.setSelf(new infinity.ai.MoverState(
+        new com.simsilica.mathd.Vec3d(), new com.simsilica.mathd.Quatd(),
+        new com.simsilica.mathd.Vec3d()));
+    bb.setPerception(new infinity.ai.PerceptionSnapshot(
+        List.of(new NearbyShipFixture().make()), List.of(), List.of()));
     bb.setSituationalInputs(inputs(1.0, 0.0)); // los = 0 ⇒ occluded
     assertTrue("occluded target not engaged", engage.enumerate(bb).isEmpty());
     bb.setSituationalInputs(inputs(1.0, 1.0)); // los = 1 ⇒ clear
     assertEquals("clear target engaged", 1, engage.enumerate(bb).size());
+  }
+
+  @Test
+  public void engageOffersAllAliveThreatsNearestFirst() {
+    // Regression for bot-ai-v3 #01.2: when two threats are near-equidistant, the planner's
+    // stickiness guard needs the running Engage's target in the candidate list so its score
+    // is computed (not left at NEGATIVE_INFINITY). EngageBehaviour now offers ALL alive threats
+    // — nearest first so the no-current-goal tiebreak still picks nearest.
+    final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
+    bb.setSelf(new infinity.ai.MoverState(
+        new com.simsilica.mathd.Vec3d(0, 0, 0), new com.simsilica.mathd.Quatd(),
+        new com.simsilica.mathd.Vec3d()));
+    final infinity.ai.NearbyShip far =
+        new infinity.ai.NearbyShip(new EntityId(7),
+            new com.simsilica.mathd.Vec3d(10, 0, 0), new com.simsilica.mathd.Quatd(),
+            new com.simsilica.mathd.Vec3d(), 1);
+    final infinity.ai.NearbyShip near =
+        new infinity.ai.NearbyShip(new EntityId(5),
+            new com.simsilica.mathd.Vec3d(3, 0, 0), new com.simsilica.mathd.Quatd(),
+            new com.simsilica.mathd.Vec3d(), 1);
+    bb.setPerception(new infinity.ai.PerceptionSnapshot(List.of(far, near), List.of(), List.of()));
+    bb.setSituationalInputs(inputs(1.0, 1.0));
+    final List<TacticalGoal> goals = engage.enumerate(bb);
+    assertEquals("both threats enumerated", 2, goals.size());
+    assertEquals("nearest first", new Engage(new EntityId(5)), goals.get(0));
+    assertEquals("farthest second", new Engage(new EntityId(7)), goals.get(1));
+  }
+
+  @Test
+  public void engageStickinessHoldsAcrossEquidistantThreats() {
+    // Two threats at ~equal distance; running goal is Engage(threat-A). On the next planner
+    // cadence, threat-B becomes nearest by a hair. Pre-fix: Engage(B) was the only candidate
+    // → Engage(A)'s score stayed -INF → withinMargin bypassed → goal flipped to B (thrash).
+    // Post-fix: Engage(A) AND Engage(B) both in the candidate list with equal intrinsicScore;
+    // stickiness keeps the running Engage(A) within margin.
+    final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
+    bb.setSelf(new infinity.ai.MoverState(
+        new com.simsilica.mathd.Vec3d(0, 0, 0), new com.simsilica.mathd.Quatd(),
+        new com.simsilica.mathd.Vec3d()));
+    bb.setSituationalInputs(inputs(1.0, 1.0));
+    final EntityId aId = new EntityId(5);
+    final EntityId bId = new EntityId(7);
+    final infinity.ai.NearbyShip a =
+        new infinity.ai.NearbyShip(aId,
+            new com.simsilica.mathd.Vec3d(3.0, 0, 0), new com.simsilica.mathd.Quatd(),
+            new com.simsilica.mathd.Vec3d(), 1);
+    final infinity.ai.NearbyShip bNearer =
+        new infinity.ai.NearbyShip(bId,
+            new com.simsilica.mathd.Vec3d(2.99, 0, 0), new com.simsilica.mathd.Quatd(),
+            new com.simsilica.mathd.Vec3d(), 1);
+
+    // Cycle 1: A is nearest, no running goal → plan picks Engage(A).
+    bb.setPerception(new infinity.ai.PerceptionSnapshot(List.of(a, bNearer), List.of(), List.of()));
+    // Set A as the running goal directly (matches the runtime invariant that bb.currentGoal is set
+    // by the prior planner cycle).
+    bb.setCurrentGoal(new Engage(aId));
+
+    // Cycle 2: B becomes nearest by epsilon. Plan again — stickiness must hold A.
+    final TacticalPlanner p = planner(engage);
+    final ArchetypeConfig arch = new ArchetypeConfig("t", Map.of("engage", 1.0));
+    assertEquals(
+        "stickiness keeps Engage(A) when B becomes nearest by a hair",
+        new Engage(aId),
+        p.select(bb, arch));
   }
 
   @Test

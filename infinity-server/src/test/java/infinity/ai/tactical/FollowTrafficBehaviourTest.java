@@ -73,6 +73,16 @@ public class FollowTrafficBehaviourTest {
   }
 
   @Test
+  public void nanScoresReturnEmptyInsteadOfNpe() {
+    // If a contributing field (e.g. CombatDensityField, ArenaDensity) ever returns NaN,
+    // NaN > -1.0 is false for every candidate, so the "best" tile stays null. Behaviour
+    // must yield rather than throw — see bot-ai-v3 #01 / FollowTrafficBehaviour.java:57.
+    bb.setArenaContext(
+        ctx(0, 0, new TileScored(10, 10, Double.NaN), new TileScored(20, 20, Double.NaN)));
+    assertTrue(behaviour.enumerate(bb).isEmpty());
+  }
+
+  @Test
   public void yieldsToTargetInView() {
     bb.setArenaContext(ctx(0, 0, new TileScored(10, 10, 1.0)));
     final double idle = behaviour.intrinsicScore(new NavigateToTile(10, 10), bb);

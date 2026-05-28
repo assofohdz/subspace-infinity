@@ -434,8 +434,10 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
   /**
    * Ensure the bot has a {@link BotRole} — assigned once from the arena objective at spawn (ADR-0015),
-   * held for the round — and publish its behaviour bias to the blackboard for the planner. Canonical
-   * writer of {@link BotRole}.
+   * held for the entity's lifetime — and publish its behaviour bias to the blackboard for the planner.
+   * Canonical writer of {@link BotRole}. Once a {@code BotRole} component is present this method
+   * deliberately re-reads the same role name every tick (no objective re-check); event-driven
+   * reassignment on mid-round objective changes is deferred to v2.x per ADR-0015.
    */
   private void ensureRoleBias(final BrainWiring wiring, final Blackboard bb) {
     final BotRoleRegistry registry = this.engineBotAi.roles();

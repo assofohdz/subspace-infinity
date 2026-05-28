@@ -10,6 +10,10 @@ import com.simsilica.es.EntityComponent;
  * ({@code BotBrainSystem}) at spawn from the arena objective. Carries only the role <em>name</em>;
  * the bias data lives in the {@code BotRoleRegistry} template tier (Config-Component Projection,
  * ADR-0002), so live-reloading role bias doesn't re-stamp bots.
+ *
+ * <p><strong>Lifetime invariant:</strong> once assigned, a {@code BotRole} is fixed for the entity's
+ * lifetime. Mid-round role changes (e.g. KOTH ownership flipping the attacker/defender split) require
+ * the bot to die and respawn. Event-driven reassignment is deferred to v2.x per ADR-0015 §"Open work".
  */
 public final class BotRole implements EntityComponent {
 
