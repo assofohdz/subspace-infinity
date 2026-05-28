@@ -2,27 +2,24 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.ai.capability;
 
+import infinity.config.BotDerivationConfig;
 import infinity.config.ShipConfig;
 import java.util.Collection;
 
 /**
  * Derives {@link ArenaCapabilityNorms} + per-ship {@link CapabilityProfile} from {@code ShipConfig}.
  * Implements the v1 formulas in {@code docs/bot-ai/capability-derivation.md} (level-as-damage proxy;
- * bounce + attachReceive placeholder-derive false). Coefficients are first-cut constants here;
- * they migrate to {@code engine-bot-ai.groovy} when its loader lands (ADR-0014 engine tier).
+ * bounce + attachReceive placeholder-derive false). Tunable coefficients live on the supplied
+ * {@link BotDerivationConfig} (engine-bot-ai.groovy {@code derivation { }} block, ADR-0014). Callers
+ * that don't have a config handy can pass {@link BotDerivationConfig#DEFAULTS}.
  */
 public final class CapabilityDeriver {
-
-  // First-cut area-damage radius² × count proxies (move to engine-bot-ai.groovy). See the doc.
-  private static final double GRAVBOMB_AREA = 9.0;
-  private static final double BURST_AREA = 1.0;
-  private static final double THOR_AREA = 16.0;
-  private static final double SUSTAIN_RECHARGE_SCALE = 1000.0;
 
   private CapabilityDeriver() {}
 
   /** Per-arena maxima across {@code ships}; 0 for a dimension no ship has. */
-  public static ArenaCapabilityNorms deriveNorms(final Collection<ShipConfig> ships) {
+  public static ArenaCapabilityNorms deriveNorms(
+      final Collection<ShipConfig> ships, final BotDerivationConfig cfg) {
     double maxSpeed = 0;
     double maxRot = 0;
     double maxThrust = 0;
@@ -39,8 +36,8 @@ public final class CapabilityDeriver {
       maxEnergy = Math.max(maxEnergy, s.energy().max());
       maxRecharge = Math.max(maxRecharge, s.recharge().max());
       maxBurst = Math.max(maxBurst, burstRaw(s));
-      maxSustain = Math.max(maxSustain, sustainedRaw(s));
-      maxArea = Math.max(maxArea, areaRaw(s));
+      maxSustain = Math.max(maxSustain, sustainedRaw(s, cfg));
+      maxArea = Math.max(maxArea, areaRaw(s, cfg));
       maxRange = Math.max(maxRange, rangeRaw(s));
     }
     return new ArenaCapabilityNorms(
@@ -48,12 +45,16 @@ public final class CapabilityDeriver {
         maxBurst, maxSustain, maxArea, maxRange, maxRecharge);
   }
 
-  /** Normalized profile for {@code s} against {@code n}. */
-  public static CapabilityProfile derive(final ShipConfig s, final ArenaCapabilityNorms n) {
+  /** Normalized profile for {@code s} against {@code n} using {@code cfg} coefficients. */
+  public static CapabilityProfile derive(
+      final ShipConfig s, final ArenaCapabilityNorms n, final BotDerivationConfig cfg) {
+    final double ws = cfg.mobilitySpeedWeight();
+    final double wr = cfg.mobilityRotationWeight();
+    final double wt = cfg.mobilityThrustWeight();
     final double mobility =
         norm(
-            s.speed().max() + s.rotation().max() + s.thrust().max(),
-            n.maxSpeed() + n.maxRotation() + n.maxThrust());
+            ws * s.speed().max() + wr * s.rotation().max() + wt * s.thrust().max(),
+            ws * n.maxSpeed() + wr * n.maxRotation() + wt * n.maxThrust());
     final double tankiness =
         norm(
             geomean(s.energy().max(), s.recharge().max()),
@@ -62,8 +63,8 @@ public final class CapabilityDeriver {
         s.type(),
         mobility,
         norm(burstRaw(s), n.maxBurstDpsRaw()),
-        norm(sustainedRaw(s), n.maxSustainedDpsRaw()),
-        norm(areaRaw(s), n.maxAreaDamageRaw()),
+        norm(sustainedRaw(s, cfg), n.maxSustainedDpsRaw()),
+        norm(areaRaw(s, cfg), n.maxAreaDamageRaw()),
         tankiness,
         norm(s.recharge().max(), n.maxRechargeEconomy()),
         norm(rangeRaw(s), n.maxRange()),
@@ -100,24 +101,24 @@ public final class CapabilityDeriver {
     return directRate(s);
   }
 
-  private static double sustainedRaw(final ShipConfig s) {
-    return directRate(s) * (s.recharge().max() / SUSTAIN_RECHARGE_SCALE);
+  private static double sustainedRaw(final ShipConfig s, final BotDerivationConfig cfg) {
+    return directRate(s) * (s.recharge().max() / cfg.sustainRechargeScale());
   }
 
-  private static double areaRaw(final ShipConfig s) {
+  private static double areaRaw(final ShipConfig s, final BotDerivationConfig cfg) {
     double a = 0;
     if (s.bombs() != null) {
       final double radius = s.bombs().max().level;
       a += radius * radius;
     }
     if (s.gravBombs() != null) {
-      a += s.gravBombs().max() * GRAVBOMB_AREA;
+      a += s.gravBombs().max() * cfg.gravBombArea();
     }
     if (s.bursts() != null) {
-      a += s.bursts().max() * BURST_AREA;
+      a += s.bursts().max() * cfg.burstArea();
     }
     if (s.thors() != null) {
-      a += s.thors().max() * THOR_AREA;
+      a += s.thors().max() * cfg.thorArea();
     }
     return a;
   }

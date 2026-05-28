@@ -49,8 +49,9 @@ public class GroovyBotRolesLoader {
     public List<BotRoleConfig> bind(final Binding binding) {
       final List<BotRoleConfig> roles = new ArrayList<>();
       binding.setVariable("roles", new RolesClosure(roles));
-      // Same file also holds a synergy { } block (GroovyBotSynergyLoader); ignore it on the roles pass.
+      // Same file also holds synergy { } + derivation { } blocks (their own loaders); ignore here.
       binding.setVariable("synergy", new IgnoringDslClosure());
+      binding.setVariable("derivation", new IgnoringDslClosure());
       return roles;
     }
 

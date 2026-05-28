@@ -58,8 +58,9 @@ public class GroovyBotSynergyLoader {
     public Collected bind(final Binding binding) {
       final Collected collected = new Collected();
       binding.setVariable("synergy", new SynergyClosure(collected));
-      // Same file also holds a roles { } block (GroovyBotRolesLoader); ignore it on the synergy pass.
+      // Same file also holds roles { } + derivation { } blocks (their own loaders); ignore here.
       binding.setVariable("roles", new IgnoringDslClosure());
+      binding.setVariable("derivation", new IgnoringDslClosure());
       return collected;
     }
 

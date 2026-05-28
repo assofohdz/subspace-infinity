@@ -9,6 +9,24 @@
 // `bonus` = capability-derived weight over the CapabilityProfile (method-call form: records).
 // Coefficients are first-cut per docs/bot-ai/capability-derivation.md.
 
+// Capability-derivation coefficients (ADR-0014). Shape how raw ShipConfig numbers normalize into a
+// CapabilityProfile. Area-damage knobs are level² × count proxies; mobility-blend weights let a
+// tuner de-emphasise one axis (e.g. mobilityThrustWeight 0.0 for arenas where thrust doesn't matter).
+derivation {
+    // Area-damage proxies (no shared unit between weapon families; first-cut radius² approximations).
+    gravBombArea          9.0
+    burstArea             1.0
+    thorArea              16.0
+
+    // Denominator scaling sustained DPS so the recharge-rate fraction reads as a 0..1ish multiplier.
+    sustainRechargeScale  1000.0
+
+    // Mobility composite blend weights. Uniform 1.0 reproduces the pre-config behaviour.
+    mobilitySpeedWeight     1.0
+    mobilityRotationWeight  1.0
+    mobilityThrustWeight    1.0
+}
+
 synergy {
     // --- Combat ---
     behaviour 'engage', {

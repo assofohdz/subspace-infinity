@@ -10,6 +10,7 @@ import infinity.BombLevel;
 import infinity.BulletLevel;
 import infinity.Ship;
 import infinity.config.BombStats;
+import infinity.config.BotDerivationConfig;
 import infinity.config.BulletStats;
 import infinity.config.MineStats;
 import infinity.config.ShipConfig;
@@ -40,16 +41,16 @@ public class CapabilityDeriverTest {
 
   @Test
   public void mobilityNormalizesToOneForFastest() {
-    final ArenaCapabilityNorms n = CapabilityDeriver.deriveNorms(ARENA);
-    assertEquals(1.0, CapabilityDeriver.derive(WARBIRD, n).mobility(), EPS);
-    assertTrue(CapabilityDeriver.derive(SHARK, n).mobility() < 1.0);
+    final ArenaCapabilityNorms n = CapabilityDeriver.deriveNorms(ARENA, BotDerivationConfig.DEFAULTS);
+    assertEquals(1.0, CapabilityDeriver.derive(WARBIRD, n, BotDerivationConfig.DEFAULTS).mobility(), EPS);
+    assertTrue(CapabilityDeriver.derive(SHARK, n, BotDerivationConfig.DEFAULTS).mobility() < 1.0);
   }
 
   @Test
   public void minesGateAndCloakDeriveFromConfig() {
-    final ArenaCapabilityNorms n = CapabilityDeriver.deriveNorms(ARENA);
-    final CapabilityProfile shark = CapabilityDeriver.derive(SHARK, n);
-    final CapabilityProfile warbird = CapabilityDeriver.derive(WARBIRD, n);
+    final ArenaCapabilityNorms n = CapabilityDeriver.deriveNorms(ARENA, BotDerivationConfig.DEFAULTS);
+    final CapabilityProfile shark = CapabilityDeriver.derive(SHARK, n, BotDerivationConfig.DEFAULTS);
+    final CapabilityProfile warbird = CapabilityDeriver.derive(WARBIRD, n, BotDerivationConfig.DEFAULTS);
     assertEquals(1, shark.maxMines()); // has-mines gate
     assertEquals(0, warbird.maxMines());
     assertTrue(shark.cloak());
@@ -58,16 +59,20 @@ public class CapabilityDeriverTest {
 
   @Test
   public void burstDamageFavoursBetterGun() {
-    final ArenaCapabilityNorms n = CapabilityDeriver.deriveNorms(ARENA);
-    final CapabilityProfile warbird = CapabilityDeriver.derive(WARBIRD, n);
-    final CapabilityProfile shark = CapabilityDeriver.derive(SHARK, n);
+    final ArenaCapabilityNorms n = CapabilityDeriver.deriveNorms(ARENA, BotDerivationConfig.DEFAULTS);
+    final CapabilityProfile warbird = CapabilityDeriver.derive(WARBIRD, n, BotDerivationConfig.DEFAULTS);
+    final CapabilityProfile shark = CapabilityDeriver.derive(SHARK, n, BotDerivationConfig.DEFAULTS);
     assertEquals(1.0, warbird.burstDamage(), EPS); // L4 @25cs is the arena peak
     assertTrue(shark.burstDamage() < warbird.burstDamage());
   }
 
   @Test
   public void placeholderGatesAreFalse() {
-    final CapabilityProfile p = CapabilityDeriver.derive(WARBIRD, CapabilityDeriver.deriveNorms(ARENA));
+    final CapabilityProfile p =
+        CapabilityDeriver.derive(
+            WARBIRD,
+            CapabilityDeriver.deriveNorms(ARENA, BotDerivationConfig.DEFAULTS),
+            BotDerivationConfig.DEFAULTS);
     assertFalse(p.bombBounce());
     assertFalse(p.bulletBounce());
     assertFalse(p.attachReceive());
@@ -77,7 +82,11 @@ public class CapabilityDeriverTest {
   public void unarmedShipHasZeroDamageDims() {
     final ShipConfig unarmed = ship(Ship.TERRIER, 150, 200, 100, 2000, 800, null, null, null, null);
     final List<ShipConfig> arena = List.of(WARBIRD, unarmed);
-    final CapabilityProfile p = CapabilityDeriver.derive(unarmed, CapabilityDeriver.deriveNorms(arena));
+    final CapabilityProfile p =
+        CapabilityDeriver.derive(
+            unarmed,
+            CapabilityDeriver.deriveNorms(arena, BotDerivationConfig.DEFAULTS),
+            BotDerivationConfig.DEFAULTS);
     assertEquals(0.0, p.burstDamage(), EPS);
     assertEquals(0.0, p.areaDamage(), EPS);
     assertEquals(0.0, p.rangeProfile(), EPS);

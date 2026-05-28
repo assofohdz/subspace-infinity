@@ -6,6 +6,7 @@ import com.simsilica.sim.AbstractGameSystem;
 import com.simsilica.sim.SimTime;
 import infinity.ai.capability.BotSynergyTable;
 import infinity.ai.objective.BotRoleRegistry;
+import infinity.config.BotDerivationConfig;
 import java.nio.file.Path;
 import java.util.List;
 import org.slf4j.Logger;
@@ -27,10 +28,12 @@ public class EngineBotAiSystem extends AbstractGameSystem {
 
   private final GroovyBotSynergyLoader loader;
   private final GroovyBotRolesLoader rolesLoader = new GroovyBotRolesLoader();
+  private final GroovyBotDerivationLoader derivationLoader = new GroovyBotDerivationLoader();
   private final String classpathPath;
   private final Path watchedPathOverride;
   private volatile BotSynergyTable table = new BotSynergyTable(java.util.Map.of());
   private volatile BotRoleRegistry roles = new BotRoleRegistry(List.of());
+  private volatile BotDerivationConfig derivation = BotDerivationConfig.DEFAULTS;
 
   private GroovyFileWatcher<BotSynergyTable> watcher;
   private long nextPollNanos;
@@ -53,6 +56,7 @@ public class EngineBotAiSystem extends AbstractGameSystem {
   protected void initialize() {
     table = loader.load(classpathPath);
     roles = rolesLoader.load(classpathPath);
+    derivation = derivationLoader.load(classpathPath);
     registerWatch();
   }
 
@@ -84,6 +88,11 @@ public class EngineBotAiSystem extends AbstractGameSystem {
     return roles;
   }
 
+  /** Current capability-derivation coefficients (ADR-0014); never null (defaults if load failed). */
+  public BotDerivationConfig derivation() {
+    return derivation;
+  }
+
   private void registerWatch() {
     final Path onDisk =
         watchedPathOverride != null
@@ -102,8 +111,10 @@ public class EngineBotAiSystem extends AbstractGameSystem {
             reloaded -> {
               table = reloaded;
               roles = rolesLoader.load(classpathPath); // same file holds the roles { } block too
+              derivation = derivationLoader.load(classpathPath); // and the derivation { } block
               if (log.isInfoEnabled()) {
-                log.info("Engine bot-AI synergy table + roles reloaded from {}", onDisk);
+                log.info(
+                    "Engine bot-AI synergy table + roles + derivation reloaded from {}", onDisk);
               }
             });
     if (w.arm()) {

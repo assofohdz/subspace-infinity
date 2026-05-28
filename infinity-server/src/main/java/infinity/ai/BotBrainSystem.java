@@ -527,11 +527,12 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     wiring.passabilityRef = passable;
 
     final BotSynergyTable synergy = this.engineBotAi.get();
-    final ArenaCapabilityNorms norms = CapabilityDeriver.deriveNorms(shipConfigs(registry));
+    final infinity.config.BotDerivationConfig derivation = this.engineBotAi.derivation();
+    final ArenaCapabilityNorms norms = CapabilityDeriver.deriveNorms(shipConfigs(registry), derivation);
     wiring.arenaContext = buildArenaContext(arenaId, passable, norms, synergy);
 
     if (registryChanged) {
-      final CapabilityProfile profile = deriveProfile(wiring.botId, registry, norms);
+      final CapabilityProfile profile = deriveProfile(wiring.botId, registry, norms, derivation);
       this.ed.setComponent(wiring.botId, new BotCapability(profile));
       wiring.archetype =
           toArchetype(profile, synergy, this.zoneBotAi.get().minBehaviourWeight(), registry.bots());
@@ -572,13 +573,16 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   /** Profile for the bot's ship type against {@code norms}, or {@code null} when the type isn't configured. */
   @Nullable
   private CapabilityProfile deriveProfile(
-      final EntityId botId, final ConfigRegistry registry, final ArenaCapabilityNorms norms) {
+      final EntityId botId,
+      final ConfigRegistry registry,
+      final ArenaCapabilityNorms norms,
+      final infinity.config.BotDerivationConfig derivation) {
     final ShipType shipType = this.ed.getComponent(botId, ShipType.class);
     if (shipType == null || shipType.getType() == null) {
       return null;
     }
     final ShipConfig shipConfig = registry.getShip(shipType.getType());
-    return shipConfig == null ? null : CapabilityDeriver.derive(shipConfig, norms);
+    return shipConfig == null ? null : CapabilityDeriver.derive(shipConfig, norms, derivation);
   }
 
   /**
