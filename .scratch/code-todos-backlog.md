@@ -115,17 +115,6 @@ Each row: actionable item + source file:line + brief context.
   SimEthereal component sync, not RMI — reliable RMI buffer flood is an
   Unreal-canon anti-pattern.
 
-- [ ] **Project `ShipRestrictionsConfig` to a per-arena component** instead
-  of granting `ConfigShipRestrictor` an `infinity.config` exception in
-  `LayerDependencyTest`. Per `.claude/rules/config-pattern.md`, "Hot-path
-  consumers must not import from `infinity.config`. Spawn systems are the
-  only boundary." `ConfigShipRestrictor` is a request-time gate, not a spawn
-  system, but currently sits in the spawn-tier allow-list. A
-  `ShipRestrictions` component projected at arena-load time would let
-  `ConfigShipRestrictor` read the component and drop the template import.
-  Defer until another arena-scoped gate appears with the same shape — single
-  case may not justify the projection.
-
 ### Test coverage gaps
 
 - [ ] **`WeaponsEligibility.bombSafetyClear` + `effectiveBombSafetyRadius` are
@@ -154,36 +143,19 @@ Each row: actionable item + source file:line + brief context.
   the dynamic/ambient mix work below — this toggle is the binary "off"
   switch; the mix knob is the analogue dial.
 
-- [ ] **Add PointLight emitters to projectiles + bot ships; balance ambient
-  vs dynamic light on world blocks.** Three related gaps:
-  1. **Projectiles emit no light today.** `WeaponFactory.createBomb` /
-     `createBullet` / `createMine` / etc. don't stamp `PointLightComponent`.
-     A bomb glowing red as it travels, a green bullet trail, mine pulses —
-     would dramatically improve readability in dim arenas. Trade-off: many
-     simultaneous projectiles = many jME `PointLight` instances created by
-     `LightState` ([infinity-client/.../states/LightState.java](../infinity-client/src/main/java/infinity/client/states/LightState.java)).
-     Verify acceptable cost (likely fine — bullets are short-lived via
-     `Decay`, automatically cleaned up).
-  2. **Bot ships emit no light.** `ShipFactory.createPlayerShip` stamps
-     `PointLightComponent` at
-     ([api/.../sim/ShipFactory.java:86](../api/src/main/java/infinity/sim/ShipFactory.java)),
-     but `createShip` (the base, used by `AIEntities.createMobShip` for
-     bots) doesn't. Result: human-player ships glow, AI ships are dark.
-     Move the light stamp into `createShip` so every ship gets one, OR
-     stamp explicitly in `AIEntities.createMobShip`.
-  3. **World block lighting is binary today.** `WallLightDecorator` bakes
-     vertex-colour light data into wall cells at map-load
-     ([infinity-server/.../systems/WallLightDecorator.java](../infinity-server/src/main/java/infinity/systems/WallLightDecorator.java));
-     blocks don't react to dynamic `PointLight`s from ships/projectiles.
-     Ambient too high → everything reads as a flat-lit picture, ship lights
-     have no perceived effect; ambient too low → world goes black and only
-     the ship-radius is visible (Doom-like, but disorienting on Subspace
-     overhead view). Want a middle ground: maybe per-block partial
-     contribution from nearby dynamic lights (small radius, low intensity),
-     OR a fragment-shader pass that samples nearby ship-light positions per
-     block face, OR a "fake ambient" floor that's slightly modulated by
-     local density of ship lights. Needs a small shader prototype + an
-     `engine.groovy` tunable for the dynamic/ambient mix.
+- [ ] **Balance ambient vs dynamic light on world blocks.**
+  `WallLightDecorator` bakes vertex-colour light data into wall cells at
+  map-load ([infinity-server/.../systems/WallLightDecorator.java](../infinity-server/src/main/java/infinity/systems/WallLightDecorator.java));
+  blocks don't react to dynamic `PointLight`s from ships/projectiles.
+  Ambient too high → everything reads as a flat-lit picture, ship lights
+  have no perceived effect; ambient too low → world goes black and only
+  the ship-radius is visible (Doom-like, but disorienting on Subspace
+  overhead view). Want a middle ground: maybe per-block partial
+  contribution from nearby dynamic lights (small radius, low intensity),
+  OR a fragment-shader pass that samples nearby ship-light positions per
+  block face, OR a "fake ambient" floor that's slightly modulated by
+  local density of ship lights. Needs a small shader prototype + an
+  `engine.groovy` tunable for the dynamic/ambient mix.
 
 ### Visual / animation
 
@@ -239,55 +211,6 @@ Each row: actionable item + source file:line + brief context.
   `infinity-server/src/main/java/infinity/sim/internal/InfinityDefaultLeafWorld.java:139`.
   Hot during bulk map load / live edit.
 
-### AI behaviour
-
-- [ ] **Bot brains + steering currently feel like wandering chickens, not
-  Subspace players.** Bots spawned by `FillUpXTeams` /
-  `AIEntities.createMobShip` use the existing
-  `BrainConfigurations.createPerson` / `createDummy` / `createChicken`
-  brains ([infinity-server/src/main/java/infinity/ai/BrainConfigurations.java](../infinity-server/src/main/java/infinity/ai/BrainConfigurations.java))
-  driven by `MobDriver` ([../infinity-server/src/main/java/infinity/ai/MobDriver.java](../infinity-server/src/main/java/infinity/ai/MobDriver.java)).
-  The visible behaviour: slow drift, no target acquisition, no weapons fire,
-  no evasion — barely moves. F5 KOTH smoke surfaced this because the
-  arena assumes bots will actually fight. Want a `createCombatant` brain
-  that approximates a casual player:
-  - Acquires nearest non-team ship inside radar range as target
-    (`Frequency` mismatch, alive, in-arena).
-  - Steers toward target with full thrust + rotation up to ship cap
-    (currently turn speed is throttled in `MobDriverLogic.shortestArcFacing`
-    — likely needs a per-config tuning knob, not the chicken/dummy default).
-  - Fires bullets when within an effective range threshold; fires bombs at
-    longer range with a lead-prediction heuristic.
-  - Evades when own energy drops below a configurable threshold (60%?) —
-    invert thrust + turn 90–180° away from threat for N seconds.
-  - Optional: prize-pickup detour when a `Prize` entity is in nearby radius
-    and target is distant.
-  Wire-up: add `createCombatant(ed)` in `BrainConfigurations`, switch
-  `AIEntities.createMobShip` to use it (currently picks via `MobType` name
-  lookup against the BrainConfigurations registry, see
-  `MobSystem.java:359`). Tunable defaults (target acquisition radius,
-  evasion energy threshold, fire-range thresholds) go in `engine.groovy`
-  or a new `bot-tuning` preset fragment. Performance note:
-  `Actor.search` walks all objects linearly today — already filed as a
-  separate TODO; combatant brain will exacerbate that until the broadphase
-  refactor lands.
-
-- [ ] **`onMoved` brain hook for the wandering mob currently ignores
-  every moved object — extend to chase fast-moving prey (filter by
-  size to skip stationary `corn` decorations).** Source:
-  `infinity-server/src/main/java/infinity/ai/BrainConfigurations.java:337`.
-- [ ] **`Actor.search` walks all objects linearly — replace with a
-  positional grid / physics broadphase query (split static vs dynamic;
-  cone or sphere query in physics-space).** Source:
-  `infinity-server/src/main/java/infinity/ai/MobDriver.java:229`.
-- [ ] **`MobSystem` movement-event distribution is brute-force —
-  replace with a spatial bin index so each moving body only wakes
-  brains whose perception radius overlaps.** Source:
-  `infinity-server/src/main/java/infinity/ai/MobSystem.java:263`.
-- [ ] **Perception radius is hard-coded in two places (`MobSystem` and
-  `Actor.look`) — consolidate into a single source.** Source:
-  `infinity-server/src/main/java/infinity/ai/MobSystem.java:276`.
-
 ### Identity / ECS
 
 - [ ] **Everything created inside an arena should be stamped with `ArenaId`.**
@@ -306,30 +229,9 @@ Each row: actionable item + source file:line + brief context.
   `ArenaMembershipSystem` / `ArenaSystem` writer split (per
   `replacement-as-mutation.md`) so the stamp doesn't create a second writer.
 
-- [~] **Suspected entity churn / leak: with 8 bots, `EntityId` counter climbs
-  by ~1000s/sec.** Observed 2026-05-25 during bot-AI #07 testing. **Primary
-  cause found + fixed (2026-05-25):** `FillUpXTeams` counted live bots only via
-  the `ArenaId`-gated `arenaShips` set. A stuck (`v~0`) bot stops generating
-  arena-sensor contacts, so `ArenaMembershipSystem`'s exit-grace sweep strips
-  its `ArenaId` and it drops out of that set *while still alive* — so the
-  mechanic respawned a replacement every tick (and culled the overflow once
-  they re-registered), a spawn/cull storm. Fix: count bots from the
-  `spawnedBots` tracker (∪ registered, minus `Dead`, excluding bots migrated to
-  another arena); prune the tracker by `BotShip`-presence (reaped) rather than
-  by `arenaShips` membership. Regression test:
-  `FillUpXTeamsTest.boundedTwoTeams_stuckBotLosesArenaId_notRespawned`. Note
-  the deeper smell — `ArenaId` has two writers (`spawnBot`'s manual stamp +
-  `ArenaMembershipSystem`); the fix decouples bot-counting from that volatility
-  rather than resolving the multi-writer (left as a separate concern).
-  **Remaining:** manual in-game verify the id-climb actually stops with 8 bots;
-  if it still climbs, hunt secondary churn — likely suspects:
-  a `*Change` holder entity created but not destroyed by its canonical writer
-  (one-shot drain should `removeEntity`; see `replacement-as-mutation.md`
-  four-line state machine), a per-tick spawn missing a `Decay`, or a bot
-  firing path creating projectiles faster than `WeaponsReaperSystem` reaps.
-  Bots fire far more than humans, so a small per-shot leak shows up fast under
-  8 bots. Cross-check: does the count keep climbing after bots are removed?
-  `AccountHostedService.login` ([infinity-server/src/main/java/infinity/server/AccountHostedService.java:187](../infinity-server/src/main/java/infinity/server/AccountHostedService.java))
+- [ ] **Player-vs-ship identity: two ECS entities per logged-in human.**
+  `AccountHostedService.login`
+  ([infinity-server/src/main/java/infinity/server/AccountHostedService.java:187](../infinity-server/src/main/java/infinity/server/AccountHostedService.java))
   creates a player entity and registers it in `playerConnectionMap` (the key
   `lookupConnection(EntityId)` walks for `postPrivateMessage`). Independently,
   `GameSessionImpl` ctor
@@ -347,7 +249,11 @@ Each row: actionable item + source file:line + brief context.
   `ATTRIBUTE_PLAYER_ENTITYID`. Surfaced 2026-05-20 during F4 round-timer chat
   filtering — the chat-by-arena fix (`postArenaMessage(ArenaId)`) sidesteps the
   problem by filtering via `getAvatarEntity(conn)` instead of using
-  `playerConnectionMap`.
+  `playerConnectionMap`. Originally filed alongside a `FillUpXTeams` spawn-
+  cull storm (id climb at 8 bots); that primary cause was fixed 2026-05-25
+  via the `spawnedBots` tracker rework + regression test
+  `FillUpXTeamsTest.boundedTwoTeams_stuckBotLosesArenaId_notRespawned`. The
+  identity duplication is the remaining open concern.
 
 ### Chat lifecycle
 
