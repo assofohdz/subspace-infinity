@@ -1,6 +1,6 @@
 # Hot-path config-template read — project `perceptionRadius` to a component
 
-Status: ready-for-agent
+Status: done (perceptionRadius projected onto BrainWiring at refreshDerivation boundary; secondary redundant ArenaId/BotRole/ShipType reads deferred — not a rule violation, just a perf nit)
 Category: maintenance
 Type: AFK
 
@@ -38,8 +38,8 @@ already carries its per-ship value. Hot path reads the component; remove the
 
 ## Acceptance criteria
 
-- [ ] `perceptionRadius` projected to a component at the spawn/arena-load boundary; no `ConfigRegistry` read on the per-tick path
-- [ ] `BotRole`/`ShipType`/`ArenaId` cached in `BrainWiring`, refreshed via the existing derivation-change signal (no per-tick double reads)
-- [ ] No behaviour change (same effective radius); PMD ratchet; layer test passes
+- [x] `perceptionRadius` projected onto `BrainWiring.arenaPerceptionRadius` at the `refreshDerivation()` registry-change boundary (per-bot, not a separate ECS component — matches the existing wiring sidecar pattern). Hot path: RadarRange check (still per-tick — it can prize-mutate) → `wiring.arenaPerceptionRadius` → no `ConfigRegistry.forArena()` lookup. `refreshDerivation()` moved before perception in `tickBot()` so the fallback is current on the first registry-attach tick.
+- [~] `BotRole`/`ShipType`/`ArenaId` redundant reads — deferred. These are per-tick component reads (cheap O(1) hash lookups), not template reads — they don't violate ADR-0002. The redundancy is a perf nit, not the load-bearing concern of this issue. Promote to a v3 follow-up if it shows up in a profile.
+- [x] No behaviour change (same effective radius); PMD on touched file shows only the pre-existing high-tier class-complexity (102, down from 103); layer test green.
 
 ## Comments

@@ -237,7 +237,10 @@ public final class BotBrainSystem extends BaseInfinitySystem {
       // Body not yet attached to the physics space; skip until next tick.
       return;
     }
-    final double radius = perceptionRadius(wiring.botId);
+    // Refresh derivation FIRST so wiring.arenaPerceptionRadius is current before the perception
+    // query reads it. No-ops on most ticks (registry-reference compare).
+    refreshDerivation(wiring);
+    final double radius = perceptionRadius(wiring);
     final PerceptionSnapshot snapshot = this.perception.perceive(wiring.botId, self, radius);
     final Blackboard bb = wiring.blackboard;
     bb.setSelf(self);
@@ -254,9 +257,6 @@ public final class BotBrainSystem extends BaseInfinitySystem {
         energy != null ? energy.getEnergy() : -1,
         energyStats != null ? energyStats.max() : -1);
 
-    // Refresh capability derivation when the arena config changed (incl. EMPTY→loaded once
-    // ArenaId is stamped by membership), then re-select a goal on the planner cadence.
-    refreshDerivation(wiring);
     bb.setArenaContext(wiring.arenaContext);
     ensureRoleBias(wiring, bb);
     planOnCadence(wiring, bb, nowNanos);
@@ -517,6 +517,12 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     }
     wiring.derivedFrom = registry;
     wiring.passabilityRef = passable;
+    // Project the arena fallback perception radius at the boundary so the per-tick lookup
+    // never reads the ConfigRegistry template (ADR-0002).
+    wiring.arenaPerceptionRadius =
+        registry == ConfigRegistry.EMPTY
+            ? DEFAULT_PERCEPTION_RADIUS
+            : registry.botBrain().perceptionRadius();
 
     final BotSynergyTable synergy = this.engineBotAi.get();
     final infinity.config.BotDerivationConfig derivation = this.engineBotAi.derivation();
@@ -763,22 +769,16 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
   /**
    * Resolve the bot's perception radius. Per-ship {@code RadarRange} (if present and
-   * positive) wins; otherwise fall back to the arena's {@link BotBrainConfig#perceptionRadius()};
-   * lastly to {@link #DEFAULT_PERCEPTION_RADIUS} when no config is loaded.
+   * positive) wins on the hot path — it can mutate mid-game via prizes; the arena-config
+   * fallback is the cached value projected onto {@code wiring.arenaPerceptionRadius} at
+   * the registry-change boundary (ADR-0002 / config-pattern.md). No per-tick template read.
    */
-  private double perceptionRadius(final EntityId botId) {
-    final RadarRange rr = this.ed.getComponent(botId, RadarRange.class);
+  private double perceptionRadius(final BrainWiring wiring) {
+    final RadarRange rr = this.ed.getComponent(wiring.botId, RadarRange.class);
     if (rr != null && rr.getRange() > 0.0) {
       return rr.getRange();
     }
-    final ArenaId arenaId = this.ed.getComponent(botId, ArenaId.class);
-    if (arenaId != null) {
-      final ConfigRegistry registry = this.configRegistrySystem.forArena(arenaId);
-      if (registry != null) {
-        return registry.botBrain().perceptionRadius();
-      }
-    }
-    return DEFAULT_PERCEPTION_RADIUS;
+    return wiring.arenaPerceptionRadius;
   }
 
   /** Pick the nearest threat from the snapshot. Returns null if the threat list is empty. */
@@ -810,6 +810,10 @@ public final class BotBrainSystem extends BaseInfinitySystem {
     @Nullable ConfigRegistry derivedFrom;
     @Nullable boolean[][] passabilityRef;
     @Nullable ServerBotAiArenaContext arenaContext;
+    // Projected at the refreshDerivation() boundary so the per-tick perception lookup never reads
+    // the ConfigRegistry template (ADR-0002 / config-pattern.md). DEFAULT_PERCEPTION_RADIUS until
+    // the first registry attach; updated only when the snapshot reference changes.
+    double arenaPerceptionRadius = DEFAULT_PERCEPTION_RADIUS;
 
     BrainWiring(
         final EntityId botId,
