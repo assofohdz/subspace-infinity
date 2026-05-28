@@ -107,4 +107,34 @@ public class FieldGradientTest {
     assertTrue(Double.isFinite(d.y));
     assertTrue(d.length() <= 1.0 + EPS);
   }
+
+  @Test
+  public void wallAdjacentCellCollapsesToOrthogonalBlend() {
+    // West neighbour is a wall — wall-adjacent → orthogonal-only fallback. Without the fallback,
+    // the SE diagonal would contribute and pull the heading off-axis; with it, only N/S/E
+    // orthogonals contribute and the heading is purely east toward the open lower-distance cell.
+    final double inf = Double.POSITIVE_INFINITY;
+    final double[][] f = {
+      {5, 4, 3},
+      {inf, 3, 2}, // west of center (1,1) is a wall
+      {5, 4, 1} // SE diagonal at (2,2) is the lowest
+    };
+    final Vec2d d = new FieldGradient(arrayField(f)).directionAt(1, 1);
+    assertEquals("orthogonal-only: no SE diagonal pull", 1.0, d.x, EPS);
+    assertEquals("orthogonal-only: no SE diagonal pull", 0.0, d.y, EPS);
+  }
+
+  @Test
+  public void openCellStillBlendsDiagonally() {
+    // Same 8-way blend behaviour as before in open space: when no orthogonal neighbour is a wall,
+    // diagonals contribute. Pins the wallAdjacent gate fires only for genuinely pinched cells.
+    final double[][] f = {
+      {4, 3, 2},
+      {3, 2, 1}, // (1,1) center
+      {4, 3, 2}
+    };
+    final Vec2d d = new FieldGradient(arrayField(f)).directionAt(1, 1);
+    assertEquals("east component dominates toward the (2,1)=1 goal", 1.0, d.x, EPS);
+    assertEquals("symmetric N/S contributions cancel", 0.0, d.y, EPS);
+  }
 }
