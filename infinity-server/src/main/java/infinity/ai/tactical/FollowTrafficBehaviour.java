@@ -2,7 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.ai.tactical;
 
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.brain.Blackboard;
 import infinity.ai.field.TileScored;
 import infinity.config.ZoneBotAiConfig;
@@ -42,7 +42,7 @@ public final class FollowTrafficBehaviour implements Behaviour {
     if (chokepoints.isEmpty()) {
       return List.of();
     }
-    final MoverState self = bb.self();
+    final MoverSnapshot self = bb.self();
     final int selfX = (int) Math.floor(self.position().x) - ctx.originCellX();
     final int selfY = (int) Math.floor(self.position().z) - ctx.originCellZ();
 

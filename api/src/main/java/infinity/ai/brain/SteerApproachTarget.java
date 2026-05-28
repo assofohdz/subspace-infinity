@@ -3,7 +3,7 @@
 package infinity.ai.brain;
 
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyShip;
 import infinity.ai.bt.Action;
 import infinity.ai.bt.Status;
@@ -43,7 +43,7 @@ public final class SteerApproachTarget implements Action {
       blackboard.setNavDiag("no-nav");
       return Status.FAILURE; // no production nav → straight-line Pursue fallback
     }
-    final MoverState self = blackboard.self();
+    final MoverSnapshot self = blackboard.self();
     final int goalX = blockCentre((int) Math.floor(target.position().x) - ctx.originCellX());
     final int goalY = blockCentre((int) Math.floor(target.position().z) - ctx.originCellZ());
     final int selfX = (int) Math.floor(self.position().x) - ctx.originCellX();

@@ -8,7 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.PerceptionSnapshot;
 import org.junit.Test;
 
@@ -16,7 +16,7 @@ public class SeekDirectionTest {
 
   private static final double EPS = 1e-6;
   // Bot at origin, identity orientation = facing +Z.
-  private static final MoverState SELF = new MoverState(new Vec3d(), new Quatd(), new Vec3d());
+  private static final MoverSnapshot SELF = new MoverSnapshot(new Vec3d(), new Quatd(), new Vec3d());
 
   @Test
   public void noHeadingReturnsNull() {

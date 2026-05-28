@@ -10,7 +10,7 @@ import static org.junit.Assert.assertTrue;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyShip;
 import infinity.ai.PerceptionSnapshot;
 import org.junit.Test;
@@ -99,8 +99,8 @@ public class PursueTest {
     assertEquals(movingIntent.z, stationaryIntent.z, DELTA);
   }
 
-  private static MoverState mover(final double x, final double y, final double z) {
-    return new MoverState(new Vec3d(x, y, z), new Quatd(), new Vec3d());
+  private static MoverSnapshot mover(final double x, final double y, final double z) {
+    return new MoverSnapshot(new Vec3d(x, y, z), new Quatd(), new Vec3d());
   }
 
   private static NearbyShip stationaryTargetAt(final double x, final double y, final double z) {

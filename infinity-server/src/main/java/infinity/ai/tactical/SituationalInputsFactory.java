@@ -2,7 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.ai.tactical;
 
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyShip;
 import infinity.ai.brain.Blackboard;
 import infinity.ai.field.BlendedFlow;
@@ -29,7 +29,7 @@ public final class SituationalInputsFactory {
   public static SituationalInputs compute(
       final Blackboard bb, final OwnBotState own, final ZoneBotAiConfig cfg) {
     final NearbyShip target = bb.target();
-    final MoverState self = bb.self();
+    final MoverSnapshot self = bb.self();
     if (target == null || self == null) {
       return SituationalInputs.NEUTRAL;
     }
@@ -61,7 +61,7 @@ public final class SituationalInputsFactory {
   }
 
   /** Allies within {@code radius} world units of {@code self} (the {@code support} input numerator). */
-  private static int alliesInRadius(final Blackboard bb, final MoverState self, final double radius) {
+  private static int alliesInRadius(final Blackboard bb, final MoverSnapshot self, final double radius) {
     if (bb.perception() == null) {
       return 0;
     }
@@ -103,7 +103,7 @@ public final class SituationalInputsFactory {
    * no production nav / threat field is wired.
    */
   private static double approachSafety(
-      final Blackboard bb, final MoverState self, final NearbyShip target, final double threatRef) {
+      final Blackboard bb, final MoverSnapshot self, final NearbyShip target, final double threatRef) {
     final BotAiArenaContext ctx = bb.arenaContext();
     if (ctx == null || threatRef <= 0) {
       return 1.0;
@@ -127,7 +127,7 @@ public final class SituationalInputsFactory {
    * where LoS can't be evaluated).
    */
   private static double lineOfSight(
-      final Blackboard bb, final MoverState self, final NearbyShip target) {
+      final Blackboard bb, final MoverSnapshot self, final NearbyShip target) {
     final BotAiArenaContext ctx = bb.arenaContext();
     if (ctx == null) {
       return 1.0;

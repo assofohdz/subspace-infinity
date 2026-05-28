@@ -2,7 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.ai.brain;
 
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyShip;
 import infinity.ai.bt.Condition;
 import infinity.ai.bt.Status;
@@ -29,7 +29,7 @@ public final class HasLineOfSight implements Condition {
     if (nav == null) {
       return Status.SUCCESS; // no production nav → can't test LoS; don't block engage (v1 behaviour)
     }
-    final MoverState self = blackboard.self();
+    final MoverSnapshot self = blackboard.self();
     final int ax = (int) Math.floor(self.position().x) - ctx.originCellX();
     final int ay = (int) Math.floor(self.position().z) - ctx.originCellZ();
     final int bx = (int) Math.floor(target.position().x) - ctx.originCellX();

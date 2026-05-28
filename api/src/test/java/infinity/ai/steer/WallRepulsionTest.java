@@ -8,7 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.field.DistanceField;
 import infinity.ai.field.FieldGradient;
 import infinity.ai.field.GradientField;
@@ -20,14 +20,14 @@ public class WallRepulsionTest {
 
   private final WallRepulsion repel = new WallRepulsion(3, 1.0);
 
-  private static MoverState at(final int x, final int z) {
+  private static MoverSnapshot at(final int x, final int z) {
     // Identity orientation: forward = +Z, left = +X.
-    return new MoverState(new Vec3d(x, 0, z), new Quatd(), new Vec3d());
+    return new MoverSnapshot(new Vec3d(x, 0, z), new Quatd(), new Vec3d());
   }
 
   @Test
   public void openSurroundings_returnNull() {
-    final MoverState self = at(3, 3); // 7x7, radius-3 box stays in-bounds + all passable
+    final MoverSnapshot self = at(3, 3); // 7x7, radius-3 box stays in-bounds + all passable
     assertNull(repel.steer(self, grid(open(7)), 0, 0));
   }
 

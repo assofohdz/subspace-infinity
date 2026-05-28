@@ -232,7 +232,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
   /** Compute and write this tick's {@link MovementInput} for one bot. */
   private void tickBot(final BrainWiring wiring, final long nowNanos) {
-    final MoverState self = sampleState(wiring.botId);
+    final MoverSnapshot self = sampleState(wiring.botId);
     if (self == null) {
       // Body not yet attached to the physics space; skip until next tick.
       return;
@@ -293,7 +293,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
    */
   private Steer resolveSteer(
       final BrainWiring wiring,
-      final MoverState self,
+      final MoverSnapshot self,
       final PerceptionSnapshot snapshot,
       final Blackboard bb) {
     if (!"Navigate".equals(bb.lastBranch())) {
@@ -340,7 +340,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   @SuppressWarnings("PMD.GuardLogStatement")
   private void maybeLogStuck(
       final BrainWiring wiring,
-      final MoverState self,
+      final MoverSnapshot self,
       @Nullable final NearbyShip target,
       final Vec3d move,
       final Blackboard bb,
@@ -389,7 +389,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
    */
   @SuppressWarnings("PMD.GuardLogStatement")
   private void logNavField(
-      final Blackboard bb, @Nullable final ServerBotAiArenaContext ctx, final MoverState self) {
+      final Blackboard bb, @Nullable final ServerBotAiArenaContext ctx, final MoverSnapshot self) {
     if (ctx == null || ctx.navigation() == null
         || !(bb.currentGoal() instanceof infinity.ai.tactical.NavigateToTile goal)) {
       return;
@@ -648,7 +648,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
    */
   private void writeDebugSnapshot(
       final BrainWiring wiring,
-      final MoverState self,
+      final MoverSnapshot self,
       final NearbyShip target,
       final Vec3d move,
       final Blackboard bb,
@@ -742,7 +742,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
    * Map the direction from {@code self} to {@code targetWorldPos} into a 1..12 clock hour
    * relative to the bot's forward heading. 12 = ahead, 3 = 90° right, 6 = behind, 9 = 90° left.
    */
-  private static int clockHourToTarget(final MoverState self, final Vec3d targetWorldPos) {
+  private static int clockHourToTarget(final MoverSnapshot self, final Vec3d targetWorldPos) {
     final Vec3d forward = self.orientation().mult(Vec3d.UNIT_Z);
     final Vec3d left = self.orientation().mult(Vec3d.UNIT_X);
     final Vec3d delta = targetWorldPos.subtract(self.position());
@@ -758,12 +758,12 @@ public final class BotBrainSystem extends BaseInfinitySystem {
   }
 
   /** Sample the bot's current position / orientation / velocity from its RigidBody. */
-  private MoverState sampleState(final EntityId botId) {
+  private MoverSnapshot sampleState(final EntityId botId) {
     final RigidBody<EntityId, MBlockShape> body = this.space.getBinIndex().getRigidBody(botId);
     if (body == null) {
       return null;
     }
-    return new MoverState(
+    return new MoverSnapshot(
         body.position.clone(), body.orientation.clone(), body.getLinearVelocity().clone());
   }
 
@@ -783,7 +783,7 @@ public final class BotBrainSystem extends BaseInfinitySystem {
 
   /** Pick the nearest threat from the snapshot. Returns null if the threat list is empty. */
   private static NearbyShip pickNearestThreat(
-      final MoverState self, final PerceptionSnapshot snapshot) {
+      final MoverSnapshot self, final PerceptionSnapshot snapshot) {
     NearbyShip nearest = null;
     double minDistSq = Double.POSITIVE_INFINITY;
     for (final NearbyShip threat : snapshot.threats()) {

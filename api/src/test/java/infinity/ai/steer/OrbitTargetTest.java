@@ -10,7 +10,7 @@ import static org.junit.Assert.assertTrue;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyShip;
 import infinity.ai.PerceptionSnapshot;
 import java.util.List;
@@ -85,8 +85,8 @@ public class OrbitTargetTest {
     assertEquals(THRUST, intent.z, 1e-9);
   }
 
-  private static MoverState atOrigin() {
-    return new MoverState(new Vec3d(), new Quatd(), new Vec3d());
+  private static MoverSnapshot atOrigin() {
+    return new MoverSnapshot(new Vec3d(), new Quatd(), new Vec3d());
   }
 
   private static NearbyShip targetAt(final double x, final double z) {

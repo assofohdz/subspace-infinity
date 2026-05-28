@@ -3,7 +3,7 @@
 package infinity.ai.steer;
 
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.PerceptionSnapshot;
 
 /**
@@ -33,7 +33,7 @@ public final class SeekDirection implements Steering {
   }
 
   @Override
-  public Vec3d steer(final MoverState self, final PerceptionSnapshot perception) {
+  public Vec3d steer(final MoverSnapshot self, final PerceptionSnapshot perception) {
     if (this.desired == null || this.desired.lengthSq() < 1e-9) {
       return null;
     }

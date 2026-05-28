@@ -7,7 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.brain.Blackboard;
 import infinity.ai.objective.DeathmatchObjective;
 import infinity.ai.objective.GoalTile;
@@ -30,7 +30,7 @@ public class HoldPositionBehaviourTest {
   public void setUp() {
     bb = new Blackboard(new Pursue(0.5, 1.0), new Wander(1, 2, 0.5, 1.0),
         new OrbitTarget(15, 1.0), new Evade(0.5, 1.0));
-    bb.setSelf(new MoverState(new Vec3d(0, 0, 0), new Quatd(), new Vec3d(0, 0, 0)));
+    bb.setSelf(new MoverSnapshot(new Vec3d(0, 0, 0), new Quatd(), new Vec3d(0, 0, 0)));
   }
 
   private ServerBotAiArenaContext ctxWith(final infinity.ai.objective.ArenaObjective objective) {

@@ -3,7 +3,7 @@
 package infinity.ai.steer;
 
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.PerceptionSnapshot;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.random.RandomGenerator;
@@ -51,7 +51,7 @@ public final class Wander implements Steering {
   }
 
   @Override
-  public Vec3d steer(final MoverState self, final PerceptionSnapshot perception) {
+  public Vec3d steer(final MoverSnapshot self, final PerceptionSnapshot perception) {
     this.currentAngleRadians +=
         (this.random.nextDouble() * 2.0 - 1.0) * this.wanderJitterRadians;
     final Vec3d forward = self.orientation().mult(Vec3d.UNIT_Z);

@@ -4,7 +4,7 @@ package infinity.ai.brain;
 
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyShip;
 import infinity.ai.PerceptionSnapshot;
 import infinity.ai.steer.Evade;
@@ -37,7 +37,7 @@ public final class Blackboard {
   private final SeekDirection seek = new SeekDirection(1.0);
 
   private EntityId selfId;
-  private MoverState self;
+  private MoverSnapshot self;
   private PerceptionSnapshot perception;
   private NearbyShip target;
   private String lastBranch = "";
@@ -93,11 +93,11 @@ public final class Blackboard {
     this.navDiag = navDiag;
   }
 
-  public MoverState self() {
+  public MoverSnapshot self() {
     return this.self;
   }
 
-  public void setSelf(final MoverState self) {
+  public void setSelf(final MoverSnapshot self) {
     this.self = self;
   }
 

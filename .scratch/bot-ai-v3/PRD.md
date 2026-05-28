@@ -47,7 +47,7 @@ are cleanup; #06 is docs/tracker hygiene (can land anytime, no code dep).
 | 02 | Tuning-knob migration to Groovy (~12 knobs + `BotDerivationConfig`) | HIGH | — | ✅ done (A + B+C+D + E + F.7); F.1–F.5 deferred to [B12](BACKLOG.md#b12--api-steer-action--brain-wander-constants-v3-02f1f5-deferred); F.6 false alarm |
 | 03 | Hot-path config read → project `perceptionRadius` to component | HIGH | — | ✅ done (projected onto BrainWiring at refreshDerivation boundary; redundant ArenaId/BotRole/ShipType reads deferred — not ADR-0002 violations) |
 | 04 | Legacy package + dead-path deletion (~5,200 LOC) | HIGH | — | ✅ done (35 legacy files + MobDebugState + CharacterInput deleted; MovementInputSystem collapsed to PlayerContainer) |
-| 05 | Naming + dead-component cleanup (`MoverState`, `Steering*`) | HIGH/MEDIUM | — | ready-for-agent |
+| 05 | Naming + dead-component cleanup (`MoverState`, `Steering*`) | HIGH/MEDIUM | — | ✅ done (MoverState→MoverSnapshot rename; 4 dead Steering* components deleted) |
 | 06 | Docs/ADR + tracker sync | MEDIUM | — | ready-for-agent |
 
 See `.scratch/bot-ai-v3/issues/01-06.md`. Carried-over / un-promoted work

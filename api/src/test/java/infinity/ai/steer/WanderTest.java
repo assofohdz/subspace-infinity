@@ -8,7 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.PerceptionSnapshot;
 import java.util.List;
 import java.util.random.RandomGenerator;
@@ -19,8 +19,8 @@ public class WanderTest {
   private static final PerceptionSnapshot EMPTY =
       new PerceptionSnapshot(List.of(), List.of(), List.of());
 
-  private static MoverState atOrigin() {
-    return new MoverState(new Vec3d(), new Quatd(), new Vec3d());
+  private static MoverSnapshot atOrigin() {
+    return new MoverSnapshot(new Vec3d(), new Quatd(), new Vec3d());
   }
 
   @Test

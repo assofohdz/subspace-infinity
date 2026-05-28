@@ -8,7 +8,7 @@ import static org.junit.Assert.assertTrue;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyShip;
 import infinity.ai.PerceptionSnapshot;
 import infinity.ai.brain.Blackboard;
@@ -39,7 +39,7 @@ public class SituationalInputsFactoryTest {
             new Wander(1, 2, 0.5, 1.0),
             new OrbitTarget(15, 1.0),
             new Evade(0.5, 1.0));
-    bb.setSelf(new MoverState(new Vec3d(), new Quatd(), new Vec3d()));
+    bb.setSelf(new MoverSnapshot(new Vec3d(), new Quatd(), new Vec3d()));
   }
 
   private NearbyShip ship(final int id, final double x, final int freq, final double e, final int b) {

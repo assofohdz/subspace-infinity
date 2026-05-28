@@ -11,5 +11,5 @@ import com.simsilica.es.EntityId;
  */
 public interface Perception {
 
-  PerceptionSnapshot perceive(EntityId bot, MoverState self, double radius);
+  PerceptionSnapshot perceive(EntityId bot, MoverSnapshot self, double radius);
 }

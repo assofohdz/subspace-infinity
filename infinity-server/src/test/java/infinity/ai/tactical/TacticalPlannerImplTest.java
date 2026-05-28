@@ -179,7 +179,7 @@ public class TacticalPlannerImplTest {
   @Test
   public void engageWithoutLineOfSightEnumeratesNothing() {
     final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
-    bb.setSelf(new infinity.ai.MoverState(
+    bb.setSelf(new infinity.ai.MoverSnapshot(
         new com.simsilica.mathd.Vec3d(), new com.simsilica.mathd.Quatd(),
         new com.simsilica.mathd.Vec3d()));
     bb.setPerception(new infinity.ai.PerceptionSnapshot(
@@ -197,7 +197,7 @@ public class TacticalPlannerImplTest {
     // is computed (not left at NEGATIVE_INFINITY). EngageBehaviour now offers ALL alive threats
     // — nearest first so the no-current-goal tiebreak still picks nearest.
     final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
-    bb.setSelf(new infinity.ai.MoverState(
+    bb.setSelf(new infinity.ai.MoverSnapshot(
         new com.simsilica.mathd.Vec3d(0, 0, 0), new com.simsilica.mathd.Quatd(),
         new com.simsilica.mathd.Vec3d()));
     final infinity.ai.NearbyShip far =
@@ -224,7 +224,7 @@ public class TacticalPlannerImplTest {
     // Post-fix: Engage(A) AND Engage(B) both in the candidate list with equal intrinsicScore;
     // stickiness keeps the running Engage(A) within margin.
     final EngageBehaviour engage = new EngageBehaviour(() -> new BotSynergyTable(Map.of()));
-    bb.setSelf(new infinity.ai.MoverState(
+    bb.setSelf(new infinity.ai.MoverSnapshot(
         new com.simsilica.mathd.Vec3d(0, 0, 0), new com.simsilica.mathd.Quatd(),
         new com.simsilica.mathd.Vec3d()));
     bb.setSituationalInputs(inputs(1.0, 1.0));

@@ -2,7 +2,7 @@
 // Copyright (c) 2018-2026 Asser Fahrenholz
 package infinity.ai.tactical;
 
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyShip;
 import infinity.ai.PerceptionSnapshot;
 import infinity.ai.brain.Blackboard;
@@ -57,7 +57,7 @@ public final class EngageBehaviour implements Behaviour {
     // planner's stickiness guard (TacticalPlannerImpl: withinMargin) can re-score the
     // running Engage goal when its target stops being the nearest by a hair. Without
     // this the goal silently flips every ~150ms cadence on equidistant threats.
-    final MoverState self = bb.self();
+    final MoverSnapshot self = bb.self();
     final List<NearbyShip> sorted = new ArrayList<>(perception.threats());
     sorted.sort(
         (a, b) ->

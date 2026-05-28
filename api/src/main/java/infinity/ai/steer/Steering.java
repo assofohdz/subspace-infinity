@@ -3,7 +3,7 @@
 package infinity.ai.steer;
 
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.PerceptionSnapshot;
 
 /**
@@ -15,5 +15,5 @@ import infinity.ai.PerceptionSnapshot;
  */
 public interface Steering {
 
-  Vec3d steer(MoverState self, PerceptionSnapshot perception);
+  Vec3d steer(MoverSnapshot self, PerceptionSnapshot perception);
 }

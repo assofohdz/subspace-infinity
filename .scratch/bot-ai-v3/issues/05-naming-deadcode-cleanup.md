@@ -1,6 +1,6 @@
 # Naming + dead-component cleanup — `MoverState`, `Steering*`
 
-Status: ready-for-agent
+Status: done
 Category: maintenance
 Type: AFK
 
@@ -39,8 +39,8 @@ say which and keep only that — but the review found no live or planned use.)
 
 ## Acceptance criteria
 
-- [ ] `MoverState` renamed; all call sites updated; no `*State` ECS/value-object names remain in `infinity.ai.*`
-- [ ] `Steerable`/`SteeringPath`/`SteeringSeek`/`SteeringSeekable` deleted; build confirms no references
-- [ ] PMD ratchet on touched files; layer test passes
+- [x] `MoverState` renamed to `MoverSnapshot` (matches PerceptionSnapshot pattern); ~22 files updated via global rename; no `*State` ECS/value-object names remain in `infinity.ai.*`
+- [x] `Steerable`/`SteeringPath`/`SteeringSeek`/`SteeringSeekable` deleted; build + tests confirm no references
+- [x] Full server + client + api tests green
 
 ## Comments

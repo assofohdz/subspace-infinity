@@ -7,7 +7,7 @@ import static org.junit.Assert.assertEquals;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyShip;
 import infinity.ai.PerceptionSnapshot;
 import infinity.ai.bt.Status;
@@ -37,7 +37,7 @@ public class InAimRangeTest {
             new OrbitTarget(15, 1.0),
             new Evade(0.5, 1.0));
     // Bot at origin facing +Z (identity).
-    blackboard.setSelf(new MoverState(new Vec3d(), new Quatd(), new Vec3d()));
+    blackboard.setSelf(new MoverSnapshot(new Vec3d(), new Quatd(), new Vec3d()));
     blackboard.setPerception(EMPTY);
     condition = new InAimRange(CONE_DEGREES);
   }

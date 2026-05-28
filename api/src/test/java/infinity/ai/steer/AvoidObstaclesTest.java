@@ -9,7 +9,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyObstacle;
 import infinity.ai.PerceptionSnapshot;
 import java.util.List;
@@ -106,8 +106,8 @@ public class AvoidObstaclesTest {
     assertTrue("nearest obstacle (on +X) wins → turn -X", intent.x < 0.0);
   }
 
-  private static MoverState mover(final double x, final double y, final double z) {
-    return new MoverState(new Vec3d(x, y, z), new Quatd(), new Vec3d());
+  private static MoverSnapshot mover(final double x, final double y, final double z) {
+    return new MoverSnapshot(new Vec3d(x, y, z), new Quatd(), new Vec3d());
   }
 
   private static PerceptionSnapshot withObstacles(final NearbyObstacle... obstacles) {

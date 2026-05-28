@@ -7,7 +7,7 @@ import static org.junit.Assert.assertEquals;
 import com.simsilica.es.EntityId;
 import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.NearbyShip;
 import infinity.ai.PerceptionSnapshot;
 import infinity.ai.bt.Behavior;
@@ -32,7 +32,7 @@ public class CombatantBrainGoalDispatchTest {
     root = archetype.createRoot(BotBrainConfig.DEFAULTS);
     bb = archetype.createBlackboard(BotBrainConfig.DEFAULTS);
     // Self at origin facing +Z; high energy so the low-energy reactive override never fires.
-    bb.setSelf(new MoverState(new Vec3d(), new Quatd(), new Vec3d()));
+    bb.setSelf(new MoverSnapshot(new Vec3d(), new Quatd(), new Vec3d()));
     bb.setPerception(PerceptionSnapshot.EMPTY);
     bb.setEnergy(90, 100);
   }

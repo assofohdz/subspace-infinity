@@ -3,7 +3,7 @@
 package infinity.ai.steer;
 
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.field.NavigationFields;
 
 /**
@@ -41,7 +41,7 @@ public final class WallRepulsion {
    * following the route, instead of replacing the route. See {@code SteerToGoalTile}.
    */
   public Vec3d repulsion(
-      final MoverState self, final NavigationFields nav, final int originX, final int originZ) {
+      final MoverSnapshot self, final NavigationFields nav, final int originX, final int originZ) {
     final int cx = (int) Math.floor(self.position().x) - originX;
     final int cz = (int) Math.floor(self.position().z) - originZ;
     double rx = 0.0;
@@ -69,7 +69,7 @@ public final class WallRepulsion {
    * is ahead. On the nav path use {@link #repulsion} blended into the heading instead.
    */
   public Vec3d steer(
-      final MoverState self, final NavigationFields nav, final int originX, final int originZ) {
+      final MoverSnapshot self, final NavigationFields nav, final int originX, final int originZ) {
     final Vec3d desired = repulsion(self, nav, originX, originZ);
     if (desired == null) {
       return null;

@@ -6,4 +6,4 @@ import com.simsilica.mathd.Quatd;
 import com.simsilica.mathd.Vec3d;
 
 /** Kinematic snapshot of a steering subject for one tick. Server-only transient. */
-public record MoverState(Vec3d position, Quatd orientation, Vec3d velocity) {}
+public record MoverSnapshot(Vec3d position, Quatd orientation, Vec3d velocity) {}

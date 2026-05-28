@@ -3,7 +3,7 @@
 package infinity.ai.brain;
 
 import com.simsilica.mathd.Vec3d;
-import infinity.ai.MoverState;
+import infinity.ai.MoverSnapshot;
 import infinity.ai.bt.Action;
 import infinity.ai.bt.Status;
 import infinity.ai.field.BlendedFlow;
@@ -46,7 +46,7 @@ public final class SteerToGoalTile implements Action {
       blackboard.setNavDiag("no-nav");
       return Status.FAILURE;
     }
-    final MoverState self = blackboard.self();
+    final MoverSnapshot self = blackboard.self();
     final int goalX = goal.cellX() - ctx.originCellX();
     final int goalY = goal.cellZ() - ctx.originCellZ();
     final int selfX = (int) Math.floor(self.position().x) - ctx.originCellX();

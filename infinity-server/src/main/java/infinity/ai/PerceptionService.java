@@ -74,7 +74,7 @@ public final class PerceptionService extends BaseInfinitySystem implements Perce
 
   @Override
   public PerceptionSnapshot perceive(
-      final EntityId bot, final MoverState self, final double radius) {
+      final EntityId bot, final MoverSnapshot self, final double radius) {
     final Frequency botFreqComp = this.ed.getComponent(bot, Frequency.class);
     final int botFreq = botFreqComp != null ? botFreqComp.getFrequency() : -1;
 
@@ -96,7 +96,7 @@ public final class PerceptionService extends BaseInfinitySystem implements Perce
    */
   private void classifyBodiesInRadius(
       final EntityId bot,
-      final MoverState self,
+      final MoverSnapshot self,
       final double radius,
       final int botFreq,
       final List<NearbyShip> threats,
@@ -175,7 +175,7 @@ public final class PerceptionService extends BaseInfinitySystem implements Perce
    * forward direction. This makes the raycast immune to orientation pitch / roll drift
    * that would otherwise tilt the ray out of the wall plane over the lookahead distance.
    */
-  private void castForwardWallRay(final MoverState self, final List<NearbyObstacle> obstacles) {
+  private void castForwardWallRay(final MoverSnapshot self, final List<NearbyObstacle> obstacles) {
     final Vec3d forward = self.orientation().mult(Vec3d.UNIT_Z);
     forward.y = 0.0;
     if (forward.lengthSq() < 1e-9) {
